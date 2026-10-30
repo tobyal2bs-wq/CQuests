@@ -45,10 +45,25 @@ public final class QuestBook {
         List<Quest> active = qm.activeQuests(data);
         List<Quest> story = plugin.quests().story();
 
+        // Index pages never mix chapters: each chapter starts on a fresh page with its own heading.
         int perPage = settings.indexPerPage;
-        int indexPages = Math.max(1, (story.size() + perPage - 1) / perPage);
+        List<int[]> slices = new ArrayList<>();
+        int from = 0;
+        while (from < story.size()) {
+            int to = from;
+            // The first page also carries the title and progress bar, so it lists one quest fewer.
+            int limit = slices.isEmpty() ? Math.max(1, perPage - 1) : perPage;
+            while (to < story.size() && to - from < limit && story.get(to).chapter() == story.get(from).chapter()) {
+                to++;
+            }
+            slices.add(new int[]{from, to});
+            from = to;
+        }
+        if (slices.isEmpty()) {
+            slices.add(new int[]{0, 0});
+        }
         int indexStart = active.size() + 1;
-        int sidePage = indexStart + indexPages;
+        int sidePage = indexStart + slices.size();
 
         Map<String, Integer> pageOf = new HashMap<>();
         for (int i = 0; i < active.size(); i++) {
@@ -59,10 +74,8 @@ public final class QuestBook {
         for (Quest quest : active) {
             pages.add(Text.mm(questPage(player, data, quest, indexStart)));
         }
-        for (int page = 0; page < indexPages; page++) {
-            int from = page * perPage;
-            int to = Math.min(story.size(), from + perPage);
-            pages.add(Text.mm(indexPage(data, story, from, to, page == 0, pageOf, sidePage)));
+        for (int i = 0; i < slices.size(); i++) {
+            pages.add(Text.mm(indexPage(data, story, slices.get(i)[0], slices.get(i)[1], i == 0, pageOf, sidePage)));
         }
         pages.add(Text.mm(sidePageText(player, data, pageOf, indexStart)));
 
@@ -116,7 +129,7 @@ public final class QuestBook {
     private String indexPage(PlayerData data, List<Quest> story, int from, int to, boolean first,
                              Map<String, Integer> pageOf, int sidePage) {
         QuestManager qm = plugin.questManager();
-        StringBuilder page = new StringBuilder("<bold>All Quests</bold>\n");
+        StringBuilder page = new StringBuilder();
         if (first) {
             int done = 0;
             for (Quest quest : story) {
@@ -124,9 +137,17 @@ public final class QuestBook {
                     done++;
                 }
             }
-            page.append(progressBar(done, story.size())).append("\n\n");
-        } else {
-            page.append("<dark_gray>").append(from + 1).append('-').append(to).append(" of ").append(story.size()).append("</dark_gray>\n\n");
+            page.append("<bold>All Quests</bold>\n").append(progressBar(done, story.size())).append('\n');
+        }
+        if (from < to) {
+            int chapter = story.get(from).chapter();
+            String name = plugin.quests().chapterName(chapter);
+            page.append(first ? "<dark_gray>" : "<bold>").append("Chapter ").append(chapter)
+                    .append(first ? "" : "</bold>\n<dark_gray>");
+            if (!name.isEmpty()) {
+                page.append(first ? " · " : "").append(Text.escape(name));
+            }
+            page.append("</dark_gray>\n\n");
         }
         for (int i = from; i < to; i++) {
             Quest quest = story.get(i);

@@ -1,5 +1,6 @@
 # Story quests: the linked chain through all 100 villagers, done in order. Finishing the last one plays the ending.
-# big: true plays a celebration. Between chapters players do side quests (quests.side-quests-per-chapter in config.yml).
+# big: true plays a celebration (the last quest of each chapter always does). Between story quests players do
+# side quests for the previous villager (quests.side-quests-per-chapter in config.yml).
 # Side quests and the daily pool are generated from generator.yml.
 #
 # objectives (one per line):
@@ -12,12 +13,21 @@
 # turn-in: who you return to. Defaults to the giver, or the TALK villager if the last objective is TALK.
 # {npc:id}, {player} and {server} are filled in inside text.
 
+# Chapter names, shown in the journal and on the title card when a chapter ends.
+chapters:
+  1: "The Wanderers' Camp"
+  2: "Shadows at the Gate"
+  3: "The Elder's Charge"
+  4: "The Five Keys"
+  5: "The King Wakes"
+
 quests:
   welcome:
     name: "Welcome to {server}"
     level: 0
     order: 0
     giver: ""
+    chapter: 1
     objectives:
       - "TALK stephan"
     description: "Talk to {npc:stephan} just ahead of /spawn."
@@ -32,6 +42,7 @@ quests:
     level: 0
     order: 1
     giver: "stephan"
+    chapter: 1
     requires: [welcome]
     objectives:
       - "TALK jerry"
@@ -50,6 +61,7 @@ quests:
     level: 1
     order: 2
     giver: "jerry"
+    chapter: 1
     requires: [story_stephan]
     objectives:
       - "KILL WOLF 1 wolf"
@@ -69,6 +81,7 @@ quests:
     level: 2
     order: 3
     giver: "steve"
+    chapter: 1
     requires: [story_jerry]
     objectives:
       - "HARVEST WHEAT 16 wheat"
@@ -88,6 +101,7 @@ quests:
     level: 3
     order: 4
     giver: "bob"
+    chapter: 1
     requires: [story_steve]
     objectives:
       - "MINE @COAL 16 coal ore"
@@ -107,6 +121,7 @@ quests:
     level: 4
     order: 5
     giver: "martha"
+    chapter: 1
     requires: [story_bob]
     objectives:
       - "KILL ZOMBIE 5 zombies"
@@ -126,6 +141,7 @@ quests:
     level: 5
     order: 6
     giver: "finn"
+    chapter: 1
     requires: [story_martha]
     objectives:
       - "FISH ANY 5 catches"
@@ -145,6 +161,7 @@ quests:
     level: 6
     order: 7
     giver: "greta"
+    chapter: 1
     requires: [story_finn]
     objectives:
       - "SHEAR SHEEP 6 sheep"
@@ -164,6 +181,7 @@ quests:
     level: 7
     order: 8
     giver: "oliver"
+    chapter: 1
     requires: [story_greta]
     objectives:
       - "DELIVER FEATHER 16 feathers"
@@ -184,6 +202,7 @@ quests:
     level: 8
     order: 9
     giver: "rosie"
+    chapter: 1
     requires: [story_oliver]
     objectives:
       - "DELIVER @COOKED_MEAT 10 cooked meat"
@@ -203,7 +222,7 @@ quests:
     level: 9
     order: 10
     giver: "harold"
-    big: true
+    chapter: 1
     requires: [story_rosie]
     objectives:
       - "DELIVER COBBLESTONE 128 cobblestone"
@@ -223,6 +242,7 @@ quests:
     level: 10
     order: 11
     giver: "nina"
+    chapter: 1
     requires: [story_harold]
     objectives:
       - "KILL SKELETON 8 skeletons"
@@ -242,6 +262,7 @@ quests:
     level: 11
     order: 12
     giver: "walter"
+    chapter: 1
     requires: [story_nina]
     objectives:
       - "DELIVER LEATHER 16 leather"
@@ -261,6 +282,7 @@ quests:
     level: 12
     order: 13
     giver: "ivy"
+    chapter: 1
     requires: [story_walter]
     objectives:
       - "HARVEST CARROTS 24 carrots"
@@ -280,6 +302,7 @@ quests:
     level: 13
     order: 14
     giver: "gus"
+    chapter: 1
     requires: [story_ivy]
     objectives:
       - "FISH SALMON 5 salmon"
@@ -299,6 +322,7 @@ quests:
     level: 14
     order: 15
     giver: "clara"
+    chapter: 1
     requires: [story_gus]
     objectives:
       - "CRAFT BOOK 5 books"
@@ -318,6 +342,7 @@ quests:
     level: 15
     order: 16
     giver: "tom"
+    chapter: 1
     requires: [story_clara]
     objectives:
       - "SMELT IRON_INGOT 16 iron ingots"
@@ -337,6 +362,7 @@ quests:
     level: 16
     order: 17
     giver: "penny"
+    chapter: 1
     requires: [story_tom]
     objectives:
       - "CRAFT MAP 2 maps"
@@ -356,6 +382,7 @@ quests:
     level: 17
     order: 18
     giver: "arthur"
+    chapter: 1
     requires: [story_penny]
     objectives:
       - "CRAFT IRON_SWORD 1 iron sword"
@@ -376,6 +403,7 @@ quests:
     level: 18
     order: 19
     giver: "mabel"
+    chapter: 1
     requires: [story_arthur]
     objectives:
       - "BREED SHEEP 4 sheep"
@@ -395,7 +423,7 @@ quests:
     level: 19
     order: 20
     giver: "dave"
-    big: true
+    chapter: 1
     requires: [story_mabel]
     objectives:
       - "KILL CREEPER 5 creepers"
@@ -415,6 +443,7 @@ quests:
     level: 20
     order: 21
     giver: "lucy"
+    chapter: 2
     requires: [story_dave]
     objectives:
       - "KILL SPIDER 10 spiders"
@@ -435,6 +464,7 @@ quests:
     level: 21
     order: 22
     giver: "benny"
+    chapter: 2
     requires: [story_lucy]
     objectives:
       - "BREED CHICKEN 5 chickens"
@@ -454,6 +484,7 @@ quests:
     level: 22
     order: 23
     giver: "hazel"
+    chapter: 2
     requires: [story_benny]
     objectives:
       - "DELIVER SUGAR_CANE 32 sugar cane"
@@ -473,6 +504,7 @@ quests:
     level: 23
     order: 24
     giver: "frank"
+    chapter: 2
     requires: [story_hazel]
     objectives:
       - "SMELT BRICK 32 bricks"
@@ -492,6 +524,7 @@ quests:
     level: 24
     order: 25
     giver: "edith"
+    chapter: 2
     requires: [story_frank]
     objectives:
       - "KILL ZOMBIE 10 zombies"
@@ -512,6 +545,7 @@ quests:
     level: 25
     order: 26
     giver: "sam"
+    chapter: 2
     requires: [story_edith]
     objectives:
       - "MINE @IRON 24 iron ore"
@@ -531,6 +565,7 @@ quests:
     level: 26
     order: 27
     giver: "molly"
+    chapter: 2
     requires: [story_sam]
     objectives:
       - "DELIVER INK_SAC 8 ink sacs"
@@ -550,6 +585,7 @@ quests:
     level: 27
     order: 28
     giver: "george"
+    chapter: 2
     requires: [story_molly]
     objectives:
       - "CRAFT ARROW 64 arrows"
@@ -569,6 +605,7 @@ quests:
     level: 28
     order: 29
     giver: "daisy"
+    chapter: 2
     requires: [story_george]
     objectives:
       - "MINE PUMPKIN 16 pumpkins"
@@ -588,7 +625,7 @@ quests:
     level: 29
     order: 30
     giver: "ralph"
-    big: true
+    chapter: 2
     requires: [story_daisy]
     objectives:
       - "KILL ZOMBIE 20 zombies"
@@ -608,6 +645,7 @@ quests:
     level: 30
     order: 31
     giver: "agnes"
+    chapter: 2
     requires: [story_ralph]
     objectives:
       - "DELIVER ROTTEN_FLESH 32 rotten flesh"
@@ -627,6 +665,7 @@ quests:
     level: 31
     order: 32
     giver: "leo"
+    chapter: 2
     requires: [story_agnes]
     objectives:
       - "DELIVER IRON_INGOT 24 iron ingots"
@@ -646,6 +685,7 @@ quests:
     level: 32
     order: 33
     giver: "winnie"
+    chapter: 2
     requires: [story_leo]
     objectives:
       - "DELIVER RED_WOOL 8 red wool"
@@ -666,6 +706,7 @@ quests:
     level: 33
     order: 34
     giver: "cecil"
+    chapter: 2
     requires: [story_winnie]
     objectives:
       - "KILL PILLAGER 5 pillagers"
@@ -685,6 +726,7 @@ quests:
     level: 34
     order: 35
     giver: "betty"
+    chapter: 2
     requires: [story_cecil]
     objectives:
       - "DELIVER HONEY_BOTTLE 4 honey bottles"
@@ -704,6 +746,7 @@ quests:
     level: 35
     order: 36
     giver: "otto"
+    chapter: 2
     requires: [story_betty]
     objectives:
       - "MINE DEEPSLATE 128 deepslate"
@@ -723,6 +766,7 @@ quests:
     level: 36
     order: 37
     giver: "june"
+    chapter: 2
     requires: [story_otto]
     objectives:
       - "MINE @LAPIS 8 lapis ore"
@@ -742,6 +786,7 @@ quests:
     level: 37
     order: 38
     giver: "hank"
+    chapter: 2
     requires: [story_june]
     objectives:
       - "SMELT GOLD_INGOT 16 gold ingots"
@@ -761,6 +806,7 @@ quests:
     level: 38
     order: 39
     giver: "fern"
+    chapter: 2
     requires: [story_hank]
     objectives:
       - "MINE MELON 24 melons"
@@ -780,7 +826,7 @@ quests:
     level: 39
     order: 40
     giver: "ned"
-    big: true
+    chapter: 2
     requires: [story_fern]
     objectives:
       - "FISH NAME_TAG|SADDLE|BOW|FISHING_ROD|ENCHANTED_BOOK|NAUTILUS_SHELL 1 treasure"
@@ -800,6 +846,7 @@ quests:
     level: 40
     order: 41
     giver: "iris"
+    chapter: 3
     requires: [story_ned]
     objectives:
       - "KILL WITCH 3 witches"
@@ -819,6 +866,7 @@ quests:
     level: 41
     order: 42
     giver: "percy"
+    chapter: 3
     requires: [story_iris]
     objectives:
       - "MINE @REDSTONE 16 redstone ore"
@@ -838,6 +886,7 @@ quests:
     level: 42
     order: 43
     giver: "doris"
+    chapter: 3
     requires: [story_percy]
     objectives:
       - "TAME HORSE 1 horse"
@@ -857,6 +906,7 @@ quests:
     level: 43
     order: 44
     giver: "albert"
+    chapter: 3
     requires: [story_doris]
     objectives:
       - "CRAFT IRON_CHESTPLATE 1 iron chestplate"
@@ -877,6 +927,7 @@ quests:
     level: 44
     order: 45
     giver: "maggie"
+    chapter: 3
     requires: [story_albert]
     objectives:
       - "TAME WOLF 2 wolves"
@@ -896,6 +947,7 @@ quests:
     level: 45
     order: 46
     giver: "vince"
+    chapter: 3
     requires: [story_maggie]
     objectives:
       - "ENCHANT ANY 3 items"
@@ -915,6 +967,7 @@ quests:
     level: 46
     order: 47
     giver: "ellie"
+    chapter: 3
     requires: [story_vince]
     objectives:
       - "KILL DROWNED 8 drowned"
@@ -934,6 +987,7 @@ quests:
     level: 47
     order: 48
     giver: "rufus"
+    chapter: 3
     requires: [story_ellie]
     objectives:
       - "KILL CREEPER 15 creepers"
@@ -953,6 +1007,7 @@ quests:
     level: 48
     order: 49
     giver: "opal"
+    chapter: 3
     requires: [story_rufus]
     objectives:
       - "MINE @DIAMOND 5 diamond ore"
@@ -972,6 +1027,7 @@ quests:
     level: 49
     order: 50
     giver: "marcus"
+    chapter: 3
     big: true
     requires: [story_opal]
     objectives:
@@ -993,6 +1049,7 @@ quests:
     level: 50
     order: 51
     giver: "wren"
+    chapter: 3
     requires: [story_marcus]
     objectives:
       - "KILL SKELETON 20 skeletons"
@@ -1013,6 +1070,7 @@ quests:
     level: 51
     order: 52
     giver: "silas"
+    chapter: 3
     requires: [story_wren]
     objectives:
       - "MINE OBSIDIAN 14 obsidian"
@@ -1032,6 +1090,7 @@ quests:
     level: 52
     order: 53
     giver: "cora"
+    chapter: 3
     requires: [story_silas]
     objectives:
       - "KILL MAGMA_CUBE 10 magma cubes"
@@ -1051,6 +1110,7 @@ quests:
     level: 53
     order: 54
     giver: "jasper"
+    chapter: 3
     requires: [story_cora]
     objectives:
       - "MINE NETHER_QUARTZ_ORE 48 quartz ore"
@@ -1070,6 +1130,7 @@ quests:
     level: 54
     order: 55
     giver: "nell"
+    chapter: 3
     requires: [story_jasper]
     objectives:
       - "DELIVER NETHER_WART 32 nether wart"
@@ -1089,6 +1150,7 @@ quests:
     level: 55
     order: 56
     giver: "felix"
+    chapter: 3
     requires: [story_nell]
     objectives:
       - "KILL GHAST 3 ghasts"
@@ -1109,6 +1171,7 @@ quests:
     level: 56
     order: 57
     giver: "bea"
+    chapter: 3
     requires: [story_felix]
     objectives:
       - "KILL BLAZE 10 blazes"
@@ -1128,6 +1191,7 @@ quests:
     level: 57
     order: 58
     giver: "roland"
+    chapter: 3
     requires: [story_bea]
     objectives:
       - "KILL WITHER_SKELETON 10 wither skeletons"
@@ -1147,6 +1211,7 @@ quests:
     level: 58
     order: 59
     giver: "tilly"
+    chapter: 3
     requires: [story_roland]
     objectives:
       - "BREED STRIDER 2 striders"
@@ -1166,7 +1231,7 @@ quests:
     level: 59
     order: 60
     giver: "hugo"
-    big: true
+    chapter: 3
     requires: [story_tilly]
     objectives:
       - "DELIVER GOLD_BLOCK 4 gold blocks"
@@ -1186,6 +1251,7 @@ quests:
     level: 60
     order: 61
     giver: "maeve"
+    chapter: 4
     requires: [story_hugo]
     objectives:
       - "CRAFT BREWING_STAND 1 brewing stand"
@@ -1206,6 +1272,7 @@ quests:
     level: 61
     order: 62
     giver: "cyrus"
+    chapter: 4
     requires: [story_maeve]
     objectives:
       - "MINE ANCIENT_DEBRIS 2 ancient debris"
@@ -1225,6 +1292,7 @@ quests:
     level: 62
     order: 63
     giver: "elsie"
+    chapter: 4
     requires: [story_cyrus]
     objectives:
       - "FISH PUFFERFISH 3 pufferfish"
@@ -1244,6 +1312,7 @@ quests:
     level: 63
     order: 64
     giver: "bram"
+    chapter: 4
     requires: [story_elsie]
     objectives:
       - "KILL HOGLIN 6 hoglins"
@@ -1263,6 +1332,7 @@ quests:
     level: 64
     order: 65
     giver: "lottie"
+    chapter: 4
     requires: [story_bram]
     objectives:
       - "DELIVER GLOW_BERRIES 16 glow berries"
@@ -1282,6 +1352,7 @@ quests:
     level: 65
     order: 66
     giver: "orson"
+    chapter: 4
     requires: [story_lottie]
     objectives:
       - "MINE BASALT 64 basalt"
@@ -1301,6 +1372,7 @@ quests:
     level: 66
     order: 67
     giver: "pearl"
+    chapter: 4
     requires: [story_orson]
     objectives:
       - "KILL ENDERMAN 12 endermen"
@@ -1321,6 +1393,7 @@ quests:
     level: 67
     order: 68
     giver: "dex"
+    chapter: 4
     requires: [story_pearl]
     objectives:
       - "KILL PIGLIN_BRUTE 3 piglin brutes"
@@ -1340,6 +1413,7 @@ quests:
     level: 68
     order: 69
     giver: "fiona"
+    chapter: 4
     requires: [story_dex]
     objectives:
       - "KILL HUSK 15 husks"
@@ -1359,7 +1433,7 @@ quests:
     level: 69
     order: 70
     giver: "gideon"
-    big: true
+    chapter: 4
     requires: [story_fiona]
     objectives:
       - "KILL GUARDIAN 10 guardians"
@@ -1379,6 +1453,7 @@ quests:
     level: 70
     order: 71
     giver: "holly"
+    chapter: 4
     big: true
     requires: [story_gideon]
     objectives:
@@ -1399,6 +1474,7 @@ quests:
     level: 71
     order: 72
     giver: "ike"
+    chapter: 4
     requires: [story_holly]
     objectives:
       - "MINE PRISMARINE 64 prismarine"
@@ -1418,6 +1494,7 @@ quests:
     level: 72
     order: 73
     giver: "juno"
+    chapter: 4
     requires: [story_ike]
     objectives:
       - "TAME LLAMA 2 llamas"
@@ -1437,6 +1514,7 @@ quests:
     level: 73
     order: 74
     giver: "kip"
+    chapter: 4
     requires: [story_juno]
     objectives:
       - "CRAFT CAKE 3 cakes"
@@ -1456,6 +1534,7 @@ quests:
     level: 74
     order: 75
     giver: "luna"
+    chapter: 4
     requires: [story_kip]
     objectives:
       - "KILL PHANTOM 8 phantoms"
@@ -1475,6 +1554,7 @@ quests:
     level: 75
     order: 76
     giver: "milo"
+    chapter: 4
     requires: [story_luna]
     objectives:
       - "SMELT COPPER_INGOT 64 copper ingots"
@@ -1494,6 +1574,7 @@ quests:
     level: 76
     order: 77
     giver: "nora"
+    chapter: 4
     requires: [story_milo]
     objectives:
       - "DELIVER SWEET_BERRIES 32 sweet berries"
@@ -1513,6 +1594,8 @@ quests:
     level: 77
     order: 78
     giver: "osric"
+    chapter: 4
+    big: true
     requires: [story_nora]
     objectives:
       - "KILL VINDICATOR 8 vindicators"
@@ -1533,6 +1616,7 @@ quests:
     level: 78
     order: 79
     giver: "poppy"
+    chapter: 4
     requires: [story_osric]
     objectives:
       - "BREED MOOSHROOM 2 mooshrooms"
@@ -1552,7 +1636,7 @@ quests:
     level: 79
     order: 80
     giver: "quill"
-    big: true
+    chapter: 4
     requires: [story_poppy]
     objectives:
       - "MINE SCULK 32 sculk"
@@ -1572,6 +1656,7 @@ quests:
     level: 80
     order: 81
     giver: "reed"
+    chapter: 5
     requires: [story_quill]
     objectives:
       - "DELIVER ECHO_SHARD 4 echo shards"
@@ -1591,6 +1676,7 @@ quests:
     level: 81
     order: 82
     giver: "sage"
+    chapter: 5
     requires: [story_reed]
     objectives:
       - "ENCHANT ANY 10 items"
@@ -1610,6 +1696,7 @@ quests:
     level: 82
     order: 83
     giver: "thea"
+    chapter: 5
     requires: [story_sage]
     objectives:
       - "CRAFT DIAMOND_CHESTPLATE 1 diamond chestplate"
@@ -1629,6 +1716,7 @@ quests:
     level: 83
     order: 84
     giver: "ulric"
+    chapter: 5
     requires: [story_thea]
     objectives:
       - "CRAFT ENDER_EYE 12 eyes of ender"
@@ -1648,6 +1736,7 @@ quests:
     level: 84
     order: 85
     giver: "vera"
+    chapter: 5
     requires: [story_ulric]
     objectives:
       - "KILL SILVERFISH 15 silverfish"
@@ -1667,6 +1756,7 @@ quests:
     level: 85
     order: 86
     giver: "wade"
+    chapter: 5
     big: true
     requires: [story_vera]
     objectives:
@@ -1687,6 +1777,7 @@ quests:
     level: 86
     order: 87
     giver: "xena"
+    chapter: 5
     requires: [story_wade]
     objectives:
       - "KILL SHULKER 10 shulkers"
@@ -1706,6 +1797,7 @@ quests:
     level: 87
     order: 88
     giver: "yara"
+    chapter: 5
     requires: [story_xena]
     objectives:
       - "MINE PURPUR_BLOCK 64 purpur"
@@ -1725,6 +1817,7 @@ quests:
     level: 88
     order: 89
     giver: "zeke"
+    chapter: 5
     requires: [story_yara]
     objectives:
       - "DELIVER CHORUS_FRUIT 32 chorus fruit"
@@ -1744,7 +1837,7 @@ quests:
     level: 89
     order: 90
     giver: "abel"
-    big: true
+    chapter: 5
     requires: [story_zeke]
     objectives:
       - "MINE END_STONE 128 end stone"
@@ -1764,6 +1857,7 @@ quests:
     level: 90
     order: 91
     giver: "bryn"
+    chapter: 5
     requires: [story_abel]
     objectives:
       - "KILL CREEPER 30 creepers"
@@ -1783,6 +1877,7 @@ quests:
     level: 91
     order: 92
     giver: "cass"
+    chapter: 5
     requires: [story_bryn]
     objectives:
       - "DELIVER WITHER_SKELETON_SKULL 3 wither skeleton skulls"
@@ -1802,6 +1897,7 @@ quests:
     level: 92
     order: 93
     giver: "dorian"
+    chapter: 5
     requires: [story_cass]
     objectives:
       - "MINE SOUL_SAND 64 soul sand"
@@ -1821,6 +1917,7 @@ quests:
     level: 93
     order: 94
     giver: "esme"
+    chapter: 5
     requires: [story_dorian]
     objectives:
       - "DELIVER DIAMOND_BLOCK 2 diamond blocks"
@@ -1841,6 +1938,7 @@ quests:
     level: 94
     order: 95
     giver: "ford"
+    chapter: 5
     requires: [story_esme]
     objectives:
       - "CRAFT NETHERITE_INGOT 1 netherite ingot"
@@ -1860,6 +1958,7 @@ quests:
     level: 95
     order: 96
     giver: "gwen"
+    chapter: 5
     requires: [story_ford]
     objectives:
       - "KILL WITHER_SKELETON 25 wither skeletons"
@@ -1879,6 +1978,7 @@ quests:
     level: 96
     order: 97
     giver: "horace"
+    chapter: 5
     requires: [story_gwen]
     objectives:
       - "DELIVER TOTEM_OF_UNDYING 1 totem of undying"
@@ -1898,6 +1998,7 @@ quests:
     level: 97
     order: 98
     giver: "iona"
+    chapter: 5
     requires: [story_horace]
     objectives:
       - "KILL BLAZE 25 blazes"
@@ -1918,6 +2019,7 @@ quests:
     level: 98
     order: 99
     giver: "aldis"
+    chapter: 5
     big: true
     requires: [story_iona]
     objectives:
@@ -1939,7 +2041,7 @@ quests:
     level: 99
     order: 100
     giver: "aldric"
-    big: true
+    chapter: 5
     requires: [story_aldis]
     objectives:
       - "TALK stephan"

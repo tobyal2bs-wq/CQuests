@@ -73,6 +73,7 @@ public final class SpawnManager {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("points");
         if (root == null) {
+            plugin.shield().rebuild();
             return;
         }
         for (String id : root.getKeys(false)) {
@@ -82,9 +83,11 @@ public final class SpawnManager {
                         s.getDouble("x"), s.getDouble("y"), s.getDouble("z"), (float) s.getDouble("yaw")));
             }
         }
+        plugin.shield().rebuild();
     }
 
     public synchronized void save() {
+        plugin.shield().rebuild();
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.options().setHeader(List.of(
                 "Where each NPC stands. Edit with /cq npc place, /cq scatter or by hand, then /cq reload."));
@@ -112,7 +115,7 @@ public final class SpawnManager {
         if (plugin.settings().autoPlace) {
             autoPlace();
         }
-        long period = plugin.settings().respawnSeconds * 20L;
+        long period = plugin.settings().checkSeconds * 20L;
         ticker = Sched.globalTimer(t -> tick(), 40, period);
     }
 
@@ -137,14 +140,29 @@ public final class SpawnManager {
         }
     }
 
-    /** Runs on the region thread that owns {@code loc}. */
+    /**
+     * Runs on the region thread that owns {@code loc}. A villager only exists while a player is within
+     * spawning.player-range of it; with nobody around it is removed, so idle villagers cost nothing.
+     */
     private void ensure(NpcDef npc, Location loc) {
         World world = loc.getWorld();
+        Villager current = live.get(npc.id());
+        boolean alive = current != null && current.isValid();
+        if (current != null && !alive) {
+            live.remove(npc.id(), current);
+        }
         if (!world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
             return;
         }
-        Villager current = live.get(npc.id());
-        if (current != null && current.isValid()) {
+        double range = plugin.settings().spawnRange;
+        // A little extra range before despawning stops villagers flickering at the edge.
+        boolean playerNear = !loc.getNearbyPlayers(alive ? range + 16 : range).isEmpty();
+        if (alive && !playerNear) {
+            live.remove(npc.id(), current);
+            current.remove();
+            return;
+        }
+        if (alive || !playerNear) {
             return;
         }
         Consumer<Villager> setup = v -> configure(v, npc, loc);

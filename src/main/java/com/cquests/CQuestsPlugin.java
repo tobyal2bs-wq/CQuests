@@ -8,7 +8,9 @@ import com.cquests.dialogue.DialogueManager;
 import com.cquests.finale.Finale;
 import com.cquests.listener.NpcListener;
 import com.cquests.listener.ProgressListener;
+import com.cquests.listener.ShieldListener;
 import com.cquests.npc.NpcRegistry;
+import com.cquests.npc.NpcShield;
 import com.cquests.npc.NpcTag;
 import com.cquests.npc.SpawnManager;
 import com.cquests.npc.VisibilityManager;
@@ -35,6 +37,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     private DialogueManager dialogue;
     private QuestBook book;
     private Finale finale;
+    private NpcShield shield;
     private ScheduledTask autosave;
 
     @Override
@@ -55,6 +58,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         dialogue = new DialogueManager(this);
         book = new QuestBook(this);
         finale = new Finale(this);
+        shield = new NpcShield(this);
 
         loadData();
         Platform.init();
@@ -62,6 +66,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new NpcListener(this), this);
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
+        getServer().getPluginManager().registerEvents(new ShieldListener(this), this);
         register("quests", new QuestsCommand(this));
         register("cquests", new AdminCommand(this));
 
@@ -144,5 +149,9 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     public Finale finale() {
         return finale;
+    }
+
+    public NpcShield shield() {
+        return shield;
     }
 }

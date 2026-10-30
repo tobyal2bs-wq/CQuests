@@ -185,6 +185,9 @@ public final class QuestGenerator {
         TypeTemplate firstType = null;
         Target firstTarget = null;
         int firstAmount = 0;
+        // How much work the quest is: each objective counts as its share of that target's top amount,
+        // weighted up for targets that only unlock at higher levels. Rewards follow this number.
+        double effort = 0;
         for (int attempt = 0; attempt < 20 && objectives.size() < objectiveCount; attempt++) {
             TypeTemplate type = pickType(rnd, level);
             if (type == null) {
@@ -200,6 +203,7 @@ public final class QuestGenerator {
             String npc = type.type() == ObjectiveType.DELIVER ? giver.id() : "";
             objectives.add(new Objective(type.type(), TargetMatcher.parse(target.spec(), settings.groups), amount, npc,
                     amount == 1 ? target.singular() : target.plural()));
+            effort += amount / (double) Math.max(1, target.max()) * (1 + target.minLevel() / 100.0);
             if (firstType == null) {
                 firstType = type;
                 firstTarget = target;
@@ -222,16 +226,27 @@ public final class QuestGenerator {
         if (fixedMoney >= 0) {
             money = fixedMoney;
         } else {
-            double factor = objectiveCount == 1 ? 1.0 : objectiveCount == 2 ? 1.4 : 1.8;
-            long raw = tier.minMoney() + (long) (rnd.nextDouble() * (tier.maxMoney() - tier.minMoney()));
-            money = Math.max(50, Math.round(raw * factor * ramp / 50.0) * 50);
-            if (!tier.items().isEmpty() && rnd.nextDouble() < itemChance) {
+            // Bigger, longer quests pay more: the tier's range is spread over effort, then each extra objective adds 35%.
+            double share = Math.min(1.0, effort / 1.5);
+            double raw = tier.minMoney() + share * (tier.maxMoney() - tier.minMoney());
+            raw *= (1 + 0.35 * (objectives.size() - 1)) * (0.92 + rnd.nextDouble() * 0.16);
+            money = Math.max(50, Math.round(raw / 50.0) * 50);
+            if (!tier.items().isEmpty() && rnd.nextDouble() < itemChance * Math.min(1.5, 0.5 + effort)) {
                 items.add(tier.items().get(rnd.nextInt(tier.items().size())));
+                if (effort > 1.5) {
+                    RewardItem bonus = tier.items().get(rnd.nextInt(tier.items().size()));
+                    RewardItem first = items.get(0);
+                    if (bonus.material() == first.material()) {
+                        items.set(0, new RewardItem(first.material(), first.amount() + bonus.amount()));
+                    } else {
+                        items.add(bonus);
+                    }
+                }
             }
         }
         List<String> complete = List.of(pick(thanks, rnd, "Thank you."));
         return new Quest(id, name, level, category, order, giver.id(), giver.id(), requires, List.copyOf(objectives),
-                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.of(), 0), false);
+                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.of(), 0), false, 0);
     }
 
     private TypeTemplate pickType(Random rnd, int level) {

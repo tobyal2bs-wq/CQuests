@@ -138,6 +138,7 @@ public final class NpcListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         plugin.dialogue().forget(event.getPlayer());
+        plugin.shield().forget(event.getPlayer());
         plugin.store().unload(event.getPlayer().getUniqueId());
     }
 }

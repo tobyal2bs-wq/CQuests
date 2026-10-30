@@ -44,6 +44,7 @@ public final class QuestRegistry {
     private NpcRegistry npcs;
     private final Map<String, List<Quest>> storyByGiver = new HashMap<>();
     private final List<Quest> dailyPool = new ArrayList<>();
+    private final Map<Integer, String> chapterNames = new HashMap<>();
 
     public void load(File questsFile, File generatorFile, Settings settings, NpcRegistry npcs, Logger log) {
         byId.clear();
@@ -56,7 +57,18 @@ public final class QuestRegistry {
         storyByGiver.clear();
         dailyPool.clear();
 
+        chapterNames.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(questsFile);
+        ConfigurationSection chapters = yaml.getConfigurationSection("chapters");
+        if (chapters != null) {
+            for (String key : chapters.getKeys(false)) {
+                try {
+                    chapterNames.put(Integer.parseInt(key), chapters.getString(key, ""));
+                } catch (NumberFormatException e) {
+                    log.warning("quests.yml: chapter keys must be numbers, got '" + key + "'");
+                }
+            }
+        }
         ConfigurationSection root = yaml.getConfigurationSection("quests");
         int order = 0;
         if (root != null) {
@@ -141,7 +153,8 @@ public final class QuestRegistry {
                 s.getStringList("offer"),
                 s.getStringList("complete"),
                 parseReward(s.getConfigurationSection("rewards")),
-                s.getBoolean("big", false));
+                s.getBoolean("big", false),
+                category == QuestCategory.STORY ? Math.max(1, s.getInt("chapter", 1)) : 0);
     }
 
     /**
@@ -308,5 +321,24 @@ public final class QuestRegistry {
 
     public List<Quest> dailyPool() {
         return dailyPool;
+    }
+
+    public String chapterName(int chapter) {
+        return chapterNames.getOrDefault(chapter, "");
+    }
+
+    /** The story quest after this one, or null for the last. */
+    public Quest nextStory(Quest quest) {
+        int index = story.indexOf(quest);
+        return index < 0 || index + 1 >= story.size() ? null : story.get(index + 1);
+    }
+
+    /** True for the last quest of a chapter (the next story quest starts a new chapter). */
+    public boolean endsChapter(Quest quest) {
+        if (quest.category() != QuestCategory.STORY) {
+            return false;
+        }
+        Quest next = nextStory(quest);
+        return next != null && next.chapter() != quest.chapter();
     }
 }

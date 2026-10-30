@@ -8,6 +8,7 @@ import java.util.List;
  * @param order      position in the story chain or in the giver's side quest list
  * @param description MiniMessage text shown in the journal under the title
  * @param big        plays the big celebration (title, fireworks) on completion
+ * @param chapter    story chapter number (1-5 by default); 0 for side and daily quests
  */
 public record Quest(
         String id,
@@ -23,7 +24,8 @@ public record Quest(
         List<String> offer,
         List<String> complete,
         Reward reward,
-        boolean big
+        boolean big,
+        int chapter
 ) {
 
     public boolean autoComplete() {

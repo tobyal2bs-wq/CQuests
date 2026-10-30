@@ -70,16 +70,36 @@ public final class Finale {
     // ------------------------------------------------------------------ big quest celebration
 
     public void celebrate(Player player, Quest quest) {
-        if (!plugin.settings().celebrateBigQuests) {
-            return;
+        if (plugin.settings().celebrateBigQuests) {
+            celebrate(player, "<gold><bold>Quest Complete</bold></gold>", "<yellow>" + Text.escape(quest.name()));
         }
-        player.showTitle(title("<gold><bold>Chapter Complete</bold></gold>", "<yellow>" + Text.escape(quest.name()), 3000));
+    }
+
+    private void celebrate(Player player, String main, String sub) {
+        player.showTitle(title(main, sub, 3000));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.8f);
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
         player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 80, 0.6, 1, 0.6, 0.35);
         for (int i = 0; i < 3; i++) {
             int n = i;
             Sched.entityLater(player, 1 + i * 12L, () -> firework(player.getLocation().add(Math.cos(n * 2.1) * 2.5, 1, Math.sin(n * 2.1) * 2.5), n));
+        }
+    }
+
+    /** End of a chapter: celebration, then the next chapter's title card. */
+    public void chapterComplete(Player player, Quest last, Quest next) {
+        if (!plugin.settings().celebrateBigQuests) {
+            return;
+        }
+        String name = plugin.quests().chapterName(last.chapter());
+        celebrate(player, "<gold><bold>Chapter " + last.chapter() + " Complete</bold></gold>",
+                "<yellow>" + Text.escape(name.isEmpty() ? last.name() : name));
+        if (next != null) {
+            String nextName = plugin.quests().chapterName(next.chapter());
+            Sched.entityLater(player, 90, () -> {
+                player.showTitle(title("<white>Chapter " + next.chapter(), "<gold>" + Text.escape(nextName), 3500));
+                player.playSound(player.getLocation(), Sound.BLOCK_BELL_USE, 1f, 0.8f);
+            });
         }
     }
 
@@ -236,7 +256,7 @@ public final class Finale {
             Location focus = world == null ? fallback : new Location(world, entry.x(), entry.y(), entry.z());
             Quest quest = plugin.quests().get(entry.questId());
             String name = quest == null ? entry.questId() : Text.escape(quest.name());
-            int chapter = quest == null ? 0 : quest.order();
+            int chapter = quest == null ? 0 : quest.chapter();
             NpcDef npc = quest == null ? null : plugin.npcs().get(quest.giver());
             StringBuilder subtitle = new StringBuilder("Chapter " + chapter);
             if (npc != null) {

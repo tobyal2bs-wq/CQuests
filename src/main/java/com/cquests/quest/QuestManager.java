@@ -495,6 +495,8 @@ public final class QuestManager {
         plugin.visibility().refresh(player);
         if (isFinalQuest(quest)) {
             plugin.finale().play(player);
+        } else if (quests().endsChapter(quest)) {
+            plugin.finale().chapterComplete(player, quest, quests().nextStory(quest));
         } else if (quest.big()) {
             plugin.finale().celebrate(player, quest);
         }

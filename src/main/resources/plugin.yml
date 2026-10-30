@@ -22,3 +22,6 @@ permissions:
   cquests.admin:
     description: Manage CQuests NPCs, spawns and player data.
     default: op
+  cquests.bypass:
+    description: Build and fight inside the protected area around villagers.
+    default: op

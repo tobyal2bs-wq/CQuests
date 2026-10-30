@@ -61,10 +61,20 @@ spawning:
   # Act 1 (the 15 spawn villagers) and act 2 (the wilds) rings around spawn, in blocks: [min, max].
   act1-ring: [5, 22]
   act2-ring: [30, 90]
-  # How often missing villagers are re-created at their point.
-  respawn-check-seconds: 10
+  # A villager only exists while a player is within this many blocks of it. With nobody around
+  # it is removed, so 100 villagers cost nothing on an empty map.
+  player-range: 100
+  # How often villagers are spawned/removed based on player range.
+  check-seconds: 3
   # Villagers turn to face whoever clicks them.
   look-at-player: true
+
+shield:
+  # Blocks around each villager's spot where nobody can build, break, use buckets, blow things up or PvP.
+  # Stops players walling villagers in or camping others at them. cquests.bypass ignores it.
+  radius: 6
+  block-building: true
+  block-pvp: true
 
 book:
   title: "Quest Journal"
@@ -101,4 +111,5 @@ messages:
   npc-too-many: "You've got your hands full. Finish one of your side quests first."
   npc-daily-cooldown: "Come back in <time> and I'll have another job for you."
   npc-chapter-gate: "{npc:<gate>} still needs your help. Do <left> more jobs for them first."
+  shield: "<aqua>✦ This villager's area is protected."
   journey-finished: "<gold>★ <white><player></white> finished the journey and freed the Hollow King!"

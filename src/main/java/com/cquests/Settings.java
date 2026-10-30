@@ -35,8 +35,13 @@ public final class Settings {
     public final double act1Max;
     public final double act2Min;
     public final double act2Max;
-    public final long respawnSeconds;
+    public final long checkSeconds;
     public final boolean lookAtPlayer;
+
+    public final double spawnRange;
+    public final double shieldRadius;
+    public final boolean shieldBuild;
+    public final boolean shieldPvp;
 
     public final String bookTitle;
     public final String bookAuthor;
@@ -80,8 +85,13 @@ public final class Settings {
         act1Max = ring1.size() == 2 ? ring1.get(1) : 22;
         act2Min = ring2.size() == 2 ? ring2.get(0) : 26;
         act2Max = ring2.size() == 2 ? ring2.get(1) : 40;
-        respawnSeconds = Math.max(2, c.getLong("spawning.respawn-check-seconds", 10));
+        checkSeconds = Math.max(1, c.getLong("spawning.check-seconds", 3));
         lookAtPlayer = c.getBoolean("spawning.look-at-player", true);
+
+        spawnRange = Math.max(16, c.getDouble("spawning.player-range", 100));
+        shieldRadius = Math.max(0, c.getDouble("shield.radius", 6));
+        shieldBuild = c.getBoolean("shield.block-building", true);
+        shieldPvp = c.getBoolean("shield.block-pvp", true);
 
         bookTitle = c.getString("book.title", "Quest Journal");
         bookAuthor = c.getString("book.author", "The Wanderers");
