@@ -178,6 +178,62 @@ public final class QuestGenerator {
         return from + (to - from) * t;
     }
 
+    private Quest build(String id, QuestCategory category, int order, NpcDef giver, int level, int objectiveCount,
+                        double ramp, List<String> requires, Random rnd, double itemChance, long fixedMoney) {
+        List<Objective> objectives = new ArrayList<>();
+        Set<String> usedSpecs = new HashSet<>();
+        TypeTemplate firstType = null;
+        Target firstTarget = null;
+        int firstAmount = 0;
+        for (int attempt = 0; attempt < 20 && objectives.size() < objectiveCount; attempt++) {
+            TypeTemplate type = pickType(rnd, level);
+            if (type == null) {
+                break;
+            }
+            List<Target> allowed = type.targets().stream().filter(t -> t.minLevel() <= level).toList();
+            Target target = allowed.get(rnd.nextInt(allowed.size()));
+            if (!usedSpecs.add(type.type() + ":" + target.spec())) {
+                continue;
+            }
+            double scale = objectiveCount == 1 ? 1.0 : 0.7;
+            int amount = amountFor(target, level, ramp * scale, rnd);
+            String npc = type.type() == ObjectiveType.DELIVER ? giver.id() : "";
+            objectives.add(new Objective(type.type(), TargetMatcher.parse(target.spec(), settings.groups), amount, npc,
+                    amount == 1 ? target.singular() : target.plural()));
+            if (firstType == null) {
+                firstType = type;
+                firstTarget = target;
+                firstAmount = amount;
+            }
+        }
+        if (objectives.isEmpty()) {
+            return null;
+        }
+
+        String name = fill(pick(firstType.names(), rnd, "{Singular} Task"), firstTarget, firstAmount, giver);
+        if (!places.isEmpty() && rnd.nextDouble() < cfg.getDouble("place-chance", 0.6)) {
+            name = name + " " + places.get(rnd.nextInt(places.size()));
+        }
+        String description = fill(pick(firstType.flavor(), rnd, "{npc} needs a hand."), firstTarget, firstAmount, giver);
+
+        Tier tier = tierFor(level);
+        long money;
+        List<RewardItem> items = new ArrayList<>();
+        if (fixedMoney >= 0) {
+            money = fixedMoney;
+        } else {
+            double factor = objectiveCount == 1 ? 1.0 : objectiveCount == 2 ? 1.4 : 1.8;
+            long raw = tier.minMoney() + (long) (rnd.nextDouble() * (tier.maxMoney() - tier.minMoney()));
+            money = Math.max(50, Math.round(raw * factor * ramp / 50.0) * 50);
+            if (!tier.items().isEmpty() && rnd.nextDouble() < itemChance) {
+                items.add(tier.items().get(rnd.nextInt(tier.items().size())));
+            }
+        }
+        List<String> complete = List.of(pick(thanks, rnd, "Thank you."));
+        return new Quest(id, name, level, category, order, giver.id(), giver.id(), requires, List.copyOf(objectives),
+                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.of(), 0), false);
+    }
+
     private TypeTemplate pickType(Random rnd, int level) {
         int total = 0;
         for (TypeTemplate type : types) {
