@@ -38,7 +38,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          # Newer Minecraft needs a newer Java; the plugin itself is built for Java 21.
+          java-version: 25
       - uses: actions/download-artifact@v4
         with:
           name: CQuests
