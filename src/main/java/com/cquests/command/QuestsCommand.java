@@ -36,11 +36,13 @@ public final class QuestsCommand implements TabExecutor {
         switch (sub) {
             case "accept" -> {
                 if (!plugin.dialogue().acceptPending(player)) {
-                    plugin.send(player, "<red>There is no quest offer waiting. Click a villager first.");
+                    plugin.send(player, plugin.settings().msg("no-offer", "<red>There is no quest offer waiting. Click a villager first."));
                 }
             }
             case "book" -> plugin.book().open(player);
-            case "track" -> plugin.send(player, plugin.tracker().toggle(player) ? "<gray>Quest tracker <green>on</green>." : "<gray>Quest tracker <red>off</red>.");
+            case "track" -> plugin.send(player, plugin.tracker().toggle(player)
+                    ? plugin.settings().msg("tracker-on", "<gray>Quest tracker <green>on</green>.")
+                    : plugin.settings().msg("tracker-off", "<gray>Quest tracker <red>off</red>."));
             case "story" -> story(player);
             case "list" -> list(player);
             case "abandon" -> abandon(player, args);
@@ -52,7 +54,7 @@ public final class QuestsCommand implements TabExecutor {
     private void story(Player player) {
         List<Quest> story = plugin.quests().story();
         if (story.isEmpty() || !plugin.questManager().data(player).isCompleted(story.get(story.size() - 1).id())) {
-            plugin.send(player, "<gray>Your story book is written when you finish the journey.");
+            plugin.send(player, plugin.settings().msg("story-locked", "<gray>Your story book is written when you finish the journey."));
             return;
         }
         StoryBook.open(plugin, player);
@@ -94,7 +96,7 @@ public final class QuestsCommand implements TabExecutor {
             plugin.send(player, "<red>Story quests can't be abandoned.");
             return;
         }
-        plugin.send(player, "<gray>Abandoned <white>" + Text.escape(quest.name()) + "</white>.");
+        plugin.send(player, plugin.settings().msg("abandoned", "<gray>Abandoned <white><quest></white>.").replace("<quest>", Text.escape(quest.name())));
     }
 
     @Override

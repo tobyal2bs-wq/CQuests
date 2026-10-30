@@ -87,7 +87,8 @@ Clicking villagers and doing quests needs no permission.
 
 | File | |
 |---|---|
-| `config.yml` | Prefix, money command, ranges, shield, rewards rules, messages |
+| `config.yml` | How it behaves: money command, ranges, shield, reward rules |
+| `messages.yml` | Every text players see: prefix, name tags, villager chat, messages |
 | `npcs.yml` | Every villager: name, title, profession, villager type, baby, player skin, lines |
 | `quests.yml` | Chapters and the story quests |
 | `generator.yml` | How side and daily quests are made, reward tiers and effects |

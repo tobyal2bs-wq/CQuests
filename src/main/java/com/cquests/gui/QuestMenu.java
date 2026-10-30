@@ -48,7 +48,7 @@ public final class QuestMenu implements InventoryHolder {
     private QuestMenu(CQuestsPlugin plugin, Player player) {
         this.plugin = plugin;
         this.player = player;
-        this.inventory = Bukkit.createInventory(this, 54, Text.mm("<dark_gray>Quest Journal"));
+        this.inventory = Bukkit.createInventory(this, 54, Text.mm(plugin.settings().msg("menu-title", "<dark_gray>Quest Journal")));
     }
 
     public static void open(CQuestsPlugin plugin, Player player) {
@@ -244,7 +244,7 @@ public final class QuestMenu implements InventoryHolder {
             }
             if (type == ClickType.SHIFT_RIGHT && quest.category() != QuestCategory.STORY) {
                 if (plugin.questManager().abandon(player, quest)) {
-                    plugin.send(player, "<gray>Abandoned <white>" + Text.escape(quest.name()) + "</white>.");
+                    plugin.send(player, plugin.settings().msg("abandoned", "<gray>Abandoned <white><quest></white>.").replace("<quest>", Text.escape(quest.name())));
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.7f, 1f);
                 }
             } else {

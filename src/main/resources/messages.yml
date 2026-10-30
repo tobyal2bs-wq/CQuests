@@ -1,0 +1,60 @@
+# ===================================================================
+#  CQuests messages
+# ===================================================================
+#  Every bit of text players see. Colours use MiniMessage:
+#  https://docs.advntr.dev/minimessage/format.html
+#
+#  Placeholders:
+#    <quest>   quest name          <npc>     villager, as written by formats.npc-mention
+#    <player>  player name         <time>    time left, like "3h 20m"
+#    {player}  player name inside villager speech
+#    {npc:id}  a villager by its id from npcs.yml
+#
+#  The groups below only keep the file tidy; you can't rename the keys.
+#  After editing, run /cq reload.
+# ===================================================================
+
+# Put in front of every plugin message (not in front of villager speech).
+prefix: "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> "
+
+formats:
+  # Name tag above an NPC. <name>, <level> and <title> are filled in.
+  npc-name: "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"
+  # A line a villager says. Only the player talking to it sees it. <name> and <text>.
+  npc-chat: "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>"
+  # How a villager is written inside quest text, the menu and the journal.
+  npc-mention: "<blue>Villager <name></blue>"
+
+# Quest progress, sent with the prefix.
+quest:
+  quest-accepted: "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to see it."
+  quest-ready: "<green>✔ <white><bold><quest></bold></white> is done! Return to <npc>."
+  quest-complete: "<gold>★ Quest complete: <white><bold><quest></bold></white>"
+  delivered: "<gray>You hand over <white><amount> <item></white>. <yellow>(<have>/<need>)"
+  accept-prompt: "<yellow>Click the villager again to accept."
+  abandoned: "<gray>Abandoned <white><quest></white>."
+  no-offer: "<red>There is no quest offer waiting. Click a villager first."
+
+# Said by the villager itself, in the npc-chat format.
+villager:
+  npc-locked: "I'm not ready for you yet, {player}."
+  npc-too-many: "You've got your hands full. Finish one of your side quests first."
+  npc-daily-cooldown: "Come back in <time> and I'll have another job for you."
+  npc-chapter-gate: "{npc:<gate>} still needs your help. Do <left> more jobs for them first."
+
+# The /quests menu and the boss bar tracker.
+menu:
+  menu-title: "<dark_gray>Quest Journal"
+  tracker-on: "<gray>Quest tracker <green>on</green>."
+  tracker-off: "<gray>Quest tracker <red>off</red>."
+
+# The end of the journey.
+ending:
+  story-locked: "<gray>Your story book is written when you finish the journey."
+  story-received: "<gold>You received <white><bold>Your Story</bold></white>, the book of your journey."
+  # Sent to the whole server, once per player.
+  journey-finished: "<gold>★ <white><player></white> finished the journey and freed the Hollow King!"
+
+# Protection around villagers.
+shield:
+  shield: "<aqua>✦ This villager's area is protected."

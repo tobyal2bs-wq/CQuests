@@ -67,9 +67,18 @@ public final class Settings {
     public final Map<String, List<String>> groups;
     private final Map<String, String> messages;
 
+    /** Reads settings and messages from one file (old layout, and the tests). */
     public Settings(FileConfiguration c) {
+        this(c, c);
+    }
+
+    /**
+     * @param c config.yml
+     * @param m messages.yml. Its groups only organise the file: every message is looked up by its own key.
+     */
+    public Settings(FileConfiguration c, ConfigurationSection m) {
         serverName = c.getString("server-name", "our server");
-        prefix = c.getString("prefix", "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> ");
+        prefix = m.getString("prefix", c.getString("prefix", "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> "));
         countSpawnerMobs = c.getBoolean("quests.count-spawner-mobs", false);
         blockedItems = new HashSet<>();
         for (String item : c.getStringList("rewards.blocked-items")) {
@@ -80,9 +89,9 @@ public final class Settings {
         }
         netheriteMinLevel = c.getInt("rewards.netherite-min-level", 85);
         moneyCommand = c.getString("money-command", "eco give %player% %amount%");
-        npcNameFormat = c.getString("npc.name-format", "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>");
-        npcChatFormat = c.getString("npc.chat-format", "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>");
-        npcMentionFormat = c.getString("npc.mention-format", "<blue>Villager <name></blue>");
+        npcNameFormat = m.getString("formats.npc-name", c.getString("npc.name-format", "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"));
+        npcChatFormat = m.getString("formats.npc-chat", c.getString("npc.chat-format", "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>"));
+        npcMentionFormat = m.getString("formats.npc-mention", c.getString("npc.mention-format", "<blue>Villager <name></blue>"));
 
         lineDelayTicks = Math.max(1, c.getLong("dialogue.line-delay-ticks", 35));
         acceptTimeoutMillis = c.getLong("dialogue.accept-timeout-seconds", 60) * 1000L;
@@ -135,10 +144,15 @@ public final class Settings {
             }
         }
         messages = new HashMap<>();
-        ConfigurationSection m = c.getConfigurationSection("messages");
-        if (m != null) {
-            for (String key : m.getKeys(false)) {
-                messages.put(key, m.getString(key, ""));
+        ConfigurationSection old = c.getConfigurationSection("messages");
+        if (old != null) {
+            for (String key : old.getKeys(false)) {
+                messages.put(key, old.getString(key, ""));
+            }
+        }
+        for (String path : m.getKeys(true)) {
+            if (m.isString(path) && path.contains(".") && !path.startsWith("formats.") && !path.startsWith("messages.")) {
+                messages.put(path.substring(path.lastIndexOf('.') + 1), m.getString(path, ""));
             }
         }
     }

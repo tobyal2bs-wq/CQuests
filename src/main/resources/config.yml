@@ -1,29 +1,28 @@
-# CQuests config. Text uses MiniMessage: https://docs.advntr.dev/minimessage/format.html
-# After editing, run /cq reload.
+# ===================================================================
+#  CQuests config
+# ===================================================================
+#  How the plugin behaves. Text players see is in messages.yml,
+#  villagers in npcs.yml, the story in quests.yml and side quests in
+#  generator.yml. After editing, run /cq reload.
+# ===================================================================
 
 # Shown in quest text as {server}.
 server-name: ColorGens
 
-# Put in front of every plugin message. Villager speech uses npc.chat-format instead.
-prefix: "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> "
+# All text players see (prefix, villager name tags, chat lines, messages) lives in messages.yml.
 
+# ----------------------------------------------------------- ECONOMY
 # Console command that pays money rewards. %player% and %amount% are filled in.
 money-command: "eco give %player% %amount%"
 
-npc:
-  # Name tag above the villager. <name>, <level> and <title> are filled in.
-  name-format: "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"
-  # How a villager's lines look in chat. Only the player talking to it sees them.
-  chat-format: "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>"
-  # How a villager is written inside quest text and the journal ({npc:id}).
-  mention-format: "<blue>Villager <name></blue>"
-
+# ----------------------------------------------------------- TALKING TO VILLAGERS
 dialogue:
   # Pause between lines a villager says (20 ticks = 1 second).
   line-delay-ticks: 35
   # How long a quest offer waits for the second click or [Accept].
   accept-timeout-seconds: 60
 
+# ----------------------------------------------------------- QUEST RULES
 quests:
   # Side quests a player can hold at once (story and daily quests don't count).
   max-active-side: 3
@@ -37,16 +36,19 @@ quests:
   # in quests.yml has no side-required of its own. Quests added later (chapter 6 and on) use this.
   side-quests-per-chapter: 10
 
+# ----------------------------------------------------------- REWARDS
 rewards:
   # Never given out, even if a quest lists them.
   blocked-items: [ELYTRA, DRAGON_EGG, ENCHANTED_GOLDEN_APPLE, TOTEM_OF_UNDYING, BEACON, NETHER_STAR]
   # Netherite items are only given by quests of at least this level.
   netherite-min-level: 85
 
+# ----------------------------------------------------------- MENU AND TRACKER
 tracker:
   # The boss bar at the top of the screen that follows one quest. Players can still turn it off.
   enabled: true
 
+# ----------------------------------------------------------- ANIMATIONS
 celebrations:
   # Animation, fireworks and music when a quest marked big: true or a chapter is finished.
   big-quests: true
@@ -61,12 +63,14 @@ finale:
     title: "Finished the Journey"
     description: "Free the Hollow King and bring the Wanderers home"
 
+# ----------------------------------------------------------- DAILY QUEST
 daily:
   # NPC id from npcs.yml that gives the daily quest.
   npc: marigold
   cooldown-hours: 24
   money: 10000
 
+# ----------------------------------------------------------- VILLAGER SPAWNING
 spawning:
   # NPCs without a spot in spawns.yml are placed around the world spawn on startup.
   # Move them with /cq npc place <id> or /cq scatter.
@@ -87,6 +91,7 @@ spawning:
   # NPCs turn to face whoever clicks them.
   look-at-player: true
 
+# ----------------------------------------------------------- PROTECTION
 shield:
   # Blocks around each NPC where nobody can build, break, use buckets, blow things up or PvP.
   # Only players given cquests.bypass ignore it.
@@ -94,6 +99,7 @@ shield:
   block-building: true
   block-pvp: true
 
+# ----------------------------------------------------------- JOURNAL BOOK
 book:
   title: "Quest Journal"
   author: "The Wanderers"
@@ -101,6 +107,7 @@ book:
   quests-per-index-page: 8
   progress-bar-length: 18
 
+# ----------------------------------------------------------- TARGET GROUPS
 # Groups usable as a target with @NAME, for example "MINE @LOGS 32 logs".
 groups:
   LOGS: ["*_LOG", "*_STEM"]
@@ -118,17 +125,3 @@ groups:
   COOKED_MEAT: [COOKED_BEEF, COOKED_PORKCHOP, COOKED_CHICKEN, COOKED_MUTTON, COOKED_RABBIT]
   FLOWERS: [DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY]
   SAPLINGS: ["*_SAPLING", MANGROVE_PROPAGULE]
-
-# Messages. The prefix above is added in front of each, except villager speech (npc-*).
-messages:
-  quest-accepted: "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to see it."
-  quest-ready: "<green>✔ <white><bold><quest></bold></white> is done! Return to <npc>."
-  quest-complete: "<gold>★ Quest complete: <white><bold><quest></bold></white>"
-  delivered: "<gray>You hand over <white><amount> <item></white>. <yellow>(<have>/<need>)"
-  accept-prompt: "<yellow>Click the villager again to accept."
-  npc-locked: "I'm not ready for you yet, {player}."
-  npc-too-many: "You've got your hands full. Finish one of your side quests first."
-  npc-daily-cooldown: "Come back in <time> and I'll have another job for you."
-  npc-chapter-gate: "{npc:<gate>} still needs your help. Do <left> more jobs for them first."
-  shield: "<aqua>✦ This villager's area is protected."
-  journey-finished: "<gold>★ <white><player></white> finished the journey and freed the Hollow King!"

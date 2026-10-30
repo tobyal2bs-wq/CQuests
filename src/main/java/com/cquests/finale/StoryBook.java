@@ -47,7 +47,7 @@ public final class StoryBook {
         book.setItemMeta(meta);
         player.getInventory().addItem(book).values()
                 .forEach(left -> player.getWorld().dropItem(player.getLocation(), left));
-        plugin.send(player, "<gold>You received <white><bold>Your Story</bold></white>, the book of your journey.");
+        plugin.send(player, plugin.settings().msg("story-received", "<gold>You received <white><bold>Your Story</bold></white>, the book of your journey."));
     }
 
     /** Opens the same book without giving an item, for /quests story. */

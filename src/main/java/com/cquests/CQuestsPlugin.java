@@ -25,6 +25,7 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -50,7 +51,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         Sched.init(this);
         NpcTag.init(this);
         saveDefaultConfig();
-        for (String resource : new String[]{"npcs.yml", "quests.yml", "generator.yml"}) {
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
@@ -103,7 +104,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     private void loadData() {
         reloadConfig();
-        settings = new Settings(getConfig());
+        settings = new Settings(getConfig(), YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml")));
         npcs.load(new File(getDataFolder(), "npcs.yml"), settings, getLogger());
         quests.load(new File(getDataFolder(), "quests.yml"), new File(getDataFolder(), "generator.yml"), settings, npcs, getLogger());
     }

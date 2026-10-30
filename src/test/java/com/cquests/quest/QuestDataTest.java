@@ -61,7 +61,8 @@ class QuestDataTest {
             public void close() {
             }
         });
-        settings = new Settings(YamlConfiguration.loadConfiguration(new File(RESOURCES, "config.yml")));
+        settings = new Settings(YamlConfiguration.loadConfiguration(new File(RESOURCES, "config.yml")),
+                YamlConfiguration.loadConfiguration(new File(RESOURCES, "messages.yml")));
         npcs = new NpcRegistry();
         npcs.load(new File(RESOURCES, "npcs.yml"), settings, log);
         quests = new QuestRegistry();
@@ -149,6 +150,14 @@ class QuestDataTest {
             late += quests.side(npc.id(), 5000 + i).reward().money();
         }
         assertTrue(late > early, "late quests should pay more on average (" + early + " vs " + late + ")");
+    }
+
+    @Test
+    void messagesFileIsRead() {
+        assertTrue(settings.prefix.contains("QUESTS"));
+        assertTrue(settings.npcNameFormat.startsWith("<white>"), "villager names are white");
+        assertFalse(settings.msg("quest-accepted", "").isEmpty());
+        assertFalse(settings.msg("npc-chapter-gate", "").isEmpty());
     }
 
     @Test
