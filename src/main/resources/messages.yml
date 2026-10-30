@@ -35,6 +35,19 @@ quest:
   abandoned: "<gray>Abandoned <white><quest></white>."
   no-offer: "<red>There is no quest offer waiting. Click a villager first."
 
+# Shown once to brand new players, without the prefix. "" turns it off.
+welcome:
+  first-join: |-
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+     <#8fd3ff><bold>Welcome to {server}!</bold></#8fd3ff>
+     <white>The villagers around spawn need your help.</white>
+     <gray>» Click a villager with a <white>white name</white> to talk.
+     <gray>» Click again to accept their quest.
+     <gray>» Type <yellow>/quests</yellow> to see your quests.
+     <gray>» The bar at the top shows what to do next.
+     <white>Start by talking to {npc:stephan}.</white>
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+
 # Said by the villager itself, in the npc-chat format.
 villager:
   npc-locked: "I'm not ready for you yet, {player}."

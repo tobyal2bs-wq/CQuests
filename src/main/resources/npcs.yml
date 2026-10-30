@@ -62,28 +62,12 @@ npcs:
       - "He hunts, I grow. Somebody has to."
     idle:
       - "Never trust a farmer with clean boots."
-  bob:
-    name: "B.O.B"
-    title: "the Discord Bot"
-    profession: NITWIT
-    skin: PLAINS
-    level: 3
-    act: 1
-    intro:
-      - "BEEP BOOP. Hello {player}. I am B.O.B, the official {server} Discord bot."
-      - "Somebody typed !spawn in the wrong channel and now I have legs."
-      - "I have read four million chat messages. I have never touched a single block."
-    idle:
-      - "Error 404: quest not found. Try again later."
-      - "Have you tried turning your sword off and on again?"
-      - "I muted three people today. New personal record."
-      - "Do not tell the admins I can walk."
   martha:
     name: "Martha"
     title: "the Watchful"
     profession: FARMER
     skin: PLAINS
-    level: 4
+    level: 3
     act: 1
     intro:
       - "You're the new one. I'm Martha."
@@ -95,7 +79,7 @@ npcs:
     title: "the Angler"
     profession: FISHERMAN
     skin: PLAINS
-    level: 5
+    level: 4
     act: 1
     intro:
       - "Finn's the name. Fish is the game."
@@ -107,7 +91,7 @@ npcs:
     title: "the Shepherd"
     profession: SHEPHERD
     skin: PLAINS
-    level: 6
+    level: 5
     act: 1
     intro:
       - "Greta. I keep the flock."
@@ -119,7 +103,7 @@ npcs:
     title: "the Fletcher"
     profession: FLETCHER
     skin: PLAINS
-    level: 7
+    level: 6
     act: 1
     intro:
       - "I'm Oliver. I make the arrows that keep this camp safe."
@@ -131,7 +115,7 @@ npcs:
     title: "the Cook"
     profession: BUTCHER
     skin: PLAINS
-    level: 8
+    level: 7
     act: 1
     intro:
       - "Rosie! I run the cookpot."
@@ -143,7 +127,7 @@ npcs:
     title: "the Mason"
     profession: MASON
     skin: PLAINS
-    level: 9
+    level: 8
     act: 1
     intro:
       - "Harold. I build walls."
@@ -155,7 +139,7 @@ npcs:
     title: "the Healer"
     profession: CLERIC
     skin: PLAINS
-    level: 10
+    level: 9
     act: 1
     intro:
       - "I'm Nina. I patch people up."
@@ -167,7 +151,7 @@ npcs:
     title: "the Tanner"
     profession: LEATHERWORKER
     skin: PLAINS
-    level: 11
+    level: 10
     act: 1
     intro:
       - "Walter. Leatherworker."
@@ -179,7 +163,7 @@ npcs:
     title: "the Gardener"
     profession: FARMER
     skin: PLAINS
-    level: 12
+    level: 11
     act: 1
     intro:
       - "Hello! I'm Ivy."
@@ -191,7 +175,7 @@ npcs:
     title: "the Old Salt"
     profession: FISHERMAN
     skin: PLAINS
-    level: 13
+    level: 12
     act: 1
     intro:
       - "Gus. Been fishing since before you were born."
@@ -203,9 +187,8 @@ npcs:
     title: "the Scribe"
     profession: LIBRARIAN
     skin: PLAINS
-    level: 14
-    act: 2
-    personal: true
+    level: 13
+    act: 1
     intro:
       - "I'm Clara. I write things down."
       - "Someone has to remember what happened to Aldmere."
@@ -216,7 +199,7 @@ npcs:
     title: "the Armorer"
     profession: ARMORER
     skin: PLAINS
-    level: 15
+    level: 14
     act: 2
     personal: true
     intro:
@@ -229,7 +212,7 @@ npcs:
     title: "the Mapmaker"
     profession: CARTOGRAPHER
     skin: PLAINS
-    level: 16
+    level: 15
     act: 2
     personal: true
     intro:
@@ -242,7 +225,7 @@ npcs:
     title: "the Swordsmith"
     profession: WEAPONSMITH
     skin: PLAINS
-    level: 17
+    level: 16
     act: 2
     personal: true
     intro:
@@ -255,7 +238,7 @@ npcs:
     title: "the Herder"
     profession: SHEPHERD
     skin: PLAINS
-    level: 18
+    level: 17
     act: 2
     personal: true
     intro:
@@ -268,7 +251,7 @@ npcs:
     title: "the Night Guard"
     profession: BUTCHER
     skin: PLAINS
-    level: 19
+    level: 18
     act: 2
     personal: true
     intro:
@@ -281,7 +264,7 @@ npcs:
     title: "the Weaver"
     profession: CLERIC
     skin: PLAINS
-    level: 20
+    level: 19
     act: 2
     personal: true
     intro:
@@ -294,7 +277,7 @@ npcs:
     title: "the Hopeless"
     profession: NITWIT
     skin: PLAINS
-    level: 21
+    level: 20
     act: 2
     baby: true
     personal: true
@@ -308,7 +291,7 @@ npcs:
     title: "the Sweet Tooth"
     profession: FARMER
     skin: PLAINS
-    level: 22
+    level: 21
     act: 2
     personal: true
     intro:
@@ -321,7 +304,7 @@ npcs:
     title: "the Brickmaker"
     profession: MASON
     skin: PLAINS
-    level: 23
+    level: 22
     act: 2
     personal: true
     intro:
@@ -334,7 +317,7 @@ npcs:
     title: "the Archivist"
     profession: LIBRARIAN
     skin: PLAINS
-    level: 24
+    level: 23
     act: 2
     personal: true
     intro:
@@ -342,6 +325,23 @@ npcs:
       - "I saved only a few books when we fled. The dead have the rest."
     idle:
       - "Knowledge is the only treasure that grows when shared."
+  bob:
+    name: "B.O.B"
+    title: "the Discord Bot"
+    profession: NITWIT
+    skin: PLAINS
+    level: 24
+    act: 2
+    personal: true
+    intro:
+      - "BEEP BOOP. Hello {player}. I am B.O.B, the official {server} Discord bot."
+      - "Somebody typed !spawn in the wrong channel and now I have legs."
+      - "I have read four million chat messages. I have never touched a single block."
+    idle:
+      - "Error 404: quest not found. Try again later."
+      - "Have you tried turning your sword off and on again?"
+      - "I muted three people today. New personal record."
+      - "Do not tell the admins I can walk."
   sam:
     name: "Sam"
     title: "the Delver"
@@ -893,7 +893,7 @@ npcs:
     idle:
       - "Don't stare. They hate that."
   dex:
-    name: "Dex"
+    name: "Dexter"
     title: "the Bastion Raider"
     profession: WEAPONSMITH
     skin: SAVANNA
@@ -901,7 +901,7 @@ npcs:
     act: 2
     personal: true
     intro:
-      - "Dex. I raid bastions."
+      - "Dexter. I raid bastions."
       - "Piglin brutes guard the third key. They don't take gold."
     idle:
       - "Bastions are full of gold and bad tempers."
@@ -945,7 +945,7 @@ npcs:
     idle:
       - "The sea gives, and the sea takes."
   ike:
-    name: "Ike"
+    name: "Isaac"
     title: "the Builder of the Deep"
     profession: FISHERMAN
     skin: PLAINS
@@ -953,7 +953,7 @@ npcs:
     act: 2
     personal: true
     intro:
-      - "Ike. I build under water."
+      - "Isaac. I build under water."
       - "We need a sea wall to protect the fourth key."
     idle:
       - "Hold your breath. Longer. Longer."
@@ -1142,7 +1142,7 @@ npcs:
     idle:
       - "Break the crystals first. Always the crystals first."
   xena:
-    name: "Xena"
+    name: "Rowena"
     title: "the Shulker Slayer"
     profession: WEAPONSMITH
     skin: PLAINS
@@ -1150,7 +1150,7 @@ npcs:
     act: 2
     personal: true
     intro:
-      - "Xena. The End cities are mine."
+      - "Rowena. The End cities are mine."
       - "Shulkers guard the King's treasures."
     idle:
       - "Bring a bucket of water. And slow falling."
@@ -1168,7 +1168,7 @@ npcs:
     idle:
       - "Purple. Everything is purple here."
   zeke:
-    name: "Zeke"
+    name: "Ezra"
     title: "the Chorus Singer"
     profession: TOOLSMITH
     skin: PLAINS
@@ -1176,7 +1176,7 @@ npcs:
     act: 2
     personal: true
     intro:
-      - "Zeke. I grow chorus."
+      - "Ezra. I grow chorus."
       - "Chorus fruit teleports you. The King used it to flee."
     idle:
       - "Eat one. See where you end up."
@@ -1207,7 +1207,7 @@ npcs:
     idle:
       - "Lightning makes them glow. Run if they glow."
   cass:
-    name: "Cass"
+    name: "Cassia"
     title: "the Skull Keeper"
     profession: CLERIC
     skin: SAVANNA
@@ -1215,7 +1215,7 @@ npcs:
     act: 2
     personal: true
     intro:
-      - "Cass. I keep skulls."
+      - "Cassia. I keep skulls."
       - "Three wither skulls can summon the King's vessel."
     idle:
       - "Skulls don't scare me. The living do."
@@ -1246,7 +1246,7 @@ npcs:
     idle:
       - "A key is just a promise that a door will open."
   ford:
-    name: "Ford"
+    name: "Godfrey"
     title: "the Netherite Smith"
     profession: WEAPONSMITH
     skin: DESERT
@@ -1254,7 +1254,7 @@ npcs:
     act: 2
     personal: true
     intro:
-      - "Ford. I forge netherite."
+      - "Godfrey. I forge netherite."
       - "The King can only be harmed by netherite."
     idle:
       - "Netherite doesn't burn. Neither does my beard."

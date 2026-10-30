@@ -277,7 +277,11 @@ public final class QuestManager {
         if (welcome == null || data.isCompleted(welcome.id()) || data.isActive(welcome.id())) {
             return;
         }
-        accept(player, welcome);
+        String tip = settings().msg("first-join", "");
+        if (accept(player, welcome) && !tip.isBlank()) {
+            // A short how to play for brand new players.
+            player.sendMessage(Text.mm(fill(tip, player)));
+        }
     }
 
     public boolean abandon(Player player, Quest quest) {

@@ -64,7 +64,7 @@ quests:
     order: 2
     giver: "jerry"
     chapter: 1
-    side-required: 5
+    side-required: 0
     requires: [story_stephan]
     objectives:
       - "KILL WOLF 1 wolf"
@@ -85,7 +85,7 @@ quests:
     order: 3
     giver: "steve"
     chapter: 1
-    side-required: 5
+    side-required: 0
     requires: [story_jerry]
     objectives:
       - "HARVEST WHEAT 16 wheat"
@@ -95,42 +95,19 @@ quests:
       - "Harvest some for me? Only the ripe stuff, mind."
     complete:
       - "Perfect, golden and ready for the mill."
-      - "Go and see {npc:bob} next. They could use you."
+      - "Go and see {npc:martha} next. They could use you."
     rewards:
       money: 350
       items:
         - "IRON_INGOT 2"
-  story_bob:
-    name: "Touch Grass"
-    level: 3
-    order: 4
-    giver: "bob"
-    chapter: 1
-    side-required: 5
-    requires: [story_steve]
-    objectives:
-      - "PLACE DIRT 1000 dirt"
-    description: "Place 1000 dirt blocks so {npc:bob} the Discord bot can finally touch grass."
-    offer:
-      - "The members keep telling me to go touch grass."
-      - "I could not find grass. I found DIRT. Place 1000 dirt blocks so I can study it."
-      - "Please do not ping me while you work. I get notifications in my legs."
-    complete:
-      - "ANALYSIS COMPLETE. Dirt is brown. Grass is dirt wearing a hat."
-      - "I am giving you the Cool People role. It does not exist yet. I will make it."
-      - "Go and see {npc:martha} next. They could use you."
-    rewards:
-      money: 400
-      items:
-        - "COOKED_BEEF 6"
   story_martha:
     name: "Scarecrow Watch"
-    level: 4
-    order: 5
+    level: 3
+    order: 4
     giver: "martha"
     chapter: 1
-    side-required: 2
-    requires: [story_bob]
+    side-required: 0
+    requires: [story_steve]
     objectives:
       - "KILL ZOMBIE 5 zombies"
     description: "Stand guard over the fields at night and stop the zombies."
@@ -143,14 +120,14 @@ quests:
     rewards:
       money: 400
       items:
-        - "APPLE 6"
+        - "COOKED_BEEF 6"
   story_finn:
     name: "Wet and Wild"
-    level: 5
-    order: 6
+    level: 4
+    order: 5
     giver: "finn"
     chapter: 1
-    side-required: 5
+    side-required: 0
     requires: [story_martha]
     objectives:
       - "FISH ANY 5 catches"
@@ -164,11 +141,11 @@ quests:
     rewards:
       money: 400
       items:
-        - "BREAD 8"
+        - "APPLE 6"
   story_greta:
     name: "Wool Gathering"
-    level: 6
-    order: 7
+    level: 5
+    order: 6
     giver: "greta"
     chapter: 1
     side-required: 5
@@ -183,13 +160,13 @@ quests:
       - "Soft as a cloud. Thank you, dear."
       - "Go and see {npc:oliver} next. They could use you."
     rewards:
-      money: 450
+      money: 400
       items:
-        - "TORCH 16"
+        - "BREAD 8"
   story_oliver:
     name: "Feathers and Flint"
-    level: 7
-    order: 8
+    level: 6
+    order: 7
     giver: "oliver"
     chapter: 1
     side-required: 5
@@ -205,13 +182,13 @@ quests:
       - "Now we're armed. The watch will be glad."
       - "Go and see {npc:rosie} next. They could use you."
     rewards:
-      money: 500
+      money: 450
       items:
-        - "IRON_INGOT 2"
+        - "TORCH 16"
   story_rosie:
     name: "Supper Time"
-    level: 8
-    order: 9
+    level: 7
+    order: 8
     giver: "rosie"
     chapter: 1
     side-required: 5
@@ -228,14 +205,14 @@ quests:
     rewards:
       money: 500
       items:
-        - "COOKED_BEEF 6"
+        - "IRON_INGOT 2"
   story_harold:
     name: "Cobble Together"
-    level: 9
-    order: 10
+    level: 8
+    order: 9
     giver: "harold"
     chapter: 1
-    side-required: 2
+    side-required: 5
     requires: [story_rosie]
     objectives:
       - "DELIVER COBBLESTONE 128 cobblestone"
@@ -249,14 +226,14 @@ quests:
     rewards:
       money: 500
       items:
-        - "APPLE 6"
+        - "COOKED_BEEF 6"
   story_nina:
     name: "Bone Collector"
-    level: 10
-    order: 11
+    level: 9
+    order: 10
     giver: "nina"
     chapter: 1
-    side-required: 5
+    side-required: 2
     requires: [story_harold]
     objectives:
       - "KILL SKELETON 8 skeletons"
@@ -268,13 +245,13 @@ quests:
       - "No new patients today. Thank you."
       - "Go and see {npc:walter} next. They could use you."
     rewards:
-      money: 550
+      money: 500
       items:
-        - "IRON_INGOT 4"
+        - "APPLE 6"
   story_walter:
     name: "Tanner's Request"
-    level: 11
-    order: 12
+    level: 10
+    order: 11
     giver: "walter"
     chapter: 1
     side-required: 5
@@ -289,13 +266,13 @@ quests:
       - "Good hides. The camp thanks your feet."
       - "Go and see {npc:ivy} next. They could use you."
     rewards:
-      money: 600
+      money: 550
       items:
-        - "GOLD_INGOT 3"
+        - "IRON_INGOT 4"
   story_ivy:
     name: "Seeds of Hope"
-    level: 12
-    order: 13
+    level: 11
+    order: 12
     giver: "ivy"
     chapter: 1
     side-required: 5
@@ -312,11 +289,11 @@ quests:
     rewards:
       money: 600
       items:
-        - "ARROW 32"
+        - "GOLD_INGOT 3"
   story_gus:
     name: "The Big One"
-    level: 13
-    order: 14
+    level: 12
+    order: 13
     giver: "gus"
     chapter: 1
     side-required: 5
@@ -333,14 +310,14 @@ quests:
     rewards:
       money: 600
       items:
-        - "BAKED_POTATO 12"
+        - "ARROW 32"
   story_clara:
     name: "Paper Trail"
-    level: 14
-    order: 15
+    level: 13
+    order: 14
     giver: "clara"
     chapter: 1
-    side-required: 2
+    side-required: 5
     requires: [story_gus]
     objectives:
       - "CRAFT BOOK 5 books"
@@ -352,16 +329,16 @@ quests:
       - "Wonderful. The story continues."
       - "Go and see {npc:tom} next. They could use you."
     rewards:
-      money: 650
+      money: 600
       items:
-        - "LANTERN 4"
+        - "BAKED_POTATO 12"
   story_tom:
     name: "Iron Will"
-    level: 15
-    order: 16
+    level: 14
+    order: 15
     giver: "tom"
     chapter: 1
-    side-required: 5
+    side-required: 2
     requires: [story_clara]
     objectives:
       - "SMELT IRON_INGOT 16 iron ingots"
@@ -373,13 +350,13 @@ quests:
       - "Good clean iron. The watch gets helmets."
       - "Go and see {npc:penny} next. They could use you."
     rewards:
-      money: 700
+      money: 650
       items:
-        - "IRON_INGOT 4"
+        - "LANTERN 4"
   story_penny:
     name: "Lay of the Land"
-    level: 16
-    order: 17
+    level: 15
+    order: 16
     giver: "penny"
     chapter: 1
     side-required: 5
@@ -396,11 +373,11 @@ quests:
     rewards:
       money: 700
       items:
-        - "GOLD_INGOT 3"
+        - "IRON_INGOT 4"
   story_arthur:
     name: "Sharp Lessons"
-    level: 17
-    order: 18
+    level: 16
+    order: 17
     giver: "arthur"
     chapter: 1
     side-required: 5
@@ -418,11 +395,11 @@ quests:
     rewards:
       money: 700
       items:
-        - "ARROW 32"
+        - "GOLD_INGOT 3"
   story_mabel:
     name: "Counting Sheep"
-    level: 18
-    order: 19
+    level: 17
+    order: 18
     giver: "mabel"
     chapter: 1
     side-required: 5
@@ -437,16 +414,16 @@ quests:
       - "Look at the little ones! Thank you."
       - "Go and see {npc:dave} next. They could use you."
     rewards:
-      money: 750
+      money: 700
       items:
-        - "BAKED_POTATO 12"
+        - "ARROW 32"
   story_dave:
     name: "The Night Shift"
-    level: 19
-    order: 20
+    level: 18
+    order: 19
     giver: "dave"
     chapter: 1
-    side-required: 2
+    side-required: 5
     requires: [story_mabel]
     objectives:
       - "KILL CREEPER 5 creepers"
@@ -458,16 +435,16 @@ quests:
       - "Still got all my eyebrows. Good night's work."
       - "Go and see {npc:lucy} next. They could use you."
     rewards:
-      money: 800
+      money: 750
       items:
-        - "LANTERN 4"
+        - "BAKED_POTATO 12"
   story_lucy:
     name: "Spider Silk"
-    level: 20
-    order: 21
+    level: 19
+    order: 20
     giver: "lucy"
-    chapter: 2
-    side-required: 20
+    chapter: 1
+    side-required: 2
     requires: [story_dave]
     objectives:
       - "KILL SPIDER 10 spiders"
@@ -482,14 +459,14 @@ quests:
     rewards:
       money: 800
       items:
-        - "IRON_INGOT 8"
+        - "LANTERN 4"
   story_benny:
     name: "Benny's Blunder"
-    level: 21
-    order: 22
+    level: 20
+    order: 21
     giver: "benny"
     chapter: 2
-    side-required: 6
+    side-required: 20
     requires: [story_lucy]
     objectives:
       - "BREED CHICKEN 5 chickens"
@@ -503,11 +480,11 @@ quests:
     rewards:
       money: 800
       items:
-        - "GOLD_INGOT 6"
+        - "IRON_INGOT 8"
   story_hazel:
     name: "Sweet Tooth"
-    level: 22
-    order: 23
+    level: 21
+    order: 22
     giver: "hazel"
     chapter: 2
     side-required: 6
@@ -522,13 +499,13 @@ quests:
       - "Sweet! Cake for everyone tonight."
       - "Go and see {npc:frank} next. They could use you."
     rewards:
-      money: 850
+      money: 800
       items:
-        - "EMERALD 3"
+        - "GOLD_INGOT 6"
   story_frank:
     name: "Bricklayer"
-    level: 23
-    order: 24
+    level: 22
+    order: 23
     giver: "frank"
     chapter: 2
     side-required: 6
@@ -543,16 +520,16 @@ quests:
       - "Beautiful. Harold's going to be so jealous."
       - "Go and see {npc:edith} next. They could use you."
     rewards:
-      money: 900
+      money: 850
       items:
-        - "EXPERIENCE_BOTTLE 8"
+        - "EMERALD 3"
   story_edith:
     name: "Old Pages"
-    level: 24
-    order: 25
+    level: 23
+    order: 24
     giver: "edith"
     chapter: 2
-    side-required: 2
+    side-required: 6
     requires: [story_frank]
     objectives:
       - "KILL ZOMBIE 10 zombies"
@@ -563,6 +540,29 @@ quests:
       - "We must rebuild what we lost."
     complete:
       - "The archive grows again. Thank you."
+      - "Go and see {npc:bob} next. They could use you."
+    rewards:
+      money: 900
+      items:
+        - "EXPERIENCE_BOTTLE 8"
+  story_bob:
+    name: "Touch Grass"
+    level: 24
+    order: 25
+    giver: "bob"
+    chapter: 2
+    side-required: 2
+    requires: [story_edith]
+    objectives:
+      - "PLACE DIRT 1000 dirt"
+    description: "Place 1000 dirt blocks so {npc:bob} the Discord bot can finally touch grass."
+    offer:
+      - "The members keep telling me to go touch grass."
+      - "I could not find grass. I found DIRT. Place 1000 dirt blocks so I can study it."
+      - "Please do not ping me while you work. I get notifications in my legs."
+    complete:
+      - "ANALYSIS COMPLETE. Dirt is brown. Grass is dirt wearing a hat."
+      - "I am giving you the Cool People role. It does not exist yet. I will make it."
       - "Go and see {npc:sam} next. They could use you."
     rewards:
       money: 900
@@ -575,7 +575,7 @@ quests:
     giver: "sam"
     chapter: 2
     side-required: 6
-    requires: [story_edith]
+    requires: [story_bob]
     objectives:
       - "MINE @IRON 24 iron ore"
     description: "Mine iron ore for {npc:sam}."
@@ -1471,7 +1471,7 @@ quests:
     description: "Defeat piglin brutes in a bastion for {npc:dex}."
     offer:
       - "Defeat three piglin brutes."
-      - "Diplomacy, Dex style."
+      - "Diplomacy, Dexter style."
     complete:
       - "Diplomacy complete. The third key is ours."
       - "Go and see {npc:fiona} next. They could use you."

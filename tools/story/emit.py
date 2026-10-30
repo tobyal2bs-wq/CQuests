@@ -29,8 +29,8 @@ SKINNED = {"cecil": "default", "ned": "default", "wade": "default", "aldric": "d
 
 def side_required(i):
     """Side quests for the previous villager before story quest i opens. Chapter openers are the big walls."""
-    if i == 0:
-        return 0
+    if i < 5:
+        return 0  # the first steps are a tutorial: straight from villager to villager
     if i % 20 == 0:
         return 20
     if i % 5 == 4:
