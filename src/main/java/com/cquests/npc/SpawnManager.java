@@ -14,29 +14,37 @@ import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Villager;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
- * Keeps one villager alive at every saved spawn point. Villagers are not saved with the chunk;
- * they are re-created whenever their chunk is loaded, so moving a point or deleting one is clean.
+ * Keeps one NPC at every saved spawn point while a player is near. NPCs are never saved with the
+ * chunk; they are created when someone comes within range and removed when everyone leaves.
+ * Points that were scattered inside an area wander to a new spot in it every so often, so nobody
+ * can camp a villager.
  */
 public final class SpawnManager {
 
-    public record Point(String world, double x, double y, double z, float yaw) {
-        static Point of(Location loc) {
-            return new Point(loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw());
+    /** @param area the box the NPC roams in ({minX, minY, minZ, maxX, maxY, maxZ}), or null to stay put */
+    public record Point(String world, double x, double y, double z, float yaw, int[] area) {
+        static Point of(Location loc, int[] area) {
+            return new Point(loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), area);
         }
 
         public Location location() {
@@ -50,15 +58,23 @@ public final class SpawnManager {
     private final CQuestsPlugin plugin;
     private final File file;
     private final Map<String, Point> points = new ConcurrentHashMap<>();
-    private final Map<String, Villager> live = new ConcurrentHashMap<>();
+    private final Map<String, LivingEntity> live = new ConcurrentHashMap<>();
+    private final Map<String, Long> nextRoam = new ConcurrentHashMap<>();
     private ScheduledTask ticker;
+    private EntityType mannequinType;
 
     public SpawnManager(CQuestsPlugin plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "spawns.yml");
+        try {
+            // Player-shaped NPCs with skins exist from Minecraft 1.21.9; older servers fall back to villagers.
+            mannequinType = EntityType.valueOf("MANNEQUIN");
+        } catch (IllegalArgumentException e) {
+            mannequinType = null;
+        }
     }
 
-    public Map<String, Villager> live() {
+    public Map<String, LivingEntity> live() {
         return live;
     }
 
@@ -72,15 +88,16 @@ public final class SpawnManager {
         points.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("points");
-        if (root == null) {
-            plugin.shield().rebuild();
-            return;
-        }
-        for (String id : root.getKeys(false)) {
-            ConfigurationSection s = root.getConfigurationSection(id);
-            if (s != null) {
+        if (root != null) {
+            for (String id : root.getKeys(false)) {
+                ConfigurationSection s = root.getConfigurationSection(id);
+                if (s == null) {
+                    continue;
+                }
+                List<Integer> area = s.getIntegerList("area");
                 points.put(id.toLowerCase(Locale.ROOT), new Point(s.getString("world", "world"),
-                        s.getDouble("x"), s.getDouble("y"), s.getDouble("z"), (float) s.getDouble("yaw")));
+                        s.getDouble("x"), s.getDouble("y"), s.getDouble("z"), (float) s.getDouble("yaw"),
+                        area.size() == 6 ? area.stream().mapToInt(Integer::intValue).toArray() : null));
             }
         }
         plugin.shield().rebuild();
@@ -90,7 +107,8 @@ public final class SpawnManager {
         plugin.shield().rebuild();
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.options().setHeader(List.of(
-                "Where each NPC stands. Edit with /cq npc place, /cq scatter or by hand, then /cq reload."));
+                "Where each NPC stands. Edit with /cq npc place, /cq scatter or by hand, then /cq reload.",
+                "An 'area' makes the NPC wander inside that box every spawning.roam-minutes."));
         for (Map.Entry<String, Point> e : points.entrySet()) {
             String path = "points." + e.getKey();
             Point p = e.getValue();
@@ -99,6 +117,13 @@ public final class SpawnManager {
             yaml.set(path + ".y", round(p.y()));
             yaml.set(path + ".z", round(p.z()));
             yaml.set(path + ".yaw", Math.round(p.yaw()));
+            if (p.area() != null) {
+                List<Integer> area = new ArrayList<>();
+                for (int v : p.area()) {
+                    area.add(v);
+                }
+                yaml.set(path + ".area", area);
+            }
         }
         try {
             yaml.save(file);
@@ -124,29 +149,53 @@ public final class SpawnManager {
             ticker.cancel();
             ticker = null;
         }
-        for (Villager villager : live.values()) {
-            Sched.entity(villager, villager::remove);
+        for (LivingEntity entity : live.values()) {
+            Sched.entity(entity, entity::remove);
         }
         live.clear();
     }
 
     private void tick() {
+        long now = System.currentTimeMillis();
+        long roamMillis = plugin.settings().roamMinutes * 60_000L;
+        boolean changed = false;
         for (Map.Entry<String, Point> e : points.entrySet()) {
             NpcDef npc = plugin.npcs().get(e.getKey());
-            Location loc = e.getValue().location();
-            if (npc != null && loc != null) {
-                Sched.at(loc, () -> ensure(npc, loc));
+            Point point = e.getValue();
+            Location loc = point.location();
+            if (npc == null || loc == null) {
+                continue;
             }
+            if (point.area() != null && roamMillis > 0) {
+                long due = nextRoam.computeIfAbsent(npc.id(), k -> now + jitter(roamMillis));
+                if (now >= due) {
+                    nextRoam.put(npc.id(), now + jitter(roamMillis));
+                    roam(npc, point);
+                    changed = true;
+                    continue;
+                }
+            }
+            Sched.at(loc, () -> ensure(npc, point, loc));
+        }
+        if (changed) {
+            Sched.async(this::save);
         }
     }
 
+    private static long jitter(long base) {
+        return base + ThreadLocalRandom.current().nextLong(Math.max(1, base / 2));
+    }
+
     /**
-     * Runs on the region thread that owns {@code loc}. A villager only exists while a player is within
-     * spawning.player-range of it; with nobody around it is removed, so idle villagers cost nothing.
+     * Runs on the region thread that owns {@code loc}. An NPC only exists while a player is within
+     * spawning.player-range of it; with nobody around it is removed, so idle NPCs cost nothing.
      */
-    private void ensure(NpcDef npc, Location loc) {
+    private void ensure(NpcDef npc, Point point, Location loc) {
+        if (points.get(npc.id()) != point) {
+            return; // moved since this check was queued
+        }
         World world = loc.getWorld();
-        Villager current = live.get(npc.id());
+        LivingEntity current = live.get(npc.id());
         boolean alive = current != null && current.isValid();
         if (current != null && !alive) {
             live.remove(npc.id(), current);
@@ -155,7 +204,7 @@ public final class SpawnManager {
             return;
         }
         double range = plugin.settings().spawnRange;
-        // A little extra range before despawning stops villagers flickering at the edge.
+        // A little extra range before despawning stops NPCs flickering at the edge.
         boolean playerNear = !loc.getNearbyPlayers(alive ? range + 16 : range).isEmpty();
         if (alive && !playerNear) {
             live.remove(npc.id(), current);
@@ -165,23 +214,53 @@ public final class SpawnManager {
         if (alive || !playerNear) {
             return;
         }
-        Consumer<Villager> setup = v -> configure(v, npc, loc);
-        Villager villager = world.spawn(loc, Villager.class, setup);
-        live.put(npc.id(), villager);
-        plugin.visibility().onSpawn(npc, villager);
+        LivingEntity entity = spawn(npc, loc);
+        live.put(npc.id(), entity);
+        plugin.visibility().onSpawn(npc, entity);
     }
 
-    private void configure(Villager v, NpcDef npc, Location loc) {
+    private LivingEntity spawn(NpcDef npc, Location loc) {
+        World world = loc.getWorld();
+        if (!npc.playerSkin().isEmpty() && mannequinType != null && mannequinType.getEntityClass() != null) {
+            try {
+                Consumer<Entity> setup = e -> configureMannequin((LivingEntity) e, npc, loc);
+                Entity entity = world.spawn(loc, mannequinType.getEntityClass(), setup);
+                if (entity instanceof LivingEntity living) {
+                    return living;
+                }
+                entity.remove();
+            } catch (RuntimeException | LinkageError e) {
+                plugin.getLogger().log(Level.FINE, "Mannequin spawn failed, using a villager", e);
+            }
+        }
+        Consumer<Villager> setup = v -> configureVillager(v, npc, loc);
+        return world.spawn(loc, Villager.class, setup);
+    }
+
+    private void configureCommon(LivingEntity e, NpcDef npc, Location loc) {
         // Tag first: the spawn listener uses the tag to override WorldGuard and other spawn blockers.
-        NpcTag.tag(v, npc.id());
-        v.setPersistent(false);
-        v.setRemoveWhenFarAway(false);
-        v.setAI(false);
-        v.setInvulnerable(true);
-        v.setSilent(true);
-        v.setCollidable(false);
-        v.setCanPickupItems(false);
-        v.setRotation(loc.getYaw(), 0f);
+        NpcTag.tag(e, npc.id());
+        e.setPersistent(false);
+        e.setRemoveWhenFarAway(false);
+        e.setAI(false);
+        e.setInvulnerable(true);
+        e.setSilent(true);
+        e.setCollidable(false);
+        e.setCanPickupItems(false);
+        e.setRotation(loc.getYaw(), 0f);
+        String title = npc.title().isEmpty() ? "" : " <gray>" + Text.escape(npc.title()) + "</gray>";
+        e.customName(Text.mm(plugin.settings().npcNameFormat
+                .replace("<name>", Text.escape(npc.name()))
+                .replace("<level>", Integer.toString(npc.level()))
+                .replace("<title>", title)));
+        e.setCustomNameVisible(true);
+        if (npc.personal()) {
+            e.setVisibleByDefault(false);
+        }
+    }
+
+    private void configureVillager(Villager v, NpcDef npc, Location loc) {
+        configureCommon(v, npc, loc);
         Villager.Profession profession = Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft(npc.profession().toLowerCase(Locale.ROOT)));
         if (profession != null) {
             v.setProfession(profession);
@@ -190,35 +269,71 @@ public final class SpawnManager {
         if (type != null) {
             v.setVillagerType(type);
         }
-        // The badge on the villager's robe climbs with the NPC's level: stone, iron, gold, emerald, diamond.
+        // The badge on the robe climbs with the NPC's level: stone, iron, gold, emerald, diamond.
         v.setVillagerLevel(Math.max(1, Math.min(5, 1 + npc.level() / 20)));
-        String title = npc.title().isEmpty() ? "" : " <gray>" + Text.escape(npc.title()) + "</gray>";
-        v.customName(Text.mm(plugin.settings().npcNameFormat
-                .replace("<name>", Text.escape(npc.name()))
-                .replace("<level>", Integer.toString(npc.level()))
-                .replace("<title>", title)));
-        v.setCustomNameVisible(true);
-        if (npc.personal()) {
-            v.setVisibleByDefault(false);
+        if (npc.baby()) {
+            v.setBaby();
+            v.setAgeLock(true);
         }
     }
 
-    public boolean isCurrent(String npcId, Villager villager) {
-        return live.get(npcId) == villager;
+    /** Sets the skin through reflection, since the Mannequin API only exists on newer servers. */
+    private void configureMannequin(LivingEntity e, NpcDef npc, Location loc) {
+        configureCommon(e, npc, loc);
+        immovable(e);
+        if (npc.playerSkin().equalsIgnoreCase("default")) {
+            return;
+        }
+        try {
+            Class<?> profileClass = Class.forName("io.papermc.paper.datacomponent.item.ResolvableProfile");
+            Class<?> builderClass = Class.forName("io.papermc.paper.datacomponent.item.ResolvableProfile$Builder");
+            Object builder = profileClass.getMethod("resolvableProfile").invoke(null);
+            builderClass.getMethod("name", String.class).invoke(builder, npc.playerSkin());
+            Object profile = builderClass.getMethod("build").invoke(builder);
+            for (Method method : e.getClass().getMethods()) {
+                if (method.getName().equals("setProfile") && method.getParameterCount() == 1
+                        && method.getParameterTypes()[0].isAssignableFrom(profileClass)) {
+                    method.invoke(e, profile);
+                    break;
+                }
+            }
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            // keeps the default skin
+        }
+    }
+
+    private static void immovable(LivingEntity e) {
+        try {
+            e.getClass().getMethod("setImmovable", boolean.class).invoke(e, true);
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            // older API: the NPC has no AI and cancelled movement anyway
+        }
+    }
+
+    public boolean isCurrent(String npcId, Entity entity) {
+        return live.get(npcId) == entity;
     }
 
     // ------------------------------------------------------------------ editing
 
     public void place(NpcDef npc, Location loc) {
-        points.put(npc.id(), Point.of(loc));
+        place(npc, loc, null, true);
+    }
+
+    private void place(NpcDef npc, Location loc, int[] area, boolean save) {
+        Point point = Point.of(loc, area);
+        points.put(npc.id(), point);
         despawn(npc.id());
-        save();
-        Sched.at(loc, () -> ensure(npc, loc));
+        if (save) {
+            save();
+        }
+        Sched.at(loc, () -> ensure(npc, point, loc));
     }
 
     public boolean remove(String npcId) {
         boolean existed = points.remove(npcId) != null;
         despawn(npcId);
+        nextRoam.remove(npcId);
         if (existed) {
             save();
         }
@@ -226,15 +341,30 @@ public final class SpawnManager {
     }
 
     private void despawn(String npcId) {
-        Villager old = live.remove(npcId);
+        LivingEntity old = live.remove(npcId);
         if (old != null) {
             Sched.entity(old, old::remove);
         }
     }
 
+    /** Moves an NPC to a fresh random spot inside its area. */
+    private void roam(NpcDef npc, Point point) {
+        World world = Bukkit.getWorld(point.world());
+        if (world == null) {
+            return;
+        }
+        int[] a = point.area();
+        Random rnd = ThreadLocalRandom.current();
+        double x = Math.min(a[0], a[3]) + rnd.nextInt(Math.abs(a[3] - a[0]) + 1) + 0.5;
+        double z = Math.min(a[2], a[5]) + rnd.nextInt(Math.abs(a[5] - a[2]) + 1) + 0.5;
+        float yaw = rnd.nextFloat() * 360f - 180f;
+        ground(world, x, z, Math.min(a[1], a[4]), Math.max(a[1], a[4]), yaw, loc -> place(npc, loc, a, false));
+    }
+
     /**
-     * Spreads the NPCs at random spots inside the box, on solid ground, at least 2 blocks apart.
-     * Bounds come from a WorldGuard region or the admin's pos1/pos2 selection.
+     * Spreads the NPCs at random spots inside the box, on solid ground, at least 2 blocks apart, and
+     * remembers the box so they keep wandering inside it. Bounds come from a WorldGuard region or the
+     * admin's pos1/pos2 selection.
      */
     public void scatter(List<NpcDef> npcs, World world, int[] box, CommandSender feedback) {
         Random rnd = new Random();
@@ -246,6 +376,7 @@ public final class SpawnManager {
         int maxY = Math.max(box[1], box[4]);
         int minZ = Math.min(box[2], box[5]);
         int maxZ = Math.max(box[2], box[5]);
+        int[] area = {minX, minY, minZ, maxX, maxY, maxZ};
         double centerX = (minX + maxX) / 2.0 + 0.5;
         double centerZ = (minZ + maxZ) / 2.0 + 0.5;
         for (NpcDef npc : npcs) {
@@ -261,9 +392,12 @@ public final class SpawnManager {
             chosen.add(spot);
             float yaw = yawTowards(spot[0], spot[1], centerX, centerZ);
             ground(world, spot[0], spot[1], minY, maxY, yaw, loc -> {
-                place(npc, loc);
-                if (remaining.decrementAndGet() == 0 && feedback != null) {
-                    feedback.sendMessage(Text.mm("<green>Scattered " + npcs.size() + " NPCs."));
+                place(npc, loc, area, false);
+                if (remaining.decrementAndGet() == 0) {
+                    save();
+                    if (feedback != null) {
+                        plugin.send(feedback, "<green>Scattered " + npcs.size() + " NPCs. They will wander inside that area.");
+                    }
                 }
             });
         }
@@ -290,7 +424,7 @@ public final class SpawnManager {
         Location spawn = world.getSpawnLocation();
         int total = act1.size() + act2.size();
         AtomicInteger remaining = new AtomicInteger(total);
-        Consumer<Void> finished = v -> {
+        Runnable finished = () -> {
             if (remaining.decrementAndGet() == 0) {
                 save();
                 plugin.getLogger().info("Auto-placed " + total + " NPCs around spawn in " + world.getName()
@@ -301,7 +435,7 @@ public final class SpawnManager {
         ring(world, spawn, act2, plugin.settings().act2Min, plugin.settings().act2Max, finished);
     }
 
-    private void ring(World world, Location center, List<NpcDef> npcs, double min, double max, Consumer<Void> finished) {
+    private void ring(World world, Location center, List<NpcDef> npcs, double min, double max, Runnable finished) {
         int n = npcs.size();
         for (int i = 0; i < n; i++) {
             NpcDef npc = npcs.get(i);
@@ -312,9 +446,10 @@ public final class SpawnManager {
             double z = Math.floor(center.getZ() + Math.sin(angle) * radius) + 0.5;
             float yaw = yawTowards(x, z, center.getX(), center.getZ());
             ground(world, x, z, null, null, yaw, loc -> {
-                points.put(npc.id(), Point.of(loc));
-                ensure(npc, loc);
-                finished.accept(null);
+                Point point = Point.of(loc, null);
+                points.put(npc.id(), point);
+                ensure(npc, point, loc);
+                finished.run();
             });
         }
     }

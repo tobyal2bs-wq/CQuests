@@ -18,7 +18,9 @@ import com.cquests.quest.QuestManager;
 import com.cquests.quest.QuestRegistry;
 import com.cquests.util.Platform;
 import com.cquests.util.Sched;
+import com.cquests.util.Text;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -109,6 +111,11 @@ public final class CQuestsPlugin extends JavaPlugin {
         spawns.load();
         spawns.start();
         visibility.refreshAll();
+    }
+
+    /** Sends a plugin message with the QUESTS prefix. Villager speech uses its own format instead. */
+    public void send(CommandSender to, String miniMessage) {
+        to.sendMessage(Text.mm(settings.prefix + miniMessage));
     }
 
     public Settings settings() {

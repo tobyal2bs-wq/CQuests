@@ -67,6 +67,9 @@ public final class Text {
         long minutes = Math.max(0, millis) / 60_000L;
         long hours = minutes / 60;
         minutes %= 60;
-        return hours > 0 ? hours + "h " + minutes + "m" : minutes + "m";
+        if (hours > 0) {
+            return minutes > 0 ? hours + "h " + minutes + "m" : hours + "h";
+        }
+        return minutes + "m";
     }
 }

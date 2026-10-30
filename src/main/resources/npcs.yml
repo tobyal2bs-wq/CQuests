@@ -7,6 +7,8 @@
 # level:      shown on the name tag; the robe badge goes stone > iron > gold > emerald > diamond every 20 levels
 # intro:      said the first time a player clicks the villager
 # idle:       one of these is said when the villager has nothing for you
+# baby:       true for a baby villager
+# player-skin: a Minecraft username (or default) to use a player shaped NPC with that skin on 1.21.9+
 
 npcs:
   marigold:
@@ -62,16 +64,20 @@ npcs:
       - "Never trust a farmer with clean boots."
   bob:
     name: "B.O.B"
-    title: "Bartholomew Oswald Brightwater"
-    profession: TOOLSMITH
+    title: "the Discord Bot"
+    profession: NITWIT
     skin: PLAINS
     level: 3
     act: 1
     intro:
-      - "Bartholomew Oswald Brightwater, at your service. Everyone calls me B.O.B."
-      - "I make the tools. And I need coal to make them."
+      - "BEEP BOOP. Hello {player}. I am B.O.B, the official {server} Discord bot."
+      - "Somebody typed !spawn in the wrong channel and now I have legs."
+      - "I have read four million chat messages. I have never touched a single block."
     idle:
-      - "B.O.B. Three letters, one legend."
+      - "Error 404: quest not found. Try again later."
+      - "Have you tried turning your sword off and on again?"
+      - "I muted three people today. New personal record."
+      - "Do not tell the admins I can walk."
   martha:
     name: "Martha"
     title: "the Watchful"
@@ -290,6 +296,7 @@ npcs:
     skin: PLAINS
     level: 21
     act: 2
+    baby: true
     personal: true
     intro:
       - "Hi! I'm Benny! I lost all the chickens!"
@@ -344,8 +351,8 @@ npcs:
     act: 2
     personal: true
     intro:
-      - "Sam. B.O.B's partner."
-      - "He talks, I dig. We need iron for better picks."
+      - "Sam. I keep B.O.B oiled."
+      - "Ever since the bot grew legs he wants iron tools. Do not ask me why a bot needs a pickaxe."
     idle:
       - "The deeper you go, the better it gets. Usually."
   molly:
@@ -381,6 +388,7 @@ npcs:
     skin: PLAINS
     level: 28
     act: 2
+    baby: true
     personal: true
     intro:
       - "Daisy! I grow the pumpkins."
@@ -446,6 +454,7 @@ npcs:
     skin: PLAINS
     level: 33
     act: 2
+    player-skin: "default"
     personal: true
     intro:
       - "Cecil. I scout the roads."
@@ -524,6 +533,7 @@ npcs:
     skin: PLAINS
     level: 39
     act: 2
+    player-skin: "default"
     personal: true
     intro:
       - "Ned. I fish for more than fish."
@@ -967,6 +977,7 @@ npcs:
     skin: PLAINS
     level: 73
     act: 2
+    baby: true
     personal: true
     intro:
       - "I'm Kip! Benny's brother! I'm smarter!"
@@ -1123,6 +1134,7 @@ npcs:
     skin: PLAINS
     level: 85
     act: 2
+    player-skin: "default"
     personal: true
     intro:
       - "Wade. I hunt dragons. Well, one dragon."
@@ -1306,6 +1318,7 @@ npcs:
     skin: PLAINS
     level: 99
     act: 2
+    player-skin: "default"
     personal: true
     intro:
       - "I am Aldric. I was the King's knight."

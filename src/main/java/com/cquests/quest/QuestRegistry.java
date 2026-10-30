@@ -7,6 +7,7 @@ import com.cquests.model.ObjectiveType;
 import com.cquests.model.Quest;
 import com.cquests.model.QuestCategory;
 import com.cquests.model.Reward;
+import com.cquests.model.RewardEffect;
 import com.cquests.model.RewardItem;
 import com.cquests.model.TargetMatcher;
 import com.cquests.npc.NpcRegistry;
@@ -77,6 +78,7 @@ public final class QuestRegistry {
         }
         ConfigurationSection root = yaml.getConfigurationSection("quests");
         int order = 0;
+        String previousStory = null;
         if (root != null) {
             for (String id : root.getKeys(false)) {
                 ConfigurationSection s = root.getConfigurationSection(id);
@@ -84,7 +86,11 @@ public final class QuestRegistry {
                     continue;
                 }
                 try {
-                    add(parse(id.toLowerCase(Locale.ROOT), s, order++, settings, npcs));
+                    Quest quest = parse(id.toLowerCase(Locale.ROOT), s, order++, previousStory, settings, npcs, log);
+                    add(quest);
+                    if (quest.category() == QuestCategory.STORY) {
+                        previousStory = quest.id();
+                    }
                 } catch (IllegalArgumentException e) {
                     log.warning("Skipping quest '" + id + "': " + e.getMessage());
                 }
@@ -123,7 +129,12 @@ public final class QuestRegistry {
         }
     }
 
-    private Quest parse(String id, ConfigurationSection s, int order, Settings settings, NpcRegistry npcs) {
+    /**
+     * @param previousStory the story quest above this one in the file; a story quest without
+     *                      "requires" follows it, so new chapters can simply be appended
+     */
+    private Quest parse(String id, ConfigurationSection s, int order, String previousStory, Settings settings,
+                        NpcRegistry npcs, Logger log) {
         String giver = s.getString("giver", "").toLowerCase(Locale.ROOT);
         List<Objective> objectives = new ArrayList<>();
         for (String line : s.getStringList("objectives")) {
@@ -145,22 +156,30 @@ public final class QuestRegistry {
             turnIn = last.type() == ObjectiveType.TALK ? last.npc() : giver;
         }
         QuestCategory category = QuestCategory.valueOf(s.getString("category", "STORY").toUpperCase(Locale.ROOT));
+        List<String> requires;
+        if (s.contains("requires")) {
+            requires = s.getStringList("requires").stream().map(r -> r.toLowerCase(Locale.ROOT)).toList();
+        } else {
+            requires = category == QuestCategory.STORY && previousStory != null ? List.of(previousStory) : List.of();
+        }
+        int level = s.getInt("level", 0);
         return new Quest(
                 id,
                 s.getString("name", id).replace("{server}", settings.serverName),
-                s.getInt("level", 0),
+                level,
                 category,
                 s.getInt("order", order),
                 giver,
                 turnIn,
-                s.getStringList("requires").stream().map(r -> r.toLowerCase(Locale.ROOT)).toList(),
+                requires,
                 List.copyOf(objectives),
                 s.getString("description", null),
                 s.getStringList("offer"),
                 s.getStringList("complete"),
-                parseReward(s.getConfigurationSection("rewards")),
+                parseReward(id, s.getConfigurationSection("rewards"), level, settings, log),
                 s.getBoolean("big", false),
-                category == QuestCategory.STORY ? Math.max(1, s.getInt("chapter", 1)) : 0);
+                category == QuestCategory.STORY ? Math.max(1, s.getInt("chapter", 1)) : 0,
+                s.getInt("side-required", -1));
     }
 
     /**
@@ -226,18 +245,56 @@ public final class QuestRegistry {
         return amount == 1 ? singular : Text.plural(singular);
     }
 
-    static Reward parseReward(ConfigurationSection s) {
+    static Reward parseReward(String questId, ConfigurationSection s, int level, Settings settings, Logger log) {
         if (s == null) {
             return Reward.NONE;
         }
         List<RewardItem> items = new ArrayList<>();
         for (String line : s.getStringList("items")) {
             RewardItem item = parseItem(line);
-            if (item != null) {
+            if (item == null) {
+                log.warning("Quest '" + questId + "': unknown reward item '" + line + "'");
+            } else if (!allowedItem(item, level, settings)) {
+                log.warning("Quest '" + questId + "': reward " + item.material() + " is not allowed at level " + level
+                        + " (see rewards.blocked-items and rewards.netherite-min-level)");
+            } else {
                 items.add(item);
             }
         }
-        return new Reward(s.getLong("money", 0), List.copyOf(items), s.getStringList("commands"), s.getInt("xp", 0));
+        List<RewardEffect> effects = new ArrayList<>();
+        for (String line : s.getStringList("effects")) {
+            RewardEffect effect = parseEffect(line);
+            if (effect == null) {
+                log.warning("Quest '" + questId + "': bad effect '" + line + "' (use NAME SECONDS [LEVEL], e.g. SPEED 3600 1)");
+            } else {
+                effects.add(effect);
+            }
+        }
+        return new Reward(s.getLong("money", 0), List.copyOf(items), List.copyOf(effects), s.getStringList("commands"), s.getInt("xp", 0));
+    }
+
+    /** Keeps rewards fair: blocked items never, netherite only for hard quests. */
+    static boolean allowedItem(RewardItem item, int level, Settings settings) {
+        String name = item.material().name();
+        if (settings.blockedItems.contains(name)) {
+            return false;
+        }
+        return !name.startsWith("NETHERITE") || level >= settings.netheriteMinLevel;
+    }
+
+    /** "SPEED 3600 1" -> Speed I for an hour. The level is 1-based like in game; 0 or missing means I. */
+    static RewardEffect parseEffect(String line) {
+        String[] parts = line.trim().split("\\s+");
+        if (parts.length < 2) {
+            return null;
+        }
+        try {
+            int seconds = Integer.parseInt(parts[1]);
+            int level = parts.length > 2 ? Integer.parseInt(parts[2]) : 1;
+            return seconds <= 0 ? null : new RewardEffect(parts[0].toLowerCase(Locale.ROOT), seconds, Math.max(0, level - 1));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /** "DIAMOND 3" -> 3 diamonds. */

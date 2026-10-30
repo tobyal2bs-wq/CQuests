@@ -7,7 +7,6 @@ import com.cquests.util.Sched;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -101,7 +100,7 @@ public final class NpcListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMove(EntityMoveEvent event) {
         // AI is off, but pistons, water or explosions could still shove them.
-        if (event.getEntity() instanceof Villager && NpcTag.isNpc(event.getEntity()) && event.hasChangedBlock()) {
+        if (event.hasChangedBlock() && NpcTag.isNpc(event.getEntity())) {
             event.setCancelled(true);
         }
     }
@@ -111,7 +110,7 @@ public final class NpcListener implements Listener {
     public void onEntitiesLoad(EntitiesLoadEvent event) {
         for (Entity entity : event.getEntities()) {
             String npcId = NpcTag.npcId(entity);
-            if (npcId != null && (!(entity instanceof Villager villager) || !plugin.spawns().isCurrent(npcId, villager))) {
+            if (npcId != null && !plugin.spawns().isCurrent(npcId, entity)) {
                 entity.remove();
             }
         }

@@ -11,6 +11,7 @@ import com.cquests.model.ObjectiveType;
 import com.cquests.model.Quest;
 import com.cquests.model.QuestCategory;
 import com.cquests.model.Reward;
+import com.cquests.model.RewardEffect;
 import com.cquests.model.RewardItem;
 import com.cquests.npc.NpcRegistry;
 import com.cquests.npc.SpawnManager;
@@ -18,11 +19,15 @@ import com.cquests.util.Sched;
 import com.cquests.util.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +100,7 @@ public final class QuestManager {
      * Returns that villager's id while the gate is still closed, otherwise null.
      */
     public String chapterGate(PlayerData data, Quest quest) {
-        int needed = Math.min(settings().sideQuestsPerChapter, quests().sidePerNpc());
+        int needed = Math.min(sideRequired(quest), quests().sidePerNpc());
         if (quest.category() != QuestCategory.STORY || needed <= 0) {
             return null;
         }
@@ -107,6 +112,11 @@ public final class QuestManager {
             }
         }
         return null;
+    }
+
+    /** Side quests needed for the previous story villager before this story quest opens. */
+    public int sideRequired(Quest quest) {
+        return quest.sideRequired() >= 0 ? quest.sideRequired() : settings().sideQuestsPerChapter;
     }
 
     /** Side quests are numbered per NPC and done in order, so "done" means its number is within the NPC's count. */
@@ -253,8 +263,8 @@ public final class QuestManager {
                 data.setLastDailyAt(System.currentTimeMillis());
             }
         }
-        player.sendMessage(Text.mm(settings().msg("quest-accepted", "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to read your journal.")
-                .replace("<quest>", Text.escape(quest.name()))));
+        plugin.send(player, settings().msg("quest-accepted", "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to read your journal.")
+                .replace("<quest>", Text.escape(quest.name())));
         player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1f);
         plugin.visibility().refresh(player);
         return true;
@@ -339,9 +349,9 @@ public final class QuestManager {
             Sched.entity(player, () -> complete(player, quest));
             return;
         }
-        player.sendMessage(Text.mm(settings().msg("quest-ready", "<green>✔ <white><bold><quest></bold></white> is done! Return to <npc>.")
+        plugin.send(player, settings().msg("quest-ready", "<green>✔ <white><bold><quest></bold></white> is done! Return to <npc>.")
                 .replace("<quest>", Text.escape(quest.name()))
-                .replace("<npc>", npcs().mention(quest.turnIn()))));
+                .replace("<npc>", npcs().mention(quest.turnIn())));
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.2f);
     }
 
@@ -426,6 +436,9 @@ public final class QuestManager {
                 }
             }
         }
+        if (!lines.isEmpty()) {
+            plugin.store().saveNow(data);
+        }
         for (Quest quest : newlyReady) {
             onReady(player, quest);
         }
@@ -499,8 +512,10 @@ public final class QuestManager {
                 }
             }
         }
-        player.sendMessage(Text.mm(settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")
-                .replace("<quest>", Text.escape(quest.name()))));
+        // Persist before paying out, so a crash can't leave the quest claimable with the reward already given.
+        plugin.store().saveNow(data);
+        plugin.send(player, settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")
+                .replace("<quest>", Text.escape(quest.name())));
         giveRewards(player, quest.reward());
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
         plugin.visibility().refresh(player);
@@ -538,6 +553,12 @@ public final class QuestManager {
             player.getInventory().addItem(stack).values()
                     .forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
         }
+        for (RewardEffect effect : reward.effects()) {
+            PotionEffectType type = Registry.EFFECT.get(NamespacedKey.minecraft(effect.effect()));
+            if (type != null) {
+                player.addPotionEffect(new PotionEffect(type, effect.seconds() * 20, effect.amplifier()));
+            }
+        }
         if (reward.xp() > 0) {
             player.giveExp(reward.xp());
         }
@@ -546,7 +567,7 @@ public final class QuestManager {
             Sched.global(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), stripSlash(command)));
         }
         for (String line : rewardLines(reward)) {
-            player.sendMessage(Text.mm("  <dark_gray>+</dark_gray> " + line));
+            plugin.send(player, "  <dark_gray>+</dark_gray> " + line);
         }
     }
 
@@ -563,6 +584,11 @@ public final class QuestManager {
             String name = Text.pretty(item.material().name());
             lines.add("<white>" + item.amount() + " " + (item.amount() > 1 ? Text.plural(name) : name) + "</white>");
         }
+        for (RewardEffect effect : reward.effects()) {
+            String name = effect.effect().equals("speed") ? "Swiftness" : Text.capitalize(Text.pretty(effect.effect()));
+            String level = effect.amplifier() > 0 ? " " + (effect.amplifier() + 1) : "";
+            lines.add("<light_purple>" + name + level + " for " + Text.duration(effect.seconds() * 1000L) + "</light_purple>");
+        }
         if (reward.xp() > 0) {
             lines.add("<aqua>" + reward.xp() + " xp</aqua>");
         }
@@ -573,6 +599,9 @@ public final class QuestManager {
 
     /** Personal NPCs only show for players who met them, need them for a quest, or are due to meet them next. */
     public boolean shouldSee(PlayerData data, NpcDef npc) {
+        if (settings().hideFinishedVillagers && finishedWith(data, npc)) {
+            return false;
+        }
         if (!npc.personal() || data.hasMet(npc.id())) {
             return true;
         }
@@ -587,6 +616,29 @@ public final class QuestManager {
             }
         }
         return false;
+    }
+
+    /**
+     * True once a player owes a villager nothing: every story quest it gives is done, the side quests
+     * the next chapter step asks for are done, and no active quest needs it. That player stops seeing it.
+     */
+    public boolean finishedWith(PlayerData data, NpcDef npc) {
+        List<Quest> own = quests().storyFrom(npc.id());
+        if (npc.daily() || own.isEmpty()) {
+            return false;
+        }
+        for (Quest quest : own) {
+            if (!data.isCompleted(quest.id())) {
+                return false;
+            }
+        }
+        for (Quest quest : activeQuests(data)) {
+            if (quest.involves(npc.id())) {
+                return false;
+            }
+        }
+        Quest next = quests().nextStory(own.get(own.size() - 1));
+        return next == null || data.isCompleted(next.id()) || !npc.id().equals(chapterGate(data, next));
     }
 
     /** "Kill wolves", "Bring Villager Martha wheat", "Talk to Villager Stephan". */

@@ -97,7 +97,23 @@ public final class PlayerStore {
         return data;
     }
 
+    /**
+     * Saves right away: the snapshot is taken on the calling thread, the disk write happens async.
+     * Used after rewards so a crash can never hand out the same reward twice.
+     */
+    public void saveNow(PlayerData data) {
+        Snapshot snapshot = snapshot(data);
+        Sched.async(() -> writeIfNewer(data, snapshot));
+    }
+
+    private record Snapshot(YamlConfiguration yaml, long seq) {
+    }
+
     private void write(PlayerData data) {
+        writeIfNewer(data, snapshot(data));
+    }
+
+    private Snapshot snapshot(PlayerData data) {
         YamlConfiguration yaml = new YamlConfiguration();
         synchronized (data) {
             for (ActiveQuest quest : data.active.values()) {
@@ -117,10 +133,18 @@ public final class PlayerStore {
             yaml.set("daily.last", data.lastDailyAt);
             yaml.set("daily.done", data.dailiesDone);
             data.clean();
+            return new Snapshot(yaml, ++data.saveSeq);
         }
-        // Serialise disk writes so two saves of the same player never race on its temp file.
+    }
+
+    private void writeIfNewer(PlayerData data, Snapshot snapshot) {
+        // Serialise disk writes, and never let an older snapshot overwrite a newer one.
         synchronized (dir) {
-            writeFile(data, yaml);
+            if (snapshot.seq() <= data.writtenSeq) {
+                return;
+            }
+            writeFile(data, snapshot.yaml());
+            data.writtenSeq = snapshot.seq();
         }
     }
 

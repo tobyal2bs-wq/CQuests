@@ -122,7 +122,7 @@ public final class DialogueManager {
                 lines.add(new Line(true, plugin.settings().msg("npc-locked", "I'm not ready for you yet, {player}.")));
                 String gate = next == null ? null : qm().chapterGate(data, next);
                 if (gate != null) {
-                    int needed = Math.min(plugin.settings().sideQuestsPerChapter, plugin.quests().sidePerNpc());
+                    int needed = Math.min(qm().sideRequired(next), plugin.quests().sidePerNpc());
                     lines.add(new Line(true, plugin.settings().msg("npc-chapter-gate",
                                     "{npc:<gate>} still needs your help. Do <left> more jobs for them first.")
                             .replace("<gate>", gate)
@@ -227,7 +227,7 @@ public final class DialogueManager {
                     .replace("<text>", text)));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 0.6f, 1f);
         } else {
-            player.sendMessage(Text.mm(text));
+            plugin.send(player, text);
         }
         if (index + 1 >= lines.size()) {
             talking.remove(player.getUniqueId());

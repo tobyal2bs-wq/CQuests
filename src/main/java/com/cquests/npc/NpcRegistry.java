@@ -43,6 +43,8 @@ public final class NpcRegistry {
                     s.getInt("act", 1),
                     s.getBoolean("personal", false),
                     s.getBoolean("daily", false),
+                    s.getBoolean("baby", false),
+                    s.getString("player-skin", ""),
                     s.getStringList("intro"),
                     s.getStringList("idle")));
         }

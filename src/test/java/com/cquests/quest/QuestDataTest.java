@@ -152,6 +152,41 @@ class QuestDataTest {
     }
 
     @Test
+    void rewardsStayFair() {
+        Set<String> banned = Set.of("ELYTRA", "DRAGON_EGG", "ENCHANTED_GOLDEN_APPLE", "TOTEM_OF_UNDYING", "BEACON", "NETHER_STAR");
+        for (Quest quest : quests.story()) {
+            assertTrue(quest.reward().money() <= 10_000, quest.id() + " pays too much");
+            quest.reward().items().forEach(item -> {
+                assertFalse(banned.contains(item.material().name()), quest.id() + " gives " + item.material());
+                if (item.material().name().startsWith("NETHERITE")) {
+                    assertTrue(quest.level() >= settings.netheriteMinLevel, quest.id() + " gives netherite too early");
+                }
+            });
+        }
+        for (int index = 1; index <= quests.sidePerNpc(); index += 97) {
+            Quest side = quests.side("stephan", index);
+            assertTrue(side.reward().money() <= 2_000, side.id() + " pays too much");
+            side.reward().effects().forEach(effect -> assertTrue(effect.seconds() <= 3600, side.id() + " effect too long"));
+        }
+    }
+
+    @Test
+    void chaptersAreLongAndBobIsABot() {
+        int chapterOne = 0;
+        for (Quest quest : quests.story()) {
+            if (quest.chapter() == 1) {
+                chapterOne += quests.story().indexOf(quest) == 0 ? 0 : Math.max(0, quest.sideRequired());
+            }
+        }
+        assertTrue(chapterOne >= 60, "chapter 1 should ask for plenty of side quests, got " + chapterOne);
+        Quest bob = quests.get("story_bob");
+        assertEquals("Touch Grass", bob.name());
+        assertEquals(1000, bob.objectives().get(0).amount());
+        assertTrue(npcs.get("bob").title().contains("Discord"));
+        assertEquals(3, npcs.all().stream().filter(NpcDef::baby).count(), "three baby villagers");
+    }
+
+    @Test
     void everyTargetNamesRealThings() {
         List<Quest> sample = new ArrayList<>(quests.story());
         sample.addAll(quests.dailyPool());

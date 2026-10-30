@@ -7,8 +7,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Remembers blocks players placed so that breaking them again does not count for MINE objectives.
- * Kept in memory and capped; it only needs to stop the place-and-break loop, not survive restarts.
+ * Remembers blocks players placed so that breaking them again does not count for MINE objectives,
+ * and spots that already counted for PLACE objectives. Kept in memory and capped; it only needs to
+ * stop place-and-break loops, not survive restarts.
  */
 final class PlacedBlocks {
 
@@ -18,12 +19,22 @@ final class PlacedBlocks {
     }
 
     private final Set<Pos> placed = ConcurrentHashMap.newKeySet();
+    /** Spots that already counted for a PLACE objective, so placing and breaking one block over and over counts once. */
+    private final Set<Pos> counted = ConcurrentHashMap.newKeySet();
 
     void add(Block block) {
         if (placed.size() >= MAX) {
             placed.clear();
         }
         placed.add(key(block));
+    }
+
+    /** True the first time a spot is used for a PLACE objective. */
+    boolean firstPlacementAt(Block block) {
+        if (counted.size() >= MAX) {
+            counted.clear();
+        }
+        return counted.add(key(block));
     }
 
     /** Returns true and forgets the block if a player placed it. */

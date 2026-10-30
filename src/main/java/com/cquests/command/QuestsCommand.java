@@ -34,7 +34,7 @@ public final class QuestsCommand implements TabExecutor {
         switch (sub) {
             case "accept" -> {
                 if (!plugin.dialogue().acceptPending(player)) {
-                    player.sendMessage(Text.mm("<red>There is no quest offer waiting. Click a villager first."));
+                    plugin.send(player, "<red>There is no quest offer waiting. Click a villager first.");
                 }
             }
             case "list" -> list(player);
@@ -48,9 +48,9 @@ public final class QuestsCommand implements TabExecutor {
         QuestManager qm = plugin.questManager();
         PlayerData data = qm.data(player);
         List<Quest> active = qm.activeQuests(data);
-        player.sendMessage(Text.mm("<gold><bold>Your quests</bold></gold> <gray>(" + data.completedCount() + " done)"));
+        plugin.send(player, "<gold><bold>Your quests</bold></gold> <gray>(" + data.completedCount() + " done)");
         if (active.isEmpty()) {
-            player.sendMessage(Text.mm("<gray>No active quests. Talk to a villager at spawn."));
+            plugin.send(player, "<gray>No active quests. Talk to a villager at spawn.");
         }
         for (Quest quest : active) {
             ActiveQuest progress = data.active(quest.id());
@@ -62,25 +62,25 @@ public final class QuestsCommand implements TabExecutor {
                             .append(progress.get(i)).append('/').append(quest.objectives().get(i).amount());
                 }
             }
-            player.sendMessage(Text.mm(line.toString()));
+            plugin.send(player, line.toString());
         }
     }
 
     private void abandon(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(Text.mm("<red>Usage: /quests abandon <quest id>"));
+            plugin.send(player, "<red>Usage: /quests abandon <quest id>");
             return;
         }
         Quest quest = plugin.quests().get(args[1]);
         if (quest == null || !plugin.questManager().data(player).isActive(quest.id())) {
-            player.sendMessage(Text.mm("<red>You don't have that quest."));
+            plugin.send(player, "<red>You don't have that quest.");
             return;
         }
         if (!plugin.questManager().abandon(player, quest)) {
-            player.sendMessage(Text.mm("<red>Story quests can't be abandoned."));
+            plugin.send(player, "<red>Story quests can't be abandoned.");
             return;
         }
-        player.sendMessage(Text.mm("<gray>Abandoned <white>" + Text.escape(quest.name()) + "</white>."));
+        plugin.send(player, "<gray>Abandoned <white>" + Text.escape(quest.name()) + "</white>.");
     }
 
     @Override

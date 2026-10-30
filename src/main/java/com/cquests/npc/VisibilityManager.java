@@ -6,11 +6,14 @@ import com.cquests.model.NpcDef;
 import com.cquests.util.Sched;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Villager;
+import org.bukkit.entity.LivingEntity;
 
 import java.util.Map;
 
-/** Shows personal NPCs only to the players who need them for a quest. */
+/**
+ * Decides who sees which NPC. Personal NPCs only show to players who need them for a quest, and any
+ * villager a player has fully finished disappears for that player.
+ */
 public final class VisibilityManager {
 
     private final CQuestsPlugin plugin;
@@ -34,17 +37,17 @@ public final class VisibilityManager {
         if (data == null) {
             return;
         }
-        for (Map.Entry<String, Villager> entry : plugin.spawns().live().entrySet()) {
+        for (Map.Entry<String, LivingEntity> entry : plugin.spawns().live().entrySet()) {
             NpcDef npc = plugin.npcs().get(entry.getKey());
-            if (npc != null && npc.personal()) {
+            if (npc != null && !npc.daily()) {
                 show(player, entry.getValue(), plugin.questManager().shouldSee(data, npc));
             }
         }
     }
 
-    /** A personal NPC was (re)spawned hidden; reveal it to everyone who should see it. */
-    public void onSpawn(NpcDef npc, Villager villager) {
-        if (!npc.personal()) {
+    /** An NPC was (re)spawned; show or hide it for everyone online. */
+    public void onSpawn(NpcDef npc, LivingEntity villager) {
+        if (npc.daily()) {
             return;
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -57,7 +60,7 @@ public final class VisibilityManager {
         }
     }
 
-    private void show(Player player, Villager villager, boolean visible) {
+    private void show(Player player, LivingEntity villager, boolean visible) {
         if (!villager.isValid()) {
             return;
         }

@@ -4,14 +4,20 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Typed view of config.yml. */
 public final class Settings {
 
     public final String serverName;
+    public final String prefix;
+    public final boolean countSpawnerMobs;
+    public final Set<String> blockedItems;
+    public final int netheriteMinLevel;
     public final String moneyCommand;
     public final String npcNameFormat;
     public final String npcChatFormat;
@@ -39,6 +45,8 @@ public final class Settings {
     public final boolean lookAtPlayer;
 
     public final double spawnRange;
+    public final long roamMinutes;
+    public final boolean hideFinishedVillagers;
     public final double shieldRadius;
     public final boolean shieldBuild;
     public final boolean shieldPvp;
@@ -60,9 +68,19 @@ public final class Settings {
 
     public Settings(FileConfiguration c) {
         serverName = c.getString("server-name", "our server");
+        prefix = c.getString("prefix", "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> ");
+        countSpawnerMobs = c.getBoolean("quests.count-spawner-mobs", false);
+        blockedItems = new HashSet<>();
+        for (String item : c.getStringList("rewards.blocked-items")) {
+            blockedItems.add(item.toUpperCase(Locale.ROOT));
+        }
+        if (!c.contains("rewards.blocked-items")) {
+            blockedItems.addAll(List.of("ELYTRA", "DRAGON_EGG", "ENCHANTED_GOLDEN_APPLE", "TOTEM_OF_UNDYING", "BEACON", "NETHER_STAR"));
+        }
+        netheriteMinLevel = c.getInt("rewards.netherite-min-level", 85);
         moneyCommand = c.getString("money-command", "eco give %player% %amount%");
-        npcNameFormat = c.getString("npc.name-format", "<gold><name></gold> <dark_gray>[<gray>Lv <level></gray>]");
-        npcChatFormat = c.getString("npc.chat-format", "<gold><name></gold><dark_gray>:</dark_gray> <white><text>");
+        npcNameFormat = c.getString("npc.name-format", "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>");
+        npcChatFormat = c.getString("npc.chat-format", "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>");
         npcMentionFormat = c.getString("npc.mention-format", "<blue>Villager <name></blue>");
 
         lineDelayTicks = Math.max(1, c.getLong("dialogue.line-delay-ticks", 35));
@@ -89,6 +107,8 @@ public final class Settings {
         lookAtPlayer = c.getBoolean("spawning.look-at-player", true);
 
         spawnRange = Math.max(16, c.getDouble("spawning.player-range", 100));
+        roamMinutes = Math.max(0, c.getLong("spawning.roam-minutes", 20));
+        hideFinishedVillagers = c.getBoolean("spawning.hide-finished-villagers", true);
         shieldRadius = Math.max(0, c.getDouble("shield.radius", 6));
         shieldBuild = c.getBoolean("shield.block-building", true);
         shieldPvp = c.getBoolean("shield.block-pvp", true);

@@ -28,6 +28,9 @@ public final class PlayerData {
     /** Where to put the player back if they log out during the ending cinematic: "world;x;y;z;yaw;pitch;GAMEMODE". */
     String finaleReturn;
     private volatile boolean dirty;
+    /** Save ordering, see PlayerStore. */
+    long saveSeq;
+    long writtenSeq;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;

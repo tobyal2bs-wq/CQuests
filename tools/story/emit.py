@@ -19,9 +19,23 @@ TIERS = [(9, ["BREAD 8","TORCH 16","IRON_INGOT 2","COOKED_BEEF 6","APPLE 6"]),
          (69,["DIAMOND 2","EXPERIENCE_BOTTLE 24","GOLDEN_APPLE 1","BLAZE_ROD 6","ENDER_PEARL 4"]),
          (89,["DIAMOND 3","GOLDEN_APPLE 2","EXPERIENCE_BOTTLE 32","EMERALD_BLOCK 1","SHULKER_SHELL 2"]),
          (99,["DIAMOND 4","NETHERITE_SCRAP 1","GOLDEN_APPLE 3","EXPERIENCE_BOTTLE 48","DIAMOND_BLOCK 1"])]
-SPECIAL = {"wade": (15000, ["DIAMOND_BLOCK 1"]),
-           "aldis": (25000, ["NETHERITE_INGOT 1", "ENCHANTED_GOLDEN_APPLE 1"]),
-           "aldric": (20000, ["DIAMOND 8"])}
+SPECIAL = {"wade": (6000, ["DIAMOND_BLOCK 1"]),
+           "aldis": (8000, ["NETHERITE_INGOT 1", "GOLDEN_APPLE 4"]),
+           "aldric": (10000, ["DIAMOND 8"])}
+# A few villagers are children, and a few are player shaped NPCs (Minecraft 1.21.9+, villager on older servers).
+# player-skin takes any Minecraft username; "default" uses the plain Steve and Alex skins.
+BABY = {"benny", "kip", "daisy"}
+SKINNED = {"cecil": "default", "ned": "default", "wade": "default", "aldric": "default"}
+
+def side_required(i):
+    """Side quests for the previous villager before story quest i opens. Chapter openers are the big walls."""
+    if i == 0:
+        return 0
+    if i % 20 == 0:
+        return 20
+    if i % 5 == 4:
+        return 2  # a short stretch of story every few steps
+    return 4 + (i // 20 + 1)
 
 def items_for(level, i):
     for mx, items in TIERS:
@@ -41,10 +55,14 @@ npcs = ["# The villagers. Act 1 (14 story villagers + the daily one) stands at s
         "# level:      shown on the name tag; the robe badge goes stone > iron > gold > emerald > diamond every 20 levels",
         "# intro:      said the first time a player clicks the villager",
         "# idle:       one of these is said when the villager has nothing for you",
+        "# baby:       true for a baby villager",
+        "# player-skin: a Minecraft username (or default) to use a player shaped NPC with that skin on 1.21.9+",
         "", "npcs:"]
 def npc_block(id, name, prof, skin, title, level, act, personal, daily, intro, idle):
     s = f"  {id}:\n    name: {q(name)}\n    title: {q(title)}\n    profession: {prof}\n    skin: {SKIN.get(skin, 'PLAINS')}\n"
     s += f"    level: {level}\n    act: {act}\n"
+    if id in BABY: s += "    baby: true\n"
+    if id in SKINNED: s += f"    player-skin: {q(SKINNED[id])}\n"
     if personal: s += "    personal: true\n"
     if daily: s += "    daily: true\n"
     s += "    intro:\n" + lst(intro, 6) + "    idle:\n" + lst(idle if isinstance(idle, list) else [idle], 6)
@@ -58,8 +76,9 @@ for i, r in enumerate(R):
     npcs.append(npc_block(id, name, prof, skin, title, i, act, act == 2, False, intro, idle))
 
 qs = ["# Story quests: the linked chain through all 100 villagers, done in order. Finishing the last one plays the ending.",
-      "# big: true plays a celebration (the last quest of each chapter always does). Between story quests players do",
-      "# side quests for the previous villager (quests.side-quests-per-chapter in config.yml).",
+      "# big: true plays a celebration (the last quest of each chapter always does). Before a story quest opens, players",
+      "# do side-required side quests for the previous villager (default: quests.side-quests-per-chapter in config.yml).",
+      "# requires: defaults to the story quest above it, so new quests and chapters can simply be added at the bottom.",
       "# Side quests and the daily pool are generated from generator.yml.",
       "#",
       "# objectives (one per line):",
@@ -80,9 +99,10 @@ qs = ["# Story quests: the linked chain through all 100 villagers, done in order
       "  4: \"The Five Keys\"",
       "  5: \"The King Wakes\"",
       "", "quests:"]
-def quest_block(id, name, level, order, giver, requires, objs, desc, offer, complete, money, items, big=False, chapter=1):
+def quest_block(id, name, level, order, giver, requires, objs, desc, offer, complete, money, items, big=False, chapter=1, side=None):
     s = f"  {id}:\n    name: {q(name)}\n    level: {level}\n    order: {order}\n    giver: {q(giver)}\n"
     s += f"    chapter: {chapter}\n"
+    if side is not None: s += f"    side-required: {side}\n"
     if big: s += "    big: true\n"
     if requires: s += f"    requires: [{requires}]\n"
     s += "    objectives:\n" + lst(objs, 6)
@@ -95,7 +115,7 @@ def quest_block(id, name, level, order, giver, requires, objs, desc, offer, comp
 
 qs.append(quest_block("welcome", "Welcome to {server}", 0, 0, "", None, ["TALK stephan"],
     "Talk to {npc:stephan} just ahead of /spawn.", None,
-    ["There you are! Welcome to {server}, {player}."], 500, ["BREAD 8"]))
+    ["There you are! Welcome to {server}, {player}."], 250, ["BREAD 8"]))
 prev = "welcome"
 for i, r in enumerate(R):
     (id, name, prof, skin, title, intro, qname, objs, offer, desc, complete, idle) = r
@@ -105,11 +125,12 @@ for i, r in enumerate(R):
         # TALK quests finish at the next villager, who then points onward themselves.
         if not objs[-1].startswith("TALK"):
             complete.append("Go and see {npc:%s} next. They could use you." % nxt)
-    money, items = SPECIAL.get(id, (int(round((1000 + i * 100) / 100.0)) * 100, items_for(i, i)))
-    qid = "story_" + id
     big = id in ('marcus', 'wade', 'holly', 'aldis', 'osric')
+    money = int(round((300 + i * 25) / 50.0)) * 50 * (2 if big else 1)
+    money, items = SPECIAL.get(id, (money, items_for(i, i)))
+    qid = "story_" + id
     chapter = i // 20 + 1
-    qs.append(quest_block(qid, qname, i, i + 1, id, prev, objs, desc, offer, complete, money, items, big, chapter))
+    qs.append(quest_block(qid, qname, i, i + 1, id, prev, objs, desc, offer, complete, money, items, big, chapter, side_required(i)))
     prev = qid
 
 open(out_dir + "/npcs.yml", "w").write("\n".join(npcs[:npcs.index("npcs:") + 1]) + "\n" + "".join(npcs[npcs.index("npcs:") + 1:]))

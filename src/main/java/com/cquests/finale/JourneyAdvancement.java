@@ -56,7 +56,7 @@ public final class JourneyAdvancement {
             advancement = Bukkit.getAdvancement(key);
         }
         if (advancement == null) {
-            player.sendMessage(Text.mm("<gold>★ Achievement unlocked: <yellow>[" + Text.escape(plugin.settings().advancementTitle) + "]"));
+            plugin.send(player, "<gold>★ Achievement unlocked: <yellow>[" + Text.escape(plugin.settings().advancementTitle) + "]");
             return;
         }
         AdvancementProgress progress = player.getAdvancementProgress(advancement);

@@ -9,6 +9,8 @@ import java.util.List;
  * @param description MiniMessage text shown in the journal under the title
  * @param big        plays the big celebration (title, fireworks) on completion
  * @param chapter    story chapter number (1-5 by default); 0 for side and daily quests
+ * @param sideRequired side quests the player must finish for the previous story villager before this
+ *                   story quest opens; -1 uses quests.side-quests-per-chapter from config.yml
  */
 public record Quest(
         String id,
@@ -25,7 +27,8 @@ public record Quest(
         List<String> complete,
         Reward reward,
         boolean big,
-        int chapter
+        int chapter,
+        int sideRequired
 ) {
 
     public boolean autoComplete() {

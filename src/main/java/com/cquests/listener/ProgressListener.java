@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityBreedEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTameEvent;
@@ -39,9 +40,16 @@ public final class ProgressListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDeath(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();
-        if (killer != null && !NpcTag.isNpc(event.getEntity())) {
-            count(killer, ObjectiveType.KILL, event.getEntityType().name(), 1);
+        if (killer == null || NpcTag.isNpc(event.getEntity())) {
+            return;
         }
+        // Mob farms on spawners would make kill quests trivial.
+        CreatureSpawnEvent.SpawnReason reason = event.getEntity().getEntitySpawnReason();
+        if (!plugin.settings().countSpawnerMobs
+                && (reason == CreatureSpawnEvent.SpawnReason.SPAWNER || reason == CreatureSpawnEvent.SpawnReason.SPAWNER_EGG)) {
+            return;
+        }
+        count(killer, ObjectiveType.KILL, event.getEntityType().name(), 1);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -60,7 +68,9 @@ public final class ProgressListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         placed.add(event.getBlockPlaced());
-        count(event.getPlayer(), ObjectiveType.PLACE, event.getBlockPlaced().getType().name(), 1);
+        if (placed.firstPlacementAt(event.getBlockPlaced())) {
+            count(event.getPlayer(), ObjectiveType.PLACE, event.getBlockPlaced().getType().name(), 1);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -78,8 +88,24 @@ public final class ProgressListener implements Listener {
                 }
             }
             times = min == Integer.MAX_VALUE ? 1 : min;
+            // Shift-click stops when the inventory is full; only count what actually fits.
+            int fits = room(player, result) / Math.max(1, result.getAmount());
+            times = Math.max(0, Math.min(times, fits));
         }
         count(player, ObjectiveType.CRAFT, result.getType().name(), result.getAmount() * times);
+    }
+
+    private static int room(Player player, ItemStack item) {
+        int room = 0;
+        int max = item.getMaxStackSize();
+        for (ItemStack slot : player.getInventory().getStorageContents()) {
+            if (slot == null || slot.getType().isAir()) {
+                room += max;
+            } else if (slot.isSimilar(item)) {
+                room += Math.max(0, max - slot.getAmount());
+            }
+        }
+        return room;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

@@ -7,6 +7,7 @@ import com.cquests.model.ObjectiveType;
 import com.cquests.model.Quest;
 import com.cquests.model.QuestCategory;
 import com.cquests.model.Reward;
+import com.cquests.model.RewardEffect;
 import com.cquests.model.RewardItem;
 import com.cquests.model.TargetMatcher;
 import com.cquests.npc.NpcRegistry;
@@ -46,6 +47,7 @@ public final class QuestGenerator {
     private final List<Tier> tiers = new ArrayList<>();
     private final List<String> thanks;
     private final List<String> places;
+    private final List<RewardEffect> effectPool = new ArrayList<>();
 
     public QuestGenerator(YamlConfiguration cfg, Settings settings, NpcRegistry npcs, Logger log) {
         this.cfg = cfg;
@@ -56,6 +58,14 @@ public final class QuestGenerator {
                 ? List.of("Thank you, {player}. That helps more than you know.")
                 : cfg.getStringList("thanks");
         this.places = cfg.getStringList("places");
+        for (String line : cfg.getStringList("effects")) {
+            RewardEffect effect = QuestRegistry.parseEffect(line);
+            if (effect == null) {
+                log.warning("generator.yml: bad effect '" + line + "'");
+            } else {
+                effectPool.add(effect);
+            }
+        }
         loadTypes();
         loadTiers();
     }
@@ -231,10 +241,12 @@ public final class QuestGenerator {
             double raw = tier.minMoney() + share * (tier.maxMoney() - tier.minMoney());
             raw *= (1 + 0.35 * (objectives.size() - 1)) * (0.92 + rnd.nextDouble() * 0.16);
             money = Math.max(50, Math.round(raw / 50.0) * 50);
-            if (!tier.items().isEmpty() && rnd.nextDouble() < itemChance * Math.min(1.5, 0.5 + effort)) {
-                items.add(tier.items().get(rnd.nextInt(tier.items().size())));
+            List<RewardItem> choices = tier.items().stream()
+                    .filter(item -> QuestRegistry.allowedItem(item, level, settings)).toList();
+            if (!choices.isEmpty() && rnd.nextDouble() < itemChance * Math.min(1.5, 0.5 + effort)) {
+                items.add(choices.get(rnd.nextInt(choices.size())));
                 if (effort > 1.5) {
-                    RewardItem bonus = tier.items().get(rnd.nextInt(tier.items().size()));
+                    RewardItem bonus = choices.get(rnd.nextInt(choices.size()));
                     RewardItem first = items.get(0);
                     if (bonus.material() == first.material()) {
                         items.set(0, new RewardItem(first.material(), first.amount() + bonus.amount()));
@@ -244,9 +256,15 @@ public final class QuestGenerator {
                 }
             }
         }
+        // Now and then a quest pays in a buff instead, like an hour of Swiftness. Never stronger than level I.
+        List<RewardEffect> effects = new ArrayList<>();
+        if (fixedMoney < 0 && !effectPool.isEmpty() && level >= cfg.getInt("effect-min-level", 10)
+                && rnd.nextDouble() < cfg.getDouble("effect-chance", 0.06)) {
+            effects.add(effectPool.get(rnd.nextInt(effectPool.size())));
+        }
         List<String> complete = List.of(pick(thanks, rnd, "Thank you."));
         return new Quest(id, name, level, category, order, giver.id(), giver.id(), requires, List.copyOf(objectives),
-                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.of(), 0), false, 0);
+                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.copyOf(effects), List.of(), 0), false, 0, -1);
     }
 
     private TypeTemplate pickType(Random rnd, int level) {
