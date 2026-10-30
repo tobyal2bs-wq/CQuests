@@ -1,5 +1,6 @@
-package com.cquests;
+package com.cquests.quest;
 
+import com.cquests.Settings;
 import com.cquests.model.NpcDef;
 import com.cquests.model.Objective;
 import com.cquests.model.ObjectiveType;
@@ -7,7 +8,6 @@ import com.cquests.model.Quest;
 import com.cquests.model.QuestCategory;
 import com.cquests.model.TargetMatcher;
 import com.cquests.npc.NpcRegistry;
-import com.cquests.quest.QuestRegistry;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
@@ -41,6 +41,8 @@ class QuestDataTest {
 
     @BeforeAll
     static void load() {
+        // Material.isItem() needs a running server's registry; every reward in the files is a plain item anyway.
+        QuestRegistry.itemCheck = material -> !material.isLegacy();
         Logger log = Logger.getLogger("CQuestsTest");
         log.setUseParentHandlers(false);
         log.addHandler(new Handler() {

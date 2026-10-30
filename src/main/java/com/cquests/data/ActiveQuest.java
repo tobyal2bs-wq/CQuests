@@ -1,10 +1,15 @@
 package com.cquests.data;
 
+import com.cquests.model.Quest;
+
 public final class ActiveQuest {
 
     private final String questId;
     private final int[] progress;
     private final long acceptedAt;
+    /** The resolved quest, cached so hot event paths skip the registry lookup; tied to a registry load. */
+    private Quest cachedQuest;
+    private int cachedGeneration = -1;
 
     public ActiveQuest(String questId, int objectives, long acceptedAt) {
         this(questId, new int[objectives], acceptedAt);
@@ -36,6 +41,15 @@ public final class ActiveQuest {
 
     public long acceptedAt() {
         return acceptedAt;
+    }
+
+    public Quest cached(int generation) {
+        return generation == cachedGeneration ? cachedQuest : null;
+    }
+
+    public void cache(Quest quest, int generation) {
+        cachedQuest = quest;
+        cachedGeneration = generation;
     }
 
     public boolean untouched() {

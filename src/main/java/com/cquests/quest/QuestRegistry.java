@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /**
@@ -31,6 +32,9 @@ import java.util.logging.Logger;
  * {@link QuestGenerator} builds on demand (kept in a small cache).
  */
 public final class QuestRegistry {
+
+    /** Whether a material can be given as an item. Swapped out in tests, where there is no server registry. */
+    static Predicate<Material> itemCheck = Material::isItem;
 
     private final Map<String, Quest> byId = new LinkedHashMap<>();
     private final List<Quest> story = new ArrayList<>();
@@ -41,6 +45,7 @@ public final class QuestRegistry {
         }
     };
     private QuestGenerator generator;
+    private volatile int generation;
     private NpcRegistry npcs;
     private final Map<String, List<Quest>> storyByGiver = new HashMap<>();
     private final List<Quest> dailyPool = new ArrayList<>();
@@ -57,6 +62,7 @@ public final class QuestRegistry {
         storyByGiver.clear();
         dailyPool.clear();
 
+        generation++;
         chapterNames.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(questsFile);
         ConfigurationSection chapters = yaml.getConfigurationSection("chapters");
@@ -238,7 +244,7 @@ public final class QuestRegistry {
     static RewardItem parseItem(String line) {
         String[] parts = line.trim().split("\\s+");
         Material material = Material.matchMaterial(parts[0]);
-        if (material == null || !material.isItem()) {
+        if (material == null || !itemCheck.test(material)) {
             return null;
         }
         int amount = 1;
@@ -305,6 +311,11 @@ public final class QuestRegistry {
     public long totalSide() {
         return (long) sidePerNpc() * storyByGiver.keySet().stream()
                 .filter(id -> npcs.get(id) != null && !npcs.get(id).daily()).count();
+    }
+
+    /** Bumped on every load, so cached quest objects from an older load are ignored. */
+    public int generation() {
+        return generation;
     }
 
     public Collection<Quest> all() {

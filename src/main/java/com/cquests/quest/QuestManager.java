@@ -69,6 +69,17 @@ public final class QuestManager {
 
     // ------------------------------------------------------------------ state
 
+    /** The quest behind an active entry, cached on the entry (side quests are generated, so this saves work). */
+    public Quest resolve(ActiveQuest active) {
+        int generation = quests().generation();
+        Quest quest = active.cached(generation);
+        if (quest == null) {
+            quest = quests().get(active.questId());
+            active.cache(quest, generation);
+        }
+        return quest;
+    }
+
     public boolean requirementsMet(PlayerData data, Quest quest) {
         for (String required : quest.requires()) {
             if (!data.isCompleted(required)) {
@@ -136,8 +147,8 @@ public final class QuestManager {
         List<Quest> daily = new ArrayList<>();
         List<Quest> side = new ArrayList<>();
         synchronized (data) {
-            for (String id : data.active().keySet()) {
-                Quest quest = quests().get(id);
+            for (ActiveQuest active : data.active().values()) {
+                Quest quest = resolve(active);
                 if (quest == null) {
                     continue;
                 }
@@ -285,7 +296,7 @@ public final class QuestManager {
                 return;
             }
             for (ActiveQuest active : data.active().values()) {
-                Quest quest = quests().get(active.questId());
+                Quest quest = resolve(active);
                 if (quest == null) {
                     continue;
                 }
@@ -344,7 +355,7 @@ public final class QuestManager {
         List<Quest> newlyReady = new ArrayList<>();
         synchronized (data) {
             for (ActiveQuest active : data.active().values()) {
-                Quest quest = quests().get(active.questId());
+                Quest quest = resolve(active);
                 if (quest == null) {
                     continue;
                 }
@@ -388,7 +399,7 @@ public final class QuestManager {
         PlayerInventory inventory = player.getInventory();
         synchronized (data) {
             for (ActiveQuest active : data.active().values()) {
-                Quest quest = quests().get(active.questId());
+                Quest quest = resolve(active);
                 if (quest == null) {
                     continue;
                 }
@@ -549,7 +560,8 @@ public final class QuestManager {
             lines.add("<green>$" + Text.formatMoney(reward.money()) + "</green>");
         }
         for (RewardItem item : reward.items()) {
-            lines.add("<white>" + item.amount() + " " + Text.pretty(item.material().name()) + "</white>");
+            String name = Text.pretty(item.material().name());
+            lines.add("<white>" + item.amount() + " " + (item.amount() > 1 ? Text.plural(name) : name) + "</white>");
         }
         if (reward.xp() > 0) {
             lines.add("<aqua>" + reward.xp() + " xp</aqua>");
