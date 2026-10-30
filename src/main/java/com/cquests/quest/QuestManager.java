@@ -3,6 +3,7 @@ package com.cquests.quest;
 import com.cquests.CQuestsPlugin;
 import com.cquests.Settings;
 import com.cquests.data.ActiveQuest;
+import com.cquests.data.JourneyEntry;
 import com.cquests.data.PlayerData;
 import com.cquests.model.NpcDef;
 import com.cquests.model.Objective;
@@ -12,9 +13,11 @@ import com.cquests.model.QuestCategory;
 import com.cquests.model.Reward;
 import com.cquests.model.RewardItem;
 import com.cquests.npc.NpcRegistry;
+import com.cquests.npc.SpawnManager;
 import com.cquests.util.Sched;
 import com.cquests.util.Text;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -72,7 +75,35 @@ public final class QuestManager {
                 return false;
             }
         }
-        return true;
+        return chapterGate(data, quest) == null;
+    }
+
+    /**
+     * Story chapters are long on purpose: before a villager's story quest opens up, the player has to
+     * finish {@code side-quests-per-chapter} side quests for the previous story villager.
+     * Returns that villager's id while the gate is still closed, otherwise null.
+     */
+    public String chapterGate(PlayerData data, Quest quest) {
+        int needed = Math.min(settings().sideQuestsPerChapter, quests().sidePerNpc());
+        if (quest.category() != QuestCategory.STORY || needed <= 0) {
+            return null;
+        }
+        for (String required : quest.requires()) {
+            Quest previous = quests().get(required);
+            if (previous != null && previous.category() == QuestCategory.STORY && !previous.giver().isEmpty()
+                    && !previous.giver().equals(quest.giver()) && data.sideDone(previous.giver()) < needed) {
+                return previous.giver();
+            }
+        }
+        return null;
+    }
+
+    /** Side quests are numbered per NPC and done in order, so "done" means its number is within the NPC's count. */
+    public boolean isDone(PlayerData data, Quest quest) {
+        if (quest.category() == QuestCategory.SIDE) {
+            return quest.order() <= data.sideDone(quest.giver());
+        }
+        return data.isCompleted(quest.id());
     }
 
     public State state(PlayerData data, Quest quest) {
@@ -80,7 +111,7 @@ public final class QuestManager {
         if (active != null) {
             return ready(quest, active) ? State.READY : State.ACTIVE;
         }
-        if (data.isCompleted(quest.id())) {
+        if (isDone(data, quest)) {
             return State.COMPLETED;
         }
         return requirementsMet(data, quest) ? State.AVAILABLE : State.LOCKED;
@@ -168,19 +199,17 @@ public final class QuestManager {
         if (!storyDone) {
             return Offer.none("locked");
         }
-        for (Quest quest : quests().sideFrom(npc.id())) {
-            if (data.isCompleted(quest.id()) || data.isActive(quest.id())) {
-                continue;
-            }
-            if (!requirementsMet(data, quest)) {
-                return Offer.none("locked");
-            }
-            if (activeCount(data, QuestCategory.SIDE) >= settings().maxActiveSide) {
-                return Offer.none("too-many");
-            }
-            return Offer.of(quest);
+        Quest side = quests().side(npc.id(), data.sideDone(npc.id()) + 1);
+        if (side == null || data.isActive(side.id())) {
+            return Offer.none("nothing");
         }
-        return Offer.none("nothing");
+        if (!requirementsMet(data, side)) {
+            return Offer.none("locked");
+        }
+        if (activeCount(data, QuestCategory.SIDE) >= settings().maxActiveSide) {
+            return Offer.none("too-many");
+        }
+        return Offer.of(side);
     }
 
     private Offer dailyOffer(Player player, PlayerData data) {
@@ -204,10 +233,11 @@ public final class QuestManager {
     public boolean accept(Player player, Quest quest) {
         PlayerData data = data(player);
         synchronized (data) {
-            if (data.isActive(quest.id()) || (quest.category() != QuestCategory.DAILY && data.isCompleted(quest.id()))) {
+            if (data.isActive(quest.id()) || (quest.category() != QuestCategory.DAILY && isDone(data, quest))) {
                 return false;
             }
             data.start(new ActiveQuest(quest.id(), quest.objectives().size(), System.currentTimeMillis()));
+            data.markStarted(System.currentTimeMillis());
             if (quest.category() == QuestCategory.DAILY) {
                 data.setLastDailyAt(System.currentTimeMillis());
             }
@@ -441,10 +471,21 @@ public final class QuestManager {
             if (!data.isActive(quest.id())) {
                 return;
             }
-            boolean daily = quest.category() == QuestCategory.DAILY;
-            data.complete(quest.id(), !daily);
-            if (daily) {
-                data.addDailyDone();
+            switch (quest.category()) {
+                case DAILY -> {
+                    data.complete(quest.id(), false);
+                    data.addDailyDone();
+                }
+                case SIDE -> {
+                    data.complete(quest.id(), false);
+                    data.addSideDone(quest.giver());
+                }
+                case STORY -> {
+                    data.complete(quest.id(), true);
+                    Location at = journeySpot(player, quest);
+                    data.addJourney(new JourneyEntry(quest.id(), System.currentTimeMillis(), at.getWorld().getName(),
+                            at.getX(), at.getY(), at.getZ()));
+                }
             }
         }
         player.sendMessage(Text.mm(settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")
@@ -452,6 +493,24 @@ public final class QuestManager {
         giveRewards(player, quest.reward());
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
         plugin.visibility().refresh(player);
+        if (isFinalQuest(quest)) {
+            plugin.finale().play(player);
+        } else if (quest.big()) {
+            plugin.finale().celebrate(player, quest);
+        }
+    }
+
+    /** The last quest of the story chain; finishing it plays the ending. */
+    public boolean isFinalQuest(Quest quest) {
+        List<Quest> story = quests().story();
+        return !story.isEmpty() && story.get(story.size() - 1).id().equals(quest.id());
+    }
+
+    /** Where a story quest "happened" for the replay: the villager you turned it in to, or the player. */
+    private Location journeySpot(Player player, Quest quest) {
+        SpawnManager.Point point = plugin.spawns().points().get(quest.turnIn().isEmpty() ? quest.giver() : quest.turnIn());
+        Location loc = point == null ? null : point.location();
+        return loc != null ? loc : player.getLocation();
     }
 
     public void giveRewards(Player player, Reward reward) {

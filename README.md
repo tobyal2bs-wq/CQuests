@@ -2,8 +2,10 @@
 
 A villager quest system for Paper and Folia (and forks like Leaf), Minecraft 1.21.4 and newer.
 
-- **100 linked lore villagers.** Act 1 has 50 villagers standing around spawn, from Stephan and Jerry up to Elder Marcus. Act 2 has 50 more out in the wilds, ending with the Wither fight in "The King Wakes". Each one gives a story quest, and each quest is a bit harder than the one before it.
-- **5,000 side quests**, 50 per story villager, generated from templates in `generator.yml`. A villager's side quests unlock once you finish their story quest.
+- **100 linked lore villagers.** 15 stand at spawn: 14 story villagers (Stephan, Jerry, Steve, B.O.B...) plus the daily villager. The other 86 live out in the world, ending with the Wither fight in "The King Wakes" and the trip home in "A New Dawn". Each one gives a story quest, and each quest is a bit harder than the one before it.
+- **1,000,000 side quests**, 10,000 per story villager, generated on demand from templates in `generator.yml`, so the number costs no memory. They mix one to three objectives and get bigger and harder the further you go. A villager's side quests unlock once you finish their story quest.
+- **A long story.** Before the next villager's chapter opens, you do 10 side quests for the current one (`side-quests-per-chapter`). That makes the main story about 1,100 quests, which is weeks of play.
+- **Celebrations and an ending.** Big chapters end with a title, fireworks and sounds. The last quest plays an in-game replay: the camera flies over the places where your story happened, shows your stats and "The End", then gives the custom advancement **Finished the Journey** and announces it to the server. Admins can preview it with `/cq finale`.
 - **A daily villager** (Granny Marigold) hands out one job every 24 hours for 10k.
 - **A quest journal book** (`/quests`) laid out like the reference screenshots: one page per active quest (title, level, status, objectives with progress, `« All quests`), the "All Quests" index with a progress bar and ✔ / ○ / ✖ per quest, then side quests and the daily.
 - **Click dialogue.** Villagers introduce themselves the first time you click them, tell you what they need, take deliveries out of your inventory and pay you on turn-in.
@@ -45,15 +47,17 @@ Act 2 villagers are **personal**. A player only sees one when they have a quest 
 
 ## Admin
 
-`/cq reload`, `/cq quest <id>` and `/cq player <name> reset | complete <quest> | give <quest> | resetdaily`. Permission: `cquests.admin` (op by default).
+`/cq reload`, `/cq quest <id>`, `/cq finale [player]` (preview the ending; no advancement) and `/cq player <name> reset | complete <quest> | give <quest> | resetdaily`. Permission: `cquests.admin` (op by default).
 
 ## Files
 
 - `config.yml`: money command, chat formats, daily settings, spawn rings, journal layout, target groups and messages.
 - `npcs.yml`: the villagers (name, title, profession, skin, level, act, intro and idle lines).
 - `quests.yml`: the welcome quest and the 100 story quests. Objective lines look like `KILL WOLF 3 wolves`, `DELIVER WHEAT 16 wheat`, `MINE @IRON 24 iron ore` or `TALK jerry`. The file header lists every type.
-- `generator.yml`: templates for side quests and the daily pool. `side-quests-per-npc: 50` across 100 story villagers gives 5,000 quests. Add targets or names there to get more variety.
-- `players/<uuid>.yml`: each player's progress.
+- `generator.yml`: templates for side quests and the daily pool. `side-quests-per-npc: 10000` across 100 story villagers gives 1,000,000 quests. Add targets, names or places there to get more variety.
+- `players/<uuid>.yml`: each player's progress. Side quests are stored as a count per villager, so files stay small.
+
+The "Finished the Journey" advancement sits in the Adventure tab. It is loaded into the server at startup. If a server version refuses that, a datapack is written to `<world>/datapacks/cquests` instead and loads after the next restart.
 
 Objective types: KILL, MINE, HARVEST (fully grown crops only), PLACE, CRAFT, SMELT, FISH, BREED, TAME, SHEAR, ENCHANT, CONSUME, DELIVER, TALK. By default, breaking a block you placed yourself doesn't count towards MINE.
 

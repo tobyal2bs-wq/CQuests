@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityCombustEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
@@ -63,7 +64,8 @@ public final class NpcListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDamage(EntityDamageEvent event) {
-        if (NpcTag.isNpc(event.getEntity())) {
+        if (NpcTag.isNpc(event.getEntity())
+                || (event instanceof EntityDamageByEntityEvent byEntity && plugin.finale().isShowFirework(byEntity.getDamager()))) {
             event.setCancelled(true);
         }
     }
@@ -127,6 +129,7 @@ public final class NpcListener implements Listener {
         Player player = event.getPlayer();
         plugin.store().get(player.getUniqueId());
         Sched.entityLater(player, 40, () -> {
+            plugin.finale().restoreIfNeeded(player);
             plugin.questManager().giveWelcome(player);
             plugin.visibility().refresh(player);
         });

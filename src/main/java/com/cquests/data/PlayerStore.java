@@ -78,6 +78,20 @@ public final class PlayerStore {
         }
         data.completed.addAll(yaml.getStringList("completed"));
         data.met.addAll(yaml.getStringList("met"));
+        ConfigurationSection side = yaml.getConfigurationSection("side-done");
+        if (side != null) {
+            for (String npcId : side.getKeys(false)) {
+                data.sideDone.put(npcId, side.getInt(npcId));
+            }
+        }
+        for (String line : yaml.getStringList("journey")) {
+            JourneyEntry entry = JourneyEntry.parse(line);
+            if (entry != null) {
+                data.journey.add(entry);
+            }
+        }
+        data.startedAt = yaml.getLong("started", 0);
+        data.finaleReturn = yaml.getString("finale-return", null);
         data.lastDailyAt = yaml.getLong("daily.last", 0);
         data.dailiesDone = yaml.getInt("daily.done", 0);
         return data;
@@ -96,6 +110,10 @@ public final class PlayerStore {
             }
             yaml.set("completed", new ArrayList<>(data.completed));
             yaml.set("met", new ArrayList<>(data.met));
+            data.sideDone.forEach((npcId, count) -> yaml.set("side-done." + npcId, count));
+            yaml.set("journey", data.journey.stream().map(JourneyEntry::serialize).toList());
+            yaml.set("started", data.startedAt);
+            yaml.set("finale-return", data.finaleReturn);
             yaml.set("daily.last", data.lastDailyAt);
             yaml.set("daily.done", data.dailiesDone);
             data.clean();

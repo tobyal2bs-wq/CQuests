@@ -1,4 +1,5 @@
-# Story quests: the linked chain through all 100 villagers, done in order.
+# Story quests: the linked chain through all 100 villagers, done in order. Finishing the last one plays the ending.
+# big: true plays a celebration. Between chapters players do side quests (quests.side-quests-per-chapter in config.yml).
 # Side quests and the daily pool are generated from generator.yml.
 #
 # objectives (one per line):
@@ -202,6 +203,7 @@ quests:
     level: 9
     order: 10
     giver: "harold"
+    big: true
     requires: [story_rosie]
     objectives:
       - "DELIVER COBBLESTONE 128 cobblestone"
@@ -393,6 +395,7 @@ quests:
     level: 19
     order: 20
     giver: "dave"
+    big: true
     requires: [story_mabel]
     objectives:
       - "KILL CREEPER 5 creepers"
@@ -585,6 +588,7 @@ quests:
     level: 29
     order: 30
     giver: "ralph"
+    big: true
     requires: [story_daisy]
     objectives:
       - "KILL ZOMBIE 20 zombies"
@@ -776,6 +780,7 @@ quests:
     level: 39
     order: 40
     giver: "ned"
+    big: true
     requires: [story_fern]
     objectives:
       - "FISH NAME_TAG|SADDLE|BOW|FISHING_ROD|ENCHANTED_BOOK|NAUTILUS_SHELL 1 treasure"
@@ -967,6 +972,7 @@ quests:
     level: 49
     order: 50
     giver: "marcus"
+    big: true
     requires: [story_opal]
     objectives:
       - "KILL ENDERMAN 5 endermen"
@@ -1160,6 +1166,7 @@ quests:
     level: 59
     order: 60
     giver: "hugo"
+    big: true
     requires: [story_tilly]
     objectives:
       - "DELIVER GOLD_BLOCK 4 gold blocks"
@@ -1352,6 +1359,7 @@ quests:
     level: 69
     order: 70
     giver: "gideon"
+    big: true
     requires: [story_fiona]
     objectives:
       - "KILL GUARDIAN 10 guardians"
@@ -1371,6 +1379,7 @@ quests:
     level: 70
     order: 71
     giver: "holly"
+    big: true
     requires: [story_gideon]
     objectives:
       - "KILL ELDER_GUARDIAN 1 elder guardian"
@@ -1543,6 +1552,7 @@ quests:
     level: 79
     order: 80
     giver: "quill"
+    big: true
     requires: [story_poppy]
     objectives:
       - "MINE SCULK 32 sculk"
@@ -1657,6 +1667,7 @@ quests:
     level: 85
     order: 86
     giver: "wade"
+    big: true
     requires: [story_vera]
     objectives:
       - "KILL ENDER_DRAGON 1 ender dragon"
@@ -1733,6 +1744,7 @@ quests:
     level: 89
     order: 90
     giver: "abel"
+    big: true
     requires: [story_zeke]
     objectives:
       - "MINE END_STONE 128 end stone"
@@ -1906,6 +1918,7 @@ quests:
     level: 98
     order: 99
     giver: "aldis"
+    big: true
     requires: [story_iona]
     objectives:
       - "KILL WITHER 1 wither"
@@ -1926,6 +1939,7 @@ quests:
     level: 99
     order: 100
     giver: "aldric"
+    big: true
     requires: [story_aldis]
     objectives:
       - "TALK stephan"

@@ -15,19 +15,17 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.logging.Logger;
 
 /**
  * Builds side quests and the daily pool from the templates in generator.yml.
- * The output is deterministic for a given seed, so quest ids and player progress stay stable
- * across restarts as long as the templates are not reordered.
+ * The output is deterministic for a given seed, so a quest id always means the same quest
+ * as long as the templates are not reordered.
  */
 public final class QuestGenerator {
 
@@ -47,7 +45,7 @@ public final class QuestGenerator {
     private final List<TypeTemplate> types = new ArrayList<>();
     private final List<Tier> tiers = new ArrayList<>();
     private final List<String> thanks;
-    private final Map<String, Integer> nameUses = new HashMap<>();
+    private final List<String> places;
 
     public QuestGenerator(YamlConfiguration cfg, Settings settings, NpcRegistry npcs, Logger log) {
         this.cfg = cfg;
@@ -57,6 +55,7 @@ public final class QuestGenerator {
         this.thanks = cfg.getStringList("thanks").isEmpty()
                 ? List.of("Thank you, {player}. That helps more than you know.")
                 : cfg.getStringList("thanks");
+        this.places = cfg.getStringList("places");
         loadTypes();
         loadTiers();
     }
@@ -124,104 +123,59 @@ public final class QuestGenerator {
         }
     }
 
-    public List<Quest> generate(QuestRegistry registry) {
+    public int perNpc() {
+        return Math.max(0, cfg.getInt("side-quests-per-npc", 10_000));
+    }
+
+    /**
+     * Side quest number {@code index} (1-based) of an NPC. Built on demand from the seed, so a million
+     * quests cost no memory until someone actually takes one. Later quests have higher levels,
+     * bigger amounts and more objectives.
+     */
+    public Quest side(NpcDef npc, int index, List<String> requires) {
+        int i = index - 1;
+        Random rnd = new Random(seed() * 31 + npc.id().hashCode() * 1_000_003L + i);
+        double progress = Math.min(1.0, i / (double) Math.max(1, cfg.getInt("ramp-quests", 500)));
+        int level = Math.min(99, npc.level() + i / Math.max(1, cfg.getInt("level-up-every", 100)));
+        double p2 = lerp(cfg.getDoubleList("two-objective-chance"), 0.15, 0.5, progress);
+        double p3 = lerp(cfg.getDoubleList("three-objective-chance"), 0.0, 0.25, progress);
+        double roll = rnd.nextDouble();
+        int count = roll < p3 ? 3 : roll < p3 + p2 ? 2 : 1;
+        double ramp = 0.8 + 0.5 * progress;
+        return build("side_" + npc.id() + "_" + index, QuestCategory.SIDE, index, npc, level, count, ramp, requires,
+                rnd, cfg.getDouble("item-chance", 0.6), -1);
+    }
+
+    public List<Quest> dailyPool() {
         List<Quest> out = new ArrayList<>();
-        if (types.isEmpty()) {
-            log.warning("generator.yml has no usable types; no side quests generated");
+        NpcDef dailyNpc = npcs.get(settings.dailyNpc);
+        if (dailyNpc == null) {
             return out;
         }
-        long seed = cfg.getLong("seed", 1337);
-        int perNpc = Math.max(0, cfg.getInt("side-quests-per-npc", 50));
-        int twoFrom = cfg.getInt("two-objectives-from", 25);
-        int threeFrom = cfg.getInt("three-objectives-from", 42);
-        double itemChance = cfg.getDouble("item-chance", 0.6);
-
-        for (NpcDef npc : npcs.all()) {
-            List<Quest> storyQuests = registry.storyFrom(npc.id());
-            if (npc.daily() || storyQuests.isEmpty()) {
-                continue;
-            }
-            List<String> requires = storyQuests.stream().map(Quest::id).toList();
-            for (int i = 0; i < perNpc; i++) {
-                Random rnd = new Random(seed * 31 + npc.id().hashCode() * 1_000_003L + i);
-                int count = i >= threeFrom ? 3 : i >= twoFrom ? 2 : 1;
-                double ramp = perNpc <= 1 ? 1 : 0.8 + 0.5 * i / (double) (perNpc - 1);
-                Quest quest = build("side_" + npc.id() + "_" + (i + 1), QuestCategory.SIDE, i, npc, npc.level(),
-                        count, ramp, requires, rnd, itemChance, -1);
-                if (quest != null) {
-                    out.add(quest);
-                }
-            }
-        }
-
-        NpcDef dailyNpc = npcs.get(settings.dailyNpc);
-        if (dailyNpc != null) {
-            int pool = Math.max(0, cfg.getInt("daily.pool-size", 60));
-            int level = cfg.getInt("daily.level", 45);
-            int objectives = Math.max(1, cfg.getInt("daily.objectives", 2));
-            for (int i = 0; i < pool; i++) {
-                Random rnd = new Random(seed * 17 + 99_991L * i);
-                Quest quest = build("daily_" + (i + 1), QuestCategory.DAILY, i, dailyNpc, level, objectives,
-                        1.0, List.of(), rnd, 0, settings.dailyMoney);
-                if (quest != null) {
-                    out.add(quest);
-                }
+        int pool = Math.max(0, cfg.getInt("daily.pool-size", 60));
+        int level = cfg.getInt("daily.level", 45);
+        int objectives = Math.max(1, cfg.getInt("daily.objectives", 2));
+        for (int i = 0; i < pool; i++) {
+            Random rnd = new Random(seed() * 17 + 99_991L * i);
+            Quest quest = build("daily_" + (i + 1), QuestCategory.DAILY, i, dailyNpc, level, objectives,
+                    1.0, List.of(), rnd, 0, settings.dailyMoney);
+            if (quest != null) {
+                out.add(quest);
             }
         }
         return out;
     }
 
-    private Quest build(String id, QuestCategory category, int order, NpcDef giver, int level, int objectiveCount,
-                        double ramp, List<String> requires, Random rnd, double itemChance, long fixedMoney) {
-        List<Objective> objectives = new ArrayList<>();
-        Set<String> usedSpecs = new HashSet<>();
-        TypeTemplate firstType = null;
-        Target firstTarget = null;
-        int firstAmount = 0;
-        for (int attempt = 0; attempt < 20 && objectives.size() < objectiveCount; attempt++) {
-            TypeTemplate type = pickType(rnd, level);
-            if (type == null) {
-                break;
-            }
-            List<Target> allowed = type.targets().stream().filter(t -> t.minLevel() <= level).toList();
-            Target target = allowed.get(rnd.nextInt(allowed.size()));
-            if (!usedSpecs.add(type.type() + ":" + target.spec())) {
-                continue;
-            }
-            double scale = objectiveCount == 1 ? 1.0 : 0.7;
-            int amount = amountFor(target, level, ramp * scale, rnd);
-            String npc = type.type() == ObjectiveType.DELIVER ? giver.id() : "";
-            objectives.add(new Objective(type.type(), TargetMatcher.parse(target.spec(), settings.groups), amount, npc,
-                    amount == 1 ? target.singular() : target.plural()));
-            if (firstType == null) {
-                firstType = type;
-                firstTarget = target;
-                firstAmount = amount;
-            }
-        }
-        if (objectives.isEmpty()) {
-            return null;
-        }
+    private long seed() {
+        return cfg.getLong("seed", 1337);
+    }
 
-        String name = uniqueName(fill(pick(firstType.names(), rnd, "{Singular} Task"), firstTarget, firstAmount, giver));
-        String description = fill(pick(firstType.flavor(), rnd, "{npc} needs a hand."), firstTarget, firstAmount, giver);
-
-        Tier tier = tierFor(level);
-        long money;
-        List<RewardItem> items = new ArrayList<>();
-        if (fixedMoney >= 0) {
-            money = fixedMoney;
-        } else {
-            double factor = objectiveCount == 1 ? 1.0 : objectiveCount == 2 ? 1.4 : 1.8;
-            long raw = tier.minMoney() + (long) (rnd.nextDouble() * (tier.maxMoney() - tier.minMoney()));
-            money = Math.max(50, Math.round(raw * factor * ramp / 50.0) * 50);
-            if (!tier.items().isEmpty() && rnd.nextDouble() < itemChance) {
-                items.add(tier.items().get(rnd.nextInt(tier.items().size())));
-            }
+    private static double lerp(List<Double> range, double from, double to, double t) {
+        if (range.size() == 2) {
+            from = range.get(0);
+            to = range.get(1);
         }
-        List<String> complete = List.of(pick(thanks, rnd, "Thank you."));
-        return new Quest(id, name, level, category, order, giver.id(), giver.id(), requires, List.copyOf(objectives),
-                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.of(), 0));
+        return from + (to - from) * t;
     }
 
     private TypeTemplate pickType(Random rnd, int level) {
@@ -287,25 +241,7 @@ public final class QuestGenerator {
                 .replace("{npc}", npcs.mention(npc.id()));
     }
 
-    private String uniqueName(String name) {
-        int uses = nameUses.merge(name, 1, Integer::sum);
-        return uses == 1 ? name : name + " " + roman(uses);
-    }
-
     private static String pick(List<String> list, Random rnd, String fallback) {
         return list.isEmpty() ? fallback : list.get(rnd.nextInt(list.size()));
-    }
-
-    private static String roman(int n) {
-        String[] r = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
-        int[] v = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < v.length; i++) {
-            while (n >= v[i]) {
-                out.append(r[i]);
-                n -= v[i];
-            }
-        }
-        return out.toString();
     }
 }

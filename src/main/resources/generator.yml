@@ -1,8 +1,9 @@
 # Side quest and daily quest generator.
 #
-# Every NPC that gives a story quest also hands out side-quests-per-npc extra quests once
-# its story quest is done. 100 story NPCs x 50 = 5000 side quests. Raise or lower the number
-# freely; quest ids are side_<npc>_<n>, so progress is kept as long as you don't reorder things.
+# Every story villager hands out side-quests-per-npc side quests, one after another, once you have
+# finished their story quest. 100 story villagers x 10,000 = 1,000,000 side quests. They are built on
+# demand from the seed, so a big number costs no memory or startup time. Quest side_<npc>_<n> is
+# always the same quest as long as you keep the seed and don't reorder the lists below.
 #
 # Quests are built from the "types" below. Each target line is:
 #   TARGET | min level | amount at that level | amount at level 99 | singular | plural
@@ -10,12 +11,52 @@
 
 enabled: true
 seed: 20261030
-side-quests-per-npc: 50
-# Quest number (0-based) from which an NPC's side quests have two, then three objectives.
-two-objectives-from: 25
-three-objectives-from: 42
+side-quests-per-npc: 10000
+
+# How later quests get harder. Quest number n of a villager is at level (villager level + n / level-up-every),
+# capped at 99. Over the first ramp-quests quests the amounts grow by up to 50% and the chance of a quest
+# having two or three objectives moves from the first number to the second.
+level-up-every: 100
+ramp-quests: 500
+two-objective-chance: [0.15, 0.5]
+three-objective-chance: [0.0, 0.25]
+
 # Chance that a side quest also gives one item from its reward tier.
 item-chance: 0.6
+
+# Chance a quest name gets a place added, e.g. "Zombie Hunt at Willow Creek".
+place-chance: 0.6
+places:
+  - "at Willow Creek"
+  - "on the North Road"
+  - "near the Old Mill"
+  - "by Stonebridge"
+  - "in the Hollow Woods"
+  - "at Aldmere's Gate"
+  - "on Misty Hill"
+  - "by the Wanderers' Camp"
+  - "at Ravenrock"
+  - "in the Sunken Vale"
+  - "at Thornfield"
+  - "on the Salt Coast"
+  - "at Ember Pass"
+  - "in the Whispering Marsh"
+  - "at Greywatch"
+  - "on the King's Road"
+  - "at Copperhollow"
+  - "by the Frozen Lake"
+  - "at Brightwater"
+  - "in the Red Canyon"
+  - "at Oakheart"
+  - "on Lantern Ridge"
+  - "at the Broken Tower"
+  - "in the Deep Mines"
+  - "at Fallow Fields"
+  - "by the Sea Wall"
+  - "at Duskmere"
+  - "in the Ashlands"
+  - "at Highcairn"
+  - "at the Last Inn"
 
 daily:
   pool-size: 60

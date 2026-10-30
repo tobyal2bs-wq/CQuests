@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -156,13 +157,8 @@ public final class QuestBook {
     private String sidePageText(Player player, PlayerData data, Map<String, Integer> pageOf, int indexPage) {
         QuestManager qm = plugin.questManager();
         StringBuilder page = new StringBuilder("<bold>Side Quests</bold>\n");
-        int done = 0;
-        for (Quest quest : plugin.quests().all()) {
-            if (quest.category() == QuestCategory.SIDE && data.isCompleted(quest.id())) {
-                done++;
-            }
-        }
-        page.append("<dark_gray>Done ").append(done).append(" of ").append(plugin.quests().sideCount()).append("</dark_gray>\n\n");
+        page.append("<dark_gray>Done ").append(String.format(Locale.ROOT, "%,d", data.totalSideDone())).append(" of ")
+                .append(String.format(Locale.ROOT, "%,d", plugin.quests().totalSide())).append("</dark_gray>\n\n");
         int shown = 0;
         for (Quest quest : qm.activeQuests(data)) {
             if (quest.category() == QuestCategory.SIDE) {

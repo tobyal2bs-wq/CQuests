@@ -1,4 +1,4 @@
-# The villagers. Act 1 stands around spawn, act 2 lives out in the world and is personal:
+# The villagers. Act 1 (14 story villagers + the daily one) stands at spawn. Act 2 lives out in the world and is personal:
 # a personal villager is only visible to players who need it for a quest or have met it.
 #
 # profession: ARMORER BUTCHER CARTOGRAPHER CLERIC FARMER FISHERMAN FLETCHER LEATHERWORKER
@@ -198,7 +198,8 @@ npcs:
     profession: LIBRARIAN
     skin: PLAINS
     level: 14
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "I'm Clara. I write things down."
       - "Someone has to remember what happened to Aldmere."
@@ -210,7 +211,8 @@ npcs:
     profession: ARMORER
     skin: PLAINS
     level: 15
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Tom. I make armour."
       - "Iron's what I need. Smelted, not raw."
@@ -222,7 +224,8 @@ npcs:
     profession: CARTOGRAPHER
     skin: PLAINS
     level: 16
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Penny. I make maps."
       - "We need to know where we are before we can know where we're going."
@@ -234,7 +237,8 @@ npcs:
     profession: WEAPONSMITH
     skin: PLAINS
     level: 17
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Arthur. I teach the young ones to fight."
       - "You look like you could use a lesson."
@@ -246,7 +250,8 @@ npcs:
     profession: SHEPHERD
     skin: PLAINS
     level: 18
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Mabel. Greta's sister."
       - "She shears them. I make more of them."
@@ -258,7 +263,8 @@ npcs:
     profession: BUTCHER
     skin: PLAINS
     level: 19
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Dave. I take the night shift."
       - "The creepers are the worst. You never hear them coming."
@@ -270,7 +276,8 @@ npcs:
     profession: CLERIC
     skin: PLAINS
     level: 20
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "I'm Lucy. I weave bandages for Nina."
       - "Spider silk makes the strongest thread."
@@ -282,7 +289,8 @@ npcs:
     profession: NITWIT
     skin: PLAINS
     level: 21
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Hi! I'm Benny! I lost all the chickens!"
       - "Well, not lost. They ran. Fast."
@@ -294,7 +302,8 @@ npcs:
     profession: FARMER
     skin: PLAINS
     level: 22
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Hazel. I make the sugar."
       - "Nobody admits it, but the whole camp runs on cake."
@@ -306,7 +315,8 @@ npcs:
     profession: MASON
     skin: PLAINS
     level: 23
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Frank. Harold's apprentice."
       - "He does stone. I do bricks. Bricks are better."
@@ -318,7 +328,8 @@ npcs:
     profession: LIBRARIAN
     skin: PLAINS
     level: 24
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Edith. I kept the archives of Aldmere."
       - "I saved only a few books when we fled. The dead have the rest."
@@ -330,7 +341,8 @@ npcs:
     profession: TOOLSMITH
     skin: PLAINS
     level: 25
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Sam. B.O.B's partner."
       - "He talks, I dig. We need iron for better picks."
@@ -342,7 +354,8 @@ npcs:
     profession: FISHERMAN
     skin: PLAINS
     level: 26
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Molly. I make ink for Clara's books."
       - "Squid make the best ink, but they're slippery."
@@ -354,7 +367,8 @@ npcs:
     profession: FLETCHER
     skin: PLAINS
     level: 27
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "George. I train the archers."
       - "Oliver makes arrows, I shoot them. We go through a lot."
@@ -366,7 +380,8 @@ npcs:
     profession: FARMER
     skin: PLAINS
     level: 28
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Daisy! I grow the pumpkins."
       - "Biggest pumpkins this side of Aldmere."
@@ -378,7 +393,8 @@ npcs:
     profession: BUTCHER
     skin: PLAINS
     level: 29
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Ralph. I keep the gate."
       - "Every night more of them come. More than in Aldmere, even."
@@ -390,7 +406,8 @@ npcs:
     profession: CLERIC
     skin: SWAMP
     level: 30
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Agnes. I brew remedies."
       - "Some say rotten flesh is useless. Some are wrong."
@@ -402,7 +419,8 @@ npcs:
     profession: ARMORER
     skin: PLAINS
     level: 31
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Leo. Tom's brother."
       - "He makes plate, I make chain. We need iron for both."
@@ -414,7 +432,8 @@ npcs:
     profession: SHEPHERD
     skin: PLAINS
     level: 32
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Winnie. I dye the wool."
       - "Aldmere was colourful once. I want that back."
@@ -426,7 +445,8 @@ npcs:
     profession: CARTOGRAPHER
     skin: PLAINS
     level: 33
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Cecil. I scout the roads."
       - "Pillagers have been watching the camp. I've seen their banners."
@@ -438,7 +458,8 @@ npcs:
     profession: FARMER
     skin: PLAINS
     level: 34
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Betty. I keep bees."
       - "Honey heals, sweetens and makes everyone smile."
@@ -450,7 +471,8 @@ npcs:
     profession: MASON
     skin: PLAINS
     level: 35
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Otto. I cut deepslate."
       - "It's the only stone strong enough for what's coming."
@@ -462,7 +484,8 @@ npcs:
     profession: LIBRARIAN
     skin: PLAINS
     level: 36
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "June. I study enchanting."
       - "Lapis is the key. Without it, no magic."
@@ -474,7 +497,8 @@ npcs:
     profession: WEAPONSMITH
     skin: DESERT
     level: 37
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Hank. I work gold."
       - "Gold is soft, but piglins love it. That makes it useful."
@@ -486,7 +510,8 @@ npcs:
     profession: FARMER
     skin: JUNGLE
     level: 38
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Fern. Melons are my thing."
       - "Hot summers, cool melons."
@@ -498,7 +523,8 @@ npcs:
     profession: FISHERMAN
     skin: PLAINS
     level: 39
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Ned. I fish for more than fish."
       - "Sometimes the water gives up treasure. Old things from Aldmere."
@@ -510,7 +536,8 @@ npcs:
     profession: CLERIC
     skin: SWAMP
     level: 40
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Iris. I track witches."
       - "They brew poisons in the swamp. Some of them came from Aldmere's ruins."
@@ -522,7 +549,8 @@ npcs:
     profession: TOOLSMITH
     skin: PLAINS
     level: 41
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Percy! Inventor! Genius! Mostly genius."
       - "I need redstone for my newest machine."
@@ -534,7 +562,8 @@ npcs:
     profession: LEATHERWORKER
     skin: SAVANNA
     level: 42
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Doris. I run the stables."
       - "Empty stables, I should say. We left our horses in Aldmere."
@@ -546,7 +575,8 @@ npcs:
     profession: ARMORER
     skin: PLAINS
     level: 43
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Albert. I was a knight of Aldmere once."
       - "Now I'm an old man with no armour."
@@ -558,7 +588,8 @@ npcs:
     profession: SHEPHERD
     skin: TAIGA
     level: 44
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Maggie. I love dogs."
       - "A good dog hears danger before any guard."
@@ -570,7 +601,8 @@ npcs:
     profession: WEAPONSMITH
     skin: PLAINS
     level: 45
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Vince. June's student."
       - "She studies magic. I use it."
@@ -582,7 +614,8 @@ npcs:
     profession: CARTOGRAPHER
     skin: PLAINS
     level: 46
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Ellie. I watch the coast."
       - "The drowned are walking out of the sea. More every night."
@@ -594,7 +627,8 @@ npcs:
     profession: BUTCHER
     skin: PLAINS
     level: 47
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Rufus. I collect gunpowder."
       - "Creepers have plenty. They just don't like sharing."
@@ -606,7 +640,8 @@ npcs:
     profession: LIBRARIAN
     skin: PLAINS
     level: 48
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "Opal. I study gems."
       - "Diamonds are said to hold the light of the old world."
@@ -618,7 +653,8 @@ npcs:
     profession: NONE
     skin: PLAINS
     level: 49
-    act: 1
+    act: 2
+    personal: true
     intro:
       - "I am Marcus, elder of the Wanderers."
       - "You have helped everyone in this camp. Now I must ask more of you."

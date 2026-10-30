@@ -5,6 +5,7 @@ import com.cquests.data.ActiveQuest;
 import com.cquests.data.PlayerData;
 import com.cquests.model.NpcDef;
 import com.cquests.model.Quest;
+import com.cquests.model.QuestCategory;
 import com.cquests.npc.SpawnManager;
 import com.cquests.npc.WorldGuardHook;
 import com.cquests.util.Text;
@@ -43,13 +44,15 @@ public final class AdminCommand implements TabExecutor {
             case "reload" -> {
                 plugin.reload();
                 sender.sendMessage(Text.mm("<green>CQuests reloaded: " + plugin.npcs().all().size() + " NPCs, "
-                        + plugin.quests().all().size() + " quests."));
+                        + plugin.quests().story().size() + " story quests, "
+                        + String.format(Locale.ROOT, "%,d", plugin.quests().totalSide()) + " side quests."));
             }
             case "npc" -> npc(sender, args);
             case "pos1", "pos2" -> pos(sender, args[0].equalsIgnoreCase("pos1") ? 0 : 1);
             case "scatter" -> scatter(sender, args);
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
+            case "finale" -> finale(sender, args);
             default -> help(sender);
         }
         return true;
@@ -66,7 +69,8 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq pos1</yellow>, <yellow>/cq pos2</yellow> <gray>select a box for scattering
                 <yellow>/cq scatter <ids|act1|act2|all> [wg-region]</yellow> <gray>spread NPCs in a region or your box
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
-                <yellow>/cq quest <id></yellow> <gray>show a quest's details"""));
+                <yellow>/cq quest <id></yellow> <gray>show a quest's details
+                <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic"""));
     }
 
     private void npc(CommandSender sender, String[] args) {
@@ -225,7 +229,9 @@ public final class AdminCommand implements TabExecutor {
                 }
                 synchronized (data) {
                     ActiveQuest active = data.active(quest.id());
-                    if (active == null) {
+                    if (active == null && quest.category() == QuestCategory.SIDE) {
+                        data.setSideDone(quest.giver(), Math.max(data.sideDone(quest.giver()), quest.order()));
+                    } else if (active == null) {
                         data.complete(quest.id(), true);
                     } else {
                         for (int i = 0; i < quest.objectives().size(); i++) {
@@ -242,12 +248,25 @@ public final class AdminCommand implements TabExecutor {
                     return;
                 }
                 data.uncomplete(quest.id());
+                if (quest.category() == QuestCategory.SIDE) {
+                    data.setSideDone(quest.giver(), Math.min(data.sideDone(quest.giver()), quest.order() - 1));
+                }
                 plugin.questManager().accept(target, quest);
                 sender.sendMessage(Text.mm("<green>Gave " + Text.escape(quest.name()) + " to " + target.getName() + "."));
             }
             default -> sender.sendMessage(Text.mm("<red>Unknown action."));
         }
         plugin.visibility().refresh(target);
+    }
+
+    private void finale(CommandSender sender, String[] args) {
+        Player target = args.length > 1 ? Bukkit.getPlayerExact(args[1]) : sender instanceof Player p ? p : null;
+        if (target == null) {
+            sender.sendMessage(Text.mm("<red>Usage: /cq finale [player]"));
+            return;
+        }
+        plugin.finale().play(target, true);
+        sender.sendMessage(Text.mm("<green>Playing the ending for " + target.getName() + " (preview, no advancement)."));
     }
 
     private void quest(CommandSender sender, String[] args) {
@@ -267,7 +286,7 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "player", "quest"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "player", "quest", "finale"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();

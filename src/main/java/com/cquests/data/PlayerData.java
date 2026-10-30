@@ -1,7 +1,10 @@
 package com.cquests.data;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -16,8 +19,14 @@ public final class PlayerData {
     final Map<String, ActiveQuest> active = new LinkedHashMap<>();
     final Set<String> completed = new HashSet<>();
     final Set<String> met = new HashSet<>();
+    /** Side quests are done in order per NPC, so a count per NPC is all we store, even for a million quests. */
+    final Map<String, Integer> sideDone = new HashMap<>();
+    final List<JourneyEntry> journey = new ArrayList<>();
+    long startedAt;
     long lastDailyAt;
     int dailiesDone;
+    /** Where to put the player back if they log out during the ending cinematic: "world;x;y;z;yaw;pitch;GAMEMODE". */
+    String finaleReturn;
     private volatile boolean dirty;
 
     public PlayerData(UUID uuid) {
@@ -99,10 +108,65 @@ public final class PlayerData {
         dirty = true;
     }
 
+    public synchronized int sideDone(String npcId) {
+        return sideDone.getOrDefault(npcId, 0);
+    }
+
+    public synchronized long totalSideDone() {
+        long total = 0;
+        for (int done : sideDone.values()) {
+            total += done;
+        }
+        return total;
+    }
+
+    public synchronized void addSideDone(String npcId) {
+        sideDone.merge(npcId, 1, Integer::sum);
+        dirty = true;
+    }
+
+    public synchronized void setSideDone(String npcId, int count) {
+        sideDone.put(npcId, Math.max(0, count));
+        dirty = true;
+    }
+
+    public synchronized List<JourneyEntry> journey() {
+        return List.copyOf(journey);
+    }
+
+    public synchronized void addJourney(JourneyEntry entry) {
+        journey.add(entry);
+        dirty = true;
+    }
+
+    public synchronized long startedAt() {
+        return startedAt;
+    }
+
+    public synchronized void markStarted(long time) {
+        if (startedAt == 0) {
+            startedAt = time;
+            dirty = true;
+        }
+    }
+
+    public synchronized String finaleReturn() {
+        return finaleReturn;
+    }
+
+    public synchronized void setFinaleReturn(String value) {
+        finaleReturn = value;
+        dirty = true;
+    }
+
     public synchronized void reset() {
         active.clear();
         completed.clear();
         met.clear();
+        sideDone.clear();
+        journey.clear();
+        startedAt = 0;
+        finaleReturn = null;
         lastDailyAt = 0;
         dailiesDone = 0;
         dirty = true;

@@ -5,6 +5,7 @@ import com.cquests.command.AdminCommand;
 import com.cquests.command.QuestsCommand;
 import com.cquests.data.PlayerStore;
 import com.cquests.dialogue.DialogueManager;
+import com.cquests.finale.Finale;
 import com.cquests.listener.NpcListener;
 import com.cquests.listener.ProgressListener;
 import com.cquests.npc.NpcRegistry;
@@ -33,6 +34,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     private VisibilityManager visibility;
     private DialogueManager dialogue;
     private QuestBook book;
+    private Finale finale;
     private ScheduledTask autosave;
 
     @Override
@@ -52,9 +54,11 @@ public final class CQuestsPlugin extends JavaPlugin {
         visibility = new VisibilityManager(this);
         dialogue = new DialogueManager(this);
         book = new QuestBook(this);
+        finale = new Finale(this);
 
         loadData();
         Platform.init();
+        finale.advancement().register();
 
         getServer().getPluginManager().registerEvents(new NpcListener(this), this);
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
@@ -136,5 +140,9 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     public QuestBook book() {
         return book;
+    }
+
+    public Finale finale() {
+        return finale;
     }
 }

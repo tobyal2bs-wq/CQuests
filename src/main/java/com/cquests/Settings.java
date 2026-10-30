@@ -23,6 +23,7 @@ public final class Settings {
     public final int maxActiveSide;
     public final String welcomeQuest;
     public final boolean ignorePlacedBlocks;
+    public final int sideQuestsPerChapter;
 
     public final String dailyNpc;
     public final long dailyCooldownMillis;
@@ -42,6 +43,13 @@ public final class Settings {
     public final int indexPerPage;
     public final int barLength;
 
+    public final boolean celebrateBigQuests;
+    public final boolean finaleEnabled;
+    public final int finaleSceneTicks;
+    public final int finaleMaxScenes;
+    public final String advancementTitle;
+    public final String advancementDescription;
+
     public final Map<String, List<String>> groups;
     private final Map<String, String> messages;
 
@@ -58,6 +66,7 @@ public final class Settings {
         maxActiveSide = Math.max(1, c.getInt("quests.max-active-side", 3));
         welcomeQuest = c.getString("quests.welcome-quest", "welcome");
         ignorePlacedBlocks = c.getBoolean("quests.ignore-player-placed-blocks", true);
+        sideQuestsPerChapter = Math.max(0, c.getInt("quests.side-quests-per-chapter", 10));
 
         dailyNpc = c.getString("daily.npc", "marigold");
         dailyCooldownMillis = (long) (c.getDouble("daily.cooldown-hours", 24) * 3_600_000L);
@@ -78,6 +87,13 @@ public final class Settings {
         bookAuthor = c.getString("book.author", "The Wanderers");
         indexPerPage = Math.max(3, c.getInt("book.quests-per-index-page", 8));
         barLength = Math.max(5, c.getInt("book.progress-bar-length", 18));
+
+        celebrateBigQuests = c.getBoolean("celebrations.big-quests", true);
+        finaleEnabled = c.getBoolean("finale.enabled", true);
+        finaleSceneTicks = (int) Math.max(40, c.getDouble("finale.scene-seconds", 4) * 20);
+        finaleMaxScenes = Math.max(1, c.getInt("finale.max-scenes", 12));
+        advancementTitle = c.getString("finale.advancement.title", "Finished the Journey");
+        advancementDescription = c.getString("finale.advancement.description", "Free the Hollow King and bring the Wanderers home");
 
         groups = new HashMap<>();
         ConfigurationSection g = c.getConfigurationSection("groups");

@@ -28,6 +28,23 @@ quests:
   welcome-quest: welcome
   # Breaking a block you placed yourself does not count for MINE objectives.
   ignore-player-placed-blocks: true
+  # Side quests a player must finish for a story villager before the next villager's story quest opens.
+  # 100 chapters x 10 makes the story roughly 1,100 quests long. Set to 0 to make the story a straight line.
+  side-quests-per-chapter: 10
+
+celebrations:
+  # Title, fireworks and sounds when a quest marked "big: true" in quests.yml is finished.
+  big-quests: true
+
+finale:
+  # When the last story quest is done: a camera tour over the places of the player's story,
+  # their stats, "The End", fireworks and the custom advancement below.
+  enabled: true
+  scene-seconds: 4
+  max-scenes: 12
+  advancement:
+    title: "Finished the Journey"
+    description: "Free the Hollow King and bring the Wanderers home"
 
 daily:
   # NPC id from npcs.yml that hands out the daily quest.
@@ -41,9 +58,9 @@ spawning:
   auto-place-unplaced: true
   # World for auto placement. Empty = the main world.
   auto-place-world: ""
-  # Act 1 (spawn village) and act 2 (the wilds) rings around spawn, in blocks: [min, max].
+  # Act 1 (the 15 spawn villagers) and act 2 (the wilds) rings around spawn, in blocks: [min, max].
   act1-ring: [5, 22]
-  act2-ring: [26, 40]
+  act2-ring: [30, 90]
   # How often missing villagers are re-created at their point.
   respawn-check-seconds: 10
   # Villagers turn to face whoever clicks them.
@@ -83,3 +100,5 @@ messages:
   npc-locked: "I'm not ready for you yet, {player}."
   npc-too-many: "You've got your hands full. Finish one of your side quests first."
   npc-daily-cooldown: "Come back in <time> and I'll have another job for you."
+  npc-chapter-gate: "{npc:<gate>} still needs your help. Do <left> more jobs for them first."
+  journey-finished: "<gold>★ <white><player></white> finished the journey and freed the Hollow King!"

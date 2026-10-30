@@ -120,7 +120,14 @@ public final class DialogueManager {
             case "locked" -> {
                 Quest next = qm().nextStoryQuest(data);
                 lines.add(new Line(true, plugin.settings().msg("npc-locked", "I'm not ready for you yet, {player}.")));
-                if (next != null && !next.giver().isEmpty() && !next.giver().equals(npc.id())) {
+                String gate = next == null ? null : qm().chapterGate(data, next);
+                if (gate != null) {
+                    int needed = Math.min(plugin.settings().sideQuestsPerChapter, plugin.quests().sidePerNpc());
+                    lines.add(new Line(true, plugin.settings().msg("npc-chapter-gate",
+                                    "{npc:<gate>} still needs your help. Do <left> more jobs for them first.")
+                            .replace("<gate>", gate)
+                            .replace("<left>", Integer.toString(needed - data.sideDone(gate)))));
+                } else if (next != null && !next.giver().isEmpty() && !next.giver().equals(npc.id())) {
                     lines.add(new Line(true, "Go and see {npc:" + next.giver() + "} first."));
                 }
             }

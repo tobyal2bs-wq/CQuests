@@ -1,6 +1,7 @@
 package com.cquests.quest;
 
 import com.cquests.Settings;
+import com.cquests.model.NpcDef;
 import com.cquests.model.Objective;
 import com.cquests.model.ObjectiveType;
 import com.cquests.model.Quest;
@@ -25,19 +26,33 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
-/** Holds every quest: hand-written ones from quests.yml plus the ones built by {@link QuestGenerator}. */
+/**
+ * Holds every quest: story quests from quests.yml, the daily pool, and side quests that
+ * {@link QuestGenerator} builds on demand (kept in a small cache).
+ */
 public final class QuestRegistry {
 
     private final Map<String, Quest> byId = new LinkedHashMap<>();
     private final List<Quest> story = new ArrayList<>();
-    private final Map<String, List<Quest>> sideByGiver = new HashMap<>();
+    private final Map<String, Quest> sideCache = new LinkedHashMap<>(1024, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Quest> eldest) {
+            return size() > 20_000;
+        }
+    };
+    private QuestGenerator generator;
+    private NpcRegistry npcs;
     private final Map<String, List<Quest>> storyByGiver = new HashMap<>();
     private final List<Quest> dailyPool = new ArrayList<>();
 
     public void load(File questsFile, File generatorFile, Settings settings, NpcRegistry npcs, Logger log) {
         byId.clear();
         story.clear();
-        sideByGiver.clear();
+        synchronized (sideCache) {
+            sideCache.clear();
+        }
+        generator = null;
+        this.npcs = npcs;
         storyByGiver.clear();
         dailyPool.clear();
 
@@ -57,12 +72,11 @@ public final class QuestRegistry {
                 }
             }
         }
-        int handWritten = byId.size();
 
         YamlConfiguration gen = YamlConfiguration.loadConfiguration(generatorFile);
         if (gen.getBoolean("enabled", true)) {
-            QuestGenerator generator = new QuestGenerator(gen, settings, npcs, log);
-            for (Quest quest : generator.generate(this)) {
+            generator = new QuestGenerator(gen, settings, npcs, log);
+            for (Quest quest : generator.dailyPool()) {
                 if (!byId.containsKey(quest.id())) {
                     add(quest);
                 }
@@ -70,11 +84,9 @@ public final class QuestRegistry {
         }
 
         story.sort(Comparator.comparingInt(Quest::order));
-        sideByGiver.values().forEach(list -> list.sort(Comparator.comparingInt(Quest::order)));
         storyByGiver.values().forEach(list -> list.sort(Comparator.comparingInt(Quest::order)));
-        log.info("Loaded " + byId.size() + " quests (" + handWritten + " from quests.yml, "
-                + (byId.size() - handWritten) + " generated; " + story.size() + " story, "
-                + dailyPool.size() + " daily)");
+        log.info("Loaded " + story.size() + " story quests, " + dailyPool.size() + " daily quests and "
+                + totalSide() + " side quests (" + sidePerNpc() + " per story NPC, generated on demand)");
     }
 
     private void add(Quest quest) {
@@ -86,7 +98,9 @@ public final class QuestRegistry {
                     storyByGiver.computeIfAbsent(quest.giver(), k -> new ArrayList<>()).add(quest);
                 }
             }
-            case SIDE -> sideByGiver.computeIfAbsent(quest.giver(), k -> new ArrayList<>()).add(quest);
+            case SIDE -> {
+                // Hand-written side quests are not supported; side quests come from generator.yml.
+            }
             case DAILY -> dailyPool.add(quest);
         }
     }
@@ -126,7 +140,8 @@ public final class QuestRegistry {
                 s.getString("description", null),
                 s.getStringList("offer"),
                 s.getStringList("complete"),
-                parseReward(s.getConfigurationSection("rewards")));
+                parseReward(s.getConfigurationSection("rewards")),
+                s.getBoolean("big", false));
     }
 
     /**
@@ -225,7 +240,58 @@ public final class QuestRegistry {
     }
 
     public Quest get(String id) {
-        return id == null ? null : byId.get(id.toLowerCase(Locale.ROOT));
+        if (id == null) {
+            return null;
+        }
+        String key = id.toLowerCase(Locale.ROOT);
+        Quest quest = byId.get(key);
+        if (quest != null || !key.startsWith("side_")) {
+            return quest;
+        }
+        int split = key.lastIndexOf('_');
+        if (split <= 5) {
+            return null;
+        }
+        try {
+            return side(key.substring(5, split), Integer.parseInt(key.substring(split + 1)));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /** Side quest {@code index} (1-based) of an NPC, or null if out of range or the NPC has no story quest. */
+    public Quest side(String npcId, int index) {
+        if (generator == null || index < 1 || index > generator.perNpc()) {
+            return null;
+        }
+        List<Quest> storyQuests = storyFrom(npcId);
+        NpcDef npc = npcs.get(npcId);
+        if (npc == null || npc.daily() || storyQuests.isEmpty()) {
+            return null;
+        }
+        String id = "side_" + npc.id() + "_" + index;
+        synchronized (sideCache) {
+            Quest cached = sideCache.get(id);
+            if (cached != null) {
+                return cached;
+            }
+        }
+        Quest quest = generator.side(npc, index, storyQuests.stream().map(Quest::id).toList());
+        if (quest != null) {
+            synchronized (sideCache) {
+                sideCache.put(id, quest);
+            }
+        }
+        return quest;
+    }
+
+    public int sidePerNpc() {
+        return generator == null ? 0 : generator.perNpc();
+    }
+
+    public long totalSide() {
+        return (long) sidePerNpc() * storyByGiver.keySet().stream()
+                .filter(id -> npcs.get(id) != null && !npcs.get(id).daily()).count();
     }
 
     public Collection<Quest> all() {
@@ -240,19 +306,7 @@ public final class QuestRegistry {
         return storyByGiver.getOrDefault(npcId, List.of());
     }
 
-    public List<Quest> sideFrom(String npcId) {
-        return sideByGiver.getOrDefault(npcId, List.of());
-    }
-
     public List<Quest> dailyPool() {
         return dailyPool;
-    }
-
-    public int sideCount() {
-        int total = 0;
-        for (List<Quest> list : sideByGiver.values()) {
-            total += list.size();
-        }
-        return total;
     }
 }
