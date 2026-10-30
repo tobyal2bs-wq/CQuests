@@ -50,6 +50,13 @@ Aliases: `/quest`, `/q`, `/journal` and `/cq` for `/cquests`.
 
 Clicking villagers and doing quests needs no permission.
 
+## For players
+
+1. Join. A short guide shows up and your first quest starts: talk to **Villager Stephan** near spawn.
+2. Click a villager with a white name to talk, click again to accept its quest.
+3. The bar at the top of your screen tells you what to do next. `/quests` shows all your quests.
+4. The first few story steps go straight from villager to villager. After that each villager wants some side jobs done before the story moves on.
+
 ## How it plays
 
 * **Click a villager** to talk. It offers a quest; click again (or the [Accept] button) to take it. All villager chat goes only to the player talking to it.
@@ -138,6 +145,10 @@ Quest format:
 ```
 
 Objective types: `KILL`, `MINE`, `HARVEST`, `PLACE`, `CRAFT`, `SMELT`, `FISH`, `BREED`, `TAME`, `SHEAR`, `ENCHANT`, `CONSUME`, `DELIVER`, `TALK`. Targets take `A|B`, wildcards like `*_LOG`, groups like `@IRON` or `ANY`.
+
+## Tested on
+
+Every push builds the plugin, runs the unit tests and then starts real servers with it (Paper 1.21.4, the newest Paper and the newest Folia), places all NPCs, runs admin commands and `/cq reload`, and fails on any error. See `.github/scripts/smoke-test.sh`.
 
 ## Building
 
