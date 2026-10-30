@@ -23,6 +23,8 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.time.Duration;
@@ -77,9 +79,11 @@ public final class Finale {
 
     private void celebrate(Player player, String main, String sub) {
         player.showTitle(title(main, sub, 3000));
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.8f);
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation().add(0, 1, 0), 80, 0.6, 1, 0.6, 0.35);
+        Fx.helix(plugin, player, Color.fromRGB(0xFFC94A), Color.fromRGB(0x8FD3FF));
+        Fx.melody(plugin, player, Sound.BLOCK_NOTE_BLOCK_BELL, Fx.FANFARE);
+        Sched.entityLater(player, 20, () -> player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING,
+                player.getLocation().add(0, 1.5, 0), 60, 0.5, 0.8, 0.5, 0.3));
         for (int i = 0; i < 3; i++) {
             int n = i;
             Sched.entityLater(player, 1 + i * 12L, () -> firework(player.getLocation().add(Math.cos(n * 2.1) * 2.5, 1, Math.sin(n * 2.1) * 2.5), n));
@@ -92,13 +96,32 @@ public final class Finale {
             return;
         }
         String name = plugin.quests().chapterName(last.chapter());
-        celebrate(player, "<gold><bold>Chapter " + last.chapter() + " Complete</bold></gold>",
-                "<yellow>" + Text.escape(name.isEmpty() ? last.name() : name));
+        // 1. The chapter title types itself out over a golden helix and a little fanfare.
+        Fx.typewriter(plugin, player, "<gradient:#ffd36b:#ff9a3c><bold><text></bold></gradient>", "CHAPTER " + last.chapter() + " COMPLETE",
+                "<white>" + Text.escape(name.isEmpty() ? last.name() : name), 3500);
+        Fx.helix(plugin, player, Color.fromRGB(0xFFD36B), Color.fromRGB(0xFFFFFF));
+        Fx.melody(plugin, player, Sound.BLOCK_NOTE_BLOCK_CHIME, Fx.CHAPTER);
+        // 2. Fireworks in a circle and a ring of sparks.
+        Sched.entityLater(player, 44, () -> {
+            player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+            Fx.ring(plugin, player, Particle.END_ROD);
+            for (int i = 0; i < 5; i++) {
+                double angle = i * Math.PI * 2 / 5;
+                firework(player.getLocation().add(Math.cos(angle) * 3, 1, Math.sin(angle) * 3), i);
+            }
+        });
         if (next != null) {
+            // 3. A short fade to dark, then the next chapter card with a bell.
             String nextName = plugin.quests().chapterName(next.chapter());
-            Sched.entityLater(player, 90, () -> {
-                player.showTitle(title("<white>Chapter " + next.chapter(), "<gold>" + Text.escape(nextName), 3500));
-                player.playSound(player.getLocation(), Sound.BLOCK_BELL_USE, 1f, 0.8f);
+            Sched.entityLater(player, 120, () -> {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 50, 0, false, false, false));
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 0.6f);
+            });
+            Sched.entityLater(player, 150, () -> {
+                Fx.typewriter(plugin, player, "<white><bold><text></bold></white>", "CHAPTER " + next.chapter(),
+                        "<gradient:#8fd3ff:#c9a7ff>" + Text.escape(nextName) + "</gradient>", 4000);
+                player.playSound(player.getLocation(), Sound.BLOCK_BELL_USE, 1f, 0.7f);
+                player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0, 1.2, 0), 120, 0.8, 1, 0.8, 1);
             });
         }
     }
@@ -150,9 +173,10 @@ public final class Finale {
             p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 1f, 1f);
         }));
         steps.add(new Step(120, p -> {
-            p.showTitle(title("<gold><bold>The End</bold></gold>", "<white>Thank you for playing, " + Text.escape(p.getName()), 5000));
+            Fx.typewriter(plugin, p, "<gradient:#ffd36b:#ff9a3c><bold><text></bold></gradient>", "The End",
+                    "<white>Thank you for playing, " + Text.escape(p.getName()), 5000);
+            Fx.melody(plugin, p, Sound.BLOCK_NOTE_BLOCK_BELL, Fx.ENDING);
             p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.6f);
             for (int i = 0; i < 6; i++) {
                 double angle = i * Math.PI / 3;
                 firework(origin.clone().add(Math.cos(angle) * 4, 2, Math.sin(angle) * 4), i);
@@ -221,6 +245,7 @@ public final class Finale {
 
     private void award(Player player) {
         advancement.award(player);
+        StoryBook.give(plugin, player);
         Bukkit.broadcast(Text.mm(plugin.settings().msg("journey-finished",
                 "<gold>★ <white><player></white> finished the journey and freed the Hollow King!")
                 .replace("<player>", Text.escape(player.getName()))));

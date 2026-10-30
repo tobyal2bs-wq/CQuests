@@ -27,6 +27,7 @@ public final class PlayerData {
     int dailiesDone;
     /** Where to put the player back if they log out during the ending cinematic: "world;x;y;z;yaw;pitch;GAMEMODE". */
     String finaleReturn;
+    boolean storyBookGiven;
     private volatile boolean dirty;
     /** Save ordering, see PlayerStore. */
     long saveSeq;
@@ -162,6 +163,16 @@ public final class PlayerData {
         dirty = true;
     }
 
+    /** Marks the story book as handed out; true only the first time, so it can never be given twice. */
+    public synchronized boolean claimStoryBook() {
+        if (storyBookGiven) {
+            return false;
+        }
+        storyBookGiven = true;
+        dirty = true;
+        return true;
+    }
+
     public synchronized void reset() {
         active.clear();
         completed.clear();
@@ -170,6 +181,7 @@ public final class PlayerData {
         journey.clear();
         startedAt = 0;
         finaleReturn = null;
+        storyBookGiven = false;
         lastDailyAt = 0;
         dailiesDone = 0;
         dirty = true;

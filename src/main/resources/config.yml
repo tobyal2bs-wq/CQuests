@@ -1,44 +1,59 @@
-# CQuests - villager quest system
-# Text uses MiniMessage: https://docs.advntr.dev/minimessage/format.html
+# CQuests config. Text uses MiniMessage: https://docs.advntr.dev/minimessage/format.html
+# After editing, run /cq reload.
 
-# Used in quest text as {server}, e.g. the "Welcome to {server}" quest.
+# Shown in quest text as {server}.
 server-name: ColorGens
 
-# Console command used to pay money rewards. %player% and %amount% are filled in.
+# Put in front of every plugin message. Villager speech uses npc.chat-format instead.
+prefix: "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> "
+
+# Console command that pays money rewards. %player% and %amount% are filled in.
 money-command: "eco give %player% %amount%"
 
 npc:
-  # Name tag over the villager. <name>, <level> and <title> are filled in.
-  name-format: "<gold><name></gold> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"
-  # How a villager's chat lines look.
-  chat-format: "<gold><name></gold><dark_gray>:</dark_gray> <white><text>"
+  # Name tag above the villager. <name>, <level> and <title> are filled in.
+  name-format: "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"
+  # How a villager's lines look in chat. Only the player talking to it sees them.
+  chat-format: "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>"
   # How a villager is written inside quest text and the journal ({npc:id}).
   mention-format: "<blue>Villager <name></blue>"
 
 dialogue:
   # Pause between lines a villager says (20 ticks = 1 second).
   line-delay-ticks: 35
-  # How long a quest offer waits for the second click / [Accept].
+  # How long a quest offer waits for the second click or [Accept].
   accept-timeout-seconds: 60
 
 quests:
   # Side quests a player can hold at once (story and daily quests don't count).
   max-active-side: 3
-  # Given to every player on first join. Set to "" to disable.
+  # Given to every player on first join. "" turns it off.
   welcome-quest: welcome
-  # Breaking a block you placed yourself does not count for MINE objectives.
+  # Breaking or harvesting blocks you placed yourself does not count.
   ignore-player-placed-blocks: true
-  # Side quests a player must finish for a story villager before the next villager's story quest opens.
-  # 100 chapters x 10 makes the story roughly 1,100 quests long. Set to 0 to make the story a straight line.
+  # Mobs from spawners and spawn eggs do not count for KILL objectives (stops mob farm skipping).
+  count-spawner-mobs: false
+  # Side quests needed for the previous villager before a story quest opens, when the quest
+  # in quests.yml has no side-required of its own. Quests added later (chapter 6 and on) use this.
   side-quests-per-chapter: 10
 
+rewards:
+  # Never given out, even if a quest lists them.
+  blocked-items: [ELYTRA, DRAGON_EGG, ENCHANTED_GOLDEN_APPLE, TOTEM_OF_UNDYING, BEACON, NETHER_STAR]
+  # Netherite items are only given by quests of at least this level.
+  netherite-min-level: 85
+
+tracker:
+  # The boss bar at the top of the screen that follows one quest. Players can still turn it off.
+  enabled: true
+
 celebrations:
-  # Title, fireworks and sounds when a quest marked "big: true" in quests.yml is finished.
+  # Animation, fireworks and music when a quest marked big: true or a chapter is finished.
   big-quests: true
 
 finale:
-  # When the last story quest is done: a camera tour over the places of the player's story,
-  # their stats, "The End", fireworks and the custom advancement below.
+  # After the last story quest: a camera tour over the places of the player's story, their stats,
+  # "The End", fireworks, the advancement below and a "Your Story" book.
   enabled: true
   scene-seconds: 4
   max-scenes: 12
@@ -47,31 +62,34 @@ finale:
     description: "Free the Hollow King and bring the Wanderers home"
 
 daily:
-  # NPC id from npcs.yml that hands out the daily quest.
+  # NPC id from npcs.yml that gives the daily quest.
   npc: marigold
   cooldown-hours: 24
   money: 10000
 
 spawning:
-  # NPCs without a spawn point in spawns.yml get one around the world spawn on startup.
-  # Move them later with /cq npc place <id> or /cq scatter.
+  # NPCs without a spot in spawns.yml are placed around the world spawn on startup.
+  # Move them with /cq npc place <id> or /cq scatter.
   auto-place-unplaced: true
-  # World for auto placement. Empty = the main world.
+  # World for auto placement. "" means the main world.
   auto-place-world: ""
-  # Act 1 (the 15 spawn villagers) and act 2 (the wilds) rings around spawn, in blocks: [min, max].
+  # Rings around spawn in blocks, [min, max]: act 1 (the 15 spawn villagers) and act 2.
   act1-ring: [5, 22]
   act2-ring: [30, 90]
-  # A villager only exists while a player is within this many blocks of it. With nobody around
-  # it is removed, so 100 villagers cost nothing on an empty map.
+  # An NPC only exists while a player is within this many blocks. With nobody near it is removed.
   player-range: 100
-  # How often villagers are spawned/removed based on player range.
+  # How often NPCs are spawned, removed and moved.
   check-seconds: 3
-  # Villagers turn to face whoever clicks them.
+  # NPCs placed with /cq scatter move to a new random spot in their area this often (0 = never).
+  roam-minutes: 20
+  # A player stops seeing a villager once they finished everything it has for them.
+  hide-finished-villagers: true
+  # NPCs turn to face whoever clicks them.
   look-at-player: true
 
 shield:
-  # Blocks around each villager's spot where nobody can build, break, use buckets, blow things up or PvP.
-  # Stops players walling villagers in or camping others at them. cquests.bypass ignores it.
+  # Blocks around each NPC where nobody can build, break, use buckets, blow things up or PvP.
+  # Only players given cquests.bypass ignore it.
   radius: 6
   block-building: true
   block-pvp: true
@@ -79,11 +97,11 @@ shield:
 book:
   title: "Quest Journal"
   author: "The Wanderers"
-  # Lines per "All Quests" page. Keep it at 8 or less so pages fit on Java and Bedrock screens.
+  # Lines per "All Quests" page. 8 or less fits on Java and Bedrock screens.
   quests-per-index-page: 8
   progress-bar-length: 18
 
-# Named groups usable as a target with @NAME, e.g. "MINE @LOGS 32 logs".
+# Groups usable as a target with @NAME, for example "MINE @LOGS 32 logs".
 groups:
   LOGS: ["*_LOG", "*_STEM"]
   COAL: [COAL_ORE, DEEPSLATE_COAL_ORE]
@@ -101,8 +119,9 @@ groups:
   FLOWERS: [DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY]
   SAPLINGS: ["*_SAPLING", MANGROVE_PROPAGULE]
 
+# Messages. The prefix above is added in front of each, except villager speech (npc-*).
 messages:
-  quest-accepted: "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to read your journal."
+  quest-accepted: "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to see it."
   quest-ready: "<green>✔ <white><bold><quest></bold></white> is done! Return to <npc>."
   quest-complete: "<gold>★ Quest complete: <white><bold><quest></bold></white>"
   delivered: "<gray>You hand over <white><amount> <item></white>. <yellow>(<have>/<need>)"

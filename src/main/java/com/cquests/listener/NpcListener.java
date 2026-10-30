@@ -131,12 +131,14 @@ public final class NpcListener implements Listener {
             plugin.finale().restoreIfNeeded(player);
             plugin.questManager().giveWelcome(player);
             plugin.visibility().refresh(player);
+            plugin.tracker().update(player);
         });
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         plugin.dialogue().forget(event.getPlayer());
+        plugin.tracker().forget(event.getPlayer());
         plugin.shield().forget(event.getPlayer());
         plugin.store().unload(event.getPlayer().getUniqueId());
     }

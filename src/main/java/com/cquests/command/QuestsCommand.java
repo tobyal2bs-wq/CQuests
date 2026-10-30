@@ -3,6 +3,8 @@ package com.cquests.command;
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.ActiveQuest;
 import com.cquests.data.PlayerData;
+import com.cquests.finale.StoryBook;
+import com.cquests.gui.QuestMenu;
 import com.cquests.model.Quest;
 import com.cquests.quest.QuestManager;
 import com.cquests.util.Text;
@@ -15,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** /quests: the journal book, plus a chat list that also works anywhere a book cannot open. */
+/** /quests: the quest menu, the journal book, and a chat list that works anywhere. Needs quests.use. */
 public final class QuestsCommand implements TabExecutor {
 
     private final CQuestsPlugin plugin;
@@ -30,18 +32,30 @@ public final class QuestsCommand implements TabExecutor {
             sender.sendMessage("Only players have a quest journal.");
             return true;
         }
-        String sub = args.length == 0 ? "book" : args[0].toLowerCase(Locale.ROOT);
+        String sub = args.length == 0 ? "menu" : args[0].toLowerCase(Locale.ROOT);
         switch (sub) {
             case "accept" -> {
                 if (!plugin.dialogue().acceptPending(player)) {
                     plugin.send(player, "<red>There is no quest offer waiting. Click a villager first.");
                 }
             }
+            case "book" -> plugin.book().open(player);
+            case "track" -> plugin.send(player, plugin.tracker().toggle(player) ? "<gray>Quest tracker <green>on</green>." : "<gray>Quest tracker <red>off</red>.");
+            case "story" -> story(player);
             case "list" -> list(player);
             case "abandon" -> abandon(player, args);
-            default -> plugin.book().open(player);
+            default -> QuestMenu.open(plugin, player);
         }
         return true;
+    }
+
+    private void story(Player player) {
+        List<Quest> story = plugin.quests().story();
+        if (story.isEmpty() || !plugin.questManager().data(player).isCompleted(story.get(story.size() - 1).id())) {
+            plugin.send(player, "<gray>Your story book is written when you finish the journey.");
+            return;
+        }
+        StoryBook.open(plugin, player);
     }
 
     private void list(Player player) {
@@ -86,7 +100,7 @@ public final class QuestsCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("list", "accept", "abandon"), args[0]);
+            return filter(List.of("book", "list", "track", "story", "accept", "abandon"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("abandon") && sender instanceof Player player) {
             return filter(new ArrayList<>(plugin.questManager().data(player).active().keySet()), args[1]);

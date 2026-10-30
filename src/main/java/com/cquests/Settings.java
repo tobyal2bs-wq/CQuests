@@ -46,6 +46,7 @@ public final class Settings {
 
     public final double spawnRange;
     public final long roamMinutes;
+    public final boolean trackerEnabled;
     public final boolean hideFinishedVillagers;
     public final double shieldRadius;
     public final boolean shieldBuild;
@@ -108,6 +109,7 @@ public final class Settings {
 
         spawnRange = Math.max(16, c.getDouble("spawning.player-range", 100));
         roamMinutes = Math.max(0, c.getLong("spawning.roam-minutes", 20));
+        trackerEnabled = c.getBoolean("tracker.enabled", true);
         hideFinishedVillagers = c.getBoolean("spawning.hide-finished-villagers", true);
         shieldRadius = Math.max(0, c.getDouble("shield.radius", 6));
         shieldBuild = c.getBoolean("shield.block-building", true);

@@ -267,6 +267,7 @@ public final class QuestManager {
                 .replace("<quest>", Text.escape(quest.name())));
         player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1f);
         plugin.visibility().refresh(player);
+        plugin.tracker().track(player, quest.id());
         return true;
     }
 
@@ -288,6 +289,7 @@ public final class QuestManager {
             return false;
         }
         plugin.visibility().refresh(player);
+        plugin.tracker().update(player);
         return true;
     }
 
@@ -301,6 +303,7 @@ public final class QuestManager {
             return;
         }
         List<Quest> newlyReady = new ArrayList<>();
+        boolean tracked = false;
         synchronized (data) {
             if (data.active().isEmpty()) {
                 return;
@@ -324,11 +327,15 @@ public final class QuestManager {
                 }
                 if (changed) {
                     data.markDirty();
+                    tracked = true;
                     if (!wasReady && ready(quest, active)) {
                         newlyReady.add(quest);
                     }
                 }
             }
+        }
+        if (tracked) {
+            plugin.tracker().update(player);
         }
         for (Quest quest : newlyReady) {
             onReady(player, quest);
@@ -519,6 +526,7 @@ public final class QuestManager {
         giveRewards(player, quest.reward());
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
         plugin.visibility().refresh(player);
+        plugin.tracker().update(player);
         if (isFinalQuest(quest)) {
             plugin.finale().play(player);
         } else if (quests().endsChapter(quest)) {

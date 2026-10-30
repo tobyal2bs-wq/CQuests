@@ -92,6 +92,7 @@ public final class PlayerStore {
         }
         data.startedAt = yaml.getLong("started", 0);
         data.finaleReturn = yaml.getString("finale-return", null);
+        data.storyBookGiven = yaml.getBoolean("story-book", false);
         data.lastDailyAt = yaml.getLong("daily.last", 0);
         data.dailiesDone = yaml.getInt("daily.done", 0);
         return data;
@@ -130,6 +131,7 @@ public final class PlayerStore {
             yaml.set("journey", data.journey.stream().map(JourneyEntry::serialize).toList());
             yaml.set("started", data.startedAt);
             yaml.set("finale-return", data.finaleReturn);
+            yaml.set("story-book", data.storyBookGiven);
             yaml.set("daily.last", data.lastDailyAt);
             yaml.set("daily.done", data.dailiesDone);
             data.clean();
