@@ -1,72 +1,147 @@
 # CQuests
 
-A villager quest system for Paper and Folia (and forks like Leaf), Minecraft 1.21.4 and newer.
+A villager quest plugin for **Paper, Folia, Leaf and Purpur 1.21.4+**, built for Java and Bedrock (Geyser) players alike.
 
-- **100 linked lore villagers.** 15 stand at spawn: 14 story villagers (Stephan, Jerry, Steve, B.O.B...) plus the daily villager. The other 86 live out in the world, ending with the Wither fight in "The King Wakes" and the trip home in "A New Dawn". Each one gives a story quest, and each quest is a bit harder than the one before it.
-- **1,000,000 side quests**, 10,000 per story villager, generated on demand from templates in `generator.yml`, so the number costs no memory. They mix one to three objectives and get bigger and harder the further you go. A villager's side quests unlock once you finish their story quest.
-- **Five chapters:** The Wanderers' Camp, Shadows at the Gate, The Elder's Charge, The Five Keys and The King Wakes. Each has 20 villagers. Finishing a chapter plays a celebration followed by the next chapter's title card, and the journal shows each chapter on its own pages.
-- **Longer quests pay more.** Side quest rewards scale with how much work the quest is: bigger amounts, rarer targets and extra objectives all raise the money, and the biggest quests can give two items.
-- **A long story.** Before the next villager's story quest opens, you do 10 side quests for the current one (`side-quests-per-chapter`). That makes the main story about 1,100 quests, which is weeks of play.
-- **Celebrations and an ending.** Big chapters end with a title, fireworks and sounds. The last quest plays an in-game replay: the camera flies over the places where your story happened, shows your stats and "The End", then gives the custom advancement **Finished the Journey** and announces it to the server. Admins can preview it with `/cq finale`.
-- **A daily villager** (Granny Marigold) hands out one job every 24 hours for 10k.
-- **A quest journal book** (`/quests`) laid out like the reference screenshots: one page per active quest (title, level, status, objectives with progress, `« All quests`), the "All Quests" index with a progress bar and ✔ / ○ / ✖ per quest, then side quests and the daily.
-- **Click dialogue.** Villagers introduce themselves the first time you click them, tell you what they need, take deliveries out of your inventory and pay you on turn-in.
-- **Simple rewards.** Money goes through `/eco give %player% <amount>` and items are plain vanilla items. Only the hardest quests give rare items.
+100 story villagers tell one linked story over 5 chapters, every villager has 10,000 side quests (1,000,000 in total), one villager gives a daily quest, and finishing the journey plays an ending cinematic, gives a custom advancement and a book of your own story.
 
-## Installing
+## Install
 
-1. Drop `CQuests-<version>.jar` into `plugins/`. WorldGuard, Geyser and Floodgate are optional.
-2. Start the server once. Any villager without a spawn point is placed around the world spawn automatically (act 1 close in, act 2 further out), and the positions are saved to `plugins/CQuests/spawns.yml`.
-3. Move the villagers to where you want them (see below) and `/cq reload` after editing files.
+1. Download `CQuests-<version>.jar` from the latest build (GitHub Actions, "Build" workflow, artifact) and put it in `plugins/`.
+2. Make sure you have an economy plugin with `/eco give` (EssentialsX works). Change `money-command` in `config.yml` if yours is different.
+3. Start the server. The 15 spawn villagers are placed around the world spawn automatically, the rest further out.
+4. Give players the quest command: `/lp group default permission set quests.use true`
+5. Optional: move the villagers to your own spots (see "Placing villagers").
 
-Building from source needs JDK 21: `./gradlew build`. The jar ends up in `build/libs/`.
+WorldGuard, Floodgate and Geyser are optional. NPCs spawn even inside regions with `mob-spawning deny`.
+
+## Commands
+
+| Command | Who | What it does |
+|---|---|---|
+| `/quests` | `quests.use` | Quest menu: chapter progress, active quests, chapters, tracker toggle |
+| `/quests book` | `quests.use` | The journal book with every quest and the "All Quests" pages |
+| `/quests list` | `quests.use` | Active quests in chat |
+| `/quests track` | `quests.use` | Turn the boss bar tracker on or off |
+| `/quests story` | `quests.use` | Read your story book again after finishing the journey |
+| `/quests abandon <quest>` | `quests.use` | Drop a side or daily quest |
+| `/cq reload` | op | Reload config, NPCs and quests |
+| `/cq npc list` | op | All NPCs and where they stand |
+| `/cq npc place <id>` | op | Put an NPC where you stand |
+| `/cq npc remove <id>` | op | Take an NPC off the map |
+| `/cq npc tp <id>` | op | Teleport to an NPC |
+| `/cq pos1`, `/cq pos2` | op | Select a box to scatter NPCs in |
+| `/cq scatter <ids, act1, act2 or all> [region] [world]` | op | Spread NPCs in a WorldGuard region or your box. They keep wandering inside it |
+| `/cq player <name> reset` | op | Wipe a player's quest progress |
+| `/cq player <name> complete <quest>` | op | Mark a quest done |
+| `/cq player <name> give <quest>` | op | Give a quest |
+| `/cq player <name> resetdaily` | op | Let a player do the daily again now |
+| `/cq quest <id>` | op | Show a quest's details |
+| `/cq finale [player]` | op | Preview the ending (no rewards) |
+
+Aliases: `/quest`, `/q`, `/journal` and `/cq` for `/cquests`.
+
+## Permissions
+
+| Permission | Default | |
+|---|---|---|
+| `quests.use` | nobody | Use `/quests`. Give it to your default group |
+| `cquests.admin` | op | All `/cq` commands |
+| `cquests.bypass` | nobody | Build and PvP inside the protected area around villagers |
+
+Clicking villagers and doing quests needs no permission.
+
+## How it plays
+
+* **Click a villager** to talk. It offers a quest; click again (or the [Accept] button) to take it. All villager chat goes only to the player talking to it.
+* **The story** is 101 quests in 5 chapters. Before each story step opens you have to do side quests for the previous villager, and the first quest of every new chapter needs 20. Every 5th step is a short one. Getting through one chapter takes a long time on purpose.
+* **Side quests** are generated from `generator.yml`: kill, mine, harvest, fish, breed, tame, shear, craft, smelt, enchant, eat, deliver and place quests, getting harder and paying more as you go. Bigger quests pay more.
+* **Daily quest**: Marigold gives one job every 24 hours for 10,000.
+* **Rewards** are money plus normal items. No elytra, dragon eggs, god apples, totems, beacons or nether stars. Netherite only from level 85 quests. Some side quests give a potion effect like 1 hour of Swiftness.
+* **Finished villagers disappear**: once you've done everything a villager has for you, you stop seeing it, so the spawn gets less crowded as you go.
+* **Animations**: big quests and chapter ends play a particle helix, a typed out title, music and fireworks, then the next chapter card. The last quest plays a camera tour over the places of your story, then "The End", the **Finished the Journey** advancement and a **Your Story** book (about 15 to 20 pages, can't be copied).
+* **B.O.B** is the server's Discord bot who somehow grew legs. He wants you to place 1000 dirt so he can touch grass.
+
+## Anti abuse
+
+* NPCs can't be hurt, pushed, traded with, converted or moved. They are never saved to the world.
+* A protected area (`shield.radius`) stops building, breaking, buckets, explosions and PvP around villagers.
+* NPCs placed with `/cq scatter` move to a new random spot in their area every 20 minutes, so nobody can camp them.
+* Blocks you placed don't count for mining or harvesting, and placing the same spot twice doesn't count twice.
+* Spawner and spawn egg mobs don't count for kill quests.
+* Deliveries take the items before the quest counts; a quest is saved as done before rewards are given, so it can't be claimed twice.
+* The quest menu can't be taken from, and the story book is given once.
+
+## Performance
+
+* An NPC only exists while a player is within 100 blocks. 100 NPCs on an empty map cost nothing.
+* Side quests are generated on demand from a seed and cached; the million quests are never stored.
+* Player files save asynchronously. Everything runs on the right Folia region thread.
 
 ## Placing villagers
 
-| Command | What it does |
-| --- | --- |
-| `/cq npc place <id>` | Stand somewhere and put that villager there (facing the way you face). |
-| `/cq npc remove <id>` | Take a villager off the map. |
-| `/cq npc tp <id>` | Teleport to a villager. |
-| `/cq npc list` | All villager ids. Green ones are placed, red ones are not. |
-| `/cq scatter <ids\|act1\|act2\|all> <worldguard-region> [world]` | Spread villagers at random spots on solid ground inside a WorldGuard region. |
-| `/cq pos1`, `/cq pos2`, then `/cq scatter <...>` | The same, inside a box you select yourself. |
-
-`<ids>` is a comma-separated list such as `jerry,steve,bob`, so you can scatter 10 or more villagers in one region at once.
-
-Every villager has a **shield**: within 6 blocks of its spot nobody can place or break blocks, use buckets, blow things up or PvP. This stops players walling villagers in or camping others at them. Players who try see a ring of particles showing where the shield ends. `cquests.bypass` (op by default) ignores it, and the radius is set in `config.yml`.
-
-Villagers only exist while a player is within 100 blocks (`spawning.player-range`). When nobody is near they are removed, so an empty map costs nothing.
-
-Villagers spawn even inside WorldGuard regions that deny mob spawning: the plugin tags its own villagers and lifts any cancel on them. They are invulnerable, can't be pushed, don't trade, and are re-created automatically if they ever go missing.
-
-Act 2 villagers are **personal**. A player only sees one when they have a quest that involves it, when it's their next story stop, or after they've met it. Set `personal: true` on any villager in `npcs.yml` to get the same behaviour, for example a villager that only appears to the player who has to bring it items.
-
-## Players
-
-| Command | What it does |
-| --- | --- |
-| `/quests` | Open the quest journal. |
-| `/quests list` | The same information in chat. |
-| `/quests accept` | Accept the offer a villager just made. This is the same as clicking the villager again. |
-| `/quests abandon <id>` | Drop a side or daily quest. Story quests can't be abandoned. |
-
-## Admin
-
-`/cq reload`, `/cq quest <id>`, `/cq finale [player]` (preview the ending; no advancement) and `/cq player <name> reset | complete <quest> | give <quest> | resetdaily`. Permission: `cquests.admin` (op by default).
+* Stand somewhere and run `/cq npc place stephan`.
+* Or scatter a group: make a WorldGuard region (or `/cq pos1` and `/cq pos2`) and run `/cq scatter act1 spawn`. They spread out on solid ground and wander inside that area.
+* Spots are saved in `plugins/CQuests/spawns.yml`.
 
 ## Files
 
-- `config.yml`: money command, chat formats, daily settings, spawn rings, journal layout, target groups and messages.
-- `npcs.yml`: the villagers (name, title, profession, skin, level, act, intro and idle lines).
-- `quests.yml`: the welcome quest and the 100 story quests. Objective lines look like `KILL WOLF 3 wolves`, `DELIVER WHEAT 16 wheat`, `MINE @IRON 24 iron ore` or `TALK jerry`. The file header lists every type.
-- `generator.yml`: templates for side quests and the daily pool. `side-quests-per-npc: 10000` across 100 story villagers gives 1,000,000 quests. Add targets, names or places there to get more variety.
-- `players/<uuid>.yml`: each player's progress. Side quests are stored as a count per villager, so files stay small.
+| File | |
+|---|---|
+| `config.yml` | Prefix, money command, ranges, shield, rewards rules, messages |
+| `npcs.yml` | Every villager: name, title, profession, villager type, baby, player skin, lines |
+| `quests.yml` | Chapters and the story quests |
+| `generator.yml` | How side and daily quests are made, reward tiers and effects |
+| `spawns.yml` | Where every NPC stands |
+| `players/<uuid>.yml` | Each player's progress |
 
-The "Finished the Journey" advancement sits in the Adventure tab. It is loaded into the server at startup. If a server version refuses that, a datapack is written to `<world>/datapacks/cquests` instead and loads after the next restart.
+### Villager looks
 
-Objective types: KILL, MINE, HARVEST (fully grown crops only), PLACE, CRAFT, SMELT, FISH, BREED, TAME, SHEAR, ENCHANT, CONSUME, DELIVER, TALK. By default, breaking a block you placed yourself doesn't count towards MINE.
+In `npcs.yml` each villager has a `profession` (FARMER, LIBRARIAN, ...), a `skin` (PLAINS, DESERT, JUNGLE, SAVANNA, SNOW, SWAMP, TAIGA), and optionally:
 
-## Bedrock players
+```yaml
+    baby: true              # a baby villager
+    player-skin: "Notch"    # a player shaped NPC with that player's skin (Minecraft 1.21.9+)
+```
 
-Everything works through Geyser. The journal is a plain written book with no Java-only widgets. Bedrock players turn pages instead of clicking the page links. The chat `[Accept]` button is hidden for them and they accept by clicking the villager a second time. Floodgate is detected automatically when it is installed.
+On servers older than 1.21.9 player skin NPCs show as villagers.
+
+### Adding chapter 6 and beyond
+
+The story keeps going as long as there are quests. To add a chapter:
+
+1. Add villagers to `npcs.yml` (give them `act: 2` and `personal: true` to only show them to players who need them).
+2. Name the chapter in `quests.yml` under `chapters:`, for example `6: "The Long Winter"`.
+3. Add story quests at the bottom of `quests:` with `chapter: 6`. Each one automatically follows the quest above it; add `side-required: 15` to set how many side quests it needs.
+4. `/cq reload`. Players who finished chapter 5 continue straight into chapter 6. The ending plays after whatever quest is last.
+
+Quest format:
+
+```yaml
+  story_rowan:
+    name: "Into the Snow"
+    level: 101
+    giver: rowan
+    chapter: 6
+    side-required: 15
+    big: true
+    objectives:
+      - "KILL STRAY 20 strays"
+      - "DELIVER SNOWBALL 64 snowballs"
+    description: "Help {npc:rowan} clear the pass."
+    offer: ["The pass is full of strays."]
+    complete: ["The road is open again!"]
+    rewards:
+      money: 3000
+      items: ["DIAMOND 2"]
+      effects: ["SPEED 3600 1"]
+```
+
+Objective types: `KILL`, `MINE`, `HARVEST`, `PLACE`, `CRAFT`, `SMELT`, `FISH`, `BREED`, `TAME`, `SHEAR`, `ENCHANT`, `CONSUME`, `DELIVER`, `TALK`. Targets take `A|B`, wildcards like `*_LOG`, groups like `@IRON` or `ANY`.
+
+## Building
+
+```
+./gradlew build
+```
+
+Java 21. The jar ends up in `build/libs/`. The story files are generated by `tools/story` (see its README).
