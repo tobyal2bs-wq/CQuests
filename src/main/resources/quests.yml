@@ -1,0 +1,1942 @@
+# Story quests: the linked chain through all 100 villagers, done in order.
+# Side quests and the daily pool are generated from generator.yml.
+#
+# objectives (one per line):
+#   KILL <entity> <amount> [label]        MINE / HARVEST / PLACE <block> <amount> [label]
+#   CRAFT / SMELT / FISH / CONSUME <item> <amount> [label]
+#   BREED / TAME / SHEAR <entity> <amount> [label]       ENCHANT ANY <amount> [label]
+#   DELIVER <item> <amount> [to:<npc>] [label]   (items are taken when you click the villager)
+#   TALK <npc>                            (counts once the other objectives are done)
+# Targets accept A|B, wildcards like *_LOG, groups like @IRON (config.yml) or ANY.
+# turn-in: who you return to. Defaults to the giver, or the TALK villager if the last objective is TALK.
+# {npc:id}, {player} and {server} are filled in inside text.
+
+quests:
+  welcome:
+    name: "Welcome to {server}"
+    level: 0
+    order: 0
+    giver: ""
+    objectives:
+      - "TALK stephan"
+    description: "Talk to {npc:stephan} just ahead of /spawn."
+    complete:
+      - "There you are! Welcome to {server}, {player}."
+    rewards:
+      money: 500
+      items:
+        - "BREAD 8"
+  story_stephan:
+    name: "The Wanderers"
+    level: 0
+    order: 1
+    giver: "stephan"
+    requires: [welcome]
+    objectives:
+      - "TALK jerry"
+    description: "Find {npc:jerry} in the fields and introduce yourself."
+    offer:
+      - "If you mean to stay, you'll need friends here."
+      - "Go and find Jerry by the fields. He'll put you to work."
+    complete:
+      - "Stephan sent you? Good. We need every pair of hands."
+    rewards:
+      money: 1000
+      items:
+        - "BREAD 8"
+  story_jerry:
+    name: "Farm Hunt"
+    level: 1
+    order: 2
+    giver: "jerry"
+    requires: [story_stephan]
+    objectives:
+      - "KILL WOLF 1 wolf"
+    description: "Hunt down the wolf that keeps raiding {npc:jerry}'s sheep."
+    offer:
+      - "One of those wolves keeps coming back. Big grey thing."
+      - "Hunt it down for me, would you?"
+    complete:
+      - "That's the one! My sheep can sleep easy now."
+      - "Go and see {npc:steve} next. They could use you."
+    rewards:
+      money: 1100
+      items:
+        - "TORCH 16"
+  story_steve:
+    name: "Green Thumb"
+    level: 2
+    order: 3
+    giver: "steve"
+    requires: [story_jerry]
+    objectives:
+      - "HARVEST WHEAT 16 wheat"
+    description: "Harvest ripe wheat for {npc:steve}."
+    offer:
+      - "My wheat is ready but my back isn't."
+      - "Harvest some for me? Only the ripe stuff, mind."
+    complete:
+      - "Perfect, golden and ready for the mill."
+      - "Go and see {npc:bob} next. They could use you."
+    rewards:
+      money: 1200
+      items:
+        - "IRON_INGOT 2"
+  story_bob:
+    name: "The Mole"
+    level: 3
+    order: 4
+    giver: "bob"
+    requires: [story_steve]
+    objectives:
+      - "MINE @COAL 16 coal ore"
+    description: "Dig up coal ore for {npc:bob}. Think like a mole."
+    offer:
+      - "Go underground and dig me some coal ore."
+      - "Think like a mole. Moles love coal. Probably."
+    complete:
+      - "Black gold! The forge will sing tonight."
+      - "Go and see {npc:martha} next. They could use you."
+    rewards:
+      money: 1300
+      items:
+        - "COOKED_BEEF 6"
+  story_martha:
+    name: "Scarecrow Watch"
+    level: 4
+    order: 5
+    giver: "martha"
+    requires: [story_bob]
+    objectives:
+      - "KILL ZOMBIE 5 zombies"
+    description: "Stand guard over the fields at night and stop the zombies."
+    offer:
+      - "The scarecrows aren't scaring anything anymore."
+      - "Stand guard tonight and put down the zombies."
+    complete:
+      - "Quiet at last. You'd make a fine scarecrow, {player}."
+      - "Go and see {npc:finn} next. They could use you."
+    rewards:
+      money: 1400
+      items:
+        - "APPLE 6"
+  story_finn:
+    name: "Wet and Wild"
+    level: 5
+    order: 6
+    giver: "finn"
+    requires: [story_martha]
+    objectives:
+      - "FISH ANY 5 catches"
+    description: "Catch anything from the water for {npc:finn}."
+    offer:
+      - "Grab a rod and catch me something."
+      - "Anything that bites counts. Even boots, I suppose."
+    complete:
+      - "Not bad for a land-lubber!"
+      - "Go and see {npc:greta} next. They could use you."
+    rewards:
+      money: 1500
+      items:
+        - "BREAD 8"
+  story_greta:
+    name: "Wool Gathering"
+    level: 6
+    order: 7
+    giver: "greta"
+    requires: [story_finn]
+    objectives:
+      - "SHEAR SHEEP 6 sheep"
+    description: "Shear sheep for {npc:greta}'s winter blankets."
+    offer:
+      - "The sheep are getting woolly."
+      - "Shear six of them for me. Gently."
+    complete:
+      - "Soft as a cloud. Thank you, dear."
+      - "Go and see {npc:oliver} next. They could use you."
+    rewards:
+      money: 1600
+      items:
+        - "TORCH 16"
+  story_oliver:
+    name: "Feathers and Flint"
+    level: 7
+    order: 8
+    giver: "oliver"
+    requires: [story_greta]
+    objectives:
+      - "DELIVER FEATHER 16 feathers"
+      - "DELIVER FLINT 8 flint"
+    description: "Bring {npc:oliver} feathers and flint for arrows."
+    offer:
+      - "Bring me feathers and flint."
+      - "Chickens and gravel, that's all you need."
+    complete:
+      - "Now we're armed. The watch will be glad."
+      - "Go and see {npc:rosie} next. They could use you."
+    rewards:
+      money: 1700
+      items:
+        - "IRON_INGOT 2"
+  story_rosie:
+    name: "Supper Time"
+    level: 8
+    order: 9
+    giver: "rosie"
+    requires: [story_oliver]
+    objectives:
+      - "DELIVER @COOKED_MEAT 10 cooked meat"
+    description: "Bring {npc:rosie} cooked meat for the camp's supper."
+    offer:
+      - "The pot is empty and the camp is grumpy."
+      - "Bring me cooked meat. Any kind."
+    complete:
+      - "Smells wonderful. Dinner's on time for once!"
+      - "Go and see {npc:harold} next. They could use you."
+    rewards:
+      money: 1800
+      items:
+        - "COOKED_BEEF 6"
+  story_harold:
+    name: "Cobble Together"
+    level: 9
+    order: 10
+    giver: "harold"
+    requires: [story_rosie]
+    objectives:
+      - "DELIVER COBBLESTONE 128 cobblestone"
+    description: "Bring {npc:harold} cobblestone for the camp walls."
+    offer:
+      - "I need stone. Lots of it."
+      - "Two stacks of cobblestone and we'll have a proper wall."
+    complete:
+      - "Solid. Let them come now."
+      - "Go and see {npc:nina} next. They could use you."
+    rewards:
+      money: 1900
+      items:
+        - "APPLE 6"
+  story_nina:
+    name: "Bone Collector"
+    level: 10
+    order: 11
+    giver: "nina"
+    requires: [story_harold]
+    objectives:
+      - "KILL SKELETON 8 skeletons"
+    description: "Put down the skeletons shooting at the camp."
+    offer:
+      - "I'm tired of pulling arrows out of people."
+      - "Put the skeletons to rest, please."
+    complete:
+      - "No new patients today. Thank you."
+      - "Go and see {npc:walter} next. They could use you."
+    rewards:
+      money: 2000
+      items:
+        - "IRON_INGOT 4"
+  story_walter:
+    name: "Tanner's Request"
+    level: 11
+    order: 12
+    giver: "walter"
+    requires: [story_nina]
+    objectives:
+      - "DELIVER LEATHER 16 leather"
+    description: "Bring {npc:walter} leather for new boots."
+    offer:
+      - "Bring me leather and I'll make boots for everyone."
+      - "Cows are the easiest source. Sorry, cows."
+    complete:
+      - "Good hides. The camp thanks your feet."
+      - "Go and see {npc:ivy} next. They could use you."
+    rewards:
+      money: 2100
+      items:
+        - "GOLD_INGOT 3"
+  story_ivy:
+    name: "Seeds of Hope"
+    level: 12
+    order: 13
+    giver: "ivy"
+    requires: [story_walter]
+    objectives:
+      - "HARVEST CARROTS 24 carrots"
+    description: "Harvest ripe carrots for {npc:ivy}."
+    offer:
+      - "My carrots are ready."
+      - "Harvest them for me? The ripe ones only!"
+    complete:
+      - "Orange and crunchy. Perfect!"
+      - "Go and see {npc:gus} next. They could use you."
+    rewards:
+      money: 2200
+      items:
+        - "ARROW 32"
+  story_gus:
+    name: "The Big One"
+    level: 13
+    order: 14
+    giver: "gus"
+    requires: [story_ivy]
+    objectives:
+      - "FISH SALMON 5 salmon"
+    description: "Catch salmon to impress {npc:gus}."
+    offer:
+      - "Prove you've got the touch."
+      - "Bring in five salmon."
+    complete:
+      - "Hah! Not as big as mine, but they'll do."
+      - "Go and see {npc:clara} next. They could use you."
+    rewards:
+      money: 2300
+      items:
+        - "BAKED_POTATO 12"
+  story_clara:
+    name: "Paper Trail"
+    level: 14
+    order: 15
+    giver: "clara"
+    requires: [story_gus]
+    objectives:
+      - "CRAFT BOOK 5 books"
+    description: "Craft books for {npc:clara}'s chronicle."
+    offer:
+      - "I've run out of pages."
+      - "Craft me some books so I can keep the record."
+    complete:
+      - "Wonderful. The story continues."
+      - "Go and see {npc:tom} next. They could use you."
+    rewards:
+      money: 2400
+      items:
+        - "LANTERN 4"
+  story_tom:
+    name: "Iron Will"
+    level: 15
+    order: 16
+    giver: "tom"
+    requires: [story_clara]
+    objectives:
+      - "SMELT IRON_INGOT 16 iron ingots"
+    description: "Smelt iron ingots for {npc:tom}."
+    offer:
+      - "Fire up a furnace and smelt me some iron."
+      - "Sixteen ingots and I can start on helmets."
+    complete:
+      - "Good clean iron. The watch gets helmets."
+      - "Go and see {npc:penny} next. They could use you."
+    rewards:
+      money: 2500
+      items:
+        - "IRON_INGOT 4"
+  story_penny:
+    name: "Lay of the Land"
+    level: 16
+    order: 17
+    giver: "penny"
+    requires: [story_tom]
+    objectives:
+      - "CRAFT MAP 2 maps"
+    description: "Craft maps for {npc:penny} to chart the land."
+    offer:
+      - "Help me chart the land around camp."
+      - "Craft two maps."
+    complete:
+      - "Look at that! We're not lost after all."
+      - "Go and see {npc:arthur} next. They could use you."
+    rewards:
+      money: 2600
+      items:
+        - "GOLD_INGOT 3"
+  story_arthur:
+    name: "Sharp Lessons"
+    level: 17
+    order: 18
+    giver: "arthur"
+    requires: [story_penny]
+    objectives:
+      - "CRAFT IRON_SWORD 1 iron sword"
+      - "KILL SPIDER 6 spiders"
+    description: "Craft an iron sword and test it on spiders."
+    offer:
+      - "Make yourself a proper sword."
+      - "Then show me what you can do against the spiders."
+    complete:
+      - "Not bad. You've got a fighter's instincts."
+      - "Go and see {npc:mabel} next. They could use you."
+    rewards:
+      money: 2700
+      items:
+        - "ARROW 32"
+  story_mabel:
+    name: "Counting Sheep"
+    level: 18
+    order: 19
+    giver: "mabel"
+    requires: [story_arthur]
+    objectives:
+      - "BREED SHEEP 4 sheep"
+    description: "Breed sheep to grow {npc:mabel}'s flock."
+    offer:
+      - "The flock is small."
+      - "Breed four sheep for me. Wheat does the trick."
+    complete:
+      - "Look at the little ones! Thank you."
+      - "Go and see {npc:dave} next. They could use you."
+    rewards:
+      money: 2800
+      items:
+        - "BAKED_POTATO 12"
+  story_dave:
+    name: "The Night Shift"
+    level: 19
+    order: 20
+    giver: "dave"
+    requires: [story_mabel]
+    objectives:
+      - "KILL CREEPER 5 creepers"
+    description: "Help {npc:dave} deal with creepers on the night shift."
+    offer:
+      - "Help me with the night watch."
+      - "Blow up the creepers before they blow up us."
+    complete:
+      - "Still got all my eyebrows. Good night's work."
+      - "Go and see {npc:lucy} next. They could use you."
+    rewards:
+      money: 2900
+      items:
+        - "LANTERN 4"
+  story_lucy:
+    name: "Spider Silk"
+    level: 20
+    order: 21
+    giver: "lucy"
+    requires: [story_dave]
+    objectives:
+      - "KILL SPIDER 10 spiders"
+      - "DELIVER STRING 12 string"
+    description: "Hunt spiders and bring {npc:lucy} string for bandages."
+    offer:
+      - "Hunt spiders and bring me their string."
+      - "It's grim work, but the bandages hold."
+    complete:
+      - "Lovely strong thread. Nina will be pleased."
+      - "Go and see {npc:benny} next. They could use you."
+    rewards:
+      money: 3000
+      items:
+        - "IRON_INGOT 8"
+  story_benny:
+    name: "Benny's Blunder"
+    level: 21
+    order: 22
+    giver: "benny"
+    requires: [story_lucy]
+    objectives:
+      - "BREED CHICKEN 5 chickens"
+    description: "Help {npc:benny} replace the chickens he lost."
+    offer:
+      - "Rosie will kill me if there are no eggs."
+      - "Can you breed some new chickens? Please?"
+    complete:
+      - "You saved my life! Well, my job. Same thing."
+      - "Go and see {npc:hazel} next. They could use you."
+    rewards:
+      money: 3100
+      items:
+        - "GOLD_INGOT 6"
+  story_hazel:
+    name: "Sweet Tooth"
+    level: 22
+    order: 23
+    giver: "hazel"
+    requires: [story_benny]
+    objectives:
+      - "DELIVER SUGAR_CANE 32 sugar cane"
+    description: "Bring {npc:hazel} sugar cane from the riverbank."
+    offer:
+      - "Bring me sugar cane from the riverbank."
+      - "Thirty-two should do."
+    complete:
+      - "Sweet! Cake for everyone tonight."
+      - "Go and see {npc:frank} next. They could use you."
+    rewards:
+      money: 3200
+      items:
+        - "EMERALD 3"
+  story_frank:
+    name: "Bricklayer"
+    level: 23
+    order: 24
+    giver: "frank"
+    requires: [story_hazel]
+    objectives:
+      - "SMELT BRICK 32 bricks"
+    description: "Smelt bricks from clay for {npc:frank}."
+    offer:
+      - "Smelt me some bricks from clay."
+      - "Don't tell Harold they're better."
+    complete:
+      - "Beautiful. Harold's going to be so jealous."
+      - "Go and see {npc:edith} next. They could use you."
+    rewards:
+      money: 3300
+      items:
+        - "EXPERIENCE_BOTTLE 8"
+  story_edith:
+    name: "Old Pages"
+    level: 24
+    order: 25
+    giver: "edith"
+    requires: [story_frank]
+    objectives:
+      - "KILL ZOMBIE 10 zombies"
+      - "DELIVER BOOK 8 books"
+    description: "Fight off zombies and bring {npc:edith} books for the archive."
+    offer:
+      - "Clear the zombies around the ruins and bring me books."
+      - "We must rebuild what we lost."
+    complete:
+      - "The archive grows again. Thank you."
+      - "Go and see {npc:sam} next. They could use you."
+    rewards:
+      money: 3400
+      items:
+        - "NAME_TAG 1"
+  story_sam:
+    name: "Deeper Still"
+    level: 25
+    order: 26
+    giver: "sam"
+    requires: [story_edith]
+    objectives:
+      - "MINE @IRON 24 iron ore"
+    description: "Mine iron ore for {npc:sam}."
+    offer:
+      - "Go deeper than coal."
+      - "Bring up iron ore. Twenty-four pieces."
+    complete:
+      - "Now we're talking. Iron picks for everyone."
+      - "Go and see {npc:molly} next. They could use you."
+    rewards:
+      money: 3500
+      items:
+        - "IRON_INGOT 8"
+  story_molly:
+    name: "Ink and Water"
+    level: 26
+    order: 27
+    giver: "molly"
+    requires: [story_sam]
+    objectives:
+      - "DELIVER INK_SAC 8 ink sacs"
+    description: "Bring {npc:molly} ink sacs for Clara's chronicle."
+    offer:
+      - "Bring me ink sacs."
+      - "Squid live in deeper water."
+    complete:
+      - "Black as night. Perfect."
+      - "Go and see {npc:george} next. They could use you."
+    rewards:
+      money: 3600
+      items:
+        - "GOLD_INGOT 6"
+  story_george:
+    name: "Arrow Storm"
+    level: 27
+    order: 28
+    giver: "george"
+    requires: [story_molly]
+    objectives:
+      - "CRAFT ARROW 64 arrows"
+    description: "Craft arrows for {npc:george}'s archers."
+    offer:
+      - "We need a full stack of arrows."
+      - "Craft sixty-four for the watch."
+    complete:
+      - "A full quiver. The skeletons won't know what hit them."
+      - "Go and see {npc:daisy} next. They could use you."
+    rewards:
+      money: 3700
+      items:
+        - "EMERALD 3"
+  story_daisy:
+    name: "Pumpkin Patch"
+    level: 28
+    order: 29
+    giver: "daisy"
+    requires: [story_george]
+    objectives:
+      - "MINE PUMPKIN 16 pumpkins"
+    description: "Harvest pumpkins from {npc:daisy}'s patch."
+    offer:
+      - "The patch is overflowing."
+      - "Harvest sixteen pumpkins for me."
+    complete:
+      - "Pie season! Thank you!"
+      - "Go and see {npc:ralph} next. They could use you."
+    rewards:
+      money: 3800
+      items:
+        - "EXPERIENCE_BOTTLE 8"
+  story_ralph:
+    name: "Bad Blood"
+    level: 29
+    order: 30
+    giver: "ralph"
+    requires: [story_daisy]
+    objectives:
+      - "KILL ZOMBIE 20 zombies"
+    description: "Hold the gate with {npc:ralph}: defeat twenty zombies."
+    offer:
+      - "The dead are gathering at the gate."
+      - "Thin them out. Twenty should send a message."
+    complete:
+      - "Gate holds. You've earned your place here."
+      - "Go and see {npc:agnes} next. They could use you."
+    rewards:
+      money: 3900
+      items:
+        - "NAME_TAG 1"
+  story_agnes:
+    name: "Rotten Remedy"
+    level: 30
+    order: 31
+    giver: "agnes"
+    requires: [story_ralph]
+    objectives:
+      - "DELIVER ROTTEN_FLESH 32 rotten flesh"
+    description: "Bring {npc:agnes} rotten flesh for her remedies."
+    offer:
+      - "Bring me rotten flesh. Lots."
+      - "Don't ask. It works."
+    complete:
+      - "Disgusting. Wonderful. Thank you."
+      - "Go and see {npc:leo} next. They could use you."
+    rewards:
+      money: 4000
+      items:
+        - "IRON_INGOT 8"
+  story_leo:
+    name: "Chain Reaction"
+    level: 31
+    order: 32
+    giver: "leo"
+    requires: [story_agnes]
+    objectives:
+      - "DELIVER IRON_INGOT 24 iron ingots"
+    description: "Bring {npc:leo} iron ingots for chain armour."
+    offer:
+      - "Bring me iron ingots."
+      - "Twenty-four will keep the forge busy."
+    complete:
+      - "The forge will ring all week."
+      - "Go and see {npc:winnie} next. They could use you."
+    rewards:
+      money: 4100
+      items:
+        - "GOLD_INGOT 6"
+  story_winnie:
+    name: "Colors of Home"
+    level: 32
+    order: 33
+    giver: "winnie"
+    requires: [story_leo]
+    objectives:
+      - "DELIVER RED_WOOL 8 red wool"
+      - "DELIVER BLUE_WOOL 8 blue wool"
+    description: "Bring {npc:winnie} red and blue wool for a new banner."
+    offer:
+      - "Bring me red and blue wool."
+      - "The colours of the old banner."
+    complete:
+      - "The banner of Aldmere flies again!"
+      - "Go and see {npc:cecil} next. They could use you."
+    rewards:
+      money: 4200
+      items:
+        - "EMERALD 3"
+  story_cecil:
+    name: "Scout's Honor"
+    level: 33
+    order: 34
+    giver: "cecil"
+    requires: [story_winnie]
+    objectives:
+      - "KILL PILLAGER 5 pillagers"
+    description: "Drive off the pillager scouts watching the camp."
+    offer:
+      - "Drive off their scouts."
+      - "Five pillagers should make them think twice."
+    complete:
+      - "They'll think twice before spying on us again."
+      - "Go and see {npc:betty} next. They could use you."
+    rewards:
+      money: 4300
+      items:
+        - "EXPERIENCE_BOTTLE 8"
+  story_betty:
+    name: "Bee Kind"
+    level: 34
+    order: 35
+    giver: "betty"
+    requires: [story_cecil]
+    objectives:
+      - "DELIVER HONEY_BOTTLE 4 honey bottles"
+    description: "Bring {npc:betty} bottles of honey."
+    offer:
+      - "Bring me honey bottles."
+      - "Use a campfire under the hive. The bees won't mind."
+    complete:
+      - "Sweet as can be. Thank you."
+      - "Go and see {npc:otto} next. They could use you."
+    rewards:
+      money: 4400
+      items:
+        - "NAME_TAG 1"
+  story_otto:
+    name: "Deep Stone"
+    level: 35
+    order: 36
+    giver: "otto"
+    requires: [story_betty]
+    objectives:
+      - "MINE DEEPSLATE 128 deepslate"
+    description: "Mine deepslate for {npc:otto}'s strong walls."
+    offer:
+      - "Go deep and mine deepslate."
+      - "Two stacks. Don't ask what's coming. I don't know either."
+    complete:
+      - "Strong stone for strange days."
+      - "Go and see {npc:june} next. They could use you."
+    rewards:
+      money: 4500
+      items:
+        - "DIAMOND 1"
+  story_june:
+    name: "Lapis Lore"
+    level: 36
+    order: 37
+    giver: "june"
+    requires: [story_otto]
+    objectives:
+      - "MINE @LAPIS 8 lapis ore"
+    description: "Mine lapis ore for {npc:june}'s studies."
+    offer:
+      - "Find lapis ore for me."
+      - "Eight pieces of the blue stone."
+    complete:
+      - "Blue as the old sky over Aldmere."
+      - "Go and see {npc:hank} next. They could use you."
+    rewards:
+      money: 4600
+      items:
+        - "EMERALD 6"
+  story_hank:
+    name: "Gold Rush"
+    level: 37
+    order: 38
+    giver: "hank"
+    requires: [story_june]
+    objectives:
+      - "SMELT GOLD_INGOT 16 gold ingots"
+    description: "Smelt gold ingots for {npc:hank}."
+    offer:
+      - "Smelt me some gold."
+      - "Sixteen ingots. We'll need them later, trust me."
+    complete:
+      - "Shiny. The piglins will love us."
+      - "Go and see {npc:fern} next. They could use you."
+    rewards:
+      money: 4700
+      items:
+        - "EXPERIENCE_BOTTLE 16"
+  story_fern:
+    name: "Melon Season"
+    level: 38
+    order: 39
+    giver: "fern"
+    requires: [story_hank]
+    objectives:
+      - "MINE MELON 24 melons"
+    description: "Harvest melons from {npc:fern}'s field."
+    offer:
+      - "Harvest melons for the camp."
+      - "Twenty-four should keep us cool."
+    complete:
+      - "Juicy! Have a slice."
+      - "Go and see {npc:ned} next. They could use you."
+    rewards:
+      money: 4800
+      items:
+        - "GOLDEN_CARROT 16"
+  story_ned:
+    name: "Treasure Hunter"
+    level: 39
+    order: 40
+    giver: "ned"
+    requires: [story_fern]
+    objectives:
+      - "FISH NAME_TAG|SADDLE|BOW|FISHING_ROD|ENCHANTED_BOOK|NAUTILUS_SHELL 1 treasure"
+    description: "Fish up a piece of treasure for {npc:ned}."
+    offer:
+      - "Fish up some real treasure."
+      - "A name tag, a saddle, an enchanted book. Anything good."
+    complete:
+      - "Would you look at that! The water likes you."
+      - "Go and see {npc:iris} next. They could use you."
+    rewards:
+      money: 4900
+      items:
+        - "SADDLE 1"
+  story_iris:
+    name: "Witch Hunt"
+    level: 40
+    order: 41
+    giver: "iris"
+    requires: [story_ned]
+    objectives:
+      - "KILL WITCH 3 witches"
+    description: "Hunt witches in the swamps for {npc:iris}."
+    offer:
+      - "Find the witches and stop them."
+      - "Three will do. Bring a bucket of milk."
+    complete:
+      - "Their cauldrons are cold now. Good."
+      - "Go and see {npc:percy} next. They could use you."
+    rewards:
+      money: 5000
+      items:
+        - "DIAMOND 1"
+  story_percy:
+    name: "Redstone Reverie"
+    level: 41
+    order: 42
+    giver: "percy"
+    requires: [story_iris]
+    objectives:
+      - "MINE @REDSTONE 16 redstone ore"
+    description: "Mine redstone ore for {npc:percy}'s machine."
+    offer:
+      - "Mine me some redstone ore."
+      - "Sixteen! The machine hungers!"
+    complete:
+      - "It whirs! It clicks! It... does something!"
+      - "Go and see {npc:doris} next. They could use you."
+    rewards:
+      money: 5100
+      items:
+        - "EMERALD 6"
+  story_doris:
+    name: "Saddle Up"
+    level: 42
+    order: 43
+    giver: "doris"
+    requires: [story_percy]
+    objectives:
+      - "TAME HORSE 1 horse"
+    description: "Tame a wild horse for {npc:doris}'s stables."
+    offer:
+      - "Tame a wild horse for the camp."
+      - "Be patient. They throw you off a few times first."
+    complete:
+      - "A fine animal. The stables live again."
+      - "Go and see {npc:albert} next. They could use you."
+    rewards:
+      money: 5200
+      items:
+        - "EXPERIENCE_BOTTLE 16"
+  story_albert:
+    name: "Shining Armor"
+    level: 43
+    order: 44
+    giver: "albert"
+    requires: [story_doris]
+    objectives:
+      - "CRAFT IRON_CHESTPLATE 1 iron chestplate"
+      - "CRAFT IRON_HELMET 1 iron helmet"
+    description: "Craft iron armour, as {npc:albert} the old knight asks."
+    offer:
+      - "Craft a chestplate and helmet."
+      - "Wear them well. You'll need them."
+    complete:
+      - "You look like a knight of Aldmere now."
+      - "Go and see {npc:maggie} next. They could use you."
+    rewards:
+      money: 5300
+      items:
+        - "GOLDEN_CARROT 16"
+  story_maggie:
+    name: "Loyal Friends"
+    level: 44
+    order: 45
+    giver: "maggie"
+    requires: [story_albert]
+    objectives:
+      - "TAME WOLF 2 wolves"
+    description: "Tame two wolves as camp guard dogs."
+    offer:
+      - "Tame two wolves."
+      - "Bones are their weakness."
+    complete:
+      - "Good boys! Good, good boys!"
+      - "Go and see {npc:vince} next. They could use you."
+    rewards:
+      money: 5400
+      items:
+        - "SADDLE 1"
+  story_vince:
+    name: "Enchanter's Apprentice"
+    level: 45
+    order: 46
+    giver: "vince"
+    requires: [story_maggie]
+    objectives:
+      - "ENCHANT ANY 3 items"
+    description: "Enchant items at an enchanting table for {npc:vince}."
+    offer:
+      - "Enchant three items at a table."
+      - "Anything works. Swords are more fun."
+    complete:
+      - "The glow suits you."
+      - "Go and see {npc:ellie} next. They could use you."
+    rewards:
+      money: 5500
+      items:
+        - "DIAMOND 1"
+  story_ellie:
+    name: "Ocean's Edge"
+    level: 46
+    order: 47
+    giver: "ellie"
+    requires: [story_vince]
+    objectives:
+      - "KILL DROWNED 8 drowned"
+    description: "Defeat the drowned walking up the beach."
+    offer:
+      - "Push them back into the water."
+      - "Eight drowned should do."
+    complete:
+      - "The shore is quiet. For now."
+      - "Go and see {npc:rufus} next. They could use you."
+    rewards:
+      money: 5600
+      items:
+        - "EMERALD 6"
+  story_rufus:
+    name: "Creeping Doom"
+    level: 47
+    order: 48
+    giver: "rufus"
+    requires: [story_ellie]
+    objectives:
+      - "KILL CREEPER 15 creepers"
+    description: "Hunt creepers for {npc:rufus}."
+    offer:
+      - "Hunt creepers."
+      - "Fifteen of them. Don't let them hug you."
+    complete:
+      - "Ha! Plenty of boom for later."
+      - "Go and see {npc:opal} next. They could use you."
+    rewards:
+      money: 5700
+      items:
+        - "EXPERIENCE_BOTTLE 16"
+  story_opal:
+    name: "Diamond in the Rough"
+    level: 48
+    order: 49
+    giver: "opal"
+    requires: [story_rufus]
+    objectives:
+      - "MINE @DIAMOND 5 diamond ore"
+    description: "Mine diamond ore for {npc:opal}."
+    offer:
+      - "Go deep and find diamonds."
+      - "Five ore. I need to study them."
+    complete:
+      - "Beautiful! The light inside... it's warm."
+      - "Go and see {npc:marcus} next. They could use you."
+    rewards:
+      money: 5800
+      items:
+        - "GOLDEN_CARROT 16"
+  story_marcus:
+    name: "The Elder's Charge"
+    level: 49
+    order: 50
+    giver: "marcus"
+    requires: [story_opal]
+    objectives:
+      - "KILL ENDERMAN 5 endermen"
+      - "DELIVER DIAMOND 3 diamonds"
+    description: "Hunt endermen and bring {npc:marcus} diamonds for the seeking-stone."
+    offer:
+      - "Prove you can face the strange things of this world."
+      - "Hunt endermen, and bring me three diamonds for the seeking-stone."
+    complete:
+      - "The seeking-stone glows. It points away from camp."
+      - "Beyond our walls lives a scout named Wren. She knows the wild roads. Find her."
+    rewards:
+      money: 5900
+      items:
+        - "SADDLE 1"
+  story_wren:
+    name: "Into the Wilds"
+    level: 50
+    order: 51
+    giver: "wren"
+    requires: [story_marcus]
+    objectives:
+      - "KILL SKELETON 20 skeletons"
+      - "KILL ZOMBIE 20 zombies"
+    description: "Clear the wild roads of the dead with {npc:wren}."
+    offer:
+      - "The wild roads are crawling with the dead."
+      - "Clear them and I'll show you the way."
+    complete:
+      - "Clear roads. Now we can move."
+      - "Go and see {npc:silas} next. They could use you."
+    rewards:
+      money: 6000
+      items:
+        - "DIAMOND 2"
+  story_silas:
+    name: "Obsidian Gate"
+    level: 51
+    order: 52
+    giver: "silas"
+    requires: [story_wren]
+    objectives:
+      - "MINE OBSIDIAN 14 obsidian"
+    description: "Mine obsidian so {npc:silas} can build a Nether portal."
+    offer:
+      - "The Hollow King's power comes from the Nether."
+      - "Mine obsidian. We'll build a gate."
+    complete:
+      - "Enough for a gate. Light it and step through... if you dare."
+      - "Go and see {npc:cora} next. They could use you."
+    rewards:
+      money: 6100
+      items:
+        - "EXPERIENCE_BOTTLE 24"
+  story_cora:
+    name: "Fire and Brimstone"
+    level: 52
+    order: 53
+    giver: "cora"
+    requires: [story_silas]
+    objectives:
+      - "KILL MAGMA_CUBE 10 magma cubes"
+    description: "Defeat magma cubes in the Nether."
+    offer:
+      - "Learn to fight in the heat."
+      - "Kill ten magma cubes. Then we talk."
+    complete:
+      - "You didn't burn. That's a start."
+      - "Go and see {npc:jasper} next. They could use you."
+    rewards:
+      money: 6200
+      items:
+        - "GOLDEN_APPLE 1"
+  story_jasper:
+    name: "Quartz Dreams"
+    level: 53
+    order: 54
+    giver: "jasper"
+    requires: [story_cora]
+    objectives:
+      - "MINE NETHER_QUARTZ_ORE 48 quartz ore"
+    description: "Mine Nether quartz for {npc:jasper}."
+    offer:
+      - "Mine quartz ore in the Nether."
+      - "Forty-eight pieces."
+    complete:
+      - "Pure white. The King's halls were built of this, you know."
+      - "Go and see {npc:nell} next. They could use you."
+    rewards:
+      money: 6300
+      items:
+        - "BLAZE_ROD 6"
+  story_nell:
+    name: "Nether Garden"
+    level: 54
+    order: 55
+    giver: "nell"
+    requires: [story_jasper]
+    objectives:
+      - "DELIVER NETHER_WART 32 nether wart"
+    description: "Bring {npc:nell} nether wart from the fortresses."
+    offer:
+      - "Bring me nether wart from the fortresses."
+      - "Thirty-two."
+    complete:
+      - "My garden will grow. Potions for everyone."
+      - "Go and see {npc:felix} next. They could use you."
+    rewards:
+      money: 6400
+      items:
+        - "ENDER_PEARL 4"
+  story_felix:
+    name: "Ghast Tears"
+    level: 55
+    order: 56
+    giver: "felix"
+    requires: [story_nell]
+    objectives:
+      - "KILL GHAST 3 ghasts"
+      - "DELIVER GHAST_TEAR 2 ghast tears"
+    description: "Hunt ghasts and bring {npc:felix} ghast tears."
+    offer:
+      - "Shoot down ghasts and bring me their tears."
+      - "Hit their fireballs back. It's fun."
+    complete:
+      - "Tears of the damned. Precious stuff."
+      - "Go and see {npc:bea} next. They could use you."
+    rewards:
+      money: 6500
+      items:
+        - "DIAMOND 2"
+  story_bea:
+    name: "Blaze of Glory"
+    level: 56
+    order: 57
+    giver: "bea"
+    requires: [story_felix]
+    objectives:
+      - "KILL BLAZE 10 blazes"
+    description: "Defeat blazes in a Nether fortress for {npc:bea}."
+    offer:
+      - "Fight blazes in a Nether fortress."
+      - "Ten of them. Bring snowballs."
+    complete:
+      - "You're braver than the old knights were."
+      - "Go and see {npc:roland} next. They could use you."
+    rewards:
+      money: 6600
+      items:
+        - "EXPERIENCE_BOTTLE 24"
+  story_roland:
+    name: "Fortress Breaker"
+    level: 57
+    order: 58
+    giver: "roland"
+    requires: [story_bea]
+    objectives:
+      - "KILL WITHER_SKELETON 10 wither skeletons"
+    description: "Break the wither skeleton guard in the Nether."
+    offer:
+      - "Break their ranks."
+      - "Ten wither skeletons."
+    complete:
+      - "The road is open. The King's guard is broken."
+      - "Go and see {npc:tilly} next. They could use you."
+    rewards:
+      money: 6700
+      items:
+        - "GOLDEN_APPLE 1"
+  story_tilly:
+    name: "Strider Rider"
+    level: 58
+    order: 59
+    giver: "tilly"
+    requires: [story_roland]
+    objectives:
+      - "BREED STRIDER 2 striders"
+    description: "Breed striders for {npc:tilly}."
+    offer:
+      - "Breed two striders."
+      - "Warped fungus. They love it."
+    complete:
+      - "Wobbly little darlings!"
+      - "Go and see {npc:hugo} next. They could use you."
+    rewards:
+      money: 6800
+      items:
+        - "BLAZE_ROD 6"
+  story_hugo:
+    name: "Gilded Things"
+    level: 59
+    order: 60
+    giver: "hugo"
+    requires: [story_tilly]
+    objectives:
+      - "DELIVER GOLD_BLOCK 4 gold blocks"
+    description: "Bring {npc:hugo} gold blocks to trade with piglins."
+    offer:
+      - "Bring me gold blocks."
+      - "Four should loosen their tongues."
+    complete:
+      - "The piglins talked. The King has five keys."
+      - "Go and see {npc:maeve} next. They could use you."
+    rewards:
+      money: 6900
+      items:
+        - "ENDER_PEARL 4"
+  story_maeve:
+    name: "Potion Practice"
+    level: 60
+    order: 61
+    giver: "maeve"
+    requires: [story_hugo]
+    objectives:
+      - "CRAFT BREWING_STAND 1 brewing stand"
+      - "DELIVER BLAZE_POWDER 8 blaze powder"
+    description: "Craft a brewing stand and bring {npc:maeve} blaze powder."
+    offer:
+      - "Craft a brewing stand and bring blaze powder."
+      - "Eight should fuel a good batch."
+    complete:
+      - "Bubbling nicely. Fire resistance for everyone."
+      - "Go and see {npc:cyrus} next. They could use you."
+    rewards:
+      money: 7000
+      items:
+        - "DIAMOND 2"
+  story_cyrus:
+    name: "Ancient Debris"
+    level: 61
+    order: 62
+    giver: "cyrus"
+    requires: [story_maeve]
+    objectives:
+      - "MINE ANCIENT_DEBRIS 2 ancient debris"
+    description: "Mine ancient debris deep in the Nether."
+    offer:
+      - "Find ancient debris in the Nether."
+      - "Two pieces. Bring a bed. Or don't."
+    complete:
+      - "Older than kings. Stronger, too."
+      - "Go and see {npc:elsie} next. They could use you."
+    rewards:
+      money: 7100
+      items:
+        - "EXPERIENCE_BOTTLE 24"
+  story_elsie:
+    name: "Pufferfish Pact"
+    level: 62
+    order: 63
+    giver: "elsie"
+    requires: [story_cyrus]
+    objectives:
+      - "FISH PUFFERFISH 3 pufferfish"
+    description: "Catch pufferfish for {npc:elsie}'s potions."
+    offer:
+      - "Catch three pufferfish."
+      - "Don't eat them."
+    complete:
+      - "Puffy and perfect. Underwater we go."
+      - "Go and see {npc:bram} next. They could use you."
+    rewards:
+      money: 7200
+      items:
+        - "GOLDEN_APPLE 1"
+  story_bram:
+    name: "Hoglin Hunt"
+    level: 63
+    order: 64
+    giver: "bram"
+    requires: [story_elsie]
+    objectives:
+      - "KILL HOGLIN 6 hoglins"
+    description: "Hunt hoglins in the crimson forest."
+    offer:
+      - "Hunt six hoglins in the crimson forest."
+      - "They hate warped fungus. Remember that."
+    complete:
+      - "Good meat. Good fight."
+      - "Go and see {npc:lottie} next. They could use you."
+    rewards:
+      money: 7300
+      items:
+        - "BLAZE_ROD 6"
+  story_lottie:
+    name: "Glowing Fields"
+    level: 64
+    order: 65
+    giver: "lottie"
+    requires: [story_bram]
+    objectives:
+      - "DELIVER GLOW_BERRIES 16 glow berries"
+    description: "Bring {npc:lottie} glow berries from the lush caves."
+    offer:
+      - "Bring me glow berries from the lush caves."
+      - "Sixteen."
+    complete:
+      - "They glow! Light for dark places."
+      - "Go and see {npc:orson} next. They could use you."
+    rewards:
+      money: 7400
+      items:
+        - "ENDER_PEARL 4"
+  story_orson:
+    name: "Basalt Deltas"
+    level: 65
+    order: 66
+    giver: "orson"
+    requires: [story_lottie]
+    objectives:
+      - "MINE BASALT 64 basalt"
+    description: "Mine basalt to clear a road through the deltas."
+    offer:
+      - "Mine through the deltas."
+      - "A stack of basalt."
+    complete:
+      - "The road through the deltas is open. The first key is ours."
+      - "Go and see {npc:pearl} next. They could use you."
+    rewards:
+      money: 7500
+      items:
+        - "DIAMOND 2"
+  story_pearl:
+    name: "Pearls of Wisdom"
+    level: 66
+    order: 67
+    giver: "pearl"
+    requires: [story_orson]
+    objectives:
+      - "KILL ENDERMAN 12 endermen"
+      - "DELIVER ENDER_PEARL 8 ender pearls"
+    description: "Hunt endermen and bring {npc:pearl} ender pearls."
+    offer:
+      - "Hunt endermen and bring me their pearls."
+      - "Don't look them in the eye."
+    complete:
+      - "I see it now. The second key is ours."
+      - "Go and see {npc:dex} next. They could use you."
+    rewards:
+      money: 7600
+      items:
+        - "EXPERIENCE_BOTTLE 24"
+  story_dex:
+    name: "Piglin Diplomacy"
+    level: 67
+    order: 68
+    giver: "dex"
+    requires: [story_pearl]
+    objectives:
+      - "KILL PIGLIN_BRUTE 3 piglin brutes"
+    description: "Defeat piglin brutes in a bastion for {npc:dex}."
+    offer:
+      - "Defeat three piglin brutes."
+      - "Diplomacy, Dex style."
+    complete:
+      - "Diplomacy complete. The third key is ours."
+      - "Go and see {npc:fiona} next. They could use you."
+    rewards:
+      money: 7700
+      items:
+        - "GOLDEN_APPLE 1"
+  story_fiona:
+    name: "Lost Temple"
+    level: 68
+    order: 69
+    giver: "fiona"
+    requires: [story_dex]
+    objectives:
+      - "KILL HUSK 15 husks"
+    description: "Clear the desert of husks with {npc:fiona}."
+    offer:
+      - "Clear the dunes of husks."
+      - "Fifteen."
+    complete:
+      - "The dunes are quiet. The temples are safe."
+      - "Go and see {npc:gideon} next. They could use you."
+    rewards:
+      money: 7800
+      items:
+        - "BLAZE_ROD 6"
+  story_gideon:
+    name: "Guardian's Gaze"
+    level: 69
+    order: 70
+    giver: "gideon"
+    requires: [story_fiona]
+    objectives:
+      - "KILL GUARDIAN 10 guardians"
+    description: "Fight guardians at an ocean monument."
+    offer:
+      - "Fight the guardians of the ocean monument."
+      - "Ten of them. Bring water breathing."
+    complete:
+      - "The monument is open. Now the elder."
+      - "Go and see {npc:holly} next. They could use you."
+    rewards:
+      money: 7900
+      items:
+        - "ENDER_PEARL 4"
+  story_holly:
+    name: "The Elder's Eye"
+    level: 70
+    order: 71
+    giver: "holly"
+    requires: [story_gideon]
+    objectives:
+      - "KILL ELDER_GUARDIAN 1 elder guardian"
+    description: "Defeat an Elder Guardian to claim the fourth key."
+    offer:
+      - "Defeat the Elder Guardian."
+      - "This is no easy task, {player}."
+    complete:
+      - "The fourth key is ours. The tides are calm."
+      - "Go and see {npc:ike} next. They could use you."
+    rewards:
+      money: 8000
+      items:
+        - "DIAMOND 3"
+  story_ike:
+    name: "Prismarine Walls"
+    level: 71
+    order: 72
+    giver: "ike"
+    requires: [story_holly]
+    objectives:
+      - "MINE PRISMARINE 64 prismarine"
+    description: "Mine prismarine to build {npc:ike}'s sea wall."
+    offer:
+      - "Mine prismarine from the monument."
+      - "A stack."
+    complete:
+      - "The wall stands. The key is safe."
+      - "Go and see {npc:juno} next. They could use you."
+    rewards:
+      money: 8100
+      items:
+        - "GOLDEN_APPLE 2"
+  story_juno:
+    name: "Llama Drama"
+    level: 72
+    order: 73
+    giver: "juno"
+    requires: [story_ike]
+    objectives:
+      - "TAME LLAMA 2 llamas"
+    description: "Tame llamas for {npc:juno}'s caravan."
+    offer:
+      - "Tame two llamas."
+      - "They spit. Wear a hat."
+    complete:
+      - "A proper caravan. The keys will travel safely."
+      - "Go and see {npc:kip} next. They could use you."
+    rewards:
+      money: 8200
+      items:
+        - "EXPERIENCE_BOTTLE 32"
+  story_kip:
+    name: "Kip's Cake"
+    level: 73
+    order: 74
+    giver: "kip"
+    requires: [story_juno]
+    objectives:
+      - "CRAFT CAKE 3 cakes"
+    description: "Craft cakes for {npc:kip}'s caravan party."
+    offer:
+      - "It's the caravan's birthday!"
+      - "Make three cakes!"
+    complete:
+      - "Best. Birthday. Ever."
+      - "Go and see {npc:luna} next. They could use you."
+    rewards:
+      money: 8300
+      items:
+        - "EMERALD_BLOCK 1"
+  story_luna:
+    name: "Moonlit Phantoms"
+    level: 74
+    order: 75
+    giver: "luna"
+    requires: [story_kip]
+    objectives:
+      - "KILL PHANTOM 8 phantoms"
+    description: "Hunt phantoms under the moon for {npc:luna}."
+    offer:
+      - "Stay awake and hunt the phantoms."
+      - "Eight."
+    complete:
+      - "The sky is clear. The stars are back."
+      - "Go and see {npc:milo} next. They could use you."
+    rewards:
+      money: 8400
+      items:
+        - "SHULKER_SHELL 2"
+  story_milo:
+    name: "Copper Age"
+    level: 75
+    order: 76
+    giver: "milo"
+    requires: [story_luna]
+    objectives:
+      - "SMELT COPPER_INGOT 64 copper ingots"
+    description: "Smelt copper ingots for {npc:milo}'s lightning rods."
+    offer:
+      - "Smelt a stack of copper."
+      - "Sixty-four ingots."
+    complete:
+      - "Shiny now. Green later. Useful always."
+      - "Go and see {npc:nora} next. They could use you."
+    rewards:
+      money: 8500
+      items:
+        - "DIAMOND 3"
+  story_nora:
+    name: "Berry Trail"
+    level: 76
+    order: 77
+    giver: "nora"
+    requires: [story_milo]
+    objectives:
+      - "DELIVER SWEET_BERRIES 32 sweet berries"
+    description: "Bring {npc:nora} sweet berries for the caravan."
+    offer:
+      - "Bring me sweet berries."
+      - "Thirty-two. Mind the thorns."
+    complete:
+      - "Sweet and sharp. Like the road ahead."
+      - "Go and see {npc:osric} next. They could use you."
+    rewards:
+      money: 8600
+      items:
+        - "GOLDEN_APPLE 2"
+  story_osric:
+    name: "Raid Breaker"
+    level: 77
+    order: 78
+    giver: "osric"
+    requires: [story_nora]
+    objectives:
+      - "KILL VINDICATOR 8 vindicators"
+      - "KILL EVOKER 1 evoker"
+    description: "Storm a woodland mansion and defeat vindicators and an evoker."
+    offer:
+      - "Storm the mansion."
+      - "Defeat their axemen and their evoker."
+    complete:
+      - "The fifth key is ours. All five keys."
+      - "Go and see {npc:poppy} next. They could use you."
+    rewards:
+      money: 8700
+      items:
+        - "EXPERIENCE_BOTTLE 32"
+  story_poppy:
+    name: "Mooshroom Isle"
+    level: 78
+    order: 79
+    giver: "poppy"
+    requires: [story_osric]
+    objectives:
+      - "BREED MOOSHROOM 2 mooshrooms"
+    description: "Breed mooshrooms for {npc:poppy}."
+    offer:
+      - "Breed two mooshrooms."
+      - "Find the mushroom isles."
+    complete:
+      - "Stew for everyone!"
+      - "Go and see {npc:quill} next. They could use you."
+    rewards:
+      money: 8800
+      items:
+        - "EMERALD_BLOCK 1"
+  story_quill:
+    name: "Echoes Below"
+    level: 79
+    order: 80
+    giver: "quill"
+    requires: [story_poppy]
+    objectives:
+      - "MINE SCULK 32 sculk"
+    description: "Mine sculk in the deep dark for {npc:quill}."
+    offer:
+      - "Mine sculk in the deep dark."
+      - "Quietly. Very quietly."
+    complete:
+      - "The keys hum now. They're awake."
+      - "Go and see {npc:reed} next. They could use you."
+    rewards:
+      money: 8900
+      items:
+        - "SHULKER_SHELL 2"
+  story_reed:
+    name: "Silence the Deep"
+    level: 80
+    order: 81
+    giver: "reed"
+    requires: [story_quill]
+    objectives:
+      - "DELIVER ECHO_SHARD 4 echo shards"
+    description: "Bring {npc:reed} echo shards from an ancient city."
+    offer:
+      - "Bring echo shards from the ancient cities."
+      - "Four."
+    complete:
+      - "...Good."
+      - "Go and see {npc:sage} next. They could use you."
+    rewards:
+      money: 9000
+      items:
+        - "DIAMOND 3"
+  story_sage:
+    name: "Bookworm"
+    level: 81
+    order: 82
+    giver: "sage"
+    requires: [story_reed]
+    objectives:
+      - "ENCHANT ANY 10 items"
+    description: "Enchant ten items to help {npc:sage} attune the keys."
+    offer:
+      - "Enchant ten items."
+      - "Practice makes perfect."
+    complete:
+      - "The keys are attuned. You're quite the enchanter."
+      - "Go and see {npc:thea} next. They could use you."
+    rewards:
+      money: 9100
+      items:
+        - "GOLDEN_APPLE 2"
+  story_thea:
+    name: "Diamond Plate"
+    level: 82
+    order: 83
+    giver: "thea"
+    requires: [story_sage]
+    objectives:
+      - "CRAFT DIAMOND_CHESTPLATE 1 diamond chestplate"
+    description: "Craft a diamond chestplate to carry the keys safely."
+    offer:
+      - "Craft a diamond chestplate."
+      - "For yourself. You've earned it."
+    complete:
+      - "Now you look like a key-bearer."
+      - "Go and see {npc:ulric} next. They could use you."
+    rewards:
+      money: 9200
+      items:
+        - "EXPERIENCE_BOTTLE 32"
+  story_ulric:
+    name: "Eyes of Ender"
+    level: 83
+    order: 84
+    giver: "ulric"
+    requires: [story_thea]
+    objectives:
+      - "CRAFT ENDER_EYE 12 eyes of ender"
+    description: "Craft eyes of ender to find the stronghold."
+    offer:
+      - "Craft twelve eyes of ender."
+      - "Then throw one and follow it."
+    complete:
+      - "Follow the eyes. They know the way."
+      - "Go and see {npc:vera} next. They could use you."
+    rewards:
+      money: 9300
+      items:
+        - "EMERALD_BLOCK 1"
+  story_vera:
+    name: "Stronghold"
+    level: 84
+    order: 85
+    giver: "vera"
+    requires: [story_ulric]
+    objectives:
+      - "KILL SILVERFISH 15 silverfish"
+    description: "Clear silverfish from the stronghold for {npc:vera}."
+    offer:
+      - "Clear the silverfish from the stronghold."
+      - "Fifteen."
+    complete:
+      - "The portal room is clear. The End awaits."
+      - "Go and see {npc:wade} next. They could use you."
+    rewards:
+      money: 9400
+      items:
+        - "SHULKER_SHELL 2"
+  story_wade:
+    name: "The Dragon's Shadow"
+    level: 85
+    order: 86
+    giver: "wade"
+    requires: [story_vera]
+    objectives:
+      - "KILL ENDER_DRAGON 1 ender dragon"
+    description: "Slay the Ender Dragon. Bring friends."
+    offer:
+      - "Slay the Ender Dragon."
+      - "Bring friends. Bring arrows. Bring everything."
+    complete:
+      - "You did it. The sky is free."
+      - "Go and see {npc:xena} next. They could use you."
+    rewards:
+      money: 15000
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_xena:
+    name: "Shulker Shells"
+    level: 86
+    order: 87
+    giver: "xena"
+    requires: [story_wade]
+    objectives:
+      - "KILL SHULKER 10 shulkers"
+    description: "Defeat shulkers in an End city."
+    offer:
+      - "Defeat ten shulkers."
+      - "Watch your feet. They'll float you."
+    complete:
+      - "The city is ours. So are the shells."
+      - "Go and see {npc:yara} next. They could use you."
+    rewards:
+      money: 9600
+      items:
+        - "GOLDEN_APPLE 2"
+  story_yara:
+    name: "City of the End"
+    level: 87
+    order: 88
+    giver: "yara"
+    requires: [story_xena]
+    objectives:
+      - "MINE PURPUR_BLOCK 64 purpur"
+    description: "Mine purpur from an End city for {npc:yara}."
+    offer:
+      - "Mine purpur from the End cities."
+      - "I want to read the walls."
+    complete:
+      - "The walls tell the King's story. He was a good man once."
+      - "Go and see {npc:zeke} next. They could use you."
+    rewards:
+      money: 9700
+      items:
+        - "EXPERIENCE_BOTTLE 32"
+  story_zeke:
+    name: "Chorus Song"
+    level: 88
+    order: 89
+    giver: "zeke"
+    requires: [story_yara]
+    objectives:
+      - "DELIVER CHORUS_FRUIT 32 chorus fruit"
+    description: "Bring {npc:zeke} chorus fruit from the End."
+    offer:
+      - "Bring me chorus fruit."
+      - "Thirty-two."
+    complete:
+      - "The song of the chorus is sweet."
+      - "Go and see {npc:abel} next. They could use you."
+    rewards:
+      money: 9800
+      items:
+        - "EMERALD_BLOCK 1"
+  story_abel:
+    name: "Endstone Masonry"
+    level: 89
+    order: 90
+    giver: "abel"
+    requires: [story_zeke]
+    objectives:
+      - "MINE END_STONE 128 end stone"
+    description: "Mine end stone for {npc:abel}'s key vault."
+    offer:
+      - "Mine end stone."
+      - "Two stacks."
+    complete:
+      - "The vault is built. The keys are safe."
+      - "Go and see {npc:bryn} next. They could use you."
+    rewards:
+      money: 9900
+      items:
+        - "SHULKER_SHELL 2"
+  story_bryn:
+    name: "Gathering Storm"
+    level: 90
+    order: 91
+    giver: "bryn"
+    requires: [story_abel]
+    objectives:
+      - "KILL CREEPER 30 creepers"
+    description: "Hold back the creeper swarm with {npc:bryn}."
+    offer:
+      - "Hold back the swarm."
+      - "Thirty creepers."
+    complete:
+      - "The storm passed. For now."
+      - "Go and see {npc:cass} next. They could use you."
+    rewards:
+      money: 10000
+      items:
+        - "DIAMOND 4"
+  story_cass:
+    name: "Skull Collector"
+    level: 91
+    order: 92
+    giver: "cass"
+    requires: [story_bryn]
+    objectives:
+      - "DELIVER WITHER_SKELETON_SKULL 3 wither skeleton skulls"
+    description: "Bring {npc:cass} three wither skeleton skulls."
+    offer:
+      - "Bring me three wither skeleton skulls."
+      - "Looting helps."
+    complete:
+      - "Three skulls. The vessel can be called."
+      - "Go and see {npc:dorian} next. They could use you."
+    rewards:
+      money: 10100
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_dorian:
+    name: "Soul Sand"
+    level: 92
+    order: 93
+    giver: "dorian"
+    requires: [story_cass]
+    objectives:
+      - "MINE SOUL_SAND 64 soul sand"
+    description: "Mine soul sand for {npc:dorian}."
+    offer:
+      - "Mine soul sand."
+      - "A stack."
+    complete:
+      - "The vessel's body is ready."
+      - "Go and see {npc:esme} next. They could use you."
+    rewards:
+      money: 10200
+      items:
+        - "GOLDEN_APPLE 3"
+  story_esme:
+    name: "The Five Keys"
+    level: 93
+    order: 94
+    giver: "esme"
+    requires: [story_dorian]
+    objectives:
+      - "DELIVER DIAMOND_BLOCK 2 diamond blocks"
+      - "DELIVER EMERALD_BLOCK 2 emerald blocks"
+    description: "Bring {npc:esme} gem blocks to set the five keys."
+    offer:
+      - "Bring me diamond and emerald blocks."
+      - "Two of each."
+    complete:
+      - "The keys are set. The tomb can be opened."
+      - "Go and see {npc:ford} next. They could use you."
+    rewards:
+      money: 10300
+      items:
+        - "EXPERIENCE_BOTTLE 48"
+  story_ford:
+    name: "Netherite Edge"
+    level: 94
+    order: 95
+    giver: "ford"
+    requires: [story_esme]
+    objectives:
+      - "CRAFT NETHERITE_INGOT 1 netherite ingot"
+    description: "Craft a netherite ingot for {npc:ford}."
+    offer:
+      - "Craft a netherite ingot."
+      - "Four scrap, four gold."
+    complete:
+      - "The edge is ready."
+      - "Go and see {npc:gwen} next. They could use you."
+    rewards:
+      money: 10400
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_gwen:
+    name: "Last Map"
+    level: 95
+    order: 96
+    giver: "gwen"
+    requires: [story_ford]
+    objectives:
+      - "KILL WITHER_SKELETON 25 wither skeletons"
+    description: "Clear the fortress road to the tomb for {npc:gwen}."
+    offer:
+      - "Clear the fortress roads."
+      - "Twenty-five wither skeletons."
+    complete:
+      - "The last map is drawn."
+      - "Go and see {npc:horace} next. They could use you."
+    rewards:
+      money: 10500
+      items:
+        - "DIAMOND 4"
+  story_horace:
+    name: "Totem of Faith"
+    level: 96
+    order: 97
+    giver: "horace"
+    requires: [story_gwen]
+    objectives:
+      - "DELIVER TOTEM_OF_UNDYING 1 totem of undying"
+    description: "Bring {npc:horace} a totem of undying."
+    offer:
+      - "Bring me a totem of undying."
+      - "Evokers carry them."
+    complete:
+      - "Blessed. Keep faith, {player}."
+      - "Go and see {npc:iona} next. They could use you."
+    rewards:
+      money: 10600
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_iona:
+    name: "Eve of Waking"
+    level: 97
+    order: 98
+    giver: "iona"
+    requires: [story_horace]
+    objectives:
+      - "KILL BLAZE 25 blazes"
+      - "KILL GHAST 5 ghasts"
+    description: "Hold the Nether gate on the eve of the King's waking."
+    offer:
+      - "Hold the Nether gate tonight."
+      - "Blazes and ghasts. All of them."
+    complete:
+      - "Dawn comes. The King wakes."
+      - "Go and see {npc:aldis} next. They could use you."
+    rewards:
+      money: 10700
+      items:
+        - "GOLDEN_APPLE 3"
+  story_aldis:
+    name: "The King Wakes"
+    level: 98
+    order: 99
+    giver: "aldis"
+    requires: [story_iona]
+    objectives:
+      - "KILL WITHER 1 wither"
+    description: "Summon and defeat the Wither, the Hollow King's vessel."
+    offer:
+      - "Summon the vessel and destroy it."
+      - "Only then will the Hollow King rest."
+    complete:
+      - "He is free. Thank you, child. Thank you."
+      - "Go and see {npc:aldric} next. They could use you."
+    rewards:
+      money: 25000
+      items:
+        - "NETHERITE_INGOT 1"
+        - "ENCHANTED_GOLDEN_APPLE 1"
+  story_aldric:
+    name: "A New Dawn"
+    level: 99
+    order: 100
+    giver: "aldric"
+    requires: [story_aldis]
+    objectives:
+      - "TALK stephan"
+    description: "Return to {npc:stephan} with the news: Aldmere is free."
+    offer:
+      - "Go back to Stephan."
+      - "Tell the Wanderers they can go home."
+    complete:
+      - "{player}! You've done it. The Wanderers can go home."
+      - "Stay with us, though. There is always more work."
+    rewards:
+      money: 20000
+      items:
+        - "DIAMOND 8"

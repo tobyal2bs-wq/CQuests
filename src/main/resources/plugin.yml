@@ -1,0 +1,24 @@
+name: CQuests
+version: '${version}'
+main: com.cquests.CQuestsPlugin
+api-version: '1.21'
+folia-supported: true
+description: Villager quest system with lore NPCs, a quest journal book and a daily quest giver.
+authors: [clarx]
+softdepend: [WorldGuard, floodgate, Geyser-Spigot]
+
+commands:
+  quests:
+    description: Open your quest journal.
+    aliases: [quest, journal, q]
+    usage: /quests [list|accept|abandon <quest>]
+  cquests:
+    description: CQuests admin commands.
+    aliases: [cq]
+    permission: cquests.admin
+    usage: /cq help
+
+permissions:
+  cquests.admin:
+    description: Manage CQuests NPCs, spawns and player data.
+    default: op

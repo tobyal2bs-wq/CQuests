@@ -1,0 +1,85 @@
+# CQuests - villager quest system
+# Text uses MiniMessage: https://docs.advntr.dev/minimessage/format.html
+
+# Used in quest text as {server}, e.g. the "Welcome to {server}" quest.
+server-name: ColorGens
+
+# Console command used to pay money rewards. %player% and %amount% are filled in.
+money-command: "eco give %player% %amount%"
+
+npc:
+  # Name tag over the villager. <name>, <level> and <title> are filled in.
+  name-format: "<gold><name></gold> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"
+  # How a villager's chat lines look.
+  chat-format: "<gold><name></gold><dark_gray>:</dark_gray> <white><text>"
+  # How a villager is written inside quest text and the journal ({npc:id}).
+  mention-format: "<blue>Villager <name></blue>"
+
+dialogue:
+  # Pause between lines a villager says (20 ticks = 1 second).
+  line-delay-ticks: 35
+  # How long a quest offer waits for the second click / [Accept].
+  accept-timeout-seconds: 60
+
+quests:
+  # Side quests a player can hold at once (story and daily quests don't count).
+  max-active-side: 3
+  # Given to every player on first join. Set to "" to disable.
+  welcome-quest: welcome
+  # Breaking a block you placed yourself does not count for MINE objectives.
+  ignore-player-placed-blocks: true
+
+daily:
+  # NPC id from npcs.yml that hands out the daily quest.
+  npc: marigold
+  cooldown-hours: 24
+  money: 10000
+
+spawning:
+  # NPCs without a spawn point in spawns.yml get one around the world spawn on startup.
+  # Move them later with /cq npc place <id> or /cq scatter.
+  auto-place-unplaced: true
+  # World for auto placement. Empty = the main world.
+  auto-place-world: ""
+  # Act 1 (spawn village) and act 2 (the wilds) rings around spawn, in blocks: [min, max].
+  act1-ring: [5, 22]
+  act2-ring: [26, 40]
+  # How often missing villagers are re-created at their point.
+  respawn-check-seconds: 10
+  # Villagers turn to face whoever clicks them.
+  look-at-player: true
+
+book:
+  title: "Quest Journal"
+  author: "The Wanderers"
+  # Lines per "All Quests" page. Keep it at 8 or less so pages fit on Java and Bedrock screens.
+  quests-per-index-page: 8
+  progress-bar-length: 18
+
+# Named groups usable as a target with @NAME, e.g. "MINE @LOGS 32 logs".
+groups:
+  LOGS: ["*_LOG", "*_STEM"]
+  COAL: [COAL_ORE, DEEPSLATE_COAL_ORE]
+  IRON: [IRON_ORE, DEEPSLATE_IRON_ORE]
+  COPPER: [COPPER_ORE, DEEPSLATE_COPPER_ORE]
+  GOLD: [GOLD_ORE, DEEPSLATE_GOLD_ORE, NETHER_GOLD_ORE]
+  REDSTONE: [REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE]
+  LAPIS: [LAPIS_ORE, DEEPSLATE_LAPIS_ORE]
+  DIAMOND: [DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE]
+  EMERALD: [EMERALD_ORE, DEEPSLATE_EMERALD_ORE]
+  WOOL: ["*_WOOL"]
+  FISH: [COD, SALMON, PUFFERFISH, TROPICAL_FISH]
+  RAW_MEAT: [BEEF, PORKCHOP, CHICKEN, MUTTON, RABBIT]
+  COOKED_MEAT: [COOKED_BEEF, COOKED_PORKCHOP, COOKED_CHICKEN, COOKED_MUTTON, COOKED_RABBIT]
+  FLOWERS: [DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY]
+  SAPLINGS: ["*_SAPLING", MANGROVE_PROPAGULE]
+
+messages:
+  quest-accepted: "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to read your journal."
+  quest-ready: "<green>✔ <white><bold><quest></bold></white> is done! Return to <npc>."
+  quest-complete: "<gold>★ Quest complete: <white><bold><quest></bold></white>"
+  delivered: "<gray>You hand over <white><amount> <item></white>. <yellow>(<have>/<need>)"
+  accept-prompt: "<yellow>Click the villager again to accept."
+  npc-locked: "I'm not ready for you yet, {player}."
+  npc-too-many: "You've got your hands full. Finish one of your side quests first."
+  npc-daily-cooldown: "Come back in <time> and I'll have another job for you."

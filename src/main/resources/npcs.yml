@@ -1,0 +1,1279 @@
+# The villagers. Act 1 stands around spawn, act 2 lives out in the world and is personal:
+# a personal villager is only visible to players who need it for a quest or have met it.
+#
+# profession: ARMORER BUTCHER CARTOGRAPHER CLERIC FARMER FISHERMAN FLETCHER LEATHERWORKER
+#             LIBRARIAN MASON NITWIT NONE SHEPHERD TOOLSMITH WEAPONSMITH
+# skin:       PLAINS DESERT JUNGLE SAVANNA SNOW SWAMP TAIGA
+# level:      shown on the name tag; the robe badge goes stone > iron > gold > emerald > diamond every 20 levels
+# intro:      said the first time a player clicks the villager
+# idle:       one of these is said when the villager has nothing for you
+
+npcs:
+  marigold:
+    name: "Granny Marigold"
+    title: "Daily Jobs"
+    profession: CLERIC
+    skin: PLAINS
+    level: 50
+    act: 1
+    daily: true
+    intro:
+      - "Hello, dear. I'm Marigold."
+      - "Every day I have one little job. Every day I pay ten thousand. Fair's fair."
+    idle:
+      - "Back again? Wonderful."
+      - "Same time tomorrow, dear."
+  stephan:
+    name: "Stephan"
+    title: "Keeper of the Road"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 0
+    act: 1
+    intro:
+      - "Ah, a new face! Welcome, welcome."
+      - "We are the Wanderers. What's left of the old city of Aldmere, anyway."
+      - "We fled when the ground under the city began to groan. Something sleeps down there, {player}."
+    idle:
+      - "The road was long. I'm glad it ended here."
+  jerry:
+    name: "Jerry"
+    title: "the Farmer"
+    profession: FARMER
+    skin: PLAINS
+    level: 1
+    act: 1
+    intro:
+      - "Name's Jerry. I keep this camp fed."
+      - "Or I try to, with the wolves stealing my sheep every night."
+    idle:
+      - "If it grows, I've probably planted it."
+  steve:
+    name: "Steve"
+    title: "the Planter"
+    profession: FARMER
+    skin: PLAINS
+    level: 2
+    act: 1
+    intro:
+      - "Hey there. I'm Steve, Jerry's cousin."
+      - "He hunts, I grow. Somebody has to."
+    idle:
+      - "Never trust a farmer with clean boots."
+  bob:
+    name: "B.O.B"
+    title: "Bartholomew Oswald Brightwater"
+    profession: TOOLSMITH
+    skin: PLAINS
+    level: 3
+    act: 1
+    intro:
+      - "Bartholomew Oswald Brightwater, at your service. Everyone calls me B.O.B."
+      - "I make the tools. And I need coal to make them."
+    idle:
+      - "B.O.B. Three letters, one legend."
+  martha:
+    name: "Martha"
+    title: "the Watchful"
+    profession: FARMER
+    skin: PLAINS
+    level: 4
+    act: 1
+    intro:
+      - "You're the new one. I'm Martha."
+      - "I watch the fields at night. Lately the dead walk through them."
+    idle:
+      - "The nights are getting longer. Have you noticed?"
+  finn:
+    name: "Finn"
+    title: "the Angler"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 5
+    act: 1
+    intro:
+      - "Finn's the name. Fish is the game."
+      - "The river here is full of them, if you're patient."
+    idle:
+      - "The fish are talking. They say you're new."
+  greta:
+    name: "Greta"
+    title: "the Shepherd"
+    profession: SHEPHERD
+    skin: PLAINS
+    level: 6
+    act: 1
+    intro:
+      - "Greta. I keep the flock."
+      - "Winter in Aldmere taught us one thing: never run out of wool."
+    idle:
+      - "Count sheep if you can't sleep. I count them all day."
+  oliver:
+    name: "Oliver"
+    title: "the Fletcher"
+    profession: FLETCHER
+    skin: PLAINS
+    level: 7
+    act: 1
+    intro:
+      - "I'm Oliver. I make the arrows that keep this camp safe."
+      - "Can't make arrows from wishes though."
+    idle:
+      - "Straight shafts, true flight. That's the Fletcher's code."
+  rosie:
+    name: "Rosie"
+    title: "the Cook"
+    profession: BUTCHER
+    skin: PLAINS
+    level: 8
+    act: 1
+    intro:
+      - "Rosie! I run the cookpot."
+      - "Everyone eats, nobody brings food. Funny how that works."
+    idle:
+      - "Wash your hands before you touch my pot."
+  harold:
+    name: "Harold"
+    title: "the Mason"
+    profession: MASON
+    skin: PLAINS
+    level: 9
+    act: 1
+    intro:
+      - "Harold. I build walls."
+      - "A camp without walls is just a picnic waiting for a raid."
+    idle:
+      - "Stone remembers. That's why I like it."
+  nina:
+    name: "Nina"
+    title: "the Healer"
+    profession: CLERIC
+    skin: PLAINS
+    level: 10
+    act: 1
+    intro:
+      - "I'm Nina. I patch people up."
+      - "Lately it's arrow wounds. Skeletons, out past the fence."
+    idle:
+      - "Drink water. Sleep. Avoid arrows. Doctor's orders."
+  walter:
+    name: "Walter"
+    title: "the Tanner"
+    profession: LEATHERWORKER
+    skin: PLAINS
+    level: 11
+    act: 1
+    intro:
+      - "Walter. Leatherworker."
+      - "Our boots fell apart on the road from Aldmere. Half the camp walks barefoot."
+    idle:
+      - "Smells like cow in here. You get used to it."
+  ivy:
+    name: "Ivy"
+    title: "the Gardener"
+    profession: FARMER
+    skin: PLAINS
+    level: 12
+    act: 1
+    intro:
+      - "Hello! I'm Ivy."
+      - "Steve grows wheat, I grow everything else."
+    idle:
+      - "Talk to your plants. Mine talk back. Mostly."
+  gus:
+    name: "Gus"
+    title: "the Old Salt"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 13
+    act: 1
+    intro:
+      - "Gus. Been fishing since before you were born."
+      - "Back in Aldmere I caught a salmon as long as a door."
+    idle:
+      - "The big one always gets away. That's the rule."
+  clara:
+    name: "Clara"
+    title: "the Scribe"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 14
+    act: 1
+    intro:
+      - "I'm Clara. I write things down."
+      - "Someone has to remember what happened to Aldmere."
+    idle:
+      - "I've written about you already. Don't worry, it's flattering."
+  tom:
+    name: "Tom"
+    title: "the Armorer"
+    profession: ARMORER
+    skin: PLAINS
+    level: 15
+    act: 1
+    intro:
+      - "Tom. I make armour."
+      - "Iron's what I need. Smelted, not raw."
+    idle:
+      - "A good helmet has saved more lives than any sword."
+  penny:
+    name: "Penny"
+    title: "the Mapmaker"
+    profession: CARTOGRAPHER
+    skin: PLAINS
+    level: 16
+    act: 1
+    intro:
+      - "Penny. I make maps."
+      - "We need to know where we are before we can know where we're going."
+    idle:
+      - "North is that way. Probably."
+  arthur:
+    name: "Arthur"
+    title: "the Swordsmith"
+    profession: WEAPONSMITH
+    skin: PLAINS
+    level: 17
+    act: 1
+    intro:
+      - "Arthur. I teach the young ones to fight."
+      - "You look like you could use a lesson."
+    idle:
+      - "Keep your guard up. Always."
+  mabel:
+    name: "Mabel"
+    title: "the Herder"
+    profession: SHEPHERD
+    skin: PLAINS
+    level: 18
+    act: 1
+    intro:
+      - "Mabel. Greta's sister."
+      - "She shears them. I make more of them."
+    idle:
+      - "One sheep, two sheep, three sheep... where was I?"
+  dave:
+    name: "Dave"
+    title: "the Night Guard"
+    profession: BUTCHER
+    skin: PLAINS
+    level: 19
+    act: 1
+    intro:
+      - "Dave. I take the night shift."
+      - "The creepers are the worst. You never hear them coming."
+    idle:
+      - "Hssss... Sorry. Habit."
+  lucy:
+    name: "Lucy"
+    title: "the Weaver"
+    profession: CLERIC
+    skin: PLAINS
+    level: 20
+    act: 1
+    intro:
+      - "I'm Lucy. I weave bandages for Nina."
+      - "Spider silk makes the strongest thread."
+    idle:
+      - "Every thread holds something together."
+  benny:
+    name: "Benny"
+    title: "the Hopeless"
+    profession: NITWIT
+    skin: PLAINS
+    level: 21
+    act: 1
+    intro:
+      - "Hi! I'm Benny! I lost all the chickens!"
+      - "Well, not lost. They ran. Fast."
+    idle:
+      - "I'm not clumsy. The ground just hates me."
+  hazel:
+    name: "Hazel"
+    title: "the Sweet Tooth"
+    profession: FARMER
+    skin: PLAINS
+    level: 22
+    act: 1
+    intro:
+      - "Hazel. I make the sugar."
+      - "Nobody admits it, but the whole camp runs on cake."
+    idle:
+      - "Life's short. Eat the cake."
+  frank:
+    name: "Frank"
+    title: "the Brickmaker"
+    profession: MASON
+    skin: PLAINS
+    level: 23
+    act: 1
+    intro:
+      - "Frank. Harold's apprentice."
+      - "He does stone. I do bricks. Bricks are better."
+    idle:
+      - "Brick by brick. That's how you build anything."
+  edith:
+    name: "Edith"
+    title: "the Archivist"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 24
+    act: 1
+    intro:
+      - "Edith. I kept the archives of Aldmere."
+      - "I saved only a few books when we fled. The dead have the rest."
+    idle:
+      - "Knowledge is the only treasure that grows when shared."
+  sam:
+    name: "Sam"
+    title: "the Delver"
+    profession: TOOLSMITH
+    skin: PLAINS
+    level: 25
+    act: 1
+    intro:
+      - "Sam. B.O.B's partner."
+      - "He talks, I dig. We need iron for better picks."
+    idle:
+      - "The deeper you go, the better it gets. Usually."
+  molly:
+    name: "Molly"
+    title: "the Inkmaker"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 26
+    act: 1
+    intro:
+      - "Molly. I make ink for Clara's books."
+      - "Squid make the best ink, but they're slippery."
+    idle:
+      - "Ink stains never come out. Trust me."
+  george:
+    name: "George"
+    title: "the Archer"
+    profession: FLETCHER
+    skin: PLAINS
+    level: 27
+    act: 1
+    intro:
+      - "George. I train the archers."
+      - "Oliver makes arrows, I shoot them. We go through a lot."
+    idle:
+      - "Breathe in. Aim. Breathe out. Release."
+  daisy:
+    name: "Daisy"
+    title: "the Pumpkin Queen"
+    profession: FARMER
+    skin: PLAINS
+    level: 28
+    act: 1
+    intro:
+      - "Daisy! I grow the pumpkins."
+      - "Biggest pumpkins this side of Aldmere."
+    idle:
+      - "Carve a face in one. It keeps the bad things away. Maybe."
+  ralph:
+    name: "Ralph"
+    title: "the Gatekeeper"
+    profession: BUTCHER
+    skin: PLAINS
+    level: 29
+    act: 1
+    intro:
+      - "Ralph. I keep the gate."
+      - "Every night more of them come. More than in Aldmere, even."
+    idle:
+      - "Something is calling them. I'd swear it."
+  agnes:
+    name: "Agnes"
+    title: "the Herbalist"
+    profession: CLERIC
+    skin: SWAMP
+    level: 30
+    act: 1
+    intro:
+      - "Agnes. I brew remedies."
+      - "Some say rotten flesh is useless. Some are wrong."
+    idle:
+      - "Smell that? That's medicine."
+  leo:
+    name: "Leo"
+    title: "the Chainmaker"
+    profession: ARMORER
+    skin: PLAINS
+    level: 31
+    act: 1
+    intro:
+      - "Leo. Tom's brother."
+      - "He makes plate, I make chain. We need iron for both."
+    idle:
+      - "Link by link. Like friendship."
+  winnie:
+    name: "Winnie"
+    title: "the Dyer"
+    profession: SHEPHERD
+    skin: PLAINS
+    level: 32
+    act: 1
+    intro:
+      - "Winnie. I dye the wool."
+      - "Aldmere was colourful once. I want that back."
+    idle:
+      - "Red for courage, blue for home."
+  cecil:
+    name: "Cecil"
+    title: "the Scout"
+    profession: CARTOGRAPHER
+    skin: PLAINS
+    level: 33
+    act: 1
+    intro:
+      - "Cecil. I scout the roads."
+      - "Pillagers have been watching the camp. I've seen their banners."
+    idle:
+      - "Keep low, move quiet, see everything."
+  betty:
+    name: "Betty"
+    title: "the Beekeeper"
+    profession: FARMER
+    skin: PLAINS
+    level: 34
+    act: 1
+    intro:
+      - "Betty. I keep bees."
+      - "Honey heals, sweetens and makes everyone smile."
+    idle:
+      - "Bzzz. Sorry, they're rubbing off on me."
+  otto:
+    name: "Otto"
+    title: "the Deep Mason"
+    profession: MASON
+    skin: PLAINS
+    level: 35
+    act: 1
+    intro:
+      - "Otto. I cut deepslate."
+      - "It's the only stone strong enough for what's coming."
+    idle:
+      - "The deep rock hums at night. Have you heard it?"
+  june:
+    name: "June"
+    title: "the Enchantress"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 36
+    act: 1
+    intro:
+      - "June. I study enchanting."
+      - "Lapis is the key. Without it, no magic."
+    idle:
+      - "Magic is just knowledge nobody explained yet."
+  hank:
+    name: "Hank"
+    title: "the Goldsmith"
+    profession: WEAPONSMITH
+    skin: DESERT
+    level: 37
+    act: 1
+    intro:
+      - "Hank. I work gold."
+      - "Gold is soft, but piglins love it. That makes it useful."
+    idle:
+      - "All that glitters is probably gold. I checked."
+  fern:
+    name: "Fern"
+    title: "the Melon Grower"
+    profession: FARMER
+    skin: JUNGLE
+    level: 38
+    act: 1
+    intro:
+      - "Fern. Melons are my thing."
+      - "Hot summers, cool melons."
+    idle:
+      - "Spit the seeds at Benny. Everyone does."
+  ned:
+    name: "Ned"
+    title: "the Treasure Hunter"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 39
+    act: 1
+    intro:
+      - "Ned. I fish for more than fish."
+      - "Sometimes the water gives up treasure. Old things from Aldmere."
+    idle:
+      - "Patience. The lake gives to those who wait."
+  iris:
+    name: "Iris"
+    title: "the Witchfinder"
+    profession: CLERIC
+    skin: SWAMP
+    level: 40
+    act: 1
+    intro:
+      - "Iris. I track witches."
+      - "They brew poisons in the swamp. Some of them came from Aldmere's ruins."
+    idle:
+      - "If you smell something sweet in the swamp, run."
+  percy:
+    name: "Percy"
+    title: "the Tinkerer"
+    profession: TOOLSMITH
+    skin: PLAINS
+    level: 41
+    act: 1
+    intro:
+      - "Percy! Inventor! Genius! Mostly genius."
+      - "I need redstone for my newest machine."
+    idle:
+      - "Don't touch that lever. Or do. I'm curious."
+  doris:
+    name: "Doris"
+    title: "the Stablemaster"
+    profession: LEATHERWORKER
+    skin: SAVANNA
+    level: 42
+    act: 1
+    intro:
+      - "Doris. I run the stables."
+      - "Empty stables, I should say. We left our horses in Aldmere."
+    idle:
+      - "A horse knows your heart before you do."
+  albert:
+    name: "Albert"
+    title: "the Old Knight"
+    profession: ARMORER
+    skin: PLAINS
+    level: 43
+    act: 1
+    intro:
+      - "Albert. I was a knight of Aldmere once."
+      - "Now I'm an old man with no armour."
+    idle:
+      - "I saw the King once. Before. He was... different."
+  maggie:
+    name: "Maggie"
+    title: "the Dog Lover"
+    profession: SHEPHERD
+    skin: TAIGA
+    level: 44
+    act: 1
+    intro:
+      - "Maggie. I love dogs."
+      - "A good dog hears danger before any guard."
+    idle:
+      - "Every camp needs a dog. Or six."
+  vince:
+    name: "Vince"
+    title: "the Enchanter"
+    profession: WEAPONSMITH
+    skin: PLAINS
+    level: 45
+    act: 1
+    intro:
+      - "Vince. June's student."
+      - "She studies magic. I use it."
+    idle:
+      - "Purple sparkles mean it worked."
+  ellie:
+    name: "Ellie"
+    title: "the Coastwatcher"
+    profession: CARTOGRAPHER
+    skin: PLAINS
+    level: 46
+    act: 1
+    intro:
+      - "Ellie. I watch the coast."
+      - "The drowned are walking out of the sea. More every night."
+    idle:
+      - "The sea is restless. Like the ground under Aldmere."
+  rufus:
+    name: "Rufus"
+    title: "the Demolitionist"
+    profession: BUTCHER
+    skin: PLAINS
+    level: 47
+    act: 1
+    intro:
+      - "Rufus. I collect gunpowder."
+      - "Creepers have plenty. They just don't like sharing."
+    idle:
+      - "Things that go boom are my favourite things."
+  opal:
+    name: "Opal"
+    title: "the Jeweller"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 48
+    act: 1
+    intro:
+      - "Opal. I study gems."
+      - "Diamonds are said to hold the light of the old world."
+    idle:
+      - "Every gem has a story. Most of them are about pressure."
+  marcus:
+    name: "Marcus"
+    title: "Elder of the Wanderers"
+    profession: NONE
+    skin: PLAINS
+    level: 49
+    act: 1
+    intro:
+      - "I am Marcus, elder of the Wanderers."
+      - "You have helped everyone in this camp. Now I must ask more of you."
+      - "The Hollow King stirs beneath Aldmere. We must know what we face."
+    idle:
+      - "Rest while you can, {player}. The road ahead is hard."
+  wren:
+    name: "Wren"
+    title: "the Wild Scout"
+    profession: CARTOGRAPHER
+    skin: TAIGA
+    level: 50
+    act: 2
+    personal: true
+    intro:
+      - "Marcus sent you? Then it's begun."
+      - "I'm Wren. I've walked every road between here and Aldmere."
+    idle:
+      - "Never camp in the open. Never."
+  silas:
+    name: "Silas"
+    title: "the Gatebuilder"
+    profession: TOOLSMITH
+    skin: TAIGA
+    level: 51
+    act: 2
+    personal: true
+    intro:
+      - "Silas. I build gates."
+      - "Not wooden gates. Gates to other places."
+    idle:
+      - "Water on lava. That's the trick."
+  cora:
+    name: "Cora"
+    title: "the Firewalker"
+    profession: CLERIC
+    skin: SWAMP
+    level: 52
+    act: 2
+    personal: true
+    intro:
+      - "Cora. I've been to the Nether and back."
+      - "Most people don't come back. I'm stubborn."
+    idle:
+      - "Bring fire resistance. Always."
+  jasper:
+    name: "Jasper"
+    title: "the Quartz Cutter"
+    profession: MASON
+    skin: PLAINS
+    level: 53
+    act: 2
+    personal: true
+    intro:
+      - "Jasper. I cut quartz."
+      - "Nether quartz. White as bone, and twice as hard."
+    idle:
+      - "Quartz rings when you strike it. Listen."
+  nell:
+    name: "Nell"
+    title: "the Wart Grower"
+    profession: FARMER
+    skin: SWAMP
+    level: 54
+    act: 2
+    personal: true
+    intro:
+      - "Nell. I grow nether wart."
+      - "Nobody else wants to. That's why I do."
+    idle:
+      - "It only grows on soul sand. Spooky, isn't it?"
+  felix:
+    name: "Felix"
+    title: "the Ghast Hunter"
+    profession: FLETCHER
+    skin: DESERT
+    level: 55
+    act: 2
+    personal: true
+    intro:
+      - "Felix. I hunt ghasts."
+      - "Their tears heal. Their screams don't."
+    idle:
+      - "Ghasts cry because they're sad. Or angry. Hard to say."
+  bea:
+    name: "Bea"
+    title: "the Flame Scholar"
+    profession: LIBRARIAN
+    skin: DESERT
+    level: 56
+    act: 2
+    personal: true
+    intro:
+      - "Bea. I study blazes."
+      - "The King's guard were blazes, the old texts say."
+    idle:
+      - "Fire is just angry light."
+  roland:
+    name: "Roland"
+    title: "the Fortress Breaker"
+    profession: WEAPONSMITH
+    skin: SNOW
+    level: 57
+    act: 2
+    personal: true
+    intro:
+      - "Roland. Last of Aldmere's guard captains."
+      - "The wither skeletons guard the King's old roads."
+    idle:
+      - "Stone swords against bone. That's how we did it in the old days."
+  tilly:
+    name: "Tilly"
+    title: "the Strider Keeper"
+    profession: SHEPHERD
+    skin: SAVANNA
+    level: 58
+    act: 2
+    personal: true
+    intro:
+      - "Tilly. I raise striders."
+      - "Best way to cross the lava seas, if you don't mind the wobbling."
+    idle:
+      - "They get cold outside the lava. Poor things."
+  hugo:
+    name: "Hugo"
+    title: "the Gilder"
+    profession: ARMORER
+    skin: DESERT
+    level: 59
+    act: 2
+    personal: true
+    intro:
+      - "Hugo. I gild things."
+      - "The piglins remember the King. Gold buys their tongues."
+    idle:
+      - "Piglins can't resist gold. Neither can I."
+  maeve:
+    name: "Maeve"
+    title: "the Brewer"
+    profession: CLERIC
+    skin: SWAMP
+    level: 60
+    act: 2
+    personal: true
+    intro:
+      - "Maeve. I brew."
+      - "We'll need potions for the road to the keys."
+    idle:
+      - "Never drink a potion you didn't brew yourself."
+  cyrus:
+    name: "Cyrus"
+    title: "the Deep Miner"
+    profession: TOOLSMITH
+    skin: DESERT
+    level: 61
+    act: 2
+    personal: true
+    intro:
+      - "Cyrus. I dig where nobody digs."
+      - "Ancient debris. Older than Aldmere."
+    idle:
+      - "Low in the Nether, near level fifteen. That's the secret."
+  elsie:
+    name: "Elsie"
+    title: "the Pufferfish Keeper"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 62
+    act: 2
+    personal: true
+    intro:
+      - "Elsie. I study pufferfish."
+      - "They're the key to underwater breathing potions."
+    idle:
+      - "Seriously. Don't eat them."
+  bram:
+    name: "Bram"
+    title: "the Hoglin Hunter"
+    profession: BUTCHER
+    skin: SAVANNA
+    level: 63
+    act: 2
+    personal: true
+    intro:
+      - "Bram. I hunt hoglins."
+      - "Big, angry pigs. My favourite."
+    idle:
+      - "Never pet a hoglin. Learned that the hard way."
+  lottie:
+    name: "Lottie"
+    title: "the Cave Gardener"
+    profession: FARMER
+    skin: JUNGLE
+    level: 64
+    act: 2
+    personal: true
+    intro:
+      - "Lottie. I garden underground."
+      - "The lush caves glow like the old lamps of Aldmere."
+    idle:
+      - "Light grows in the dark if you let it."
+  orson:
+    name: "Orson"
+    title: "the Basalt Carver"
+    profession: MASON
+    skin: SAVANNA
+    level: 65
+    act: 2
+    personal: true
+    intro:
+      - "Orson. I carve basalt."
+      - "The first key is hidden in the deltas. We need a way through."
+    idle:
+      - "Basalt pillars. Like the columns of the old palace."
+  pearl:
+    name: "Pearl"
+    title: "the Seer"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 66
+    act: 2
+    personal: true
+    intro:
+      - "Pearl. I see things."
+      - "The second key hides where the endermen walk."
+    idle:
+      - "Don't stare. They hate that."
+  dex:
+    name: "Dex"
+    title: "the Bastion Raider"
+    profession: WEAPONSMITH
+    skin: SAVANNA
+    level: 67
+    act: 2
+    personal: true
+    intro:
+      - "Dex. I raid bastions."
+      - "Piglin brutes guard the third key. They don't take gold."
+    idle:
+      - "Bastions are full of gold and bad tempers."
+  fiona:
+    name: "Fiona"
+    title: "the Desert Guide"
+    profession: CARTOGRAPHER
+    skin: DESERT
+    level: 68
+    act: 2
+    personal: true
+    intro:
+      - "Fiona. I know the desert."
+      - "The husks walk the dunes looking for the King's tombs."
+    idle:
+      - "Never step on the blue square. Trust me."
+  gideon:
+    name: "Gideon"
+    title: "the Deep Diver"
+    profession: ARMORER
+    skin: PLAINS
+    level: 69
+    act: 2
+    personal: true
+    intro:
+      - "Gideon. Diver."
+      - "The fourth key is in the sea temple."
+    idle:
+      - "Their lasers sting. Their eyes sting more."
+  holly:
+    name: "Holly"
+    title: "the Tide Priestess"
+    profession: CLERIC
+    skin: PLAINS
+    level: 70
+    act: 2
+    personal: true
+    intro:
+      - "Holly. I serve the tides."
+      - "The Elder Guardian holds the fourth key in its eye."
+    idle:
+      - "The sea gives, and the sea takes."
+  ike:
+    name: "Ike"
+    title: "the Builder of the Deep"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 71
+    act: 2
+    personal: true
+    intro:
+      - "Ike. I build under water."
+      - "We need a sea wall to protect the fourth key."
+    idle:
+      - "Hold your breath. Longer. Longer."
+  juno:
+    name: "Juno"
+    title: "the Llama Herder"
+    profession: SHEPHERD
+    skin: TAIGA
+    level: 72
+    act: 2
+    personal: true
+    intro:
+      - "Juno. I herd llamas."
+      - "We need a caravan to carry the keys."
+    idle:
+      - "They spit because they care."
+  kip:
+    name: "Kip"
+    title: "the Cake Fan"
+    profession: NITWIT
+    skin: PLAINS
+    level: 73
+    act: 2
+    personal: true
+    intro:
+      - "I'm Kip! Benny's brother! I'm smarter!"
+      - "Not much smarter."
+    idle:
+      - "Is it my birthday? It feels like my birthday."
+  luna:
+    name: "Luna"
+    title: "the Night Watcher"
+    profession: LIBRARIAN
+    skin: SNOW
+    level: 74
+    act: 2
+    personal: true
+    intro:
+      - "Luna. I watch the night sky."
+      - "The phantoms came when the King stirred. They hunt the sleepless."
+    idle:
+      - "Sleep, {player}. They come for those who don't."
+  milo:
+    name: "Milo"
+    title: "the Coppersmith"
+    profession: TOOLSMITH
+    skin: PLAINS
+    level: 75
+    act: 2
+    personal: true
+    intro:
+      - "Milo. Copper's my trade."
+      - "Copper carries lightning. We'll need lightning soon."
+    idle:
+      - "Copper turns green with age. Like me."
+  nora:
+    name: "Nora"
+    title: "the Berry Picker"
+    profession: FARMER
+    skin: TAIGA
+    level: 76
+    act: 2
+    personal: true
+    intro:
+      - "Nora. I gather berries."
+      - "The caravan needs food that keeps."
+    idle:
+      - "Mind the thorns. Always mind the thorns."
+  osric:
+    name: "Osric"
+    title: "the Raid Breaker"
+    profession: WEAPONSMITH
+    skin: TAIGA
+    level: 77
+    act: 2
+    personal: true
+    intro:
+      - "Osric. I break raids."
+      - "The illagers serve the King now. Their mansion holds the fifth key."
+    idle:
+      - "Watch for the fangs. They come from below."
+  poppy:
+    name: "Poppy"
+    title: "the Mushroom Keeper"
+    profession: SHEPHERD
+    skin: SWAMP
+    level: 78
+    act: 2
+    personal: true
+    intro:
+      - "Poppy. I keep mooshrooms."
+      - "Their stew heals. The caravan will need it."
+    idle:
+      - "Never milk a mooshroom with a bucket. Bowls only."
+  quill:
+    name: "Quill"
+    title: "the Echo Mapper"
+    profession: CARTOGRAPHER
+    skin: TAIGA
+    level: 79
+    act: 2
+    personal: true
+    intro:
+      - "Quill. I map the deep dark."
+      - "The keys must be tuned in the deep. Sculk listens."
+    idle:
+      - "Shh. It hears you."
+  reed:
+    name: "Reed"
+    title: "the Silent One"
+    profession: CLERIC
+    skin: TAIGA
+    level: 80
+    act: 2
+    personal: true
+    intro:
+      - "..."
+      - "Reed. I don't talk much. It's safer down there."
+    idle:
+      - "..."
+  sage:
+    name: "Sage"
+    title: "the Bookworm"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 81
+    act: 2
+    personal: true
+    intro:
+      - "Sage. I read everything."
+      - "The keys need enchanting before they open anything."
+    idle:
+      - "Read a book. Then read another one."
+  thea:
+    name: "Thea"
+    title: "the Diamond Smith"
+    profession: ARMORER
+    skin: SNOW
+    level: 82
+    act: 2
+    personal: true
+    intro:
+      - "Thea. I forge diamond."
+      - "Whoever carries the keys needs real armour."
+    idle:
+      - "Diamond doesn't bend. Neither should you."
+  ulric:
+    name: "Ulric"
+    title: "the Eye Maker"
+    profession: MASON
+    skin: TAIGA
+    level: 83
+    act: 2
+    personal: true
+    intro:
+      - "Ulric. I make eyes of ender."
+      - "The keys lead to the End. That's where the King's heart is."
+    idle:
+      - "The eyes always look for home."
+  vera:
+    name: "Vera"
+    title: "the Stronghold Warden"
+    profession: CLERIC
+    skin: PLAINS
+    level: 84
+    act: 2
+    personal: true
+    intro:
+      - "Vera. I guard the old stronghold."
+      - "Silverfish crawl through every wall."
+    idle:
+      - "Don't mine the cracked bricks. Just don't."
+  wade:
+    name: "Wade"
+    title: "the Dragon Hunter"
+    profession: BUTCHER
+    skin: PLAINS
+    level: 85
+    act: 2
+    personal: true
+    intro:
+      - "Wade. I hunt dragons. Well, one dragon."
+      - "The dragon guards the King's heart. It has to fall."
+    idle:
+      - "Break the crystals first. Always the crystals first."
+  xena:
+    name: "Xena"
+    title: "the Shulker Slayer"
+    profession: WEAPONSMITH
+    skin: PLAINS
+    level: 86
+    act: 2
+    personal: true
+    intro:
+      - "Xena. The End cities are mine."
+      - "Shulkers guard the King's treasures."
+    idle:
+      - "Bring a bucket of water. And slow falling."
+  yara:
+    name: "Yara"
+    title: "the End Scholar"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 87
+    act: 2
+    personal: true
+    intro:
+      - "Yara. I study the End cities."
+      - "The King built these. Before he was hollow."
+    idle:
+      - "Purple. Everything is purple here."
+  zeke:
+    name: "Zeke"
+    title: "the Chorus Singer"
+    profession: TOOLSMITH
+    skin: PLAINS
+    level: 88
+    act: 2
+    personal: true
+    intro:
+      - "Zeke. I grow chorus."
+      - "Chorus fruit teleports you. The King used it to flee."
+    idle:
+      - "Eat one. See where you end up."
+  abel:
+    name: "Abel"
+    title: "the End Mason"
+    profession: MASON
+    skin: PLAINS
+    level: 89
+    act: 2
+    personal: true
+    intro:
+      - "Abel. I build with end stone."
+      - "We'll build a vault for the keys."
+    idle:
+      - "End stone is light but strong. Like hope."
+  bryn:
+    name: "Bryn"
+    title: "the Storm Watcher"
+    profession: FARMER
+    skin: PLAINS
+    level: 90
+    act: 2
+    personal: true
+    intro:
+      - "Bryn. I watch storms."
+      - "The King's waking brings the creepers in swarms."
+    idle:
+      - "Lightning makes them glow. Run if they glow."
+  cass:
+    name: "Cass"
+    title: "the Skull Keeper"
+    profession: CLERIC
+    skin: SAVANNA
+    level: 91
+    act: 2
+    personal: true
+    intro:
+      - "Cass. I keep skulls."
+      - "Three wither skulls can summon the King's vessel."
+    idle:
+      - "Skulls don't scare me. The living do."
+  dorian:
+    name: "Dorian"
+    title: "the Soul Smith"
+    profession: ARMORER
+    skin: SAVANNA
+    level: 92
+    act: 2
+    personal: true
+    intro:
+      - "Dorian. I work with souls."
+      - "Soul sand forms the vessel's body."
+    idle:
+      - "Every grain was once a soul. Or so they say."
+  esme:
+    name: "Esme"
+    title: "the Keykeeper"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 93
+    act: 2
+    personal: true
+    intro:
+      - "Esme. I keep the keys."
+      - "The five keys must be set in gems to open the King's tomb."
+    idle:
+      - "A key is just a promise that a door will open."
+  ford:
+    name: "Ford"
+    title: "the Netherite Smith"
+    profession: WEAPONSMITH
+    skin: DESERT
+    level: 94
+    act: 2
+    personal: true
+    intro:
+      - "Ford. I forge netherite."
+      - "The King can only be harmed by netherite."
+    idle:
+      - "Netherite doesn't burn. Neither does my beard."
+  gwen:
+    name: "Gwen"
+    title: "the Last Mapmaker"
+    profession: CARTOGRAPHER
+    skin: SAVANNA
+    level: 95
+    act: 2
+    personal: true
+    intro:
+      - "Gwen. Penny's sister."
+      - "I'm drawing the last map. The road to the tomb."
+    idle:
+      - "Every map ends somewhere."
+  horace:
+    name: "Horace"
+    title: "the Faithful"
+    profession: CLERIC
+    skin: PLAINS
+    level: 96
+    act: 2
+    personal: true
+    intro:
+      - "Horace. I pray."
+      - "Nobody should face the King without a second chance."
+    idle:
+      - "Faith is a totem you carry inside."
+  iona:
+    name: "Iona"
+    title: "the Last Watch"
+    profession: SHEPHERD
+    skin: SNOW
+    level: 97
+    act: 2
+    personal: true
+    intro:
+      - "Iona. I keep the last watch."
+      - "On the eve of waking, the Nether boils over."
+    idle:
+      - "Tonight, nobody sleeps."
+  aldis:
+    name: "Mother Aldis"
+    title: "the Oracle"
+    profession: NITWIT
+    skin: TAIGA
+    level: 98
+    act: 2
+    personal: true
+    intro:
+      - "I am Aldis. I was the King's nurse, long ago."
+      - "He was kind. Then the Hollow came for him."
+      - "Free him, child. End it."
+    idle:
+      - "He used to sing to the children. Did you know that?"
+  aldric:
+    name: "Sir Aldric"
+    title: "Knight of the Dawn"
+    profession: ARMORER
+    skin: PLAINS
+    level: 99
+    act: 2
+    personal: true
+    intro:
+      - "I am Aldric. I was the King's knight."
+      - "When the Hollow took him, I hid. For a hundred years, I hid."
+      - "You did what I could not."
+    idle:
+      - "Long live... well. Long live us."
