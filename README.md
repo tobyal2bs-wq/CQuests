@@ -4,7 +4,9 @@ A villager quest system for Paper and Folia (and forks like Leaf), Minecraft 1.2
 
 - **100 linked lore villagers.** 15 stand at spawn: 14 story villagers (Stephan, Jerry, Steve, B.O.B...) plus the daily villager. The other 86 live out in the world, ending with the Wither fight in "The King Wakes" and the trip home in "A New Dawn". Each one gives a story quest, and each quest is a bit harder than the one before it.
 - **1,000,000 side quests**, 10,000 per story villager, generated on demand from templates in `generator.yml`, so the number costs no memory. They mix one to three objectives and get bigger and harder the further you go. A villager's side quests unlock once you finish their story quest.
-- **A long story.** Before the next villager's chapter opens, you do 10 side quests for the current one (`side-quests-per-chapter`). That makes the main story about 1,100 quests, which is weeks of play.
+- **Five chapters:** The Wanderers' Camp, Shadows at the Gate, The Elder's Charge, The Five Keys and The King Wakes. Each has 20 villagers. Finishing a chapter plays a celebration followed by the next chapter's title card, and the journal shows each chapter on its own pages.
+- **Longer quests pay more.** Side quest rewards scale with how much work the quest is: bigger amounts, rarer targets and extra objectives all raise the money, and the biggest quests can give two items.
+- **A long story.** Before the next villager's story quest opens, you do 10 side quests for the current one (`side-quests-per-chapter`). That makes the main story about 1,100 quests, which is weeks of play.
 - **Celebrations and an ending.** Big chapters end with a title, fireworks and sounds. The last quest plays an in-game replay: the camera flies over the places where your story happened, shows your stats and "The End", then gives the custom advancement **Finished the Journey** and announces it to the server. Admins can preview it with `/cq finale`.
 - **A daily villager** (Granny Marigold) hands out one job every 24 hours for 10k.
 - **A quest journal book** (`/quests`) laid out like the reference screenshots: one page per active quest (title, level, status, objectives with progress, `« All quests`), the "All Quests" index with a progress bar and ✔ / ○ / ✖ per quest, then side quests and the daily.
@@ -31,6 +33,10 @@ Building from source needs JDK 21: `./gradlew build`. The jar ends up in `build/
 | `/cq pos1`, `/cq pos2`, then `/cq scatter <...>` | The same, inside a box you select yourself. |
 
 `<ids>` is a comma-separated list such as `jerry,steve,bob`, so you can scatter 10 or more villagers in one region at once.
+
+Every villager has a **shield**: within 6 blocks of its spot nobody can place or break blocks, use buckets, blow things up or PvP. This stops players walling villagers in or camping others at them. Players who try see a ring of particles showing where the shield ends. `cquests.bypass` (op by default) ignores it, and the radius is set in `config.yml`.
+
+Villagers only exist while a player is within 100 blocks (`spawning.player-range`). When nobody is near they are removed, so an empty map costs nothing.
 
 Villagers spawn even inside WorldGuard regions that deny mob spawning: the plugin tags its own villagers and lifts any cancel on them. They are invulnerable, can't be pushed, don't trade, and are re-created automatically if they ever go missing.
 
