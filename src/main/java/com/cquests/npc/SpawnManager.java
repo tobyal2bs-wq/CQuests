@@ -158,7 +158,6 @@ public final class SpawnManager {
     private void tick() {
         long now = System.currentTimeMillis();
         long roamMillis = plugin.settings().roamMinutes * 60_000L;
-        boolean changed = false;
         for (Map.Entry<String, Point> e : points.entrySet()) {
             NpcDef npc = plugin.npcs().get(e.getKey());
             Point point = e.getValue();
@@ -171,14 +170,10 @@ public final class SpawnManager {
                 if (now >= due) {
                     nextRoam.put(npc.id(), now + jitter(roamMillis));
                     roam(npc, point);
-                    changed = true;
                     continue;
                 }
             }
             Sched.at(loc, () -> ensure(npc, point, loc));
-        }
-        if (changed) {
-            Sched.async(this::save);
         }
     }
 
@@ -358,7 +353,10 @@ public final class SpawnManager {
         double x = Math.min(a[0], a[3]) + rnd.nextInt(Math.abs(a[3] - a[0]) + 1) + 0.5;
         double z = Math.min(a[2], a[5]) + rnd.nextInt(Math.abs(a[5] - a[2]) + 1) + 0.5;
         float yaw = rnd.nextFloat() * 360f - 180f;
-        ground(world, x, z, Math.min(a[1], a[4]), Math.max(a[1], a[4]), yaw, loc -> place(npc, loc, a, false));
+        ground(world, x, z, Math.min(a[1], a[4]), Math.max(a[1], a[4]), yaw, loc -> {
+            place(npc, loc, a, false);
+            Sched.async(this::save);
+        });
     }
 
     /**

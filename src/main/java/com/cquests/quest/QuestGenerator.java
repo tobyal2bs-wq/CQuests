@@ -236,11 +236,12 @@ public final class QuestGenerator {
         if (fixedMoney >= 0) {
             money = fixedMoney;
         } else {
-            // Bigger, longer quests pay more: the tier's range is spread over effort, then each extra objective adds 35%.
+            // Bigger, longer quests pay more: the tier's range is spread over effort, then each extra objective adds 35%,
             double share = Math.min(1.0, effort / 1.5);
             double raw = tier.minMoney() + share * (tier.maxMoney() - tier.minMoney());
             raw *= (1 + 0.35 * (objectives.size() - 1)) * (0.92 + rnd.nextDouble() * 0.16);
-            money = Math.max(50, Math.round(raw / 50.0) * 50);
+            // The tier's max money is a hard ceiling, so no side quest ever pays more than generator.yml says.
+            money = Math.max(50, Math.min(tier.maxMoney(), Math.round(raw / 50.0) * 50));
             List<RewardItem> choices = tier.items().stream()
                     .filter(item -> QuestRegistry.allowedItem(item, level, settings)).toList();
             if (!choices.isEmpty() && rnd.nextDouble() < itemChance * Math.min(1.5, 0.5 + effort)) {
