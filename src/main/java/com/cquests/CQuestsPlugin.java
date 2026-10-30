@@ -3,6 +3,7 @@ package com.cquests;
 import com.cquests.book.QuestBook;
 import com.cquests.command.AdminCommand;
 import com.cquests.command.QuestsCommand;
+import com.cquests.data.BackupManager;
 import com.cquests.data.PlayerStore;
 import com.cquests.dialogue.DialogueManager;
 import com.cquests.finale.Finale;
@@ -45,6 +46,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     private Tracker tracker;
     private NpcShield shield;
     private ScheduledTask autosave;
+    private BackupManager backups;
 
     @Override
     public void onEnable() {
@@ -80,7 +82,9 @@ public final class CQuestsPlugin extends JavaPlugin {
 
         spawns.load();
         spawns.start();
-        autosave = Sched.asyncTimer(store::saveDirtyAsync, 120);
+        autosave = Sched.asyncTimer(store::saveDirtyAsync, 60);
+        backups = new BackupManager(this);
+        backups.start();
     }
 
     @Override
@@ -88,8 +92,14 @@ public final class CQuestsPlugin extends JavaPlugin {
         if (autosave != null) {
             autosave.cancel();
         }
+        if (backups != null) {
+            backups.stop();
+        }
         if (store != null) {
             store.saveAllNow();
+            if (backups != null && settings.backupsEnabled) {
+                backups.backup("shutdown");
+            }
         }
         // NPC villagers are not persistent, so the server drops them on shutdown by itself.
     }
@@ -116,6 +126,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         Platform.init();
         spawns.load();
         spawns.start();
+        backups.start();
         visibility.refreshAll();
     }
 
@@ -158,6 +169,10 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     public QuestBook book() {
         return book;
+    }
+
+    public BackupManager backups() {
+        return backups;
     }
 
     public Tracker tracker() {

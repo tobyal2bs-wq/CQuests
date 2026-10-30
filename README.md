@@ -37,6 +37,9 @@ WorldGuard, Floodgate and Geyser are optional. NPCs spawn even inside regions wi
 | `/cq player <name> resetdaily` | op | Let a player do the daily again now |
 | `/cq quest <id>` | op | Show a quest's details |
 | `/cq finale [player]` | op | Preview the ending (no rewards) |
+| `/cq backup` | op | Back up all quest data now |
+| `/cq backups` | op | List backups, newest first |
+| `/cq restore <backup or latest> <player or all>` | op | Put quest data back from a backup |
 
 Aliases: `/quest`, `/q`, `/journal` and `/cq` for `/cquests`.
 
@@ -77,6 +80,13 @@ Clicking villagers and doing quests needs no permission.
 * Spawner and spawn egg mobs don't count for kill quests.
 * Deliveries take the items before the quest counts; a quest is saved as done before rewards are given, so it can't be claimed twice.
 * The quest menu can't be taken from, and the story book is given once.
+
+## Saving and recovery
+
+* Progress is saved the moment a quest is finished, every minute, when a player leaves and on shutdown.
+* Saves are written to a temp file and swapped in, so a crash mid save can't corrupt a file. The previous version is kept as `players/<uuid>.yml.bak` and is used automatically if a file is ever damaged.
+* Every 6 hours and on every shutdown all quest data is zipped into `plugins/CQuests/backups/` (the last 28 are kept).
+* Something went wrong? `/cq backups` to see them, then `/cq restore latest Steve` for one player or `/cq restore latest all` for everyone. It works while players are online, and the files it replaces are kept as `.yml.before-restore`.
 
 ## Performance
 

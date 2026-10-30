@@ -32,6 +32,8 @@ public final class PlayerData {
     /** Save ordering, see PlayerStore. */
     long saveSeq;
     long writtenSeq;
+    /** Set when a backup replaced this player's data; a retired copy is never written to disk again. */
+    volatile boolean retired;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;

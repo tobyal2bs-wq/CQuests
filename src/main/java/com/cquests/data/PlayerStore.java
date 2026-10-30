@@ -2,10 +2,15 @@ package com.cquests.data;
 
 import com.cquests.util.Sched;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Loads and saves one YAML file per player under plugins/CQuests/players/. */
+/**
+ * Loads and saves one YAML file per player under plugins/CQuests/players/.
+ * Every save is written to a temp file and moved into place, and the previous version is kept as
+ * &lt;uuid&gt;.yml.bak, so a crash mid write or a broken file never loses a player's progress.
+ */
 public final class PlayerStore {
 
     private final File dir;
@@ -31,6 +40,10 @@ public final class PlayerStore {
     /** Safe to call from any thread; blocks on disk the first time a player is seen. */
     public PlayerData get(UUID uuid) {
         return cache.computeIfAbsent(uuid, this::load);
+    }
+
+    public File dir() {
+        return dir;
     }
 
     public PlayerData cached(UUID uuid) {
@@ -59,12 +72,48 @@ public final class PlayerStore {
     }
 
     private PlayerData load(UUID uuid) {
-        PlayerData data = new PlayerData(uuid);
         File file = new File(dir, uuid + ".yml");
-        if (!file.exists()) {
-            return data;
+        File bak = new File(dir, uuid + ".yml.bak");
+        YamlConfiguration yaml = read(file);
+        if (yaml == null && bak.exists()) {
+            yaml = read(bak);
+            if (yaml != null) {
+                log.warning("Quest data for " + uuid + " was missing or broken; recovered it from the previous save.");
+            }
         }
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        if (yaml == null) {
+            if (file.exists()) {
+                log.severe("Quest data for " + uuid + " is broken and has no good previous save. Restore it with /cq restore.");
+            }
+            return new PlayerData(uuid);
+        }
+        return parse(uuid, yaml);
+    }
+
+    /** Reads a player file, or null if it is missing or not valid YAML. A broken file is kept aside for inspection. */
+    private YamlConfiguration read(File file) {
+        if (!file.exists()) {
+            return null;
+        }
+        YamlConfiguration yaml = new YamlConfiguration();
+        try {
+            yaml.load(file);
+            return yaml;
+        } catch (IOException | InvalidConfigurationException e) {
+            File broken = new File(dir, file.getName() + ".broken-" + System.currentTimeMillis());
+            try {
+                Files.copy(file.toPath(), broken.toPath());
+            } catch (IOException ignored) {
+                // nothing more we can do
+            }
+            log.log(Level.WARNING, "Could not read " + file.getName() + " (copied to " + broken.getName() + ")", e);
+            return null;
+        }
+    }
+
+    /** Turns a player's YAML into data. Also used to restore a player from a backup. */
+    PlayerData parse(UUID uuid, YamlConfiguration yaml) {
+        PlayerData data = new PlayerData(uuid);
         ConfigurationSection active = yaml.getConfigurationSection("active");
         if (active != null) {
             for (String questId : active.getKeys(false)) {
@@ -142,7 +191,7 @@ public final class PlayerStore {
     private void writeIfNewer(PlayerData data, Snapshot snapshot) {
         // Serialise disk writes, and never let an older snapshot overwrite a newer one.
         synchronized (dir) {
-            if (snapshot.seq() <= data.writtenSeq) {
+            if (data.retired || snapshot.seq() <= data.writtenSeq) {
                 return;
             }
             writeFile(data, snapshot.yaml());
@@ -153,16 +202,47 @@ public final class PlayerStore {
     private void writeFile(PlayerData data, YamlConfiguration yaml) {
         try {
             File tmp = new File(dir, data.uuid() + ".yml.tmp");
-            yaml.save(tmp);
             File target = new File(dir, data.uuid() + ".yml");
-            if (!tmp.renameTo(target)) {
-                yaml.save(target);
-                //noinspection ResultOfMethodCallIgnored
-                tmp.delete();
+            Files.writeString(tmp.toPath(), yaml.saveToString(), StandardCharsets.UTF_8);
+            if (target.exists()) {
+                // Keep the last good version next to it in case the new one ever gets damaged.
+                Files.copy(target.toPath(), new File(dir, data.uuid() + ".yml.bak").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            try {
+                Files.move(tmp.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tmp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException e) {
             data.markDirty();
             log.log(Level.WARNING, "Could not save quest data for " + data.uuid(), e);
         }
+    }
+
+    /**
+     * Replaces a player's saved data with a backup copy. If they are online the new data takes over
+     * right away and the old copy in memory is retired, so a late save can't overwrite the restore.
+     *
+     * @return the restored data
+     */
+    public PlayerData restore(UUID uuid, String yamlText) throws InvalidConfigurationException, IOException {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString(yamlText);
+        PlayerData restored = parse(uuid, yaml);
+        synchronized (dir) {
+            PlayerData old = cache.get(uuid);
+            if (old != null) {
+                old.retired = true;
+            }
+            File target = new File(dir, uuid + ".yml");
+            if (target.exists()) {
+                Files.copy(target.toPath(), new File(dir, uuid + ".yml.before-restore").toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            Files.writeString(target.toPath(), yamlText, StandardCharsets.UTF_8);
+            if (old != null) {
+                cache.put(uuid, restored);
+            }
+        }
+        return restored;
     }
 }

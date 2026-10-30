@@ -24,6 +24,10 @@ curl -fsSL -o server.jar "$URL"
 echo "eula=true" > eula.txt
 printf 'online-mode=false\nlevel-type=minecraft\\:flat\ngenerate-structures=false\n' > server.properties
 
+# A saved player, so backup and restore have something real to work with.
+mkdir -p plugins/CQuests/players
+printf 'completed:\n- welcome\n- story_stephan\nside-done:\n  stephan: 3\nstarted: 1\n' > plugins/CQuests/players/00000000-0000-0000-0000-000000000001.yml
+
 touch console
 tail -f console | java -Xmx2G -jar server.jar --nogui > server.log 2>&1 &
 SERVER=$!
@@ -40,7 +44,8 @@ wait_for() {
 }
 
 wait_for "Done (" 300
-for cmd in "cq npc list" "cq quest story_bob" "cq quest side_stephan_1" "cq reload" "cq npc list"; do
+for cmd in "cq npc list" "cq quest story_bob" "cq quest side_stephan_1" "cq reload" "cq npc list" \
+           "cq backup" "cq backups" "cq restore latest 00000000-0000-0000-0000-000000000001"; do
   echo "$cmd" >> console
   sleep 4
 done
@@ -54,6 +59,9 @@ echo "-------------------------"
 
 grep -q "Enabling CQuests" server.log || { echo "CQuests did not enable"; exit 1; }
 grep -q "Auto-placed" server.log || { echo "NPCs were not placed"; exit 1; }
+grep -q "Backed up 1 players" server.log || { echo "Backup did not run"; exit 1; }
+grep -q "Restored 1 player" server.log || { echo "Restore did not run"; exit 1; }
+ls plugins/CQuests/backups/*shutdown.zip > /dev/null || { echo "No backup on shutdown"; exit 1; }
 if grep -E "at com\.cquests|Error occurred while enabling CQuests|\[CQuests\].*(ERROR|SEVERE)" server.log; then
   echo "CQuests logged an error"
   exit 1

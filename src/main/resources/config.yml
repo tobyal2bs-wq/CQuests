@@ -43,6 +43,17 @@ rewards:
   # Netherite items are only given by quests of at least this level.
   netherite-min-level: 85
 
+# ----------------------------------------------------------- SAVING AND BACKUPS
+# Progress is saved the moment a quest is finished, plus every minute and on shutdown.
+# Each save keeps the previous version as players/<uuid>.yml.bak, which is used automatically
+# if a file is ever damaged. On top of that, zip backups go into plugins/CQuests/backups/.
+# Restore with /cq restore <backup|latest> <player|all>.
+backups:
+  enabled: true
+  every-hours: 6
+  # How many backup zips to keep (28 at every 6 hours = one week). A backup is also made on shutdown.
+  keep: 28
+
 # ----------------------------------------------------------- MENU AND TRACKER
 tracker:
   # The boss bar at the top of the screen that follows one quest. Players can still turn it off.

@@ -8,15 +8,19 @@ import com.cquests.model.Quest;
 import com.cquests.model.QuestCategory;
 import com.cquests.npc.SpawnManager;
 import com.cquests.npc.WorldGuardHook;
+import com.cquests.util.Sched;
 import com.cquests.util.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -53,6 +57,9 @@ public final class AdminCommand implements TabExecutor {
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
             case "finale" -> finale(sender, args);
+            case "backup" -> backup(sender);
+            case "backups" -> backups(sender);
+            case "restore" -> restore(sender, args);
             default -> help(sender);
         }
         return true;
@@ -70,7 +77,10 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq scatter <ids|act1|act2|all> [wg-region]</yellow> <gray>spread NPCs in a region or your box
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
                 <yellow>/cq quest <id></yellow> <gray>show a quest's details
-                <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic""");
+                <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic
+                <yellow>/cq backup</yellow> <gray>back up all quest data now
+                <yellow>/cq backups</yellow> <gray>list backups
+                <yellow>/cq restore <backup|latest> <player|all></yellow> <gray>put quest data back from a backup""");
     }
 
     private void npc(CommandSender sender, String[] args) {
@@ -200,6 +210,80 @@ public final class AdminCommand implements TabExecutor {
         return out;
     }
 
+    private void backup(CommandSender sender) {
+        plugin.send(sender, "<gray>Backing up quest data...");
+        Sched.async(() -> {
+            String name = plugin.backups().backup("manual");
+            plugin.send(sender, name == null ? "<red>Backup failed, see the console." : "<green>Saved backups/" + name);
+        });
+    }
+
+    private void backups(CommandSender sender) {
+        List<File> files = plugin.backups().files();
+        if (files.isEmpty()) {
+            plugin.send(sender, "<gray>No backups yet. Make one with <yellow>/cq backup</yellow>.");
+            return;
+        }
+        StringBuilder out = new StringBuilder("<gold>Backups</gold> <gray>(newest first)");
+        for (int i = 0; i < files.size() && i < 10; i++) {
+            File file = files.get(i);
+            out.append("\n<yellow>").append(file.getName()).append(" <dark_gray>").append(file.length() / 1024).append(" KB");
+        }
+        plugin.send(sender, out.toString());
+    }
+
+    private void restore(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            plugin.send(sender, "<red>Usage: /cq restore <backup|latest> <player|all>");
+            return;
+        }
+        File backup = plugin.backups().find(args[1]);
+        if (backup == null) {
+            plugin.send(sender, "<red>No backup called '" + Text.escape(args[1]) + "'. See /cq backups.");
+            return;
+        }
+        UUID target = null;
+        if (!args[2].equalsIgnoreCase("all")) {
+            target = resolve(args[2]);
+            if (target == null) {
+                plugin.send(sender, "<red>Unknown player '" + Text.escape(args[2]) + "'. Use their exact name or UUID.");
+                return;
+            }
+        }
+        UUID only = target;
+        Sched.async(() -> {
+            try {
+                List<UUID> restored = plugin.backups().restore(backup, only);
+                for (UUID id : restored) {
+                    Player online = Bukkit.getPlayer(id);
+                    if (online != null) {
+                        plugin.visibility().refresh(online);
+                        Sched.entity(online, () -> plugin.tracker().update(online));
+                    }
+                }
+                plugin.send(sender, restored.isEmpty()
+                        ? "<red>That backup has no data for that player."
+                        : "<green>Restored " + restored.size() + (restored.size() == 1 ? " player" : " players") + " from " + backup.getName()
+                        + ". <gray>The replaced files were kept as .yml.before-restore.");
+            } catch (IOException e) {
+                plugin.send(sender, "<red>Restore failed: " + Text.escape(String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
+    private static UUID resolve(String nameOrUuid) {
+        Player online = Bukkit.getPlayerExact(nameOrUuid);
+        if (online != null) {
+            return online.getUniqueId();
+        }
+        try {
+            return UUID.fromString(nameOrUuid);
+        } catch (IllegalArgumentException ignored) {
+            OfflinePlayer cached = Bukkit.getOfflinePlayerIfCached(nameOrUuid);
+            return cached == null ? null : cached.getUniqueId();
+        }
+    }
+
     private void player(CommandSender sender, String[] args) {
         if (args.length < 3) {
             plugin.send(sender, "<red>Usage: /cq player <name> reset|complete <quest>|give <quest>|resetdaily");
@@ -286,7 +370,7 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "player", "quest", "finale"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "player", "quest", "finale", "backup", "backups", "restore"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();
@@ -296,6 +380,18 @@ public final class AdminCommand implements TabExecutor {
             }
             if (args.length == 3) {
                 return QuestsCommand.filter(npcIds, args[2]);
+            }
+        }
+        if (first.equals("restore")) {
+            if (args.length == 2) {
+                List<String> names = new ArrayList<>(List.of("latest"));
+                plugin.backups().files().stream().limit(20).forEach(f -> names.add(f.getName()));
+                return QuestsCommand.filter(names, args[1]);
+            }
+            if (args.length == 3) {
+                List<String> names = new ArrayList<>(List.of("all"));
+                Bukkit.getOnlinePlayers().forEach(p -> names.add(p.getName()));
+                return QuestsCommand.filter(names, args[2]);
             }
         }
         if (first.equals("scatter") && args.length == 2) {
