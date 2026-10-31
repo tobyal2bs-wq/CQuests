@@ -50,7 +50,22 @@ if [ "$PROJECT" = "paper" ] && [ "$VERSION" = "1.21.4" ]; then
   BOT_DIR=$(mktemp -d)
   cp "$GITHUB_WORKSPACE/.github/scripts/bot.js" "$BOT_DIR/"
   (cd "$BOT_DIR" && npm install --silent --no-audit --no-fund mineflayer@4 > /dev/null)
-  MC_VERSION="$VERSION" node "$BOT_DIR/bot.js" > bot.log 2>&1 &
+  # The last quest of chapter 1 and of the whole story, read from quests.yml.
+  read -r CHAPTER_ONE_END STORY_END < <(python3 - "$GITHUB_WORKSPACE/src/main/resources/quests.yml" <<'PY'
+import re, sys
+current, chapters = None, []
+for line in open(sys.argv[1], encoding="utf-8"):
+    m = re.match(r"^  (story_\w+):", line)
+    if m:
+        current = m.group(1)
+    m = re.match(r"^    chapter: (\d+)", line)
+    if m and current:
+        chapters.append((current, int(m.group(1))))
+print([q for q, c in chapters if c == 1][-1], chapters[-1][0])
+PY
+)
+  echo "Chapter 1 ends with $CHAPTER_ONE_END, the story ends with $STORY_END"
+  CHAPTER_ONE_END="$CHAPTER_ONE_END" STORY_END="$STORY_END" MC_VERSION="$VERSION" node "$BOT_DIR/bot.js" > bot.log 2>&1 &
   BOT=$!
   wait_for "CQBot joined the game" 60
   echo "op CQBot" >> console
