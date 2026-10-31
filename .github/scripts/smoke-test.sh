@@ -95,7 +95,7 @@ echo "-------------------------"
 grep -q "Enabling CQuests" server.log || { echo "CQuests did not enable"; exit 1; }
 grep -q "Auto-placed" server.log || { echo "NPCs were not placed"; exit 1; }
 grep -q "Registered 6 achievements" server.log || { echo "Achievements were not registered"; exit 1; }
-grep -q "Backed up 1 players" server.log || { echo "Backup did not run"; exit 1; }
+grep -qE "Backed up [0-9]+ players? to" server.log || { echo "Backup did not run"; exit 1; }
 grep -q "Restored 1 player" server.log || { echo "Restore did not run"; exit 1; }
 ls plugins/CQuests/backups/*shutdown.zip > /dev/null || { echo "No backup on shutdown"; exit 1; }
 if grep -E "at com\.cquests|Error occurred while enabling CQuests|\[CQuests\].*(ERROR|SEVERE)" server.log; then

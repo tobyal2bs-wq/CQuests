@@ -90,7 +90,7 @@ public final class BackupManager {
             return null;
         }
         prune();
-        plugin.getLogger().info("Backed up " + count + " players to backups/" + name);
+        plugin.getLogger().info("Backed up " + count + (count == 1 ? " player" : " players") + " to backups/" + name);
         return name;
     }
 
