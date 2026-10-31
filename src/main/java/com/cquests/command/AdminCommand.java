@@ -33,9 +33,11 @@ public final class AdminCommand implements TabExecutor {
 
     private final CQuestsPlugin plugin;
     private final Map<UUID, Location[]> selections = new ConcurrentHashMap<>();
+    private final TestCommand test;
 
     public AdminCommand(CQuestsPlugin plugin) {
         this.plugin = plugin;
+        this.test = new TestCommand(plugin);
     }
 
     @Override
@@ -57,6 +59,7 @@ public final class AdminCommand implements TabExecutor {
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
             case "finale" -> finale(sender, args);
+            case "test" -> test.run(sender, args);
             case "backup" -> backup(sender);
             case "backups" -> backups(sender);
             case "restore" -> restore(sender, args);
@@ -78,6 +81,7 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
                 <yellow>/cq quest <id></yellow> <gray>show a quest's details
                 <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic
+                <yellow>/cq test</yellow> <gray>try messages, animations, achievements and disappearing villagers
                 <yellow>/cq backup</yellow> <gray>back up all quest data now
                 <yellow>/cq backups</yellow> <gray>list backups
                 <yellow>/cq restore <backup|latest> <player|all></yellow> <gray>put quest data back from a backup""");
@@ -374,7 +378,7 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "player", "quest", "finale", "backup", "backups", "restore"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();
@@ -384,6 +388,25 @@ public final class AdminCommand implements TabExecutor {
             }
             if (args.length == 3) {
                 return QuestsCommand.filter(npcIds, args[2]);
+            }
+        }
+        if (first.equals("test")) {
+            if (args.length == 2) {
+                return QuestsCommand.filter(TestCommand.ACTIONS, args[1]);
+            }
+            if (args.length == 3) {
+                String action = args[1].toLowerCase(Locale.ROOT);
+                if (List.of("finish", "unfinish", "roam").contains(action)) {
+                    return QuestsCommand.filter(npcIds, args[2]);
+                }
+                if (action.equals("achievement")) {
+                    List<String> options = new ArrayList<>(List.of("end", "reset"));
+                    plugin.quests().story().stream().map(q -> Integer.toString(q.chapter())).distinct().forEach(options::add);
+                    return QuestsCommand.filter(options, args[2]);
+                }
+                if (action.equals("chapter")) {
+                    return QuestsCommand.filter(plugin.quests().story().stream().map(q -> Integer.toString(q.chapter())).distinct().toList(), args[2]);
+                }
             }
         }
         if (first.equals("restore")) {

@@ -164,6 +164,11 @@ public final class Settings {
         }
     }
 
+    /** Every message key and its text, for /cq test messages. */
+    public Map<String, String> messages() {
+        return java.util.Collections.unmodifiableMap(messages);
+    }
+
     public String msg(String key, String fallback) {
         return messages.getOrDefault(key, fallback);
     }

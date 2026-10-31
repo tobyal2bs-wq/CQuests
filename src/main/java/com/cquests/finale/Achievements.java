@@ -126,6 +126,33 @@ public final class Achievements {
         }
     }
 
+    /** For /cq test: give a chapter's achievement (0 = Finished the Journey). */
+    public boolean grantForTest(Player player, int chapter) {
+        NamespacedKey key = chapter <= 0 ? journeyKey() : chapterKey(chapter);
+        grant(player, key, true);
+        return Bukkit.getAdvancement(key) != null;
+    }
+
+    /** For /cq test: takes every CQuests achievement away again so they can be earned once more. */
+    public int revokeAll(Player player) {
+        int revoked = 0;
+        List<NamespacedKey> keys = new java.util.ArrayList<>();
+        chapters().forEach(c -> keys.add(chapterKey(c)));
+        keys.add(journeyKey());
+        for (NamespacedKey key : keys) {
+            Advancement advancement = Bukkit.getAdvancement(key);
+            if (advancement == null) {
+                continue;
+            }
+            AdvancementProgress progress = player.getAdvancementProgress(advancement);
+            for (String criterion : progress.getAwardedCriteria()) {
+                progress.revokeCriteria(criterion);
+                revoked++;
+            }
+        }
+        return revoked;
+    }
+
     private void grant(Player player, NamespacedKey key, boolean announceFallback) {
         Advancement advancement = Bukkit.getAdvancement(key);
         if (advancement == null) {

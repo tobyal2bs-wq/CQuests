@@ -5,6 +5,7 @@ import com.cquests.data.PlayerData;
 import com.cquests.model.NpcDef;
 import com.cquests.util.Sched;
 import org.bukkit.Bukkit;
+import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
@@ -67,6 +68,10 @@ public final class VisibilityManager {
         if (visible) {
             player.showEntity(plugin, villager);
         } else {
+            if (player.canSee(villager) && player.getWorld().equals(villager.getWorld())) {
+                // A little puff of smoke, only for this player, so the villager doesn't just blink out.
+                player.spawnParticle(Particle.POOF, villager.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, 0.02);
+            }
             player.hideEntity(plugin, villager);
         }
     }

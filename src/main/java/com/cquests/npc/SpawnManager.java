@@ -342,6 +342,16 @@ public final class SpawnManager {
         }
     }
 
+    /** Moves an NPC to a new spot in its area right now. False if it has no area (not placed with /cq scatter). */
+    public boolean roamNow(NpcDef npc) {
+        Point point = points.get(npc.id());
+        if (point == null || point.area() == null) {
+            return false;
+        }
+        roam(npc, point);
+        return true;
+    }
+
     /** Moves an NPC to a fresh random spot inside its area. */
     private void roam(NpcDef npc, Point point) {
         World world = Bukkit.getWorld(point.world());
