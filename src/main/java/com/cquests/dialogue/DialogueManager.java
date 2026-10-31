@@ -80,7 +80,14 @@ public final class DialogueManager {
                 List<String> complete = quest.complete().isEmpty() ? List.of("Well done, {player}!") : quest.complete();
                 complete.forEach(text -> lines.add(new Line(true, text)));
             }
-            speak(player, npc, lines, () -> ready.forEach(quest -> qm().complete(player, quest)));
+            speak(player, npc, lines, () -> {
+                ready.forEach(quest -> qm().complete(player, quest));
+                // Point new players at the next step instead of leaving them guessing.
+                if (qm().nextOffer(player, npc).quest() != null) {
+                    plugin.send(player, plugin.settings().msg("more-work", "<yellow><npc> has more work for you. Click them again.")
+                            .replace("<npc>", plugin.npcs().mention(npc.id())));
+                }
+            });
             return;
         }
 

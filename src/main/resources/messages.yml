@@ -32,6 +32,7 @@ quest:
   quest-complete: "<gold>★ Quest complete: <white><bold><quest></bold></white>"
   delivered: "<gray>You hand over <white><amount> <item></white>. <yellow>(<have>/<need>)"
   accept-prompt: "<yellow>Click the villager again to accept."
+  more-work: "<yellow><npc> has more work for you. Click them again."
   abandoned: "<gray>Abandoned <white><quest></white>."
   no-offer: "<red>There is no quest offer waiting. Click a villager first."
 

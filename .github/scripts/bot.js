@@ -42,6 +42,8 @@ bot.once('spawn', async () => {
   await bot.activateEntity(npc)
   await waitFor(/Quest complete: Welcome to Dawn SMP/, 20000)
   console.log('OK welcome quest done by talking to Stephan')
+  await waitFor(/has more work for you/, 15000)
+  await bot.activateEntity(npc)
   await waitFor(/Click the villager again/, 30000)
   await bot.activateEntity(npc)
   await waitFor(/New quest: The Wanderers/, 15000)
