@@ -258,7 +258,10 @@ public final class AdminCommand implements TabExecutor {
                     Player online = Bukkit.getPlayer(id);
                     if (online != null) {
                         plugin.visibility().refresh(online);
-                        Sched.entity(online, () -> plugin.tracker().update(online));
+                        Sched.entity(online, () -> {
+                            plugin.tracker().update(online);
+                            plugin.finale().achievements().sync(online);
+                        });
                     }
                 }
                 plugin.send(sender, restored.isEmpty()
@@ -324,6 +327,7 @@ public final class AdminCommand implements TabExecutor {
                         data.markDirty();
                     }
                 }
+                Sched.entity(target, () -> plugin.finale().achievements().sync(target));
                 plugin.send(sender, "<green>Done. If the quest was active it now waits for turn-in.");
             }
             case "give" -> {

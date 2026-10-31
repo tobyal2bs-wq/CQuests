@@ -44,6 +44,26 @@ wait_for() {
 }
 
 wait_for "Done (" 300
+
+# On Paper 1.21.4 a test player joins and plays the start of the story.
+if [ "$PROJECT" = "paper" ] && [ "$VERSION" = "1.21.4" ]; then
+  BOT_DIR=$(mktemp -d)
+  cp "$GITHUB_WORKSPACE/.github/scripts/bot.js" "$BOT_DIR/"
+  (cd "$BOT_DIR" && npm install --silent --no-audit --no-fund mineflayer@4 > /dev/null)
+  MC_VERSION="$VERSION" node "$BOT_DIR/bot.js" > bot.log 2>&1 &
+  BOT=$!
+  wait_for "CQBot joined the game" 60
+  echo "op CQBot" >> console
+  if ! wait "$BOT"; then
+    cat bot.log
+    echo "The test player failed"
+    exit 1
+  fi
+  cat bot.log
+  sleep 2
+  grep -q "\[Chapter 1: The Wanderers' Camp\]" server.log || { echo "Chapter 1 achievement was not given"; exit 1; }
+  grep -q "\[Finished the Journey\]" server.log || { echo "Ending achievement was not given"; exit 1; }
+fi
 for cmd in "cq npc list" "cq quest story_bob" "cq quest side_stephan_1" "cq reload" "cq npc list" \
            "cq backup" "cq backups" "cq restore latest 00000000-0000-0000-0000-000000000001"; do
   echo "$cmd" >> console
@@ -59,6 +79,7 @@ echo "-------------------------"
 
 grep -q "Enabling CQuests" server.log || { echo "CQuests did not enable"; exit 1; }
 grep -q "Auto-placed" server.log || { echo "NPCs were not placed"; exit 1; }
+grep -q "Registered 6 achievements" server.log || { echo "Achievements were not registered"; exit 1; }
 grep -q "Backed up 1 players" server.log || { echo "Backup did not run"; exit 1; }
 grep -q "Restored 1 player" server.log || { echo "Restore did not run"; exit 1; }
 ls plugins/CQuests/backups/*shutdown.zip > /dev/null || { echo "No backup on shutdown"; exit 1; }

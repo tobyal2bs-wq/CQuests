@@ -7,7 +7,7 @@
 # ===================================================================
 
 # Shown in quest text as {server}.
-server-name: ColorGens
+server-name: "Dawn SMP"
 
 # All text players see (prefix, villager name tags, chat lines, messages) lives in messages.yml.
 
@@ -66,13 +66,11 @@ celebrations:
 
 finale:
   # After the last story quest: a camera tour over the places of the player's story, their stats,
-  # "The End", fireworks, the advancement below and a "Your Story" book.
+  # "The End", fireworks, the "Finished the Journey" achievement and a "Your Story" book.
+  # Achievements (one per chapter plus the ending) need no datapack; their names are in messages.yml.
   enabled: true
   scene-seconds: 4
   max-scenes: 12
-  advancement:
-    title: "Finished the Journey"
-    description: "Free the Hollow King and bring the Wanderers home"
 
 # ----------------------------------------------------------- DAILY QUEST
 daily:

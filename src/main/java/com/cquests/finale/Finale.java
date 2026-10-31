@@ -47,17 +47,17 @@ public final class Finale {
 
     private final CQuestsPlugin plugin;
     private final NamespacedKey showKey;
-    private final JourneyAdvancement advancement;
+    private final Achievements achievements;
     private final Set<UUID> playing = ConcurrentHashMap.newKeySet();
 
     public Finale(CQuestsPlugin plugin) {
         this.plugin = plugin;
         this.showKey = new NamespacedKey(plugin, "show");
-        this.advancement = new JourneyAdvancement(plugin);
+        this.achievements = new Achievements(plugin);
     }
 
-    public JourneyAdvancement advancement() {
-        return advancement;
+    public Achievements achievements() {
+        return achievements;
     }
 
     /** Our display fireworks are tagged so the damage listener can make them harmless. */
@@ -244,7 +244,7 @@ public final class Finale {
     }
 
     private void award(Player player) {
-        advancement.award(player);
+        achievements.grantJourney(player);
         StoryBook.give(plugin, player);
         Bukkit.broadcast(Text.mm(plugin.settings().msg("journey-finished",
                 "<gold>★ <white><player></white> finished the journey and freed the Hollow King!")

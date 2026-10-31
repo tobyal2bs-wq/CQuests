@@ -132,6 +132,7 @@ public final class NpcListener implements Listener {
             plugin.questManager().giveWelcome(player);
             plugin.visibility().refresh(player);
             plugin.tracker().update(player);
+            plugin.finale().achievements().sync(player);
         });
     }
 

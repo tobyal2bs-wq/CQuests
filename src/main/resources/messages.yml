@@ -68,6 +68,13 @@ ending:
   # Sent to the whole server, once per player.
   journey-finished: "<gold>★ <white><player></white> finished the journey and freed the Hollow King!"
 
+# Achievements in the Adventure tab (plain text, no colour tags). One per chapter, one for the ending.
+achievements:
+  chapter-title: "Chapter <chapter>: <name>"
+  chapter-description: "Finish chapter <chapter> of the Dawn SMP story"
+  journey-title: "Finished the Journey"
+  journey-description: "Free the Hollow King and bring the Wanderers home"
+
 # Protection around villagers.
 shield:
   shield: "<aqua>✦ This villager's area is protected."

@@ -2,7 +2,7 @@
 
 A villager quest plugin for **Paper, Folia, Leaf and Purpur 1.21.4+**, built for Java and Bedrock (Geyser) players alike.
 
-100 story villagers tell one linked story over 5 chapters, every villager has 10,000 side quests (1,000,000 in total), one villager gives a daily quest, and finishing the journey plays an ending cinematic, gives a custom advancement and a book of your own story.
+100 story villagers tell one linked story over 5 chapters, every villager has 10,000 side quests (1,000,000 in total), one villager gives a daily quest, and finishing the journey plays an ending cinematic, gives a custom achievement and a book of your own story. No resource pack or datapack is needed.
 
 ## Install
 
@@ -68,7 +68,8 @@ Clicking villagers and doing quests needs no permission.
 * **Daily quest**: Marigold gives one job every 24 hours for 10,000.
 * **Rewards** are money plus normal items. No elytra, dragon eggs, god apples, totems, beacons or nether stars. Netherite only from level 85 quests. Some side quests give a potion effect like 1 hour of Swiftness.
 * **Finished villagers disappear**: once you've done everything a villager has for you, you stop seeing it, so the spawn gets less crowded as you go.
-* **Animations**: big quests and chapter ends play a particle helix, a typed out title, music and fireworks, then the next chapter card. The last quest plays a camera tour over the places of your story, then "The End", the **Finished the Journey** advancement and a **Your Story** book (about 15 to 20 pages, can't be copied).
+* **Animations**: big quests and chapter ends play a particle helix, a typed out title, music and fireworks, then the next chapter card. The last quest plays a camera tour over the places of your story, then "The End", the **Finished the Journey** achievement and a **Your Story** book (about 15 to 20 pages, can't be copied).
+* **Achievements**: a real Minecraft achievement (toast, chat line, Adventure tab) for every chapter and one for finishing the journey. They are created by the plugin at startup, so there is no datapack or resource pack to install. New chapters get one automatically. Players who earned one while it didn't exist yet (or after a restore) get it when they join.
 * **B.O.B** is the server's Discord bot who somehow grew legs. He wants you to place 1000 dirt so he can touch grass.
 
 ## Anti abuse

@@ -71,7 +71,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
         loadData();
         Platform.init();
-        finale.advancement().register();
+        finale.achievements().register();
 
         getServer().getPluginManager().registerEvents(new NpcListener(this), this);
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
@@ -127,6 +127,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         spawns.load();
         spawns.start();
         backups.start();
+        finale.achievements().register();
         visibility.refreshAll();
     }
 

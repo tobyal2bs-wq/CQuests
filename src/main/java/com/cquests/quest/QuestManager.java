@@ -523,6 +523,9 @@ public final class QuestManager {
                 }
             }
         }
+        if (quest.category() == QuestCategory.STORY) {
+            plugin.finale().achievements().onStoryQuest(player, quest);
+        }
         // Persist before paying out, so a crash can't leave the quest claimable with the reward already given.
         plugin.store().saveNow(data);
         plugin.send(player, settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")

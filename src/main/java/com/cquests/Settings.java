@@ -139,8 +139,9 @@ public final class Settings {
         finaleEnabled = c.getBoolean("finale.enabled", true);
         finaleSceneTicks = (int) Math.max(40, c.getDouble("finale.scene-seconds", 4) * 20);
         finaleMaxScenes = Math.max(1, c.getInt("finale.max-scenes", 12));
-        advancementTitle = c.getString("finale.advancement.title", "Finished the Journey");
-        advancementDescription = c.getString("finale.advancement.description", "Free the Hollow King and bring the Wanderers home");
+        advancementTitle = m.getString("achievements.journey-title", c.getString("finale.advancement.title", "Finished the Journey"));
+        advancementDescription = m.getString("achievements.journey-description",
+                c.getString("finale.advancement.description", "Free the Hollow King and bring the Wanderers home"));
 
         groups = new HashMap<>();
         ConfigurationSection g = c.getConfigurationSection("groups");
