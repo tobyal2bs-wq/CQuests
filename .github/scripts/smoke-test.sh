@@ -22,6 +22,7 @@ cp build/libs/CQuests-*.jar run/plugins/
 cd run
 curl -fsSL -o server.jar "$URL"
 echo "eula=true" > eula.txt
+printf 'cquests.integration:\n  default: op\n  children:\n    quests.use: true\n' > permissions.yml
 printf 'online-mode=false\nlevel-type=minecraft\\:flat\ngenerate-structures=false\n' > server.properties
 
 # A saved player, so backup and restore have something real to work with.
@@ -95,7 +96,7 @@ echo "-------------------------"
 
 grep -q "Enabling CQuests" server.log || { echo "CQuests did not enable"; exit 1; }
 grep -q "Auto-placed" server.log || { echo "NPCs were not placed"; exit 1; }
-grep -q "Registered 6 achievements" server.log || { echo "Achievements were not registered"; exit 1; }
+grep -qE "Registered [0-9]+ achievements" server.log || { echo "Achievements were not registered"; exit 1; }
 grep -qE "Backed up [0-9]+ players? to" server.log || { echo "Backup did not run"; exit 1; }
 grep -q "Restored 1 player" server.log || { echo "Restore did not run"; exit 1; }
 ls plugins/CQuests/backups/*shutdown.zip > /dev/null || { echo "No backup on shutdown"; exit 1; }

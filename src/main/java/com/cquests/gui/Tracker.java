@@ -13,7 +13,6 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,7 +25,6 @@ public final class Tracker {
     private final CQuestsPlugin plugin;
     private final Map<UUID, String> tracked = new ConcurrentHashMap<>();
     private final Map<UUID, BossBar> bars = new ConcurrentHashMap<>();
-    private final Set<UUID> off = ConcurrentHashMap.newKeySet();
 
     public Tracker(CQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -42,17 +40,17 @@ public final class Tracker {
     }
 
     public boolean enabled(Player player) {
-        return plugin.settings().trackerEnabled && !off.contains(player.getUniqueId());
+        PlayerData data = plugin.store().cached(player.getUniqueId());
+        return plugin.settings().trackerEnabled && data != null && data.trackerOn(plugin.settings().trackerDefault);
     }
 
     /** Turns the bar on or off for this player and returns the new state. */
     public boolean toggle(Player player) {
-        UUID id = player.getUniqueId();
-        if (!off.remove(id)) {
-            off.add(id);
-        }
+        PlayerData data = plugin.questManager().data(player);
+        data.setTrackerOn(!data.trackerOn(plugin.settings().trackerDefault));
+        plugin.store().saveNow(data);
         update(player);
-        return !off.contains(id);
+        return enabled(player);
     }
 
     public void update(Player player) {
@@ -80,16 +78,16 @@ public final class Tracker {
             done += value;
             total += objective.amount();
             if (next == null && !qm.objectiveDone(quest, active, i)) {
-                next = qm.objectiveLabel(objective) + " <yellow>" + value + "/" + objective.amount() + "</yellow>";
+                next = plain(qm.objectiveLabel(objective)) + (objective.amount() > 1 ? "  " + value + "/" + objective.amount() : "");
             }
         }
         boolean ready = qm.ready(quest, active);
-        String step = ready ? "<green>Return to " + plugin.npcs().mention(quest.turnIn()) + "</green>" : next == null ? "" : "<gray>" + next;
-        String name = "<white><bold>" + Text.escape(quest.name()) + "</bold></white> <dark_gray>»</dark_gray> " + step;
+        String step = ready ? "Return to " + plugin.npcs().name(quest.turnIn()) : next == null ? "" : next;
+        String name = "<white><bold>" + Text.escape(shorten(quest.name(), 30)) + "</bold></white> <white>• " + Text.escape(shorten(step, 64)) + "</white>";
         float progress = ready ? 1f : total == 0 ? 0f : Math.min(1f, (float) done / total);
-        BossBar.Color color = ready ? BossBar.Color.GREEN : quest.category() == QuestCategory.STORY ? BossBar.Color.YELLOW : BossBar.Color.BLUE;
+        BossBar.Color color = ready ? BossBar.Color.GREEN : BossBar.Color.WHITE;
         if (bar == null) {
-            bar = BossBar.bossBar(Text.mm(name), progress, color, BossBar.Overlay.NOTCHED_10);
+            bar = BossBar.bossBar(Text.mm(name), progress, color, BossBar.Overlay.PROGRESS);
             bars.put(player.getUniqueId(), bar);
         } else {
             bar.name(Text.mm(name));
@@ -100,7 +98,7 @@ public final class Tracker {
     }
 
     /** The chosen quest if it is still active, otherwise the story quest, otherwise any active quest. */
-    private Quest pick(Player player, PlayerData data) {
+    public Quest pick(Player player, PlayerData data) {
         List<Quest> active = plugin.questManager().activeQuests(data);
         if (active.isEmpty()) {
             return null;
@@ -125,5 +123,13 @@ public final class Tracker {
             player.hideBossBar(bar);
         }
         tracked.remove(player.getUniqueId());
+    }
+
+    private static String plain(String value) {
+        return net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(Text.mm(value));
+    }
+
+    private static String shorten(String value, int max) {
+        return value.length() <= max ? value : value.substring(0, max - 1) + "…";
     }
 }

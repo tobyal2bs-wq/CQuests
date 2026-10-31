@@ -44,6 +44,11 @@ public final class NpcListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCreatureSpawn(org.bukkit.event.entity.CreatureSpawnEvent event) {
+        if (NpcTag.isNpc(event.getEntity())) event.setCancelled(false);
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInteract(PlayerInteractEntityEvent event) {
         Entity clicked = event.getRightClicked();

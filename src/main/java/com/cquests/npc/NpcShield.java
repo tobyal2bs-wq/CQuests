@@ -91,7 +91,7 @@ public final class NpcShield {
         return player.hasPermission("cquests.bypass");
     }
 
-    /** Tells the player why, and flashes the bubble so they can see where it ends. Rate-limited. */
+    /** Quiet, rate-limited protection message. No boundary particles. */
     public void warn(Player player, Location center) {
         long now = System.currentTimeMillis();
         Long last = lastWarning.get(player.getUniqueId());
@@ -100,14 +100,6 @@ public final class NpcShield {
         }
         lastWarning.put(player.getUniqueId(), now);
         player.sendActionBar(Text.mm(plugin.settings().msg("shield", "<aqua>✦ This villager's area is protected.")));
-        double radius = plugin.settings().shieldRadius;
-        int points = (int) Math.max(24, radius * 8);
-        double y = player.getLocation().getY() + 0.5;
-        for (int i = 0; i < points; i++) {
-            double angle = 2 * Math.PI * i / points;
-            player.spawnParticle(Particle.END_ROD, center.getX() + Math.cos(angle) * radius, y,
-                    center.getZ() + Math.sin(angle) * radius, 1, 0, 0, 0, 0);
-        }
     }
 
     public void forget(Player player) {

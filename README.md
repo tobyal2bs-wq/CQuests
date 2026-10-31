@@ -2,13 +2,15 @@
 
 A villager quest plugin for **Paper, Folia, Leaf and Purpur 1.21.4+**, built for Java and Bedrock (Geyser) players alike.
 
-100 story villagers tell one linked story over 5 chapters, every villager has 10,000 side quests (1,000,000 in total), one villager gives a daily quest, and finishing the journey plays an ending cinematic, gives a custom achievement and a book of your own story. No resource pack or datapack is needed.
+100 story villagers tell Claude's original linked story over 5 chapters, with 8 additional side-job villagers and one daily villager. There are 1,080,000 generated side quests. Original story IDs, generator seed and player progress are preserved. No resource pack or datapack is needed.
+
+Version 1.1 defaults to a book journal and book conversations. The boss bar and villager directions start off; each player can enable them and their choices survive restarts. Select the chest dialogue menu with explicit Accept and Claim rewards buttons using /quests mode menu. Mandatory side-job quotas are disabled by default. See [INSTALL-1.1.md](INSTALL-1.1.md) for upgrade steps, commands, safety rules and rollback.
 
 ## Install
 
 1. Download `CQuests-<version>.jar` from the latest build (GitHub Actions, "Build" workflow, artifact) and put it in `plugins/`.
 2. Make sure you have an economy plugin with `/eco give` (EssentialsX works). Change `money-command` in `config.yml` if yours is different.
-3. Start the server. The 15 spawn villagers are placed around the world spawn automatically, the rest further out.
+3. Start the server. The 17 camp villagers are placed around world spawn on validated terrain, the rest further out. Failed searches are reported and never fall back to unsafe ground.
 4. Give players the quest command: `/lp group default permission set quests.use true`
 5. Optional: move the villagers to your own spots (see "Placing villagers").
 
@@ -18,7 +20,7 @@ WorldGuard, Floodgate and Geyser are optional. NPCs spawn even inside regions wi
 
 | Command | Who | What it does |
 |---|---|---|
-| `/quests` | `quests.use` | Quest menu: chapter progress, active quests, chapters, tracker toggle |
+| `/quests` | `quests.use` | Journal in your saved book, menu or chat mode |
 | `/quests book` | `quests.use` | The journal book with every quest and the "All Quests" pages |
 | `/quests list` | `quests.use` | Active quests in chat |
 | `/quests track` | `quests.use` | Turn the boss bar tracker on or off |
@@ -66,35 +68,35 @@ Clicking villagers and doing quests needs no permission.
 ## For players
 
 1. Join. A short guide shows up and your first quest starts: talk to **Villager Stephan** near spawn.
-2. Click a villager with a white name to talk, click again to accept its quest.
-3. The bar at the top of your screen tells you what to do next. `/quests` shows all your quests.
-4. The first few story steps go straight from villager to villager. After that each villager wants some side jobs done before the story moves on.
+2. Click a villager with a white name, read the dialogue, then choose your response.
+3. Your book journal shows the next step. Enable the boss bar or arrow directions in /quests settings if you want them.
+4. Follow the story at your pace. Side jobs are optional by default and reward continued exploration.
 
 ## How it plays
 
-* **Click a villager** to talk. It offers a quest; click again (or the [Accept] button) to take it. All villager chat goes only to the player talking to it.
-* **The story** is 101 quests in 5 chapters. Before each story step opens you have to do side quests for the previous villager, and the first quest of every new chapter needs 20. Every 5th step is a short one. Getting through one chapter takes a long time on purpose.
+* **Click a villager** to read a paginated conversation. Choose Accept quest or Claim rewards. Use /quests mode menu for chest dialogue, or /quests mode chat for the original timed speech.
+* **The story** remains 101 quests in 5 chapters, with the original IDs and objectives. Side-job quotas are optional: quests.require-side-quests is false by default.
 * **Side quests** are generated from `generator.yml`: kill, mine, harvest, fish, breed, tame, shear, craft, smelt, enchant, eat, deliver and place quests, getting harder and paying more as you go. Bigger quests pay more.
 * **Daily quest**: Marigold gives one job every 24 hours for 10,000.
 * **Rewards** are money plus normal items. No elytra, dragon eggs, god apples, totems, beacons or nether stars. Netherite only from level 85 quests. Some side quests give a potion effect like 1 hour of Swiftness.
-* **Finished villagers disappear**: once you've done everything a villager has for you, you stop seeing it, so the spawn gets less crowded as you go.
+* **Chapter visibility** hides future villagers until their first chapter. Shared NPCs unlock at their earliest involvement. Earlier villagers remain available for optional side work.
 * **Animations**: big quests and chapter ends play a particle helix, a typed out title, music and fireworks, then the next chapter card. The last quest plays a camera tour over the places of your story, then "The End", the **Finished the Journey** achievement and a **Your Story** book (about 15 to 20 pages, can't be copied).
-* **Achievements**: a real Minecraft achievement (toast, chat line, Adventure tab) for every chapter and one for finishing the journey. They are created by the plugin at startup, so there is no datapack or resource pack to install. New chapters get one automatically. Players who earned one while it didn't exist yet (or after a restore) get it when they join.
+* **Achievements** include a separate Wanderers tab, chapter and ending goals, plus 14 side-job, daily and exploration milestones. Existing counters grant earned milestones on join.
 * **B.O.B** is the server's Discord bot who somehow grew legs. He wants you to place 1000 dirt so he can touch grass.
 
 ## Anti abuse
 
 * NPCs can't be hurt, pushed, traded with, converted or moved. They are never saved to the world.
 * A protected area (`shield.radius`) stops building, breaking, buckets, explosions and PvP around villagers.
-* NPCs placed with `/cq scatter` move to a new random spot in their area every 20 minutes, so nobody can camp them.
+* NPCs placed with /cq scatter or /cq scatterworld stay in their saved positions by default. Set spawning.roam-minutes above zero for optional roaming.
 * Blocks you placed don't count for mining or harvesting, and placing the same spot twice doesn't count twice.
 * Spawner and spawn egg mobs don't count for kill quests.
-* Deliveries take the items before the quest counts; a quest is saved as done before rewards are given, so it can't be claimed twice.
+* Deliveries take items before progress is counted. Completed quests and one-use conversation responses reject duplicate click claims; progress is saved asynchronously.
 * The quest menu can't be taken from, and the story book is given once.
 
 ## Saving and recovery
 
-* Progress is saved the moment a quest is finished, every minute, when a player leaves and on shutdown.
+* Progress is queued for saving when a quest finishes, every minute, when a player leaves and on shutdown.
 * Saves are written to a temp file and swapped in, so a crash mid save can't corrupt a file. The previous version is kept as `players/<uuid>.yml.bak` and is used automatically if a file is ever damaged.
 * Every 6 hours and on every shutdown all quest data is zipped into `plugins/CQuests/backups/` (the last 28 are kept).
 * Something went wrong? `/cq backups` to see them, then `/cq restore latest Steve` for one player or `/cq restore latest all` for everyone. It works while players are online, and the files it replaces are kept as `.yml.before-restore`.
@@ -169,7 +171,7 @@ Objective types: `KILL`, `MINE`, `HARVEST`, `PLACE`, `CRAFT`, `SMELT`, `FISH`, `
 
 ## Tested on
 
-Every push builds the plugin, runs the unit tests and then starts real servers with it (Paper 1.21.4, the newest Paper and the newest Folia), places all NPCs, runs admin commands and `/cq reload`, and fails on any error. See `.github/scripts/smoke-test.sh`.
+The CI workflow builds the plugin, runs unit tests and boots isolated Paper/Folia servers. The Paper bot checks default book UI, opt-in tracking, directions, chapter hiding, menu actions and repeated scattering. See VALIDATION-1.1.md for the exact checks run for this delivery; graphical client rendering and hosted integrations require staging checks.
 
 ## Building
 

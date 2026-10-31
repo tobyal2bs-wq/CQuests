@@ -32,8 +32,32 @@ public final class QuestsCommand implements TabExecutor {
             sender.sendMessage("Only players have a quest journal.");
             return true;
         }
-        String sub = args.length == 0 ? "menu" : args[0].toLowerCase(Locale.ROOT);
+        String sub = args.length == 0 ? plugin.questManager().data(player).menuMode(plugin.settings().defaultMenu) : args[0].toLowerCase(Locale.ROOT);
+        // NPC response buttons remain usable without journal permission, as direct NPC clicks were.
+        if (!List.of("accept", "respond", "mode").contains(sub) && !player.hasPermission("quests.use")) {
+            plugin.send(player, "<red>You need quests.use to open the journal or change tracking.");
+            return true;
+        }
         switch (sub) {
+            case "respond" -> {
+                if (args.length != 2 || !plugin.dialogue().respond(player, args[1]))
+                    plugin.send(player, "<gray>This conversation has expired. Speak to the villager again.");
+            }
+            case "mode" -> {
+                if (args.length != 2 || !List.of("book", "menu", "chat").contains(args[1].toLowerCase(Locale.ROOT))) {
+                    plugin.send(player, "<white>/quests mode book | menu | chat");
+                } else {
+                    PlayerData data = plugin.questManager().data(player);
+                    data.setMenuMode(args[1].toLowerCase(Locale.ROOT));
+                    plugin.store().saveNow(data);
+                    plugin.dialogue().forget(player);
+                    plugin.send(player, "<white>Dialogue and journal mode: <aqua>" + data.menuMode("book"));
+                }
+            }
+            case "directions" -> plugin.send(player, "<white>Villager directions: <aqua>" + (plugin.directions().toggle(player) ? "on" : "off"));
+            case "achievements" -> plugin.finale().achievements().show(player);
+            case "settings", "menu" -> QuestMenu.open(plugin, player);
+            case "chat" -> list(player);
             case "accept" -> {
                 if (!plugin.dialogue().acceptPending(player)) {
                     plugin.send(player, plugin.settings().msg("no-offer", "<red>There is no quest offer waiting. Click a villager first."));
@@ -102,8 +126,9 @@ public final class QuestsCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("book", "list", "track", "story", "accept", "abandon"), args[0]);
+            return filter(List.of("book", "menu", "settings", "mode", "directions", "achievements", "list", "track", "story", "accept", "abandon"), args[0]);
         }
+        if (args.length == 2 && args[0].equalsIgnoreCase("mode")) return filter(List.of("book", "menu", "chat"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("abandon") && sender instanceof Player player) {
             return filter(new ArrayList<>(plugin.questManager().data(player).active().keySet()), args[1]);
         }

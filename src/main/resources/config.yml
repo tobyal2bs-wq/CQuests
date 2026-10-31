@@ -17,6 +17,8 @@ money-command: "eco give %player% %amount%"
 
 # ----------------------------------------------------------- TALKING TO VILLAGERS
 dialogue:
+  # Default for /quests and NPC conversations. Players can use /quests mode book|menu|chat.
+  default-mode: book
   # Pause between lines a villager says (20 ticks = 1 second).
   line-delay-ticks: 35
   # How long a quest offer waits for the second click or [Accept].
@@ -34,7 +36,9 @@ quests:
   count-spawner-mobs: false
   # Side quests needed for the previous villager before a story quest opens, when the quest
   # in quests.yml has no side-required of its own. Quests added later (chapter 6 and on) use this.
-  side-quests-per-chapter: 10
+  side-quests-per-chapter: 0
+  # Also enables per-quest side-required quotas. Off by default.
+  require-side-quests: false
 
 # ----------------------------------------------------------- REWARDS
 rewards:
@@ -58,6 +62,12 @@ backups:
 tracker:
   # The boss bar at the top of the screen that follows one quest. Players can still turn it off.
   enabled: true
+  # The feature is available, but each player must opt in.
+  default-on: false
+
+directions:
+  # /quests directions toggles an arrow and distance in meters. Saved per player.
+  default-on: false
 
 # ----------------------------------------------------------- ANIMATIONS
 celebrations:
@@ -87,16 +97,16 @@ spawning:
   # World for auto placement. "" means the main world.
   auto-place-world: ""
   # Rings around spawn in blocks, [min, max]: act 1 (the 15 spawn villagers) and act 2.
-  act1-ring: [5, 22]
-  act2-ring: [30, 90]
+  act1-ring: [5, 60]
+  act2-ring: [70, 300]
   # An NPC only exists while a player is within this many blocks. With nobody near it is removed.
   player-range: 100
   # How often NPCs are spawned, removed and moved.
   check-seconds: 3
   # NPCs placed with /cq scatter move to a new random spot in their area this often (0 = never).
-  roam-minutes: 20
+  roam-minutes: 0
   # A player stops seeing a villager once they finished everything it has for them.
-  hide-finished-villagers: true
+  hide-finished-villagers: false
   # NPCs turn to face whoever clicks them.
   look-at-player: true
 

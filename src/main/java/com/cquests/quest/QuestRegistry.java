@@ -342,7 +342,7 @@ public final class QuestRegistry {
         }
         List<Quest> storyQuests = storyFrom(npcId);
         NpcDef npc = npcs.get(npcId);
-        if (npc == null || npc.daily() || storyQuests.isEmpty()) {
+        if (npc == null || npc.daily() || (storyQuests.isEmpty() && npcs.chapter(npc.id()) == 0)) {
             return null;
         }
         String id = "side_" + npc.id() + "_" + index;
@@ -366,8 +366,16 @@ public final class QuestRegistry {
     }
 
     public long totalSide() {
-        return (long) sidePerNpc() * storyByGiver.keySet().stream()
-                .filter(id -> npcs.get(id) != null && !npcs.get(id).daily()).count();
+        return (long) sidePerNpc() * npcs.all().stream()
+                .filter(npc -> !npc.daily() && (!storyFrom(npc.id()).isEmpty() || npcs.chapter(npc.id()) > 0)).count();
+    }
+
+    /** Earliest story involvement; shared NPCs become visible from their first chapter onward. */
+    public int firstChapter(String npcId) {
+        int storyChapter = story.stream().filter(q -> q.involves(npcId)).mapToInt(Quest::chapter).min().orElse(Integer.MAX_VALUE);
+        int configured = npcs.chapter(npcId);
+        int result = configured > 0 ? Math.min(configured, storyChapter) : storyChapter;
+        return result == Integer.MAX_VALUE ? 1 : result;
     }
 
     /** Bumped on every load, so cached quest objects from an older load are ignored. */

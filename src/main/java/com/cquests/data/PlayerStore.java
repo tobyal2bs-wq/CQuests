@@ -144,6 +144,10 @@ public final class PlayerStore {
         data.storyBookGiven = yaml.getBoolean("story-book", false);
         data.lastDailyAt = yaml.getLong("daily.last", 0);
         data.dailiesDone = yaml.getInt("daily.done", 0);
+        data.trackerOn = yaml.contains("preferences.tracker") ? yaml.getBoolean("preferences.tracker") : null;
+        data.directionsOn = yaml.contains("preferences.directions") ? yaml.getBoolean("preferences.directions") : null;
+        String mode = yaml.getString("preferences.menu", "");
+        data.menuMode = List.of("book", "menu", "chat").contains(mode) ? mode : null;
         return data;
     }
 
@@ -183,6 +187,9 @@ public final class PlayerStore {
             yaml.set("story-book", data.storyBookGiven);
             yaml.set("daily.last", data.lastDailyAt);
             yaml.set("daily.done", data.dailiesDone);
+            yaml.set("preferences.tracker", data.trackerOn);
+            yaml.set("preferences.directions", data.directionsOn);
+            yaml.set("preferences.menu", data.menuMode);
             data.clean();
             return new Snapshot(yaml, ++data.saveSeq);
         }

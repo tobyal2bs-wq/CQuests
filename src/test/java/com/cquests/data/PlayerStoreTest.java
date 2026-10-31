@@ -12,6 +12,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayerStoreTest {
+    @Test void displayPreferencesSurviveSaveReloadWithoutChangingProgress(@TempDir File folder) throws Exception {
+        PlayerStore store = new PlayerStore(folder, Logger.getLogger("test"));
+        UUID uuid = UUID.randomUUID();
+        Files.writeString(new File(store.dir(), uuid + ".yml").toPath(), GOOD);
+        PlayerData data = store.get(uuid);
+        assertTrue(!data.trackerOn(false));
+        assertTrue(!data.directionsOn(false));
+        assertEquals("book", data.menuMode("book"));
+        data.setTrackerOn(true); data.setDirectionsOn(true); data.setMenuMode("menu");
+        data.meet("bob");
+        store.saveAllNow();
+        PlayerData read = new PlayerStore(folder, Logger.getLogger("test")).get(uuid);
+        assertTrue(read.trackerOn(false));
+        assertTrue(read.directionsOn(false));
+        assertEquals("menu", read.menuMode("book"));
+        assertEquals(4, read.sideDone("stephan"));
+        assertTrue(read.isCompleted("story_stephan"));
+        assertTrue(read.hasMet("bob"));
+    }
 
     private static final String GOOD = "completed:\n- welcome\n- story_stephan\nside-done:\n  stephan: 4\n";
 

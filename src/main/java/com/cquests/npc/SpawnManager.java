@@ -30,6 +30,14 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -62,6 +70,17 @@ public final class SpawnManager {
     private final Map<String, Long> nextRoam = new ConcurrentHashMap<>();
     private ScheduledTask ticker;
     private EntityType mannequinType;
+    private final Set<Point> validated = ConcurrentHashMap.newKeySet();
+    private final Set<Point> checking = ConcurrentHashMap.newKeySet();
+    private final Set<Point> rejected = ConcurrentHashMap.newKeySet();
+    private final Set<String> disabled = ConcurrentHashMap.newKeySet();
+    private final Map<String, Long> revisions = new ConcurrentHashMap<>();
+    private final AtomicLong revision = new AtomicLong();
+    private volatile long epoch;
+    private volatile boolean running;
+    private final ExecutorService writer = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "CQuests-spawn-writer"); t.setDaemon(true); return t;
+    });
 
     public SpawnManager(CQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -86,7 +105,10 @@ public final class SpawnManager {
 
     public void load() {
         points.clear();
+        disabled.clear();
+        validated.clear(); checking.clear(); rejected.clear(); nextRoam.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        disabled.addAll(yaml.getStringList("disabled"));
         ConfigurationSection root = yaml.getConfigurationSection("points");
         if (root != null) {
             for (String id : root.getKeys(false)) {
@@ -104,8 +126,10 @@ public final class SpawnManager {
     }
 
     public synchronized void save() {
+        if (writer.isShutdown()) return;
         plugin.shield().rebuild();
         YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("disabled", new ArrayList<>(disabled));
         yaml.options().setHeader(List.of(
                 "Where each NPC stands. Edit with /cq npc place, /cq scatter or by hand, then /cq reload.",
                 "An 'area' makes the NPC wander inside that box every spawning.roam-minutes."));
@@ -125,11 +149,16 @@ public final class SpawnManager {
                 yaml.set(path + ".area", area);
             }
         }
-        try {
-            yaml.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Could not save spawns.yml", e);
-        }
+        String content = yaml.saveToString();
+        writer.execute(() -> {
+            try {
+                var tmp = file.toPath().resolveSibling("spawns.yml.tmp");
+                Files.writeString(tmp, content, java.nio.charset.StandardCharsets.UTF_8);
+                if (file.exists()) Files.copy(file.toPath(), file.toPath().resolveSibling("spawns.yml.bak"), StandardCopyOption.REPLACE_EXISTING);
+                try { Files.move(tmp, file.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING); }
+                catch (AtomicMoveNotSupportedException e) { Files.move(tmp, file.toPath(), StandardCopyOption.REPLACE_EXISTING); }
+            } catch (IOException e) { plugin.getLogger().log(Level.WARNING, "Could not save spawns.yml", e); }
+        });
     }
 
     private static double round(double v) {
@@ -137,6 +166,7 @@ public final class SpawnManager {
     }
 
     public void start() {
+        running = true;
         if (plugin.settings().autoPlace) {
             autoPlace();
         }
@@ -144,15 +174,28 @@ public final class SpawnManager {
         ticker = Sched.globalTimer(t -> tick(), 40, period);
     }
 
-    public void stop() {
+    public synchronized void stop() {
+        running = false; epoch++;
         if (ticker != null) {
             ticker.cancel();
             ticker = null;
         }
         for (LivingEntity entity : live.values()) {
-            Sched.entity(entity, entity::remove);
+            if (plugin.isEnabled()) Sched.entity(entity, entity::remove);
         }
         live.clear();
+        flushWrites();
+    }
+
+    public synchronized void shutdown() {
+        stop(); writer.shutdown();
+        try { if (!writer.awaitTermination(10, TimeUnit.SECONDS)) plugin.getLogger().warning("Spawn writer did not drain within 10 seconds"); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    }
+
+    private void flushWrites() {
+        try { writer.submit(() -> {}).get(10, TimeUnit.SECONDS); }
+        catch (Exception e) { plugin.getLogger().log(Level.WARNING, "Could not drain spawn writes", e); }
     }
 
     private void tick() {
@@ -186,7 +229,7 @@ public final class SpawnManager {
      * spawning.player-range of it; with nobody around it is removed, so idle NPCs cost nothing.
      */
     private void ensure(NpcDef npc, Point point, Location loc) {
-        if (points.get(npc.id()) != point) {
+        if (!running || points.get(npc.id()) != point) {
             return; // moved since this check was queued
         }
         World world = loc.getWorld();
@@ -209,7 +252,34 @@ public final class SpawnManager {
         if (alive || !playerNear) {
             return;
         }
+        if (rejected.contains(point)) return;
+        if (!validated.remove(point)) {
+            if (checking.add(point)) {
+                long expectedEpoch = epoch;
+                SafePlacement.validate(loc).whenComplete((safe, error) -> {
+                    checking.remove(point);
+                    if (!running || epoch != expectedEpoch || points.get(npc.id()) != point) return;
+                    if (error == null && Boolean.TRUE.equals(safe)) {
+                        validated.add(point);
+                        Sched.at(loc, () -> ensure(npc, point, loc));
+                    } else {
+                        rejected.add(point);
+                        plugin.getLogger().warning("Unsafe spawn for " + npc.id() + " at " + point.world() + " " + point.x() + "," + point.y() + "," + point.z()
+                                + "; use /cq npc repair " + npc.id() + " or /cq npc place " + npc.id());
+                    }
+                });
+            }
+            return;
+        }
+        // Recheck the central floor on its owning region after the snapshot search.
+        Block feet = loc.getBlock();
+        if (!TerrainSafety.floor(feet.getRelative(0, -1, 0).getType())
+                || !TerrainSafety.clear(feet.getType()) || !TerrainSafety.clear(feet.getRelative(0, 1, 0).getType())) return;
         LivingEntity entity = spawn(npc, loc);
+        if (!entity.isValid()) {
+            plugin.getLogger().warning("Spawn of " + npc.id() + " was cancelled by another plugin; check spawn protection plugins.");
+            return;
+        }
         live.put(npc.id(), entity);
         plugin.visibility().onSpawn(npc, entity);
     }
@@ -229,7 +299,7 @@ public final class SpawnManager {
             }
         }
         Consumer<Villager> setup = v -> configureVillager(v, npc, loc);
-        return world.spawn(loc, Villager.class, setup);
+        return world.spawn(loc, Villager.class, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CUSTOM, false, setup);
     }
 
     private void configureCommon(LivingEntity e, NpcDef npc, Location loc) {
@@ -238,6 +308,7 @@ public final class SpawnManager {
         e.setPersistent(false);
         e.setRemoveWhenFarAway(false);
         e.setAI(false);
+        e.setGravity(false);
         e.setInvulnerable(true);
         e.setSilent(true);
         e.setCollidable(false);
@@ -249,9 +320,7 @@ public final class SpawnManager {
                 .replace("<level>", Integer.toString(npc.level()))
                 .replace("<title>", title)));
         e.setCustomNameVisible(true);
-        if (npc.personal()) {
-            e.setVisibleByDefault(false);
-        }
+        e.setVisibleByDefault(false); // chapter visibility is applied before a player sees the NPC
     }
 
     private void configureVillager(Villager v, NpcDef npc, Location loc) {
@@ -312,12 +381,30 @@ public final class SpawnManager {
     // ------------------------------------------------------------------ editing
 
     public void place(NpcDef npc, Location loc) {
-        place(npc, loc, null, true);
+        placeChecked(npc, loc, null);
+    }
+
+    public void placeChecked(NpcDef npc, Location loc, CommandSender feedback) {
+        long token = edit(npc.id()), expectedEpoch = epoch;
+        SafePlacement.validate(loc).whenComplete((safe, error) -> {
+            if (!current(npc.id(), token, expectedEpoch)) return;
+            if (error != null || !Boolean.TRUE.equals(safe)) {
+                tell(feedback, "<red>Unsafe spot. Use solid ground with two clear blocks above it. End: no void within 10 blocks. Nether: no nearby lava or roof placement. Previous position kept.");
+                return;
+            }
+            if (commit(npc, loc, null, token, expectedEpoch)) {
+                save();
+                tell(feedback, "<green>" + Text.escape(npc.name()) + " now stands here.");
+            }
+        });
     }
 
     private void place(NpcDef npc, Location loc, int[] area, boolean save) {
         Point point = Point.of(loc, area);
-        points.put(npc.id(), point);
+        Point previous = points.put(npc.id(), point);
+        disabled.remove(npc.id());
+        if (previous != null) { validated.remove(previous); rejected.remove(previous); checking.remove(previous); }
+        validated.add(point);
         despawn(npc.id());
         if (save) {
             save();
@@ -325,13 +412,13 @@ public final class SpawnManager {
         Sched.at(loc, () -> ensure(npc, point, loc));
     }
 
-    public boolean remove(String npcId) {
+    public synchronized boolean remove(String npcId) {
+        edit(npcId);
+        disabled.add(npcId);
         boolean existed = points.remove(npcId) != null;
         despawn(npcId);
         nextRoam.remove(npcId);
-        if (existed) {
-            save();
-        }
+        save();
         return existed;
     }
 
@@ -358,14 +445,9 @@ public final class SpawnManager {
         if (world == null) {
             return;
         }
-        int[] a = point.area();
-        Random rnd = ThreadLocalRandom.current();
-        double x = Math.min(a[0], a[3]) + rnd.nextInt(Math.abs(a[3] - a[0]) + 1) + 0.5;
-        double z = Math.min(a[2], a[5]) + rnd.nextInt(Math.abs(a[5] - a[2]) + 1) + 0.5;
-        float yaw = rnd.nextFloat() * 360f - 180f;
-        ground(world, x, z, Math.min(a[1], a[4]), Math.max(a[1], a[4]), yaw, loc -> {
-            place(npc, loc, a, false);
-            Sched.async(this::save);
+        long token = edit(npc.id()), expectedEpoch = epoch;
+        search(npc, world, point.area(), 0, token, expectedEpoch, loc -> {
+            if (loc != null && commit(npc, loc, point.area(), token, expectedEpoch)) save();
         });
     }
 
@@ -375,40 +457,86 @@ public final class SpawnManager {
      * admin's pos1/pos2 selection.
      */
     public void scatter(List<NpcDef> npcs, World world, int[] box, CommandSender feedback) {
-        Random rnd = new Random();
-        List<double[]> chosen = new ArrayList<>();
-        AtomicInteger remaining = new AtomicInteger(npcs.size());
-        int minX = Math.min(box[0], box[3]);
-        int maxX = Math.max(box[0], box[3]);
-        int minY = Math.min(box[1], box[4]);
-        int maxY = Math.max(box[1], box[4]);
-        int minZ = Math.min(box[2], box[5]);
-        int maxZ = Math.max(box[2], box[5]);
-        int[] area = {minX, minY, minZ, maxX, maxY, maxZ};
-        double centerX = (minX + maxX) / 2.0 + 0.5;
-        double centerZ = (minZ + maxZ) / 2.0 + 0.5;
-        for (NpcDef npc : npcs) {
-            double[] spot = null;
-            for (int attempt = 0; attempt < 30; attempt++) {
-                double x = minX + rnd.nextInt(maxX - minX + 1) + 0.5;
-                double z = minZ + rnd.nextInt(maxZ - minZ + 1) + 0.5;
-                spot = new double[]{x, z};
-                if (chosen.stream().allMatch(c -> Math.hypot(c[0] - x, c[1] - z) >= 2)) {
-                    break;
-                }
-            }
-            chosen.add(spot);
-            float yaw = yawTowards(spot[0], spot[1], centerX, centerZ);
-            ground(world, spot[0], spot[1], minY, maxY, yaw, loc -> {
-                place(npc, loc, area, false);
-                if (remaining.decrementAndGet() == 0) {
-                    save();
-                    if (feedback != null) {
-                        plugin.send(feedback, "<green>Scattered " + npcs.size() + " NPCs. They will wander inside that area.");
-                    }
-                }
-            });
+        if (npcs.isEmpty()) { tell(feedback, "<gray>No NPCs selected."); return; }
+        long expectedEpoch = epoch;
+        Map<String, Long> tokens = new java.util.HashMap<>();
+        for (NpcDef npc : npcs) tokens.put(npc.id(), edit(npc.id()));
+        // One search at a time bounds chunk generation even for a 10,000 x 10,000 world area.
+        scatterNext(npcs, 0, world, box.clone(), feedback, tokens, expectedEpoch, new int[2]);
+    }
+
+    private void scatterNext(List<NpcDef> npcs, int index, World world, int[] area, CommandSender feedback,
+                             Map<String, Long> tokens, long expectedEpoch, int[] counts) {
+        if (!running || epoch != expectedEpoch) return;
+        if (index >= npcs.size()) {
+            save();
+            tell(feedback, "<green>Scattered " + counts[0] + " NPCs; " + counts[1]
+                    + " skipped (no safe spot or a newer edit). Previous positions kept for skipped NPCs. Quest progress preserved.");
+            return;
         }
+        NpcDef npc = npcs.get(index);
+        long token = tokens.get(npc.id());
+        search(npc, world, area, 0, token, expectedEpoch, loc -> {
+            if (loc != null && commit(npc, loc, area, token, expectedEpoch)) counts[0]++;
+            else counts[1]++;
+            scatterNext(npcs, index + 1, world, area, feedback, tokens, expectedEpoch, counts);
+        });
+    }
+
+    private void search(NpcDef npc, World world, int[] area, int attempt, long token, long expectedEpoch, Consumer<Location> done) {
+        if (!current(npc.id(), token, expectedEpoch) || attempt >= 32) { done.accept(null); return; }
+        Random rnd = ThreadLocalRandom.current();
+        int minX = Math.min(area[0], area[3]), maxX = Math.max(area[0], area[3]);
+        int minZ = Math.min(area[2], area[5]), maxZ = Math.max(area[2], area[5]);
+        double x = rnd.nextLong(minX, (long) maxX + 1) + 0.5;
+        double z = rnd.nextLong(minZ, (long) maxZ + 1) + 0.5;
+        float yaw = rnd.nextFloat() * 360f - 180f;
+        SafePlacement.find(world, x, z, Math.min(area[1], area[4]), Math.max(area[1], area[4]), yaw)
+                .whenComplete((loc, error) -> {
+                    if (!current(npc.id(), token, expectedEpoch)) { done.accept(null); return; }
+                    double spacing = Math.max(4, plugin.settings().shieldRadius * 2 + 2);
+                    boolean free = loc != null && points.entrySet().stream().noneMatch(e -> !e.getKey().equals(npc.id())
+                            && e.getValue().world().equals(world.getName()) && Math.hypot(e.getValue().x() - x, e.getValue().z() - z) < spacing);
+                    if (error == null && free) done.accept(loc);
+                    else search(npc, world, area, attempt + 1, token, expectedEpoch, done);
+                });
+    }
+
+    private synchronized long edit(String id) {
+        long token = revision.incrementAndGet(); revisions.put(id, token); return token;
+    }
+
+    private boolean current(String id, long token, long expectedEpoch) {
+        return running && epoch == expectedEpoch && revisions.getOrDefault(id, 0L) == token;
+    }
+
+    private synchronized boolean commit(NpcDef npc, Location loc, int[] area, long token, long expectedEpoch) {
+        if (!current(npc.id(), token, expectedEpoch)) return false;
+        place(npc, loc, area, false);
+        // Queue each accepted edit before a reload/shutdown can drain the writer.
+        save();
+        return true;
+    }
+
+    private void tell(CommandSender sender, String message) {
+        if (sender == null) return;
+        if (sender instanceof org.bukkit.entity.Player player) Sched.entity(player, () -> plugin.send(player, message));
+        else Sched.global(() -> plugin.send(sender, message));
+    }
+
+    public void repair(NpcDef npc, CommandSender feedback) {
+        Point point = points.get(npc.id());
+        World world = point == null ? null : Bukkit.getWorld(point.world());
+        if (world == null) { tell(feedback, "<red>No saved point or world is unavailable."); return; }
+        int x = (int) Math.floor(point.x()), z = (int) Math.floor(point.z());
+        int[] area = point.area() == null ? new int[]{x - 32, world.getMinHeight() + 1, z - 32,
+                x + 32, world.getMaxHeight() - 2, z + 32} : point.area();
+        long token = edit(npc.id()), expectedEpoch = epoch;
+        search(npc, world, area, 0, token, expectedEpoch, loc -> {
+            if (loc != null && commit(npc, loc, point.area(), token, expectedEpoch)) {
+                save(); tell(feedback, "<green>Repaired " + Text.escape(npc.name()) + " on safe terrain.");
+            } else tell(feedback, "<red>No safe spot found. Previous position kept; try /cq npc place " + npc.id());
+        });
     }
 
     /** Places every NPC that has no spawn point yet around the world spawn, act 1 close in, act 2 further out. */
@@ -416,7 +544,7 @@ public final class SpawnManager {
         List<NpcDef> act1 = new ArrayList<>();
         List<NpcDef> act2 = new ArrayList<>();
         for (NpcDef npc : plugin.npcs().all()) {
-            if (!points.containsKey(npc.id())) {
+            if (!points.containsKey(npc.id()) && !disabled.contains(npc.id())) {
                 (npc.act() <= 1 ? act1 : act2).add(npc);
             }
         }
@@ -430,60 +558,28 @@ public final class SpawnManager {
             return;
         }
         Location spawn = world.getSpawnLocation();
-        int total = act1.size() + act2.size();
-        AtomicInteger remaining = new AtomicInteger(total);
-        Runnable finished = () -> {
-            if (remaining.decrementAndGet() == 0) {
-                save();
-                plugin.getLogger().info("Auto-placed " + total + " NPCs around spawn in " + world.getName()
-                        + ". Move them with /cq npc place or /cq scatter.");
-            }
-        };
-        ring(world, spawn, act1, plugin.settings().act1Min, plugin.settings().act1Max, finished);
-        ring(world, spawn, act2, plugin.settings().act2Min, plugin.settings().act2Max, finished);
+        List<NpcDef> all = new ArrayList<>(act1); all.addAll(act2);
+        Map<String, Long> tokens = new java.util.HashMap<>();
+        for (NpcDef npc : all) tokens.put(npc.id(), edit(npc.id()));
+        autoNext(world, spawn, all, 0, tokens, epoch, new int[2]);
     }
 
-    private void ring(World world, Location center, List<NpcDef> npcs, double min, double max, Runnable finished) {
-        int n = npcs.size();
-        for (int i = 0; i < n; i++) {
-            NpcDef npc = npcs.get(i);
-            // Sunflower spiral: even spacing without visible rows.
-            double radius = min + (max - min) * Math.sqrt((i + 0.5) / n);
-            double angle = i * GOLDEN_ANGLE;
-            double x = Math.floor(center.getX() + Math.cos(angle) * radius) + 0.5;
-            double z = Math.floor(center.getZ() + Math.sin(angle) * radius) + 0.5;
-            float yaw = yawTowards(x, z, center.getX(), center.getZ());
-            ground(world, x, z, null, null, yaw, loc -> {
-                Point point = Point.of(loc, null);
-                points.put(npc.id(), point);
-                ensure(npc, point, loc);
-                finished.run();
-            });
+    private void autoNext(World world, Location center, List<NpcDef> npcs, int index, Map<String, Long> tokens, long expectedEpoch, int[] counts) {
+        if (!running || epoch != expectedEpoch) return;
+        if (index >= npcs.size()) {
+            save();
+            plugin.getLogger().info("Auto-placed " + counts[0] + " NPCs around spawn in " + world.getName() + "; " + counts[1] + " skipped. Use /cq npc list or /cq scatterworld.");
+            return;
         }
-    }
-
-    /** Finds a standable block at x/z on that region's thread and hands back the location there. */
-    private void ground(World world, double x, double z, Integer minY, Integer maxY, float yaw, Consumer<Location> done) {
-        Location probe = new Location(world, x, world.getMinHeight(), z);
-        world.getChunkAtAsync(probe).thenAccept(chunk -> Sched.at(probe, () -> {
-            int y = findY(world, (int) Math.floor(x), (int) Math.floor(z), minY, maxY);
-            done.accept(new Location(world, x, y, z, yaw, 0f));
-        }));
-    }
-
-    private static int findY(World world, int x, int z, Integer minY, Integer maxY) {
-        if (minY != null && maxY != null) {
-            int top = Math.min(maxY, world.getMaxHeight() - 3);
-            for (int y = top; y >= Math.max(minY - 1, world.getMinHeight()); y--) {
-                Block floor = world.getBlockAt(x, y, z);
-                if (floor.getType().isSolid()
-                        && floor.getRelative(0, 1, 0).isPassable()
-                        && floor.getRelative(0, 2, 0).isPassable()) {
-                    return y + 1;
-                }
-            }
-        }
-        return world.getHighestBlockYAt(x, z) + 1;
+        NpcDef npc = npcs.get(index);
+        int radius = (int) Math.ceil(npc.act() <= 1 ? plugin.settings().act1Max : plugin.settings().act2Max);
+        int x = center.getBlockX(), z = center.getBlockZ();
+        int[] area = {x - radius, world.getMinHeight() + 1, z - radius, x + radius, world.getMaxHeight() - 2, z + radius};
+        long token = tokens.get(npc.id());
+        search(npc, world, area, 0, token, expectedEpoch, loc -> {
+            if (loc != null && commit(npc, loc, null, token, expectedEpoch)) counts[0]++; else counts[1]++;
+            autoNext(world, center, npcs, index + 1, tokens, expectedEpoch, counts);
+        });
     }
 
     private static float yawTowards(double fromX, double fromZ, double toX, double toZ) {

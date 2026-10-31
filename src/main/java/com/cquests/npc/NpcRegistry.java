@@ -17,10 +17,12 @@ public final class NpcRegistry {
 
     private final Map<String, NpcDef> npcs = new LinkedHashMap<>();
     private Settings settings;
+    private final Map<String, Integer> chapters = new LinkedHashMap<>();
 
     public void load(File file, Settings settings, Logger log) {
         this.settings = settings;
         npcs.clear();
+        chapters.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         ConfigurationSection root = yaml.getConfigurationSection("npcs");
         if (root == null) {
@@ -33,6 +35,7 @@ public final class NpcRegistry {
                 continue;
             }
             String key = id.toLowerCase(Locale.ROOT);
+            if (s.contains("chapter")) chapters.put(key, Math.max(1, s.getInt("chapter")));
             npcs.put(key, new NpcDef(
                     key,
                     s.getString("name", id),
@@ -52,8 +55,21 @@ public final class NpcRegistry {
     }
 
     public NpcDef get(String id) {
-        return id == null ? null : npcs.get(id.toLowerCase(Locale.ROOT));
+        if (id == null) return null;
+        NpcDef exact = npcs.get(id.toLowerCase(Locale.ROOT));
+        if (exact != null) return exact;
+        String lookup = id.replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT);
+        NpcDef match = null;
+        for (NpcDef npc : npcs.values()) {
+            if (npc.name().replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT).equals(lookup)) {
+                if (match != null) return null;
+                match = npc;
+            }
+        }
+        return match;
     }
+
+    public int chapter(String id) { return chapters.getOrDefault(id, 0); }
 
     public Collection<NpcDef> all() {
         return npcs.values();

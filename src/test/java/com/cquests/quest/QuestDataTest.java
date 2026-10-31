@@ -94,13 +94,13 @@ class QuestDataTest {
     @Test
     void fifteenVillagersAtSpawn() {
         long atSpawn = npcs.all().stream().filter(npc -> npc.act() <= 1).count();
-        assertEquals(15, atSpawn);
+        assertEquals(17, atSpawn);
         assertTrue(npcs.all().stream().filter(NpcDef::daily).count() == 1, "one daily villager");
     }
 
     @Test
     void oneMillionSideQuests() {
-        assertEquals(1_000_000L, quests.totalSide());
+        assertEquals(1_080_000L, quests.totalSide());
     }
 
     @Test

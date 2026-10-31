@@ -11,8 +11,7 @@ commands:
   quests:
     description: Open your quest menu.
     aliases: [quest, journal, q]
-    permission: quests.use
-    usage: /quests [book|list|track|story|accept|abandon <quest>]
+    usage: /quests [book|menu|settings|mode|directions|achievements|list|track|story|accept|abandon <quest>]
   cquests:
     description: CQuests admin commands.
     aliases: [cq]

@@ -28,6 +28,9 @@ public final class PlayerData {
     /** Where to put the player back if they log out during the ending cinematic: "world;x;y;z;yaw;pitch;GAMEMODE". */
     String finaleReturn;
     boolean storyBookGiven;
+    Boolean trackerOn;
+    Boolean directionsOn;
+    String menuMode;
     private volatile boolean dirty;
     /** Save ordering, see PlayerStore. */
     long saveSeq;
@@ -42,6 +45,24 @@ public final class PlayerData {
     public UUID uuid() {
         return uuid;
     }
+
+    public synchronized boolean trackerOn(boolean defaultValue) {
+        return trackerOn == null ? defaultValue : trackerOn;
+    }
+
+    public synchronized void setTrackerOn(boolean value) { trackerOn = value; dirty = true; }
+
+    public synchronized boolean directionsOn(boolean defaultValue) {
+        return directionsOn == null ? defaultValue : directionsOn;
+    }
+
+    public synchronized void setDirectionsOn(boolean value) { directionsOn = value; dirty = true; }
+
+    public synchronized String menuMode(String defaultValue) {
+        return menuMode == null ? defaultValue : menuMode;
+    }
+
+    public synchronized void setMenuMode(String value) { menuMode = value; dirty = true; }
 
     public synchronized Map<String, ActiveQuest> active() {
         return active;
@@ -89,6 +110,8 @@ public final class PlayerData {
     public synchronized boolean hasMet(String npcId) {
         return met.contains(npcId);
     }
+
+    public synchronized int metCount() { return met.size(); }
 
     public synchronized boolean meet(String npcId) {
         boolean added = met.add(npcId);

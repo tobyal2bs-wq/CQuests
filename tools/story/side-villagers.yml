@@ -1,0 +1,81 @@
+# Optional side villagers. Keep their IDs stable to preserve player progress.
+  luma:
+    name: "Luma"
+    title: "Lantern Keeper"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 1
+    act: 1
+    chapter: 1
+    intro: ["I keep a lantern burning for every traveler who hasn't found home.", "A little help keeps the whole camp bright."]
+    idle: ["Small kindnesses have a habit of finding their way back."]
+  copper_jack:
+    name: "Copper Jack"
+    title: "Camp Tinkerer"
+    profession: TOOLSMITH
+    skin: TAIGA
+    level: 5
+    act: 1
+    chapter: 1
+    intro: ["If it rattles, bring it to Jack. If it explodes, bring it to someone else.", "There's always another odd job on my bench."]
+    idle: ["One day I'll build something that works on the first try."]
+  map:
+    name: "M.A.P."
+    title: "Mostly Accurate Pathfinder"
+    profession: CARTOGRAPHER
+    skin: DESERT
+    level: 20
+    act: 2
+    chapter: 2
+    intro: ["Mostly Accurate Pathfinder, at your service.", "The mostly is doing a lot of work. Don't tell B.O.B."]
+    idle: ["If we get lost together, that still counts as an expedition."]
+  fern_gardener:
+    name: "Fern Greenbough"
+    title: "Keeper of Seeds"
+    profession: FARMER
+    skin: JUNGLE
+    level: 25
+    act: 2
+    chapter: 2
+    intro: ["I brought seeds from the old city. Every new shoot feels like a promise."]
+    idle: ["Come back when you need a quiet job and a little fresh air."]
+  nox:
+    name: "Nox"
+    title: "Night Watch"
+    profession: WEAPONSMITH
+    skin: TAIGA
+    level: 45
+    act: 2
+    chapter: 3
+    intro: ["The night isn't empty. Listen long enough and it tells you where help is needed."]
+    idle: ["The next watch is easier with a friend."]
+  ember:
+    name: "Ember"
+    title: "The Wandering Smith"
+    profession: ARMORER
+    skin: SAVANNA
+    level: 65
+    act: 2
+    chapter: 4
+    intro: ["A city can fall. A good hammer can still build another."]
+    idle: ["Every finished job brings us closer to home."]
+  astra:
+    name: "Astra"
+    title: "Star Reader"
+    profession: CLERIC
+    skin: SNOW
+    level: 80
+    act: 2
+    chapter: 5
+    intro: ["Even above the ruins, the stars remember our names."]
+    idle: ["Our story has more pages than we thought."]
+  tilly_weaver:
+    name: "Tilly Weaver"
+    title: "Keeper of Tomorrow"
+    profession: SHEPHERD
+    skin: SWAMP
+    level: 85
+    act: 2
+    chapter: 5
+    intro: ["Someone has to plan the first ordinary day after all this is over.", "We'll start with blankets, bread, and a place for everyone."]
+    idle: ["There's good work left to do, even after the grand adventures."]

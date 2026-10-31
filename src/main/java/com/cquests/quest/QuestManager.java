@@ -116,6 +116,7 @@ public final class QuestManager {
 
     /** Side quests needed for the previous story villager before this story quest opens. */
     public int sideRequired(Quest quest) {
+        if (!settings().sideGatesEnabled) return 0;
         return quest.sideRequired() >= 0 ? quest.sideRequired() : settings().sideQuestsPerChapter;
     }
 
@@ -203,6 +204,7 @@ public final class QuestManager {
 
     public Offer nextOffer(Player player, NpcDef npc) {
         PlayerData data = data(player);
+        if (!shouldSee(data, npc)) return Offer.none("locked");
         if (npc.daily()) {
             return dailyOffer(player, data);
         }
@@ -526,6 +528,7 @@ public final class QuestManager {
         if (quest.category() == QuestCategory.STORY) {
             plugin.finale().achievements().onStoryQuest(player, quest);
         }
+        plugin.finale().achievements().sync(player);
         // Persist before paying out, so a crash can't leave the quest claimable with the reward already given.
         plugin.store().saveNow(data);
         plugin.send(player, settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")
@@ -614,10 +617,15 @@ public final class QuestManager {
 
     /** Personal NPCs only show for players who met them, need them for a quest, or are due to meet them next. */
     public boolean shouldSee(PlayerData data, NpcDef npc) {
+        // Active quests always keep their participants visible, including shared chapter NPCs.
+        for (Quest quest : activeQuests(data)) if (quest.involves(npc.id())) return true;
+        Quest next = nextStoryQuest(data);
+        int chapter = next == null ? Integer.MAX_VALUE : next.chapter();
+        if (quests().firstChapter(npc.id()) > chapter) return false;
         if (settings().hideFinishedVillagers && finishedWith(data, npc)) {
             return false;
         }
-        if (!npc.personal() || data.hasMet(npc.id())) {
+        if (!npc.personal() || data.hasMet(npc.id()) || quests().firstChapter(npc.id()) <= chapter) {
             return true;
         }
         for (Quest quest : activeQuests(data)) {
@@ -652,6 +660,8 @@ public final class QuestManager {
                 return false;
             }
         }
+        // Optional side work remains available after the story has moved on.
+        if (quests().sidePerNpc() > 0 && data.sideDone(npc.id()) < quests().sidePerNpc()) return false;
         Quest next = quests().nextStory(own.get(own.size() - 1));
         return next == null || data.isCompleted(next.id()) || !npc.id().equals(chapterGate(data, next));
     }

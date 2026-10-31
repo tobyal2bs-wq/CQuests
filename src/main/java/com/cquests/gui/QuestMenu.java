@@ -32,7 +32,7 @@ import java.util.Map;
  * along the bottom. A chest menu reads well on Java and on Bedrock through Geyser. Every click is
  * cancelled by {@link MenuListener}, so nothing can be taken out of it.
  */
-public final class QuestMenu implements InventoryHolder {
+public final class QuestMenu implements LockedMenu {
 
     private static final int[] QUEST_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
     private static final int CHAPTER_ROW = 36;
@@ -64,6 +64,8 @@ public final class QuestMenu implements InventoryHolder {
     public Inventory getInventory() {
         return inventory;
     }
+
+    public java.util.UUID viewer() { return player.getUniqueId(); }
 
     private void fill() {
         inventory.clear();
@@ -98,6 +100,11 @@ public final class QuestMenu implements InventoryHolder {
         boolean on = plugin.tracker().enabled(player);
         inventory.setItem(SLOT_TRACKER, item(Material.COMPASS, "<aqua>Quest tracker: " + (on ? "<green>on" : "<red>off"),
                 List.of("<gray>The bar at the top of your screen.", "<yellow>Click to turn it " + (on ? "off" : "on") + ".")));
+        inventory.setItem(46, item(Material.RECOVERY_COMPASS, "<white>Directions: " + (plugin.directions().enabled(player) ? "<green>on" : "<gray>off"),
+                List.of("<gray>An arrow and distance to your villager.", "<yellow>Click to toggle.")));
+        inventory.setItem(52, item(Material.WRITABLE_BOOK, "<white>Dialogue: " + data.menuMode(plugin.settings().defaultMenu),
+                List.of("<gray>Book, chest menu or chat.", "<yellow>Click to change.")));
+        inventory.setItem(47, item(Material.EMERALD, "<white>Milestones", List.of("<gray>View your next achievement.", "<yellow>Click to open.")));
     }
 
     private ItemStack chapterItem(PlayerData data) {
@@ -235,7 +242,7 @@ public final class QuestMenu implements InventoryHolder {
     }
 
     /** Called by the listener for a click in the top inventory; the click itself is already cancelled. */
-    void click(int slot, ClickType type) {
+    public void click(int slot, ClickType type) {
         String questId = questAt.get(slot);
         if (questId != null) {
             Quest quest = plugin.quests().get(questId);
@@ -255,6 +262,15 @@ public final class QuestMenu implements InventoryHolder {
             return;
         }
         switch (slot) {
+            case 46 -> { plugin.directions().toggle(player); fill(); }
+            case 47 -> { player.closeInventory(); plugin.finale().achievements().show(player); }
+            case 52 -> {
+                PlayerData data = plugin.questManager().data(player);
+                String current = data.menuMode(plugin.settings().defaultMenu);
+                data.setMenuMode(current.equals("book") ? "menu" : current.equals("menu") ? "chat" : "book");
+                plugin.store().saveNow(data);
+                fill();
+            }
             case SLOT_BOOK -> {
                 player.closeInventory();
                 plugin.book().open(player);
@@ -281,7 +297,7 @@ public final class QuestMenu implements InventoryHolder {
         return stack;
     }
 
-    private static ItemStack item(Material material, String name, List<String> lore) {
+    public static ItemStack item(Material material, String name, List<String> lore) {
         ItemStack stack = new ItemStack(material);
         ItemMeta meta = stack.getItemMeta();
         meta.displayName(Text.mm("<!italic>" + name));

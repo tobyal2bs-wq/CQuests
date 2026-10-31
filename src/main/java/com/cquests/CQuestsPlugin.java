@@ -9,6 +9,7 @@ import com.cquests.dialogue.DialogueManager;
 import com.cquests.finale.Finale;
 import com.cquests.gui.MenuListener;
 import com.cquests.gui.Tracker;
+import com.cquests.gui.Directions;
 import com.cquests.listener.NpcListener;
 import com.cquests.listener.ProgressListener;
 import com.cquests.listener.ShieldListener;
@@ -44,6 +45,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     private QuestBook book;
     private Finale finale;
     private Tracker tracker;
+    private Directions directions;
+    private ScheduledTask displayTicker;
     private NpcShield shield;
     private ScheduledTask autosave;
     private BackupManager backups;
@@ -59,6 +62,7 @@ public final class CQuestsPlugin extends JavaPlugin {
             }
         }
 
+        ContentUpgrade.apply(this);
         store = new PlayerStore(getDataFolder(), getLogger());
         questManager = new QuestManager(this);
         spawns = new SpawnManager(this);
@@ -67,6 +71,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         book = new QuestBook(this);
         finale = new Finale(this);
         tracker = new Tracker(this);
+        directions = new Directions(this);
         shield = new NpcShield(this);
 
         loadData();
@@ -85,10 +90,17 @@ public final class CQuestsPlugin extends JavaPlugin {
         autosave = Sched.asyncTimer(store::saveDirtyAsync, 60);
         backups = new BackupManager(this);
         backups.start();
+        displayTicker = Sched.globalTimer(t -> {
+            for (var player : getServer().getOnlinePlayers()) Sched.entity(player, () -> {
+                tracker.update(player); directions.update(player);
+            });
+        }, 20, 10);
     }
 
     @Override
     public void onDisable() {
+        if (displayTicker != null) displayTicker.cancel();
+        if (spawns != null) spawns.shutdown();
         if (autosave != null) {
             autosave.cancel();
         }
@@ -120,6 +132,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     }
 
     public void reload() {
+        dialogue.invalidateAll();
         spawns.stop();
         store.saveDirtyAsync();
         loadData();
@@ -179,6 +192,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     public Tracker tracker() {
         return tracker;
     }
+
+    public Directions directions() { return directions; }
 
     public Finale finale() {
         return finale;

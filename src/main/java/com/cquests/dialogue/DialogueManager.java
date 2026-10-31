@@ -39,6 +39,8 @@ public final class DialogueManager {
     private final CQuestsPlugin plugin;
     private final Set<UUID> talking = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Pending> pending = new ConcurrentHashMap<>();
+    private record Response(String token, String npc, long expires, Runnable action) {}
+    private final Map<UUID, Response> responses = new ConcurrentHashMap<>();
 
     public DialogueManager(CQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -51,6 +53,7 @@ public final class DialogueManager {
     public void forget(Player player) {
         talking.remove(player.getUniqueId());
         pending.remove(player.getUniqueId());
+        responses.remove(player.getUniqueId());
     }
 
     public void onClick(Player player, NpcDef npc, Entity entity) {
@@ -62,11 +65,14 @@ public final class DialogueManager {
             Sched.entity(entity, () -> face(entity, eye));
         }
         PlayerData data = qm().data(player);
+        if (!qm().shouldSee(data, npc)) return;
+        responses.remove(player.getUniqueId());
         List<Line> lines = new ArrayList<>();
 
         if (data.meet(npc.id())) {
             npc.intro().forEach(text -> lines.add(new Line(true, text)));
             plugin.visibility().refresh(player);
+            plugin.finale().achievements().sync(player);
         }
 
         boolean talked = qm().talk(player, npc.id());
@@ -81,13 +87,16 @@ public final class DialogueManager {
                 complete.forEach(text -> lines.add(new Line(true, text)));
             }
             speak(player, npc, lines, () -> {
-                ready.forEach(quest -> qm().complete(player, quest));
+                ready.forEach(quest -> {
+                    ActiveQuest active = qm().data(player).active(quest.id());
+                    if (active != null && qm().ready(quest, active)) qm().complete(player, quest);
+                });
                 // Point new players at the next step instead of leaving them guessing.
                 if (qm().nextOffer(player, npc).quest() != null) {
                     plugin.send(player, plugin.settings().msg("more-work", "<yellow><npc> has more work for you. Click them again.")
                             .replace("<npc>", plugin.npcs().mention(npc.id())));
                 }
-            });
+            }, "Claim rewards");
             return;
         }
 
@@ -109,7 +118,7 @@ public final class DialogueManager {
         if (offer.quest() != null) {
             Quest quest = offer.quest();
             Pending previous = pending.get(player.getUniqueId());
-            if (previous != null && previous.npcId().equals(npc.id()) && previous.questId().equals(quest.id())
+            if (mode(player).equals("chat") && previous != null && previous.npcId().equals(npc.id()) && previous.questId().equals(quest.id())
                     && previous.expires() > System.currentTimeMillis() && lines.isEmpty()) {
                 pending.remove(player.getUniqueId());
                 qm().accept(player, quest);
@@ -117,9 +126,14 @@ public final class DialogueManager {
             }
             offerLines(quest).forEach(text -> lines.add(new Line(true, text)));
             lines.add(new Line(false, rewardPreview(quest)));
-            lines.add(new Line(false, acceptPrompt(player)));
-            speak(player, npc, lines, () -> pending.put(player.getUniqueId(),
-                    new Pending(npc.id(), quest.id(), System.currentTimeMillis() + plugin.settings().acceptTimeoutMillis)));
+            pending.put(player.getUniqueId(), new Pending(npc.id(), quest.id(),
+                    System.currentTimeMillis() + plugin.settings().acceptTimeoutMillis));
+            if (mode(player).equals("chat")) {
+                lines.add(new Line(false, acceptPrompt(player)));
+                speak(player, npc, lines, null);
+            } else {
+                speak(player, npc, lines, () -> acceptPending(player), "Accept quest");
+            }
             return;
         }
 
@@ -160,7 +174,7 @@ public final class DialogueManager {
         }
         NpcDef npc = plugin.npcs().get(offer.npcId());
         Quest quest = plugin.quests().get(offer.questId());
-        if (npc == null || quest == null) {
+        if (npc == null || quest == null || !near(player, npc.id())) {
             return false;
         }
         QuestManager.Offer current = qm().nextOffer(player, npc);
@@ -215,6 +229,46 @@ public final class DialogueManager {
     }
 
     private void speak(Player player, NpcDef npc, List<Line> lines, Runnable after) {
+        speak(player, npc, lines, after, "Continue");
+    }
+
+    private String mode(Player player) {
+        return qm().data(player).menuMode(plugin.settings().defaultMenu);
+    }
+
+    private boolean near(Player player, String npcId) {
+        var point = plugin.spawns().points().get(npcId);
+        var npc = plugin.npcs().get(npcId);
+        if (point == null || npc == null || !qm().shouldSee(qm().data(player), npc)) return false;
+        Location loc = point.location();
+        return loc != null && loc.getWorld().equals(player.getWorld()) && loc.distanceSquared(player.getLocation()) <= 64;
+    }
+
+    public boolean respond(Player player, String token) {
+        Response response = responses.get(player.getUniqueId());
+        if (response == null || !response.token().equals(token) || response.expires() < System.currentTimeMillis()
+                || !near(player, response.npc())) return false;
+        if (!responses.remove(player.getUniqueId(), response)) return false;
+        player.closeInventory();
+        response.action().run();
+        return true;
+    }
+
+    public void invalidateAll() {
+        pending.clear(); responses.clear(); talking.clear();
+    }
+
+    private void speak(Player player, NpcDef npc, List<Line> lines, Runnable after, String label) {
+        if (!mode(player).equals("chat")) {
+            String token = after == null ? null : UUID.randomUUID().toString();
+            if (after != null) responses.put(player.getUniqueId(), new Response(token, npc.id(),
+                    System.currentTimeMillis() + plugin.settings().acceptTimeoutMillis, after));
+            List<String> text = lines.stream().map(line -> qm().fill(line.text(), player)).toList();
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_AMBIENT, 0.6f, 1f);
+            if (mode(player).equals("menu")) new DialogueView(plugin, player, npc, text, label, token).open();
+            else DialogueView.openBook(plugin, player, npc, text, label, token);
+            return;
+        }
         if (lines.isEmpty()) {
             if (after != null) {
                 after.run();

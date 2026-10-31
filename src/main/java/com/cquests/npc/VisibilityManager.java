@@ -40,7 +40,7 @@ public final class VisibilityManager {
         }
         for (Map.Entry<String, LivingEntity> entry : plugin.spawns().live().entrySet()) {
             NpcDef npc = plugin.npcs().get(entry.getKey());
-            if (npc != null && !npc.daily()) {
+            if (npc != null) {
                 show(player, entry.getValue(), plugin.questManager().shouldSee(data, npc));
             }
         }
@@ -48,9 +48,6 @@ public final class VisibilityManager {
 
     /** An NPC was (re)spawned; show or hide it for everyone online. */
     public void onSpawn(NpcDef npc, LivingEntity villager) {
-        if (npc.daily()) {
-            return;
-        }
         for (Player player : Bukkit.getOnlinePlayers()) {
             Sched.entity(player, () -> {
                 PlayerData data = plugin.store().cached(player.getUniqueId());
@@ -68,10 +65,6 @@ public final class VisibilityManager {
         if (visible) {
             player.showEntity(plugin, villager);
         } else {
-            if (player.canSee(villager) && player.getWorld().equals(villager.getWorld())) {
-                // A little puff of smoke, only for this player, so the villager doesn't just blink out.
-                player.spawnParticle(Particle.POOF, villager.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, 0.02);
-            }
             player.hideEntity(plugin, villager);
         }
     }

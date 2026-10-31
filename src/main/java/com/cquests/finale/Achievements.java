@@ -45,7 +45,9 @@ public final class Achievements {
 
     /** Registers any advancement that isn't loaded yet. Call at startup and after a reload. */
     public void register() {
-        String parent = "minecraft:adventure/root";
+        NamespacedKey rootKey = new NamespacedKey(plugin, "wanderers");
+        load(rootKey, json(null, "minecraft:written_book", "The Wanderers", "Write your own story in Dawn SMP", "task", "aqua"));
+        String parent = rootKey.toString();
         int loaded = 0;
         for (int chapter : chapters()) {
             NamespacedKey key = chapterKey(chapter);
@@ -63,7 +65,11 @@ public final class Achievements {
                 plugin.settings().advancementDescription, "challenge", "gold"))) {
             loaded++;
         }
-        plugin.getLogger().info("Registered " + loaded + " achievements (" + chapters().size() + " chapters and the ending)");
+        for (Milestones.Goal goal : Milestones.ALL) {
+            if (load(new NamespacedKey(plugin, goal.id()), json(rootKey.toString(), goal.icon(), goal.title(),
+                    goal.description(), goal.target() >= 100 ? "challenge" : "task", "aqua"))) loaded++;
+        }
+        plugin.getLogger().info("Registered " + (loaded + 1) + " achievements (chapters, ending and milestones)");
     }
 
     private TreeSet<Integer> chapters() {
@@ -114,6 +120,10 @@ public final class Achievements {
             return;
         }
         List<Quest> story = plugin.quests().story();
+        if (data.startedAt() > 0) grant(player, new NamespacedKey(plugin, "wanderers"), false);
+        for (Milestones.Goal goal : Milestones.ALL) {
+            if (goal.value(data) >= goal.target()) grant(player, new NamespacedKey(plugin, goal.id()), false);
+        }
         for (int i = 0; i < story.size(); i++) {
             Quest quest = story.get(i);
             boolean lastOfChapter = i + 1 == story.size() || story.get(i + 1).chapter() != quest.chapter();
@@ -139,6 +149,8 @@ public final class Achievements {
         List<NamespacedKey> keys = new java.util.ArrayList<>();
         chapters().forEach(c -> keys.add(chapterKey(c)));
         keys.add(journeyKey());
+        keys.add(new NamespacedKey(plugin, "wanderers"));
+        for (Milestones.Goal goal : Milestones.ALL) keys.add(new NamespacedKey(plugin, goal.id()));
         for (NamespacedKey key : keys) {
             Advancement advancement = Bukkit.getAdvancement(key);
             if (advancement == null) {
@@ -184,6 +196,7 @@ public final class Achievements {
         display.addProperty("show_toast", true);
         display.addProperty("announce_to_chat", true);
         display.addProperty("hidden", false);
+        if (parent == null) display.addProperty("background", "minecraft:textures/gui/advancements/backgrounds/adventure.png");
 
         JsonObject trigger = new JsonObject();
         trigger.addProperty("trigger", "minecraft:impossible");
@@ -195,10 +208,20 @@ public final class Achievements {
         requirements.add(requirement);
 
         JsonObject root = new JsonObject();
-        root.addProperty("parent", parent);
+        if (parent != null) root.addProperty("parent", parent);
         root.add("display", display);
         root.add("criteria", criteria);
         root.add("requirements", requirements);
         return root.toString();
+    }
+
+    public void show(Player player) {
+        PlayerData data = plugin.questManager().data(player);
+        plugin.send(player, "<gold><bold>Your milestones</bold> <white>• Optional goals, earned at your pace");
+        for (Milestones.Goal goal : Milestones.ALL) {
+            long value = Math.min(goal.target(), goal.value(data));
+            plugin.send(player, (value == goal.target() ? "<green>✔ " : "<white>○ ") + Text.escape(goal.title())
+                    + " <aqua>" + value + "/" + goal.target() + " <gray>" + Text.escape(goal.kind()));
+        }
     }
 }

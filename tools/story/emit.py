@@ -1,4 +1,5 @@
-import json, sys
+import json, sys, re
+from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 from story import R, DAILY
 out_dir = sys.argv[2]
@@ -74,6 +75,13 @@ for i, r in enumerate(R):
     (id, name, prof, skin, title, intro, qname, objs, offer, desc, complete, idle) = r
     act = 1 if i < 14 else 2
     npcs.append(npc_block(id, name, prof, skin, title, i, act, act == 2, False, intro, idle))
+
+# Keep the optional 1.1 villagers when regenerating Claude's original story.
+extras = Path(__file__).with_name("side-villagers.yml").read_text(encoding="utf-8")
+extra_ids = re.findall(r"^  ([a-z0-9_]+):", extras, re.M)
+assert len(extra_ids) == len(set(extra_ids))
+assert not set(extra_ids).intersection(ids + [DAILY[0]])
+npcs.append(extras.rstrip() + "\n")
 
 qs = ["# Story quests: the linked chain through all 100 villagers, done in order. Finishing the last one plays the ending.",
       "# big: true plays a celebration (the last quest of each chapter always does). Before a story quest opens, players",

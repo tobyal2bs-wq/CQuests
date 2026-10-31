@@ -197,6 +197,7 @@ final class TestCommand {
             }
             undo.putIfAbsent(key(player, npc), new Undo(changed, data.sideDone(npc.id())));
             Quest next = plugin.quests().nextStory(own.get(own.size() - 1));
+            data.setSideDone(npc.id(), plugin.quests().sidePerNpc());
             if (next != null) {
                 data.setSideDone(npc.id(), Math.max(data.sideDone(npc.id()), plugin.questManager().sideRequired(next)));
             }
@@ -204,7 +205,8 @@ final class TestCommand {
         plugin.store().saveNow(data);
         plugin.visibility().refresh(player);
         if (plugin.questManager().finishedWith(data, npc)) {
-            plugin.send(player, "<green>" + Text.escape(npc.name()) + " is finished for you and should vanish in a puff of smoke."
+            plugin.send(player, "<green>" + Text.escape(npc.name()) + " is finished for you."
+                    + (plugin.settings().hideFinishedVillagers ? " It is hidden if no active quest needs it." : " Enable spawning.hide-finished-villagers to hide it.")
                     + " <gray>Undo with <yellow>/cq test unfinish " + npc.id() + "</yellow>.");
         } else {
             plugin.send(player, "<yellow>" + Text.escape(npc.name()) + " still shows because one of your active quests needs it.");

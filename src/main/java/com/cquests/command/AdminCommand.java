@@ -56,6 +56,7 @@ public final class AdminCommand implements TabExecutor {
             case "npc" -> npc(sender, args);
             case "pos1", "pos2" -> pos(sender, args[0].equalsIgnoreCase("pos1") ? 0 : 1);
             case "scatter" -> scatter(sender, args);
+            case "scatterworld" -> scatterWorld(sender, args);
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
             case "finale" -> finale(sender, args);
@@ -78,6 +79,7 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq npc tp <id></yellow> <gray>teleport to an NPC
                 <yellow>/cq pos1</yellow>, <yellow>/cq pos2</yellow> <gray>select a box for scattering
                 <yellow>/cq scatter <ids|act1|act2|all> [wg-region]</yellow> <gray>spread NPCs in a region or your box
+                <yellow>/cq scatterworld chapter1 10000 10000 [world] [centerX centerZ]</yellow> <gray>safe world scatter; keeps progress
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
                 <yellow>/cq quest <id></yellow> <gray>show a quest's details
                 <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic
@@ -98,7 +100,8 @@ public final class AdminCommand implements TabExecutor {
                 placed += has ? 1 : 0;
                 rows.add((has ? "<green>" : "<red>") + npc.id() + "</" + (has ? "green" : "red") + ">");
             }
-            out.append(placed).append('/').append(rows.size()).append(" placed)</gray>\n").append(String.join("<gray>, ", rows));
+            out.append(placed).append('/').append(rows.size()).append(" placed; ").append(plugin.spawns().live().size())
+                    .append(" currently spawned near players)</gray>\n").append(String.join("<gray>, ", rows));
             plugin.send(sender, out.toString());
             return;
         }
@@ -117,8 +120,20 @@ public final class AdminCommand implements TabExecutor {
                     sender.sendMessage("Run this in game.");
                     return;
                 }
-                plugin.spawns().place(npc, player.getLocation());
-                plugin.send(sender, "<green>" + Text.escape(npc.name()) + " now stands here.");
+                plugin.spawns().placeChecked(npc, player.getLocation(), sender);
+            }
+            case "repair" -> plugin.spawns().repair(npc, sender);
+            case "rename" -> {
+                if (args.length < 4) { plugin.send(sender, "<red>/cq npc rename <id> <Display Name>"); return; }
+                String name = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
+                if (name.length() > 48) { plugin.send(sender, "<red>Use a name of 48 characters or fewer."); return; }
+                var file = new File(plugin.getDataFolder(), "npcs.yml");
+                var yaml = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+                yaml.set("npcs." + npc.id() + ".name", name);
+                try {
+                    yaml.save(file); plugin.reload();
+                    plugin.send(sender, "<green>Display name changed to " + Text.escape(name) + ". Quest IDs and progress preserved.");
+                } catch (IOException e) { plugin.send(sender, "<red>Could not save name: " + Text.escape(e.getMessage())); }
             }
             case "remove" -> plugin.send(sender, plugin.spawns().remove(npc.id())
                     ? "<green>Removed " + Text.escape(npc.name()) + " from the map."
@@ -192,6 +207,12 @@ public final class AdminCommand implements TabExecutor {
     private List<NpcDef> selectNpcs(String spec) {
         List<NpcDef> out = new ArrayList<>();
         String lower = spec.toLowerCase(Locale.ROOT);
+        if (lower.matches("chapter[1-9][0-9]*")) {
+            try {
+                int chapter = Integer.parseInt(lower.substring(7));
+                return plugin.npcs().all().stream().filter(n -> plugin.quests().firstChapter(n.id()) == chapter).toList();
+            } catch (NumberFormatException e) { return List.of(); }
+        }
         for (NpcDef npc : plugin.npcs().all()) {
             boolean match = switch (lower) {
                 case "all" -> true;
@@ -212,6 +233,29 @@ public final class AdminCommand implements TabExecutor {
             }
         }
         return out;
+    }
+
+    private void scatterWorld(CommandSender sender, String[] args) {
+        if (args.length < 4 || args.length == 6 || args.length > 7) {
+            plugin.send(sender, "<red>/cq scatterworld <chapter1|chapter2|all|id,id> <width> <depth> [world] [centerX centerZ]"); return;
+        }
+        try {
+            int width = Integer.parseInt(args[2]), depth = Integer.parseInt(args[3]);
+            if (width < 16 || depth < 16 || width > 100000 || depth > 100000) throw new IllegalArgumentException();
+            World world = args.length >= 5 ? Bukkit.getWorld(args[4]) : sender instanceof Player p ? p.getWorld() : Bukkit.getWorlds().get(0);
+            if (world == null) { plugin.send(sender, "<red>Unknown world."); return; }
+            int centerX = args.length == 7 ? Integer.parseInt(args[5]) : world.getSpawnLocation().getBlockX();
+            int centerZ = args.length == 7 ? Integer.parseInt(args[6]) : world.getSpawnLocation().getBlockZ();
+            if (Math.abs((long) centerX) + width / 2L > 29_999_000 || Math.abs((long) centerZ) + depth / 2L > 29_999_000) throw new IllegalArgumentException();
+            List<NpcDef> npcs = selectNpcs(args[1]);
+            if (npcs.isEmpty()) { plugin.send(sender, "<red>No NPCs matched that selector."); return; }
+            int minX = centerX - width / 2, minZ = centerZ - depth / 2;
+            int[] box = {minX, world.getMinHeight() + 1, minZ, minX + width - 1, world.getMaxHeight() - 2, minZ + depth - 1};
+            plugin.send(sender, "<white>Searching safe terrain for " + npcs.size() + " villagers in " + width + " × " + depth + ". This may generate chunks; progress is preserved.");
+            plugin.spawns().scatter(npcs, world, box, sender);
+        } catch (IllegalArgumentException e) {
+            plugin.send(sender, "<red>Width/depth must be whole numbers from 16 to 100000; centers must be valid world coordinates.");
+        }
     }
 
     private void backup(CommandSender sender) {
@@ -378,13 +422,13 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "scatterworld", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();
         if (first.equals("npc")) {
             if (args.length == 2) {
-                return QuestsCommand.filter(List.of("list", "place", "remove", "tp"), args[1]);
+                return QuestsCommand.filter(List.of("list", "place", "remove", "tp", "repair", "rename"), args[1]);
             }
             if (args.length == 3) {
                 return QuestsCommand.filter(npcIds, args[2]);
@@ -421,8 +465,8 @@ public final class AdminCommand implements TabExecutor {
                 return QuestsCommand.filter(names, args[2]);
             }
         }
-        if (first.equals("scatter") && args.length == 2) {
-            List<String> options = new ArrayList<>(List.of("act1", "act2", "all"));
+        if ((first.equals("scatter") || first.equals("scatterworld")) && args.length == 2) {
+            List<String> options = new ArrayList<>(List.of("act1", "act2", "all", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5"));
             options.addAll(npcIds);
             return QuestsCommand.filter(options, args[1]);
         }

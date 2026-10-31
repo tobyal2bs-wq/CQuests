@@ -43,9 +43,9 @@ welcome:
      <#8fd3ff><bold>Welcome to {server}!</bold></#8fd3ff>
      <white>The villagers around spawn need your help.</white>
      <gray>» Click a villager with a <white>white name</white> to talk.
-     <gray>» Click again to accept their quest.
+     <gray>» Read their dialogue, then choose Accept or Claim rewards.
      <gray>» Type <yellow>/quests</yellow> to see your quests.
-     <gray>» The bar at the top shows what to do next.
+     <gray>» <yellow>/quests settings</yellow> changes menus, tracker and directions.
      <white>Start by talking to {npc:stephan}.</white>
     <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
 

@@ -47,6 +47,10 @@ public final class Settings {
     public final double spawnRange;
     public final long roamMinutes;
     public final boolean trackerEnabled;
+    public final boolean trackerDefault;
+    public final boolean directionsDefault;
+    public final boolean sideGatesEnabled;
+    public final String defaultMenu;
     public final boolean backupsEnabled;
     public final long backupEveryHours;
     public final int backupKeep;
@@ -102,7 +106,9 @@ public final class Settings {
         maxActiveSide = Math.max(1, c.getInt("quests.max-active-side", 3));
         welcomeQuest = c.getString("quests.welcome-quest", "welcome");
         ignorePlacedBlocks = c.getBoolean("quests.ignore-player-placed-blocks", true);
-        sideQuestsPerChapter = Math.max(0, c.getInt("quests.side-quests-per-chapter", 10));
+        sideQuestsPerChapter = Math.max(0, c.getInt("quests.side-quests-per-chapter", 0));
+        sideGatesEnabled = c.getBoolean("quests.require-side-quests", false);
+        defaultMenu = c.getString("dialogue.default-mode", "book");
 
         dailyNpc = c.getString("daily.npc", "marigold");
         dailyCooldownMillis = (long) (c.getDouble("daily.cooldown-hours", 24) * 3_600_000L);
@@ -113,19 +119,21 @@ public final class Settings {
         List<Double> ring1 = c.getDoubleList("spawning.act1-ring");
         List<Double> ring2 = c.getDoubleList("spawning.act2-ring");
         act1Min = ring1.size() == 2 ? ring1.get(0) : 5;
-        act1Max = ring1.size() == 2 ? ring1.get(1) : 22;
+        act1Max = ring1.size() == 2 ? ring1.get(1) : 60;
         act2Min = ring2.size() == 2 ? ring2.get(0) : 26;
-        act2Max = ring2.size() == 2 ? ring2.get(1) : 40;
+        act2Max = ring2.size() == 2 ? ring2.get(1) : 300;
         checkSeconds = Math.max(1, c.getLong("spawning.check-seconds", 3));
         lookAtPlayer = c.getBoolean("spawning.look-at-player", true);
 
         spawnRange = Math.max(16, c.getDouble("spawning.player-range", 100));
-        roamMinutes = Math.max(0, c.getLong("spawning.roam-minutes", 20));
+        roamMinutes = Math.max(0, c.getLong("spawning.roam-minutes", 0));
         trackerEnabled = c.getBoolean("tracker.enabled", true);
+        trackerDefault = c.getBoolean("tracker.default-on", false);
+        directionsDefault = c.getBoolean("directions.default-on", false);
         backupsEnabled = c.getBoolean("backups.enabled", true);
         backupEveryHours = Math.max(1, c.getLong("backups.every-hours", 6));
         backupKeep = Math.max(1, c.getInt("backups.keep", 28));
-        hideFinishedVillagers = c.getBoolean("spawning.hide-finished-villagers", true);
+        hideFinishedVillagers = c.getBoolean("spawning.hide-finished-villagers", false);
         shieldRadius = Math.max(0, c.getDouble("shield.radius", 6));
         shieldBuild = c.getBoolean("shield.block-building", true);
         shieldPvp = c.getBoolean("shield.block-pvp", true);
