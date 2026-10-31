@@ -37,6 +37,16 @@ WorldGuard, Floodgate and Geyser are optional. NPCs spawn even inside regions wi
 | `/cq player <name> resetdaily` | op | Let a player do the daily again now |
 | `/cq quest <id>` | op | Show a quest's details |
 | `/cq finale [player]` | op | Preview the ending (no rewards) |
+| `/cq test messages` | op | Show every message from messages.yml with sample values |
+| `/cq test welcome` | op | Show the new player guide |
+| `/cq test celebrate` | op | Play the big quest animation on you |
+| `/cq test chapter <number>` | op | Play a chapter complete animation on you |
+| `/cq test ending` | op | Play the ending cinematic (no rewards) |
+| `/cq test achievement <chapter, end or reset>` | op | Give yourself an achievement, or take them all back |
+| `/cq test finish <npc>` | op | Act as if you finished a villager, so it disappears for you |
+| `/cq test unfinish <npc>` | op | Undo that exactly; the villager comes back |
+| `/cq test roam <npc>` | op | Move a scattered villager to a new spot now |
+| `/cq test book` | op | Read your "Your Story" book as it is so far |
 | `/cq backup` | op | Back up all quest data now |
 | `/cq backups` | op | List backups, newest first |
 | `/cq restore <backup or latest> <player or all>` | op | Put quest data back from a backup |

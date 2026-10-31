@@ -77,6 +77,7 @@ PY
   cat bot.log
   sleep 2
   grep -q "\[Chapter 1: The Wanderers' Camp\]" server.log || { echo "Chapter 1 achievement was not given"; exit 1; }
+  grep -q "\[Chapter 3: " server.log || { echo "/cq test achievement did not give chapter 3"; exit 1; }
   grep -q "\[Finished the Journey\]" server.log || { echo "Ending achievement was not given"; exit 1; }
 fi
 for cmd in "cq npc list" "cq quest story_bob" "cq quest side_stephan_1" "cq reload" "cq npc list" \
