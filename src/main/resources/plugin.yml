@@ -5,13 +5,13 @@ api-version: '1.21'
 folia-supported: true
 description: Villager quest system with a linked story, chapters, a quest menu and a daily quest giver.
 authors: [clarx]
-softdepend: [WorldGuard, floodgate, Geyser-Spigot]
+softdepend: [WorldGuard, Vault, PlaceholderAPI, floodgate, Geyser-Spigot]
 
 commands:
   quests:
     description: Open your quest menu.
     aliases: [quest, journal, q]
-    usage: /quests [book|menu|settings|mode|directions|achievements|list|track|story|accept|abandon <quest>]
+    usage: /quests [book|menu|settings|mode|directions|achievements|farm|list|track|story|accept|abandon <quest>]
   cquests:
     description: CQuests admin commands.
     aliases: [cq]

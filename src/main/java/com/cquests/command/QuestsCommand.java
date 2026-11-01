@@ -51,11 +51,12 @@ public final class QuestsCommand implements TabExecutor {
                     data.setMenuMode(args[1].toLowerCase(Locale.ROOT));
                     plugin.store().saveNow(data);
                     plugin.dialogue().forget(player);
-                    plugin.send(player, "<white>Dialogue and journal mode: <aqua>" + data.menuMode("book"));
+                    plugin.send(player, "<white>Journal and fallback dialogue: <aqua>" + data.menuMode("book"));
                 }
             }
             case "directions" -> plugin.send(player, "<white>Villager directions: <aqua>" + (plugin.directions().toggle(player) ? "on" : "off"));
             case "achievements" -> plugin.finale().achievements().show(player);
+            case "farm" -> com.cquests.farm.FarmMenu.open(plugin,player);
             case "settings", "menu" -> QuestMenu.open(plugin, player);
             case "chat" -> list(player);
             case "accept" -> {
@@ -126,7 +127,7 @@ public final class QuestsCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("book", "menu", "settings", "mode", "directions", "achievements", "list", "track", "story", "accept", "abandon"), args[0]);
+            return filter(List.of("book", "menu", "settings", "mode", "directions", "achievements", "farm", "list", "track", "story", "accept", "abandon"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("mode")) return filter(List.of("book", "menu", "chat"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("abandon") && sender instanceof Player player) {

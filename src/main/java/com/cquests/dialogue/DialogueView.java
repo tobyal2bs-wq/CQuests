@@ -32,7 +32,7 @@ public final class DialogueView implements LockedMenu {
     public DialogueView(CQuestsPlugin plugin, Player player, NpcDef npc, List<String> lines, String label, String token) {
         this.plugin = plugin; this.player = player; this.npc = npc; this.label = label; this.token = token;
         pages = paginate(lines, 48, 10);
-        inventory = Bukkit.createInventory(this, 54, Component.text(npc.name()));
+        inventory = Bukkit.createInventory(this, 54, Text.mm(npc.name()));
     }
 
     public void open() { fill(); player.openInventory(inventory); }
@@ -41,9 +41,9 @@ public final class DialogueView implements LockedMenu {
 
     private void fill() {
         for (int i = 0; i < 54; i++) inventory.setItem(i, QuestMenu.item(Material.BLACK_STAINED_GLASS_PANE, " ", List.of()));
-        inventory.setItem(4, QuestMenu.item(Material.VILLAGER_SPAWN_EGG, "<white><bold>" + Text.escape(npc.name()),
+        inventory.setItem(4, QuestMenu.item(Material.VILLAGER_SPAWN_EGG, "<white><bold>" + npc.name(),
                 List.of("<gray>" + Text.escape(npc.title()), "<aqua>Conversation • " + (page + 1) + "/" + pages.size())));
-        inventory.setItem(22, QuestMenu.item(Material.WRITABLE_BOOK, "<gold>" + Text.escape(npc.name()) + " says…",
+        inventory.setItem(22, QuestMenu.item(Material.WRITABLE_BOOK, "<gold>" + npc.name() + " says…",
                 pages.get(page).stream().map(s -> "<white>" + Text.escape(s)).toList()));
         if (token != null) inventory.setItem(40, QuestMenu.item(Material.LIME_CONCRETE, "<green><bold>" + Text.escape(label),
                 List.of("<gray>" + (page + 1 < pages.size() ? "Read the remaining pages first." : "Click to confirm."))));
@@ -69,17 +69,17 @@ public final class DialogueView implements LockedMenu {
 
     public static void openBook(CQuestsPlugin plugin, Player player, NpcDef npc, List<String> lines, String label, String token) {
         List<Component> pages = new ArrayList<>();
-        for (List<String> text : paginate(lines, 24, 10)) {
-            pages.add(Text.mm("<black><bold>" + Text.escape(npc.name()) + "</bold>\n\n" + Text.escape(String.join("\n", text))));
+        for (List<String> text : paginate(lines, 18, 8)) {
+            pages.add(Text.mm("<black><bold>" + Text.escape(Text.plain(Text.mm(npc.name()))) + "</bold>\n\n" + Text.escape(String.join("\n", text))));
         }
         String action = token == null ? "" : "<click:run_command:'/quests respond " + token + "'><dark_green><bold>["
                 + Text.escape(label) + "]</bold></dark_green></click>\n\n";
         pages.add(Text.mm("<black><bold>Your response</bold>\n\n" + action
                 + "<click:run_command:'/quests mode menu'><dark_blue>[Use menu dialogue]</dark_blue></click>\n\n<dark_gray>Menu buttons work with touch controls too.</dark_gray>"));
-        player.openBook(Book.book(Component.text(npc.name()), Component.text("The Wanderers"), pages));
+        player.openBook(Book.book(Text.mm(npc.name()), Component.text("The Wanderers"), pages));
     }
 
-    static List<List<String>> paginate(List<String> lines, int width, int height) {
+    public static List<List<String>> paginate(List<String> lines, int width, int height) {
         List<List<String>> pages = new ArrayList<>(); List<String> current = new ArrayList<>();
         for (String rich : lines) {
             String plain = PlainTextComponentSerializer.plainText().serialize(Text.mm(rich));

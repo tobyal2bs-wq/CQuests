@@ -57,6 +57,8 @@ public final class AdminCommand implements TabExecutor {
             case "pos1", "pos2" -> pos(sender, args[0].equalsIgnoreCase("pos1") ? 0 : 1);
             case "scatter" -> scatter(sender, args);
             case "scatterworld" -> scatterWorld(sender, args);
+            case "farm" -> plugin.farmCommand().run(sender,args);
+            case "camp" -> plugin.spawns().arrangeCamp(sender);
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
             case "finale" -> finale(sender, args);
@@ -80,6 +82,10 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq pos1</yellow>, <yellow>/cq pos2</yellow> <gray>select a box for scattering
                 <yellow>/cq scatter <ids|act1|act2|all> [wg-region]</yellow> <gray>spread NPCs in a region or your box
                 <yellow>/cq scatterworld chapter1 10000 10000 [world] [centerX centerZ]</yellow> <gray>safe world scatter; keeps progress
+                <yellow>/cq camp</yellow> <gray>arrange five residents plus the daily NPC
+                <yellow>/cq farm wand|outside <id></yellow> <gray>select a farm outline
+                <yellow>/cq farm save <id> <wg-region></yellow> <gray>bind the outline to WorldGuard
+                <yellow>/cq farm anvil</yellow> <gray>bind the anvil you look at
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
                 <yellow>/cq quest <id></yellow> <gray>show a quest's details
                 <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic
@@ -387,7 +393,7 @@ public final class AdminCommand implements TabExecutor {
                 if (quest.category() == QuestCategory.SIDE) {
                     data.setSideDone(quest.giver(), Math.min(data.sideDone(quest.giver()), quest.order() - 1));
                 }
-                plugin.questManager().accept(target, quest);
+                plugin.questManager().forceAccept(target, quest);
                 plugin.send(sender, "<green>Gave " + Text.escape(quest.name()) + " to " + target.getName() + ".");
             }
             default -> plugin.send(sender, "<red>Unknown action.");
@@ -422,9 +428,10 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "scatterworld", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "scatterworld", "camp", "farm", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
+        if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","menu"),args[1]);
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();
         if (first.equals("npc")) {
             if (args.length == 2) {

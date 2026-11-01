@@ -6,6 +6,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TerrainSafetyTest {
+    @Test void overheadRockDisqualifiesAnOverworldCaveButOpenSurfacePasses(){
+        TerrainSafety.Blocks cave=(x,y,z)->y==63||y==90?Material.STONE:Material.AIR;
+        assertTrue(TerrainSafety.safe(cave,World.Environment.NORMAL,0,64,0,-64));
+        assertFalse(TerrainSafety.exposed(cave,World.Environment.NORMAL,0,64,0,320));
+        assertTrue(TerrainSafety.exposed(cave,World.Environment.NORMAL,0,91,0,320));
+    }
     @org.junit.jupiter.api.BeforeAll static void registryFixture() {
         TerrainSafety.occluding = m -> java.util.Set.of(Material.STONE, Material.END_STONE, Material.NETHERRACK, Material.BEDROCK, Material.MAGMA_BLOCK).contains(m);
     }

@@ -27,6 +27,10 @@ printf 'online-mode=false\nlevel-type=minecraft\\:flat\ngenerate-structures=fals
 
 # A saved player, so backup and restore have something real to work with.
 mkdir -p plugins/CQuests/players
+# This legacy client suite exercises the compatible menu and original story flow. Native dialogs,
+# overhead speech and level gates have separate integration coverage (VALIDATION-1.2.md).
+printf 'dialogue:\n  overhead-speech: false\n' > plugins/CQuests/config.yml
+printf 'levels:\n  quest-gates: false\n' > plugins/CQuests/farming.yml
 printf 'completed:\n- welcome\n- story_stephan\nside-done:\n  stephan: 3\nstarted: 1\n' > plugins/CQuests/players/00000000-0000-0000-0000-000000000001.yml
 
 touch console

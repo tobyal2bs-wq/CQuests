@@ -10,6 +10,11 @@ import com.cquests.finale.Finale;
 import com.cquests.gui.MenuListener;
 import com.cquests.gui.Tracker;
 import com.cquests.gui.Directions;
+import com.cquests.dialogue.SpeechController;
+import com.cquests.progression.Progression;
+import com.cquests.farm.FarmService;
+import com.cquests.farm.FarmCommand;
+import com.cquests.farm.FarmListener;
 import com.cquests.listener.NpcListener;
 import com.cquests.listener.ProgressListener;
 import com.cquests.listener.ShieldListener;
@@ -47,6 +52,11 @@ public final class CQuestsPlugin extends JavaPlugin {
     private Tracker tracker;
     private Directions directions;
     private ScheduledTask displayTicker;
+    private SpeechController speech;
+    private Progression progression;
+    private FarmService farm;
+    private FarmCommand farmCommand;
+    private ScheduledTask farmSave;
     private NpcShield shield;
     private ScheduledTask autosave;
     private BackupManager backups;
@@ -56,7 +66,16 @@ public final class CQuestsPlugin extends JavaPlugin {
         Sched.init(this);
         NpcTag.init(this);
         saveDefaultConfig();
-        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml"}) {
+        // Only migrate the previous bundled reward command; custom command strings are preserved.
+        if ("eco give %player% %amount%".equals(getConfig().getString("money-command"))) {
+            try {
+                var configFile=new File(getDataFolder(),"config.yml").toPath();
+                var backup=configFile.resolveSibling("config.yml.before-1.2.0");
+                if(!java.nio.file.Files.exists(backup))java.nio.file.Files.copy(configFile,backup);
+                getConfig().set("money-command","economy give %player% %amount%");saveConfig();
+            } catch(java.io.IOException e){getLogger().warning("Reward command migration deferred: "+e.getMessage());}
+        }
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
@@ -72,6 +91,10 @@ public final class CQuestsPlugin extends JavaPlugin {
         finale = new Finale(this);
         tracker = new Tracker(this);
         directions = new Directions(this);
+        speech = new SpeechController(this);
+        progression = new Progression(this);
+        farm = new FarmService(this);
+        farmCommand = new FarmCommand(this);
         shield = new NpcShield(this);
 
         loadData();
@@ -82,6 +105,8 @@ public final class CQuestsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
         getServer().getPluginManager().registerEvents(new ShieldListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
+        getServer().getPluginManager().registerEvents(speech, this);
+        getServer().getPluginManager().registerEvents(new FarmListener(this), this);
         register("quests", new QuestsCommand(this));
         register("cquests", new AdminCommand(this));
 
@@ -90,15 +115,21 @@ public final class CQuestsPlugin extends JavaPlugin {
         autosave = Sched.asyncTimer(store::saveDirtyAsync, 60);
         backups = new BackupManager(this);
         backups.start();
+        farmSave = Sched.asyncTimer(farm::savePending, 5);
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) new com.cquests.progression.SkillPlaceholders(this).register();
         displayTicker = Sched.globalTimer(t -> {
             for (var player : getServer().getOnlinePlayers()) Sched.entity(player, () -> {
-                tracker.update(player); directions.update(player);
+                tracker.update(player); farm.update(player);
+                if (!farm.inFarm(player) && !speech.busy(player)) directions.update(player);
             });
         }, 20, 10);
     }
 
     @Override
     public void onDisable() {
+        if (farmSave != null) farmSave.cancel();
+        if (farm != null) farm.shutdown();
+        if (speech != null) speech.stopAll();
         if (displayTicker != null) displayTicker.cancel();
         if (spawns != null) spawns.shutdown();
         if (autosave != null) {
@@ -132,12 +163,14 @@ public final class CQuestsPlugin extends JavaPlugin {
     }
 
     public void reload() {
+        speech.stopAll();
         dialogue.invalidateAll();
         spawns.stop();
         store.saveDirtyAsync();
         loadData();
         Platform.init();
         spawns.load();
+        progression.reload(); farm.reload();
         spawns.start();
         backups.start();
         finale.achievements().register();
@@ -194,6 +227,10 @@ public final class CQuestsPlugin extends JavaPlugin {
     }
 
     public Directions directions() { return directions; }
+    public SpeechController speech() { return speech; }
+    public Progression progression() { return progression; }
+    public FarmService farm() { return farm; }
+    public FarmCommand farmCommand() { return farmCommand; }
 
     public Finale finale() {
         return finale;

@@ -46,7 +46,7 @@ public final class QuestBook {
         List<Quest> story = plugin.quests().story();
 
         // Index pages never mix chapters: each chapter starts on a fresh page with its own heading.
-        int perPage = settings.indexPerPage;
+        int perPage = Math.min(3,settings.indexPerPage);
         List<int[]> slices = new ArrayList<>();
         int from = 0;
         while (from < story.size()) {
@@ -62,22 +62,43 @@ public final class QuestBook {
         if (slices.isEmpty()) {
             slices.add(new int[]{0, 0});
         }
-        int indexStart = active.size() + 1;
+        List<List<List<String>>> groups=new ArrayList<>();
+        int activePages=0;
+        for(Quest quest:active){
+            List<String> rows=new ArrayList<>();
+            rows.add(quest.name());rows.add("Wayfarer level "+Math.max(1,quest.level()));
+            if(quest.description()!=null&&!quest.description().isBlank())rows.add(qm.fill(quest.description(),player));
+            ActiveQuest progress=data.active(quest.id());
+            for(int i=0;i<quest.objectives().size();i++){
+                var objective=quest.objectives().get(i);
+                rows.add(qm.objectiveLabel(objective)+" "+(progress==null?0:progress.get(i))+"/"+objective.amount());
+            }
+            rows.add("Rewards:");rows.addAll(qm.rewardLines(quest.reward()));
+            var group=com.cquests.dialogue.DialogueView.paginate(rows,18,9);groups.add(group);activePages+=group.size();
+        }
+        int indexStart = activePages + 2;
         int sidePage = indexStart + slices.size();
 
         Map<String, Integer> pageOf = new HashMap<>();
-        for (int i = 0; i < active.size(); i++) {
-            pageOf.put(active.get(i).id(), i + 1);
-        }
+        int pageCursor=2;
+        for (int i = 0; i < active.size(); i++) {pageOf.put(active.get(i).id(),pageCursor);pageCursor+=groups.get(i).size();}
 
         List<Component> pages = new ArrayList<>();
-        for (Quest quest : active) {
-            pages.add(Text.mm(questPage(player, data, quest, indexStart)));
-        }
+        Quest next=qm.nextStoryQuest(data);
+        String nextName=next==null?"":next.name().length()>20?next.name().substring(0,19)+"…":next.name();
+        String heading="<black><bold>Journey Journal</bold>\n\nLevel "+plugin.progression().level(data)
+                +"\n"+plugin.progression().curve().remaining(data.skillXp())+" XP to next level\n\n"
+                +(next==null?"Journey complete.":"Next: "+Text.escape(nextName)+"\nRequired level "+Math.max(1,next.level()))+"\n\n"
+                +link(indexStart,"<dark_blue>[Story chapters]</dark_blue>")+"\n"
+                +(active.isEmpty()?"":link(2,"<dark_blue>[Active quests]</dark_blue>")+"\n")
+                +"<click:run_command:'/quests settings'><dark_blue>[Settings]</dark_blue></click>";
+        pages.add(Text.mm(heading));
+        for(var group:groups)for(var chunk:group)
+            pages.add(Text.mm("<black>"+Text.escape(String.join("\n",chunk))+"\n\n"+link(indexStart,"<dark_blue>Story chapters ›</dark_blue>")));
         for (int i = 0; i < slices.size(); i++) {
-            pages.add(Text.mm(indexPage(data, story, slices.get(i)[0], slices.get(i)[1], i == 0, pageOf, sidePage)));
+            pages.add(Text.mm("<black>"+indexPage(data, story, slices.get(i)[0], slices.get(i)[1], i == 0, pageOf, sidePage)));
         }
-        pages.add(Text.mm(sidePageText(player, data, pageOf, indexStart)));
+        pages.add(Text.mm("<black>"+sidePageText(player, data, pageOf, indexStart)));
 
         return Book.book(Text.mm(settings.bookTitle), Text.mm(settings.bookAuthor), pages);
     }
@@ -113,7 +134,7 @@ public final class QuestBook {
             page.append('\n');
         }
         page.append(link(indexPage, "<dark_gray>« All quests</dark_gray>"));
-        return page.toString();
+        return "<black>"+page;
     }
 
     private String status(Quest quest, ActiveQuest active) {
@@ -151,7 +172,8 @@ public final class QuestBook {
         }
         for (int i = from; i < to; i++) {
             Quest quest = story.get(i);
-            String name = Text.escape(quest.name());
+            String plain=quest.name();
+            String name = Text.escape(plain.length()>23?plain.substring(0,22)+"…":plain);
             String line = switch (qm.state(data, quest)) {
                 case COMPLETED -> "<dark_green>✔</dark_green> " + name;
                 case ACTIVE, READY -> "<blue>○</blue> " + name;
@@ -178,8 +200,7 @@ public final class QuestBook {
     private String sidePageText(Player player, PlayerData data, Map<String, Integer> pageOf, int indexPage) {
         QuestManager qm = plugin.questManager();
         StringBuilder page = new StringBuilder("<bold>Side Quests</bold>\n");
-        page.append("<dark_gray>Done ").append(String.format(Locale.ROOT, "%,d", data.totalSideDone())).append(" of ")
-                .append(String.format(Locale.ROOT, "%,d", plugin.quests().totalSide())).append("</dark_gray>\n\n");
+        page.append("<dark_gray>").append(String.format(Locale.ROOT, "%,d", data.totalSideDone())).append(" jobs completed</dark_gray>\n\n");
         int shown = 0;
         for (Quest quest : qm.activeQuests(data)) {
             if (quest.category() == QuestCategory.SIDE) {

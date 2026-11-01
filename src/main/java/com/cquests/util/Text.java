@@ -14,7 +14,15 @@ public final class Text {
     }
 
     public static Component mm(String miniMessage) {
-        return MM.deserialize(miniMessage == null ? "" : miniMessage);
+        String input=miniMessage==null?"":miniMessage;
+        if(input.indexOf('&')<0&&input.indexOf('§')<0)return MM.deserialize(input);
+        String[] names={"black","dark_blue","dark_green","dark_aqua","dark_red","dark_purple","gold","gray","dark_gray","blue","green","aqua","red","light_purple","yellow","white"};
+        for(int i=0;i<16;i++)input=input.replaceAll("(?i)[&§]"+Integer.toHexString(i),"<"+names[i]+">");
+        input=input.replaceAll("(?i)[&§]#([0-9a-f]{6})","<#$1>")
+                .replaceAll("(?i)[&§]l","<bold>").replaceAll("(?i)[&§]o","<italic>")
+                .replaceAll("(?i)[&§]n","<underlined>").replaceAll("(?i)[&§]m","<strikethrough>")
+                .replaceAll("(?i)[&§]k","<obfuscated>").replaceAll("(?i)[&§]r","<reset>");
+        return MM.deserialize(input);
     }
 
     public static String escape(String raw) {

@@ -57,7 +57,8 @@ public final class SafePlacement {
             int y = exactY == null ? TerrainSafety.find(blocks, environment, bx, bz,
                     minFeet == null ? bottom + 1 : minFeet, Math.min(top - 2, maxFeet == null ? top - 2 : maxFeet), bottom)
                     : (TerrainSafety.safe(blocks, environment, bx, exactY, bz, bottom) ? exactY : Integer.MIN_VALUE);
-            return y == Integer.MIN_VALUE ? null : new Location(world, x, y, z, yaw, 0f);
+            return y == Integer.MIN_VALUE || !TerrainSafety.exposed(blocks,environment,bx,y,bz,top)
+                    ? null : new Location(world, x, y, z, yaw, 0f);
         });
     }
 

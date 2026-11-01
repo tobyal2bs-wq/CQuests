@@ -148,6 +148,10 @@ public final class PlayerStore {
         data.directionsOn = yaml.contains("preferences.directions") ? yaml.getBoolean("preferences.directions") : null;
         String mode = yaml.getString("preferences.menu", "");
         data.menuMode = List.of("book", "menu", "chat").contains(mode) ? mode : null;
+        data.skillXp = Math.max(0, yaml.getLong("skill.xp", 0));
+        data.skillInitialized = yaml.getBoolean("skill.initialized", yaml.contains("skill.xp"));
+        data.wheatHarvested = Math.max(0, yaml.getLong("skill.wheat", 0));
+        data.hoeTier = Math.max(0, yaml.getInt("skill.hoe-tier", 0));
         return data;
     }
 
@@ -190,6 +194,10 @@ public final class PlayerStore {
             yaml.set("preferences.tracker", data.trackerOn);
             yaml.set("preferences.directions", data.directionsOn);
             yaml.set("preferences.menu", data.menuMode);
+            yaml.set("skill.xp", data.skillXp);
+            yaml.set("skill.initialized", data.skillInitialized);
+            yaml.set("skill.wheat", data.wheatHarvested);
+            yaml.set("skill.hoe-tier", data.hoeTier);
             data.clean();
             return new Snapshot(yaml, ++data.saveSeq);
         }

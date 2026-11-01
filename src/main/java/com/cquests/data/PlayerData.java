@@ -31,6 +31,10 @@ public final class PlayerData {
     Boolean trackerOn;
     Boolean directionsOn;
     String menuMode;
+    long skillXp;
+    boolean skillInitialized;
+    long wheatHarvested;
+    int hoeTier;
     private volatile boolean dirty;
     /** Save ordering, see PlayerStore. */
     long saveSeq;
@@ -45,6 +49,19 @@ public final class PlayerData {
     public UUID uuid() {
         return uuid;
     }
+
+    public synchronized long skillXp() { return skillXp; }
+    public synchronized boolean skillInitialized() { return skillInitialized; }
+    public synchronized void initializeSkill(long minimum) {
+        if (!skillInitialized) { skillXp=Math.max(skillXp,minimum);skillInitialized=true;dirty=true; }
+    }
+    public synchronized long wheatHarvested() { return wheatHarvested; }
+    public synchronized int hoeTier() { return hoeTier; }
+    public synchronized void setHoeTier(int tier) { hoeTier = Math.max(0, tier); dirty = true; }
+    public synchronized void addSkillXp(long amount) {
+        if (amount > 0) { skillXp = amount > Long.MAX_VALUE - skillXp ? Long.MAX_VALUE : skillXp + amount; dirty = true; }
+    }
+    public synchronized void addWheat(long amount) { if (amount > 0) { wheatHarvested += amount; dirty = true; } }
 
     public synchronized boolean trackerOn(boolean defaultValue) {
         return trackerOn == null ? defaultValue : trackerOn;

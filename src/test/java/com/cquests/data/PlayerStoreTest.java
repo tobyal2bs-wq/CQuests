@@ -12,6 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayerStoreTest {
+    @Test void customSkillAndPaidUnlockSurviveRestartAndInitializeOnlyOnce(@TempDir File folder) {
+        PlayerStore store=new PlayerStore(folder,Logger.getLogger("test"));UUID id=UUID.randomUUID();
+        PlayerData data=store.get(id);assertTrue(!data.skillInitialized());
+        data.initializeSkill(5000);data.addSkillXp(10);data.addWheat(1);data.setHoeTier(3);data.initializeSkill(9000);
+        store.saveAllNow();
+        PlayerData read=new PlayerStore(folder,Logger.getLogger("test")).get(id);
+        assertTrue(read.skillInitialized());assertEquals(5010,read.skillXp());assertEquals(1,read.wheatHarvested());assertEquals(3,read.hoeTier());
+        read.reset();assertEquals(3,read.hoeTier());assertEquals(5010,read.skillXp());
+    }
     @Test void displayPreferencesSurviveSaveReloadWithoutChangingProgress(@TempDir File folder) throws Exception {
         PlayerStore store = new PlayerStore(folder, Logger.getLogger("test"));
         UUID uuid = UUID.randomUUID();

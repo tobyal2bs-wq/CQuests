@@ -86,6 +86,7 @@ public final class QuestManager {
     }
 
     public boolean requirementsMet(PlayerData data, Quest quest) {
+        if(plugin.progression()!=null&&!plugin.progression().canTake(data,quest.level()))return false;
         for (String required : quest.requires()) {
             if (!data.isCompleted(required)) {
                 return false;
@@ -254,7 +255,15 @@ public final class QuestManager {
     // ------------------------------------------------------------------ actions
 
     public boolean accept(Player player, Quest quest) {
+        return accept(player,quest,false);
+    }
+    public boolean forceAccept(Player player,Quest quest){return accept(player,quest,true);}
+    private boolean accept(Player player,Quest quest,boolean force) {
         PlayerData data = data(player);
+        if(!force&&!requirementsMet(data,quest)){
+            plugin.send(player,"<yellow>Finish the previous tasks and reach Wayfarer level "+Math.max(1,quest.level())+" before taking this quest.");
+            return false;
+        }
         synchronized (data) {
             if (data.isActive(quest.id()) || (quest.category() != QuestCategory.DAILY && isDone(data, quest))) {
                 return false;
@@ -529,11 +538,15 @@ public final class QuestManager {
             plugin.finale().achievements().onStoryQuest(player, quest);
         }
         plugin.finale().achievements().sync(player);
-        // Persist before paying out, so a crash can't leave the quest claimable with the reward already given.
+        if(plugin.progression()!=null)plugin.progression().award(player,200L+quest.level()*40L,false);
+        // Queue quest state and custom XP together before handing out rewards.
         plugin.store().saveNow(data);
         plugin.send(player, settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")
                 .replace("<quest>", Text.escape(quest.name())));
         giveRewards(player, quest.reward());
+        if(quest.category()==QuestCategory.STORY&&(quests().endsChapter(quest)||isFinalQuest(quest)))
+            Sched.global(()->Bukkit.broadcast(Text.mm("<gold><bold>CHAPTER COMPLETE</bold></gold> <white>"+Text.escape(player.getName())
+                    +"</white> <gray>completed Chapter "+quest.chapter()+": <aqua>"+Text.escape(quests().chapterName(quest.chapter())))));
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
         plugin.visibility().refresh(player);
         plugin.tracker().update(player);

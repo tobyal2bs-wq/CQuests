@@ -3,16 +3,18 @@ plugins {
 }
 
 group = "com.cquests"
-version = "1.1.0"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.extendedclip.com/releases/")
 }
 
 dependencies {
-    // Compiled against the oldest supported API so the jar runs on 1.21.4 and every newer Paper/Folia build.
+    // Older baseline; newer dialog and mannequin capabilities are isolated behind runtime checks.
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    compileOnly("me.clip:placeholderapi:2.11.6")
 
     testImplementation("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.11.4"))

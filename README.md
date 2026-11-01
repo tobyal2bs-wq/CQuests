@@ -1,20 +1,20 @@
 # CQuests
 
-A villager quest plugin for **Paper, Folia, Leaf and Purpur 1.21.4+**, built for Java and Bedrock (Geyser) players alike.
+A villager quest plugin targeting **Paper 1.21.4 through 26.2 and compatible forks**, with region schedulers for Folia and compatible views for Bedrock/Geyser. The exact tested builds are recorded in [VALIDATION-1.2.md](VALIDATION-1.2.md); arbitrary engines and versions are not universally guaranteed.
 
 100 story villagers tell Claude's original linked story over 5 chapters, with 8 additional side-job villagers and one daily villager. There are 1,080,000 generated side quests. Original story IDs, generator seed and player progress are preserved. No resource pack or datapack is needed.
 
-Version 1.1 defaults to a book journal and book conversations. The boss bar and villager directions start off; each player can enable them and their choices survive restarts. Select the chest dialogue menu with explicit Accept and Claim rewards buttons using /quests mode menu. Mandatory side-job quotas are disabled by default. See [INSTALL-1.1.md](INSTALL-1.1.md) for upgrade steps, commands, safety rules and rollback.
+Version 1.2 adds private letter-by-letter NPC speech, native Minecraft dialog choices on capable servers, a paginated book journal, custom levels, personal wheat tools, anvil upgrades and exact WorldGuard-bound polygon farms. One click harvests one mature wheat and fully regrows it after one second. Tool unlocks return to a personal locker outside the farm. Chapter broadcasts and new farming/level achievements reward progress. The boss bar, direction arrow/meters and mandatory side-job quotas remain off by default. See [INSTALL-1.2.md](INSTALL-1.2.md) for setup, preservation, pacing and rollback.
 
 ## Install
 
 1. Download `CQuests-<version>.jar` from the latest build (GitHub Actions, "Build" workflow, artifact) and put it in `plugins/`.
-2. Make sure you have an economy plugin with `/eco give` (EssentialsX works). Change `money-command` in `config.yml` if yours is different.
-3. Start the server. The 17 camp villagers are placed around world spawn on validated terrain, the rest further out. Failed searches are reported and never fall back to unsafe ground.
+2. Quest rewards default to `/economy give`. Paid farm upgrades require Vault and your economy's registered Vault provider. Change `money-command` if your reward command differs.
+3. Start the server. Five camp residents plus the daily villager are placed around spawn on validated terrain, the rest further out. Existing positions are preserved; `/cq camp` explicitly arranges this layout. Failed searches retain old positions.
 4. Give players the quest command: `/lp group default permission set quests.use true`
 5. Optional: move the villagers to your own spots (see "Placing villagers").
 
-WorldGuard, Floodgate and Geyser are optional. NPCs spawn even inside regions with `mob-spawning deny`.
+WorldGuard is required for farming, alongside its matching WorldEdit dependency. PlaceholderAPI enables `%cquests_level%` and related skill placeholders. These integrations are optional for ordinary quests. NPCs can spawn inside regions with `mob-spawning deny`.
 
 ## Commands
 
@@ -23,6 +23,10 @@ WorldGuard, Floodgate and Geyser are optional. NPCs spawn even inside regions wi
 | `/quests` | `quests.use` | Journal in your saved book, menu or chat mode |
 | `/quests book` | `quests.use` | The journal book with every quest and the "All Quests" pages |
 | `/quests list` | `quests.use` | Active quests in chat |
+| `/quests farm` | `quests.use` | Personal field workshop and hoe locker |
+| `/cq farm wand <id>` / `/cq farm outside <id>` | op | Select an inside/inverse polygon; save with `/cq farm save <id> <wg-region>` |
+| `/cq farm anvil` | op | Bind the anvil you are looking at to the upgrader |
+| `/cq camp` | op | Arrange five spawn residents plus the daily villager without resetting progress |
 | `/quests track` | `quests.use` | Turn the boss bar tracker on or off |
 | `/quests story` | `quests.use` | Read your story book again after finishing the journey |
 | `/quests abandon <quest>` | `quests.use` | Drop a side or daily quest |
@@ -171,7 +175,7 @@ Objective types: `KILL`, `MINE`, `HARVEST`, `PLACE`, `CRAFT`, `SMELT`, `FISH`, `
 
 ## Tested on
 
-The CI workflow builds the plugin, runs unit tests and boots isolated Paper/Folia servers. The Paper bot checks default book UI, opt-in tracking, directions, chapter hiding, menu actions and repeated scattering. See VALIDATION-1.1.md for the exact checks run for this delivery; graphical client rendering and hosted integrations require staging checks.
+The CI workflow builds the plugin, runs unit tests and boots isolated Paper/Folia servers. The legacy client suite checks book UI, opt-in tracking, directions, chapter hiding, menu actions and repeated scattering with animated speech and level gates disabled in its test fixture. See [VALIDATION-1.2.md](VALIDATION-1.2.md) for native dialogue, farming and integration coverage. Graphical client rendering and your custom economy still require staging checks.
 
 ## Building
 

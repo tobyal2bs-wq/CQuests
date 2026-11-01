@@ -29,6 +29,7 @@ public final class Achievements {
             "minecraft:wither_skeleton_skull", "minecraft:spyglass", "minecraft:trident", "minecraft:heart_of_the_sea"};
 
     private final CQuestsPlugin plugin;
+    private static final int[] LEVELS={5,10,25,50,75,100};
     private boolean warned;
 
     public Achievements(CQuestsPlugin plugin) {
@@ -69,6 +70,8 @@ public final class Achievements {
             if (load(new NamespacedKey(plugin, goal.id()), json(rootKey.toString(), goal.icon(), goal.title(),
                     goal.description(), goal.target() >= 100 ? "challenge" : "task", "aqua"))) loaded++;
         }
+        for(int level:LEVELS)if(load(new NamespacedKey(plugin,"wayfarer_"+level),json(rootKey.toString(),"minecraft:experience_bottle",
+                "Wayfarer "+level,"Reach custom Wayfarer level "+level,"goal","aqua")))loaded++;
         plugin.getLogger().info("Registered " + (loaded + 1) + " achievements (chapters, ending and milestones)");
     }
 
@@ -121,6 +124,7 @@ public final class Achievements {
         }
         List<Quest> story = plugin.quests().story();
         if (data.startedAt() > 0) grant(player, new NamespacedKey(plugin, "wanderers"), false);
+        if(plugin.progression()!=null)for(int level:LEVELS)if(plugin.progression().level(data)>=level)grant(player,new NamespacedKey(plugin,"wayfarer_"+level),false);
         for (Milestones.Goal goal : Milestones.ALL) {
             if (goal.value(data) >= goal.target()) grant(player, new NamespacedKey(plugin, goal.id()), false);
         }
@@ -150,6 +154,7 @@ public final class Achievements {
         chapters().forEach(c -> keys.add(chapterKey(c)));
         keys.add(journeyKey());
         keys.add(new NamespacedKey(plugin, "wanderers"));
+        for(int level:LEVELS)keys.add(new NamespacedKey(plugin,"level_"+level));
         for (Milestones.Goal goal : Milestones.ALL) keys.add(new NamespacedKey(plugin, goal.id()));
         for (NamespacedKey key : keys) {
             Advancement advancement = Bukkit.getAdvancement(key);
@@ -218,6 +223,8 @@ public final class Achievements {
     public void show(Player player) {
         PlayerData data = plugin.questManager().data(player);
         plugin.send(player, "<gold><bold>Your milestones</bold> <white>• Optional goals, earned at your pace");
+        int level=plugin.progression().level(data);
+        plugin.send(player,"<aqua>Wayfarer level "+level+" <gray>• "+Text.formatMoney(plugin.progression().curve().remaining(data.skillXp()))+" XP to the next level");
         for (Milestones.Goal goal : Milestones.ALL) {
             long value = Math.min(goal.target(), goal.value(data));
             plugin.send(player, (value == goal.target() ? "<green>✔ " : "<white>○ ") + Text.escape(goal.title())

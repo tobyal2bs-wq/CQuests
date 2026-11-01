@@ -51,12 +51,14 @@ public final class DialogueManager {
     }
 
     public void forget(Player player) {
+        plugin.speech().stop(player);
         talking.remove(player.getUniqueId());
         pending.remove(player.getUniqueId());
         responses.remove(player.getUniqueId());
     }
 
     public void onClick(Player player, NpcDef npc, Entity entity) {
+        if(plugin.speech().click(player,npc)) return;
         if (talking.contains(player.getUniqueId())) {
             return;
         }
@@ -140,6 +142,8 @@ public final class DialogueManager {
         switch (offer.reason()) {
             case "locked" -> {
                 Quest next = qm().nextStoryQuest(data);
+                if(next!=null&&!plugin.progression().canTake(data,next.level()))
+                    lines.add(new Line(true,"Keep exploring and helping the fields. This step needs Wayfarer level "+next.level()+"; you are level "+plugin.progression().level(data)+"."));
                 lines.add(new Line(true, plugin.settings().msg("npc-locked", "I'm not ready for you yet, {player}.")));
                 String gate = next == null ? null : qm().chapterGate(data, next);
                 if (gate != null) {
@@ -254,11 +258,32 @@ public final class DialogueManager {
         return true;
     }
 
+    public boolean hasResponse(Player player,String token){
+        Response r=responses.get(player.getUniqueId());
+        return r!=null&&r.token().equals(token)&&r.expires()>System.currentTimeMillis()&&near(player,r.npc());
+    }
+
     public void invalidateAll() {
         pending.clear(); responses.clear(); talking.clear();
     }
 
     private void speak(Player player, NpcDef npc, List<Line> lines, Runnable after, String label) {
+        if(plugin.getConfig().getBoolean("dialogue.overhead-speech",true)){
+            List<String> speech=lines.stream().filter(Line::speech).map(line->qm().fill(line.text(),player)).toList();
+            List<String> details=lines.stream().map(line->qm().fill(line.text(),player)).toList();
+            plugin.speech().start(player,npc,speech,()->{
+                if(after!=null){
+                    Pending offer=pending.get(player.getUniqueId());
+                    if(offer!=null&&offer.npcId().equals(npc.id()))pending.put(player.getUniqueId(),new Pending(offer.npcId(),offer.questId(),System.currentTimeMillis()+plugin.settings().acceptTimeoutMillis));
+                }
+                String token=after==null?null:UUID.randomUUID().toString();
+                if(after!=null)responses.put(player.getUniqueId(),new Response(token,npc.id(),System.currentTimeMillis()+plugin.settings().acceptTimeoutMillis,after));
+                if(!Platform.isBedrock(player)&&NativeDialogue.open(plugin,player,Text.mm("<gold><bold>"+npc.name()),details,label,token))return;
+                if(mode(player).equals("book"))DialogueView.openBook(plugin,player,npc,details,label,token);
+                else new DialogueView(plugin,player,npc,details,label,token).open();
+            });
+            return;
+        }
         if (!mode(player).equals("chat")) {
             String token = after == null ? null : UUID.randomUUID().toString();
             if (after != null) responses.put(player.getUniqueId(), new Response(token, npc.id(),

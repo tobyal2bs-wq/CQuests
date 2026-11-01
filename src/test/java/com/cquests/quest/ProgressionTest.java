@@ -18,17 +18,29 @@ class ProgressionTest {
     private final NpcRegistry npcs = new NpcRegistry();
     private final QuestRegistry quests = new QuestRegistry();
     private final QuestManager manager;
+    private final CQuestsPlugin plugin;
 
     ProgressionTest() {
         QuestRegistry.itemCheck = m -> !m.isLegacy();
         Logger log = Logger.getLogger("progression-test");
         npcs.load(new File(resources, "npcs.yml"), settings, log);
         quests.load(new File(resources, "quests.yml"), new File(resources, "generator.yml"), settings, npcs, log);
-        CQuestsPlugin plugin = mock(CQuestsPlugin.class);
+        plugin = mock(CQuestsPlugin.class);
         when(plugin.settings()).thenReturn(settings);
         when(plugin.npcs()).thenReturn(npcs);
         when(plugin.quests()).thenReturn(quests);
         manager = new QuestManager(plugin);
+    }
+
+    @Test void requiredCustomLevelAndPreviousTaskBothGateStory(@org.junit.jupiter.api.io.TempDir File folder) {
+        when(plugin.getDataFolder()).thenReturn(folder);
+        var progression=new com.cquests.progression.Progression(plugin);
+        when(plugin.progression()).thenReturn(progression);
+        var quest=quests.get("story_steve");PlayerData data=new PlayerData(UUID.randomUUID());
+        assertFalse(manager.requirementsMet(data,quest));
+        data.complete("story_jerry",true);assertFalse(manager.requirementsMet(data,quest));
+        data.addSkillXp(progression.curve().threshold(quest.level()));assertTrue(manager.requirementsMet(data,quest));
+        data.uncomplete("story_jerry");assertFalse(manager.requirementsMet(data,quest));
     }
 
     @Test void futureChapterVillagersStayHiddenEvenIfMetButSharedNpcsAreVisible() {

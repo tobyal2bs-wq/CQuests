@@ -95,7 +95,7 @@ public final class Settings {
             blockedItems.addAll(List.of("ELYTRA", "DRAGON_EGG", "ENCHANTED_GOLDEN_APPLE", "TOTEM_OF_UNDYING", "BEACON", "NETHER_STAR"));
         }
         netheriteMinLevel = c.getInt("rewards.netherite-min-level", 85);
-        moneyCommand = c.getString("money-command", "eco give %player% %amount%");
+        moneyCommand = c.getString("money-command", "economy give %player% %amount%");
         npcNameFormat = m.getString("formats.npc-name", c.getString("npc.name-format", "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"));
         npcChatFormat = m.getString("formats.npc-chat", c.getString("npc.chat-format", "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>"));
         npcMentionFormat = m.getString("formats.npc-mention", c.getString("npc.mention-format", "<blue>Villager <name></blue>"));

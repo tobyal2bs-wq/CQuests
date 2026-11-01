@@ -62,6 +62,23 @@ public final class SpawnManager {
     }
 
     private static final double GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+    private static final List<String> DEFAULT_CAMP=List.of("stephan","jerry","rosie","copper_jack","luma");
+    private boolean atCamp(NpcDef npc){
+        List<String> ids=plugin.getConfig().getStringList("spawning.camp-npcs");
+        return npc.daily()||(ids.isEmpty()?DEFAULT_CAMP:ids).contains(npc.id());
+    }
+    /** Explicit relocation; existing saves are only moved when an admin requests it. */
+    public void arrangeCamp(CommandSender feedback){
+        World world=plugin.settings().autoPlaceWorld.isEmpty()?Bukkit.getWorlds().get(0):Bukkit.getWorld(plugin.settings().autoPlaceWorld);
+        if(world==null){tell(feedback,"<red>Spawn world is unavailable.");return;}
+        Location center=world.getSpawnLocation();
+        List<NpcDef> selected=plugin.npcs().all().stream().filter(n->{
+            Point p=points.get(n.id());return atCamp(n)||(p!=null&&p.world().equals(world.getName())&&Math.hypot(p.x()-center.getX(),p.z()-center.getZ())<96);
+        }).toList();
+        Map<String,Long> tokens=new java.util.HashMap<>();for(NpcDef n:selected)tokens.put(n.id(),edit(n.id()));
+        autoNext(world,center,selected,0,tokens,epoch,new int[2]);
+        tell(feedback,"<gold>Arranging five camp residents plus the daily villager; other nearby residents move to the surrounding world. Progress is preserved.");
+    }
 
     private final CQuestsPlugin plugin;
     private final File file;
@@ -316,7 +333,7 @@ public final class SpawnManager {
         e.setRotation(loc.getYaw(), 0f);
         String title = npc.title().isEmpty() ? "" : " <gray>" + Text.escape(npc.title()) + "</gray>";
         e.customName(Text.mm(plugin.settings().npcNameFormat
-                .replace("<name>", Text.escape(npc.name()))
+                .replace("<name>", "<bold>"+npc.name()+"</bold>")
                 .replace("<level>", Integer.toString(npc.level()))
                 .replace("<title>", title)));
         e.setCustomNameVisible(true);
@@ -572,9 +589,10 @@ public final class SpawnManager {
             return;
         }
         NpcDef npc = npcs.get(index);
-        int radius = (int) Math.ceil(npc.act() <= 1 ? plugin.settings().act1Max : plugin.settings().act2Max);
+        int radius = (int) Math.ceil(atCamp(npc) ? Math.max(40,plugin.settings().act1Max) : Math.max(300,plugin.settings().act2Max));
         int x = center.getBlockX(), z = center.getBlockZ();
         int[] area = {x - radius, world.getMinHeight() + 1, z - radius, x + radius, world.getMaxHeight() - 2, z + radius};
+        if(!atCamp(npc))area=new int[]{x+128,world.getMinHeight()+1,z-radius,x+radius,world.getMaxHeight()-2,z+radius};
         long token = tokens.get(npc.id());
         search(npc, world, area, 0, token, expectedEpoch, loc -> {
             if (loc != null && commit(npc, loc, null, token, expectedEpoch)) counts[0]++; else counts[1]++;

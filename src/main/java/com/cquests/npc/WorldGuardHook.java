@@ -2,6 +2,7 @@ package com.cquests.npc;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.Location;
 
 import java.lang.reflect.Method;
 
@@ -11,12 +12,36 @@ import java.lang.reflect.Method;
  * in {@link com.cquests.listener.NpcListener}.
  */
 public final class WorldGuardHook {
+    private static final java.util.Map<String,Method> METHODS=new java.util.concurrent.ConcurrentHashMap<>();
+    private static Method method(String owner,String name,Class<?>... types)throws ReflectiveOperationException{
+        String key=owner+"#"+name+java.util.Arrays.toString(types);
+        Method value=METHODS.get(key);if(value!=null)return value;
+        value=Class.forName(owner).getMethod(name,types);METHODS.put(key,value);return value;
+    }
 
     private WorldGuardHook() {
     }
 
     public static boolean available() {
-        return Bukkit.getPluginManager().getPlugin("WorldGuard") != null;
+        var plugin=Bukkit.getPluginManager().getPlugin("WorldGuard");
+        return plugin != null && plugin.isEnabled();
+    }
+
+    /** Exact protected-region shape, including WorldGuard polygon regions. Missing WG fails closed. */
+    public static boolean contains(Location loc,String regionName) {
+        if(!available()||regionName==null||regionName.isBlank()||regionName.equalsIgnoreCase("__global__"))return false;
+        try {
+            Object instance=method("com.sk89q.worldguard.WorldGuard","getInstance").invoke(null);
+            Object platform=method("com.sk89q.worldguard.WorldGuard","getPlatform").invoke(instance);
+            Object container=method("com.sk89q.worldguard.internal.platform.WorldGuardPlatform","getRegionContainer").invoke(platform);
+            Object world=method("com.sk89q.worldedit.bukkit.BukkitAdapter","adapt",World.class).invoke(null,loc.getWorld());
+            Object manager=method("com.sk89q.worldguard.protection.regions.RegionContainer",
+                    "get",Class.forName("com.sk89q.worldedit.world.World")).invoke(container,world);
+            if(manager==null)return false;
+            Object region=method("com.sk89q.worldguard.protection.managers.RegionManager","getRegion",String.class).invoke(manager,regionName);
+            return region!=null&&(boolean)method("com.sk89q.worldguard.protection.regions.ProtectedRegion",
+                    "contains",int.class,int.class,int.class).invoke(region,loc.getBlockX(),loc.getBlockY(),loc.getBlockZ());
+        }catch(ReflectiveOperationException|RuntimeException|LinkageError e){return false;}
     }
 
     /** @return {minX, minY, minZ, maxX, maxY, maxZ} or null when the region does not exist */

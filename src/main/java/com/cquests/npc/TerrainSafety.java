@@ -58,4 +58,10 @@ public final class TerrainSafety {
         }
         return Integer.MIN_VALUE;
     }
+
+    public static boolean exposed(Blocks blocks,World.Environment environment,int x,int feet,int z,int maxHeight){
+        int ceiling=environment==World.Environment.NETHER?Math.min(maxHeight,feet+6):maxHeight;
+        for(int y=feet;y<ceiling;y++)if(!clear(blocks.at(x,y,z)))return false;
+        return true;
+    }
 }

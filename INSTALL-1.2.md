@@ -1,0 +1,45 @@
+# CQuests 1.2
+
+Stop the server, back up `plugins/CQuests/`, remove the old CQuests JAR, and install `CQuests-1.2.0.jar`. Keep the data folder. Start normally; do not use a plugin reloader. Original quest IDs, NPC IDs, side-job generator seed, player progress and saved spawn positions are retained. Existing players receive the custom level needed for their active/completed story steps on their first join after upgrading. New players start at level 1.
+
+The previous bundled `eco give %player% %amount%` reward command migrates to `economy give %player% %amount%`, with a configuration backup. Other custom command strings are kept. Farming upgrades charge through your economy's **Vault provider**, which supplies exact balances and successful withdrawals. `%vault_eco_balance_formatted%` is a display placeholder, not a safe balance to parse for purchases. Install Vault and make sure your custom economy registers its provider. Paid purchases fail closed when no provider is available; free tools still work.
+
+NPC speech appears privately beneath the name, one letter at a time, with a quiet click sound. Completed sentences are sent to the talking player's chat. Incoming player chat is buffered for that player (up to 64 messages) and restored when speech ends; other players continue chatting. Other plugins' system messages are not intercepted. Click during speech to finish the current sentence; after speech, click to open choices. Walking more than 10 blocks away cancels the conversation. Choices expire and recheck proximity, task completion, prerequisites and custom level before applying rewards or accepting work. Sneak-click Copper Jack or Luma to discuss their side jobs; ordinary clicks open their farm services.
+
+Native Minecraft multi-action dialogs are used when the server exposes the Paper dialog API and the player is Java. Older compatible servers use the book/menu fallback; Bedrock uses the compatible view. `/quests` defaults to the journal book. `/quests mode book|menu|chat` changes the journal and fallback conversation view. `dialogue.overhead-speech: false` selects the legacy conversation path without animated speech. Native dialog rendering still needs checking with your actual Java/Bedrock clients and protocol plugins.
+
+## Set up a wheat farm
+
+1. Install matching WorldEdit and WorldGuard versions. Define a **named, finite WorldGuard region**, with the full height of the farm and player walking area. Its normal build/break protection can remain denied. Never use `__global__`.
+2. Run `/cq farm wand fields` for an inside selection, or `/cq farm outside fields` for the part of the WG region **outside** your outline. These are different sticks.
+3. Left-click perimeter blocks **in order** around the outline. Right-click to undo the last point. Select 3–128 points. Concave outlines work; crossing or zero-area outlines are rejected. The inside is filled mathematically, so you do not need to select every block. Outline edges count as inside. Outside mode excludes those edges.
+4. Run `/cq farm save fields <wg-region>`. The outline and the exact WG shape must both allow the block; the outside selection remains bounded by the WG region. Missing WorldGuard/region disables harvesting. Review `farming.yml` if you later resize the WG region: resave the area to refresh its saved bounds.
+5. Look at an anvil within six blocks and run `/cq farm anvil`. It opens the workshop. Copper Jack opens the tool shop; Luma opens upgrades. Sneak-click Stephan for the private locker. `/quests farm` also opens the workshop from outside a farm.
+
+The five default camp residents are Stephan, Jerry, Rosie, Copper Jack and Luma, plus Granny Marigold for daily jobs. Fresh unplaced residents use this layout; other NPCs use the surrounding world. Existing saved positions stay put. `/cq camp` explicitly arranges the camp and moves other nearby saved NPCs into the surrounding world. Check the command feedback for searches that fail safely.
+
+Buy the free Fieldhand I tool, then enter the saved farm to equip it. One click harvests **only the clicked mature wheat**. It gives 10 base custom XP, the tool's multiplier and normal wheat; higher tiers can give one extra wheat. The block becomes air and fully regrows after 20 ticks (one second at 20 TPS). Carrots, immature wheat, ordinary blocks and blocks outside the selected farm do not qualify. There is no area harvest. Only harvests produce the green particles; no permanent region outline is drawn to players.
+
+The hoe is personal, unbreakable, tagged and recreated from its saved unlock. It cannot be dropped, moved into containers, swapped to another player, used in an anvil, or passed through ordinary inventory shop interactions. Duplicate/stale tools are removed. On leaving, teleporting, death or logout, carried hoes are removed; the purchased tier remains in the player's private locker. Returning equips one tool when there is a free hotbar slot. The locker is a personal menu/unlock, not a shared physical chest. Full inventories do not spill bound tools onto the ground. Custom shop plugins that remove inventory contents directly through their API need their own integration check.
+
+Player commands are blocked inside farms; `cquests.admin` bypasses the restriction for staff. A validated internal dialog response is allowed so NPC conversations remain usable. Leave the farm to run normal commands. No crop or tool effects apply outside it. No vanilla XP is removed or awarded by farming.
+
+## Progression and controls
+
+`farming.yml` controls the level curve, tool costs, required levels, multipliers, extra-wheat chance, hit cooldown, particles and regrowth. The default curve has 100 levels and 38,880,000 cumulative custom XP, based on a **360 hour reference at 30 XP/second**. This is tuning arithmetic, not a forced wait or a completion-time guarantee. Faster tools and quest XP change actual play time. Change `levels.target-active-hours` to tune the grind; changing the curve recalculates levels from saved XP. `levels.quest-gates: false` disables custom-level quest requirements while keeping task prerequisites. Existing mandatory side-job quotas remain off by default.
+
+Quest completion grants `200 + 40 × required quest level` custom XP. Paid upgrades require the previous tier, sufficient level and a successful Vault withdrawal. They use a review/confirm step. Repeated clicks cannot buy the same tier twice. Six tiers range from free wood to the 500k final tool. Use your custom `/economy give` or `/economy take` commands to manage balances normally; CQuests does not dispatch a guessed debit command.
+
+Placeholders (requires PlaceholderAPI): `%cquests_level%`, `%cquests_xp%`, `%cquests_xp_required%` (remaining to next level), `%cquests_xp_progress%` (0–100), `%cquests_wheat%`, `%cquests_hoe_tier%`. Reads use cached online data; uncached players return `0`.
+
+`/quests settings` offers journal mode, tracker and direction controls, milestones and the field workshop. The boss bar and villager direction arrow/meters remain off by default. Preferences persist. Farm XP temporarily takes the action bar while harvesting. Future-chapter NPCs stay hidden unless they also belong to an unlocked chapter. Chapter completion broadcasts to everyone. New advancement goals cover farming and custom levels, alongside the existing story and exploration goals.
+
+NPC names support capitals, punctuation, MiniMessage and legacy `&`/`§` colors, including `&#RRGGBB`. B.O.B keeps his original `bob` ID. Name tags are bold. `player-skin: <username>` uses mannequins where the server supports them; older servers fall back to villagers. Skin resolution depends on the server's profile service and client support.
+
+`/cq scatterworld chapter2 10000 10000 world 0 0` scatters that chapter within a 10k by 10k area centered at 0,0. Repeat for any chapter whenever needed. Progress is not reset. Searches are sequential, use detached chunk snapshots and preserve old points when no safe position is found. Overworld/End positions need clear sky above; End positions also need supporting terrain throughout a 10-block circle. Nether positions need open headroom, no nearby lava and no roof placement. The Nether's normal landscape is a cavern, so clear sky is not required there.
+
+## Backups and rollback
+
+Back up `players/`, `spawns.yml`, `farming.yml`, `farm-regrowth.yml` and the remaining configuration before changing versions or the level curve. Normal shutdown drains player, spawn and pending-regrowth writes. Pending crops in unloaded chunks restore on load if still authorized and unobstructed. A process/power crash during the one-second regrowth window can lose the most recent pending crop; this is not a transactional world database.
+
+To roll back, stop the server and restore both the previous JAR and its matching pre-upgrade data backup. Player fields are additive, but the older plugin cannot manage the new farm tools or regrowth records. Do not overwrite live player data with the example/default configurations. See `VALIDATION-1.2.md` for the exact tested combinations and remaining live checks.

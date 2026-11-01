@@ -1,0 +1,30 @@
+# No farm is active until an admin saves an outline bound to an existing WorldGuard region.
+enabled: true
+levels:
+  maximum: 100
+  # Tuning reference, not a forced play-time lock or a completion-time guarantee.
+  target-active-hours: 360
+  reference-xp-per-second: 30
+  curve-exponent: 2.2
+  quest-gates: true
+harvest:
+  xp-per-wheat: 10
+  regrow-ticks: 20
+  commands-blocked: true
+  particles: true
+economy:
+  # Uses the custom economy's Vault provider if it has one. Missing providers fail closed.
+  provider: vault
+  # Exact balances and withdrawals use Vault; formatted placeholders are display-only.
+npcs:
+  shop: copper_jack
+  upgrader: luma
+  locker: stephan
+tiers:
+  1: {name: "Fieldhand I", material: WOODEN_HOE, cost: 0, level: 1, multiplier: 1.0, double-chance: 0.0, cooldown-ticks: 8}
+  2: {name: "Fieldhand II", material: STONE_HOE, cost: 5000, level: 5, multiplier: 1.25, double-chance: 0.05, cooldown-ticks: 6}
+  3: {name: "Meadowkeeper", material: IRON_HOE, cost: 15000, level: 15, multiplier: 1.5, double-chance: 0.12, cooldown-ticks: 5}
+  4: {name: "Harvestwarden", material: GOLDEN_HOE, cost: 50000, level: 30, multiplier: 2.0, double-chance: 0.25, cooldown-ticks: 4}
+  5: {name: "Dawnreaper", material: DIAMOND_HOE, cost: 150000, level: 50, multiplier: 2.5, double-chance: 0.4, cooldown-ticks: 3}
+  6: {name: "Aldmere's Promise", material: NETHERITE_HOE, cost: 500000, level: 75, multiplier: 3.0, double-chance: 0.6, cooldown-ticks: 2}
+areas: {}

@@ -61,7 +61,7 @@ public final class NpcRegistry {
         String lookup = id.replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT);
         NpcDef match = null;
         for (NpcDef npc : npcs.values()) {
-            if (npc.name().replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT).equals(lookup)) {
+            if (Text.plain(Text.mm(npc.name())).replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT).equals(lookup)) {
                 if (match != null) return null;
                 match = npc;
             }
@@ -79,11 +79,11 @@ public final class NpcRegistry {
     public String mention(String id) {
         NpcDef npc = get(id);
         String name = npc == null ? id : npc.name();
-        return settings.npcMentionFormat.replace("<name>", Text.escape(name));
+        return settings.npcMentionFormat.replace("<name>", name);
     }
 
     public String name(String id) {
         NpcDef npc = get(id);
-        return npc == null ? id : npc.name();
+        return npc == null ? id : Text.plain(Text.mm(npc.name()));
     }
 }

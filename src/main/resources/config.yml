@@ -13,10 +13,12 @@ server-name: "Dawn SMP"
 
 # ----------------------------------------------------------- ECONOMY
 # Console command that pays money rewards. %player% and %amount% are filled in.
-money-command: "eco give %player% %amount%"
+money-command: "economy give %player% %amount%"
 
 # ----------------------------------------------------------- TALKING TO VILLAGERS
 dialogue:
+  # Private sentence-by-sentence text beneath the NPC name. Click again for native dialog choices.
+  overhead-speech: true
   # Default for /quests and NPC conversations. Players can use /quests mode book|menu|chat.
   default-mode: book
   # Pause between lines a villager says (20 ticks = 1 second).
@@ -91,6 +93,9 @@ daily:
 
 # ----------------------------------------------------------- VILLAGER SPAWNING
 spawning:
+  # Five camp residents, plus the daily villager. Other unplaced NPCs use the surrounding world.
+  # Existing saved positions are preserved; /cq camp explicitly arranges this layout.
+  camp-npcs: [stephan, jerry, rosie, copper_jack, luma]
   # NPCs without a spot in spawns.yml are placed around the world spawn on startup.
   # Move them with /cq npc place <id> or /cq scatter.
   auto-place-unplaced: true

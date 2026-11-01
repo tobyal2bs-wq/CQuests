@@ -9,12 +9,17 @@ public final class Milestones {
             return switch (kind) {
                 case "side" -> data.totalSideDone();
                 case "daily" -> data.dailiesDone();
+                case "wheat" -> data.wheatHarvested();
                 default -> data.metCount();
             };
         }
-        public String description() { return "Complete " + target + " " + (kind.equals("met") ? "villager introductions" : kind + " quests"); }
+        public String description() { return kind.equals("wheat")?"Harvest "+target+" mature wheat in the field":"Complete " + target + " " + (kind.equals("met") ? "villager introductions" : kind + " quests"); }
     }
     public static final List<Goal> ALL = List.of(
+        new Goal("field_first", "First Furrow", "minecraft:wheat", "wheat", 100),
+        new Goal("field_regular", "Golden Rows", "minecraft:hay_block", "wheat", 1000),
+        new Goal("field_keeper", "Keeper of the Harvest", "minecraft:golden_hoe", "wheat", 10000),
+        new Goal("field_legend", "Aldmere's Breadbasket", "minecraft:diamond_hoe", "wheat", 100000),
         new Goal("helping_hand", "A Helping Hand", "minecraft:bread", "side", 1),
         new Goal("local_hero", "Local Hero", "minecraft:emerald", "side", 10),
         new Goal("village_favorite", "Village Favorite", "minecraft:gold_ingot", "side", 50),

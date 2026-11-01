@@ -62,6 +62,12 @@ public final class NpcListener implements Listener {
         }
         NpcDef npc = plugin.npcs().get(npcId);
         if (npc != null) {
+            String role=plugin.farm().role(npc.id());
+            boolean merchant=plugin.quests().storyFrom(npc.id()).isEmpty();
+            if(role!=null&&(merchant?!event.getPlayer().isSneaking():event.getPlayer().isSneaking())){
+                Sched.entity(event.getPlayer(),()->com.cquests.farm.FarmMenu.open(plugin,event.getPlayer()));
+                return;
+            }
             plugin.dialogue().onClick(event.getPlayer(), npc, clicked);
         }
     }
@@ -132,6 +138,8 @@ public final class NpcListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         plugin.store().get(player.getUniqueId());
+        plugin.progression().initialize(player);
+        plugin.farm().update(player);
         Sched.entityLater(player, 40, () -> {
             plugin.finale().restoreIfNeeded(player);
             plugin.questManager().giveWelcome(player);
@@ -144,6 +152,7 @@ public final class NpcListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         plugin.dialogue().forget(event.getPlayer());
+        plugin.speech().stop(event.getPlayer());
         plugin.tracker().forget(event.getPlayer());
         plugin.shield().forget(event.getPlayer());
         plugin.store().unload(event.getPlayer().getUniqueId());
