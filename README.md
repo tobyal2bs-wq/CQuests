@@ -1,5 +1,7 @@
 # CQuests
 
+Version 1.2.2 fixes reconnect/save races, tightens bound-tool transfers and quest reward checks, persists placed-block quest protection, reduces movement inventory scans and adds older ViaVersion-client dialog fallback. See [AUDIT-1.2.2.md](AUDIT-1.2.2.md) for validation and remaining limits.
+
 A villager quest plugin targeting **Paper 1.21.4 through 26.2 and compatible forks**, with region schedulers for Folia and compatible views for Bedrock/Geyser. The exact tested builds are recorded in [VALIDATION-1.2.md](VALIDATION-1.2.md); arbitrary engines and versions are not universally guaranteed.
 
 100 story villagers tell Claude's original linked story over 5 chapters, with 8 additional side-job villagers and one daily villager. There are 1,080,000 generated side quests. Original story IDs, generator seed and player progress are preserved. No resource pack or datapack is needed.

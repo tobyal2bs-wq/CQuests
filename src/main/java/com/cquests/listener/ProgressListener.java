@@ -75,6 +75,8 @@ public final class ProgressListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCraft(CraftItemEvent event) {
+        if (event.getAction() == org.bukkit.event.inventory.InventoryAction.NOTHING
+                || event.getAction() == org.bukkit.event.inventory.InventoryAction.UNKNOWN) return;
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }

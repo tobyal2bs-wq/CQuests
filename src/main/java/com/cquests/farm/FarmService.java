@@ -99,7 +99,7 @@ public final class FarmService {
         });return item;
     }
     public FarmArea area(Location loc){
-        if(!enabled||!WorldGuardHook.available())return null;
+        if(!enabled||areas.isEmpty())return null;
         for(FarmArea area:areas)if(area.candidate(loc.getWorld().getName(),loc.getBlockX(),loc.getBlockY(),loc.getBlockZ())
                 &&WorldGuardHook.contains(loc,area.region()))return area;
         return null;
@@ -110,14 +110,18 @@ public final class FarmService {
         return area(loc)!=null||area(loc.clone().subtract(0,1,0))!=null;
     }
     public void update(Player player){
+        update(player,true);
+    }
+    public void update(Player player,boolean auditInventory){
         boolean isInside=inFarm(player);
         if(isInside){
             boolean entered=inside.add(player.getUniqueId());
             if(entered){plugin.send(player,"<gold>Harvest grounds <gray>• commands are paused; your tool is bound to this area.");equip(player);}
+            if(!entered&&!auditInventory)return;
             int count=0;boolean invalid=marked(player.getItemOnCursor());
             for(ItemStack item:player.getInventory().getContents())if(marked(item)){count+=item.getAmount();invalid|=!owned(player,item);}
             if(invalid||count>1){strip(player);equip(player);}
-        }else if(inside.remove(player.getUniqueId())||hasTool(player)){
+        }else if(inside.remove(player.getUniqueId())||(auditInventory&&hasTool(player))){
             strip(player);cooldowns.remove(player.getUniqueId());
             player.sendActionBar(Text.mm("<gray>Your hoe is safe in your private field locker."));
         }
@@ -151,6 +155,8 @@ public final class FarmService {
     }
     /** Triggered only for one block; even high-tier tools never harvest neighbors. */
     public void harvest(Player player,Block block){
+        if(!player.isOnline()||player.getGameMode()==GameMode.SPECTATOR||player.getGameMode()==GameMode.CREATIVE
+                ||!player.getWorld().equals(block.getWorld())||player.getEyeLocation().distanceSquared(block.getLocation().add(.5,.5,.5))>36)return;
         ItemStack held=player.getInventory().getItemInMainHand();
         if(!owned(player,held)||!inFarm(player)||area(block.getLocation())==null)return;
         Tier tier=tiers.get(plugin.questManager().data(player).hoeTier());if(tier==null)return;

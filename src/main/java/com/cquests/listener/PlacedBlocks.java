@@ -1,48 +1,33 @@
 package com.cquests.listener;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+import java.util.BitSet;
+import java.util.Objects;
 
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-/**
- * Remembers blocks players placed so that breaking them again does not count for MINE objectives,
- * and spots that already counted for PLACE objectives. Kept in memory and capped; it only needs to
- * stop place-and-break loops, not survive restarts.
- */
+/** Compact chunk-owned marks: no global tracking map, cap reset, or restart-based quest farming. */
 final class PlacedBlocks {
+    private static final NamespacedKey PLACED=Objects.requireNonNull(NamespacedKey.fromString("cquests:quest_placed_blocks"));
+    private static final NamespacedKey COUNTED=Objects.requireNonNull(NamespacedKey.fromString("cquests:quest_counted_placements"));
 
-    private static final int MAX = 250_000;
+    void add(Block block) { change(block,PLACED,true); }
+    boolean firstPlacementAt(Block block) { return !change(block,COUNTED,true); }
+    boolean remove(Block block) { return change(block,PLACED,false); }
 
-    private record Pos(UUID world, int x, int y, int z) {
-    }
-
-    private final Set<Pos> placed = ConcurrentHashMap.newKeySet();
-    /** Spots that already counted for a PLACE objective, so placing and breaking one block over and over counts once. */
-    private final Set<Pos> counted = ConcurrentHashMap.newKeySet();
-
-    void add(Block block) {
-        if (placed.size() >= MAX) {
-            placed.clear();
+    /** Called only by block events on the owning region. Chunk saving persists these marks normally. */
+    private static boolean change(Block block,NamespacedKey key,boolean value) {
+        PersistentDataContainer data=block.getChunk().getPersistentDataContainer();
+        byte[] bytes=data.get(key,PersistentDataType.BYTE_ARRAY);
+        if(bytes==null&&!value)return false;
+        BitSet bits=bytes==null?new BitSet():BitSet.valueOf(bytes);
+        int index=((block.getY()-block.getWorld().getMinHeight())<<8)|((block.getZ()&15)<<4)|(block.getX()&15);
+        boolean previous=bits.get(index);
+        if(previous!=value){
+            bits.set(index,value);
+            if(bits.isEmpty())data.remove(key);else data.set(key,PersistentDataType.BYTE_ARRAY,bits.toByteArray());
         }
-        placed.add(key(block));
-    }
-
-    /** True the first time a spot is used for a PLACE objective. */
-    boolean firstPlacementAt(Block block) {
-        if (counted.size() >= MAX) {
-            counted.clear();
-        }
-        return counted.add(key(block));
-    }
-
-    /** Returns true and forgets the block if a player placed it. */
-    boolean remove(Block block) {
-        return placed.remove(key(block));
-    }
-
-    private static Pos key(Block block) {
-        return new Pos(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
+        return previous;
     }
 }

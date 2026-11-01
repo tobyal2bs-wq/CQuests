@@ -467,12 +467,12 @@ public final class QuestManager {
         return lines;
     }
 
-    private static int take(PlayerInventory inventory, Set<Material> materials, int needed) {
+    private int take(PlayerInventory inventory, Set<Material> materials, int needed) {
         int taken = 0;
         ItemStack[] contents = inventory.getStorageContents();
         for (int slot = 0; slot < contents.length && taken < needed; slot++) {
             ItemStack stack = contents[slot];
-            if (stack == null || !materials.contains(stack.getType())) {
+            if (stack == null || !materials.contains(stack.getType()) || (plugin.farm()!=null && plugin.farm().marked(stack))) {
                 continue;
             }
             int use = Math.min(stack.getAmount(), needed - taken);
@@ -514,7 +514,8 @@ public final class QuestManager {
     public void complete(Player player, Quest quest) {
         PlayerData data = data(player);
         synchronized (data) {
-            if (!data.isActive(quest.id())) {
+            ActiveQuest active = data.active(quest.id());
+            if (active == null || !ready(quest, active)) {
                 return;
             }
             switch (quest.category()) {

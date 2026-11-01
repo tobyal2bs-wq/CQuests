@@ -55,10 +55,13 @@ public final class FarmListener implements Listener {
     public void inventory(InventoryClickEvent e){
         if(!(e.getWhoClicked() instanceof Player p))return;
         ItemStack hotbar=e.getHotbarButton()>=0?p.getInventory().getItem(e.getHotbarButton()):null;
-        if(plugin.farm().marked(e.getCurrentItem())||plugin.farm().marked(e.getCursor())||plugin.farm().marked(hotbar)){
+        ItemStack offhand=e.getClick()==ClickType.SWAP_OFFHAND?p.getInventory().getItemInOffHand():null;
+        if(plugin.farm().marked(e.getCurrentItem())||plugin.farm().marked(e.getCursor())||plugin.farm().marked(hotbar)||plugin.farm().marked(offhand)){
             e.setCancelled(true);if(!plugin.farm().inFarm(p))Sched.entity(p,()->plugin.farm().strip(p));
         }
     }
+    @EventHandler(priority=EventPriority.HIGHEST)
+    public void transfer(InventoryMoveItemEvent e){if(plugin.farm().marked(e.getItem()))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST)
     public void drag(InventoryDragEvent e){if(plugin.farm().marked(e.getOldCursor())||e.getNewItems().values().stream().anyMatch(plugin.farm()::marked))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST)
@@ -74,12 +77,17 @@ public final class FarmListener implements Listener {
     }
     @EventHandler(priority=EventPriority.HIGHEST)
     public void entity(PlayerInteractEntityEvent e){
-        if(plugin.farm().inFarm(e.getPlayer())&&NpcTag.npcId(e.getRightClicked())==null)e.setCancelled(true);
+        Player p=e.getPlayer();
+        if(NpcTag.npcId(e.getRightClicked())==null&&(plugin.farm().inFarm(p)
+                ||plugin.farm().marked(p.getInventory().getItemInMainHand())
+                ||plugin.farm().marked(p.getInventory().getItemInOffHand())))e.setCancelled(true);
     }
+    @EventHandler(priority=EventPriority.HIGHEST)
+    public void entityAt(PlayerInteractAtEntityEvent e){entity(e);}
     @EventHandler(priority=EventPriority.HIGHEST)
     public void weapon(EntityDamageByEntityEvent e){if(e.getDamager() instanceof Player p&&plugin.farm().marked(p.getInventory().getItemInMainHand()))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
-    public void move(PlayerMoveEvent e){if(e.hasChangedBlock())plugin.farm().update(e.getPlayer());}
+    public void move(PlayerMoveEvent e){if(e.hasChangedBlock())plugin.farm().update(e.getPlayer(),false);}
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void teleport(PlayerTeleportEvent e){Sched.entity(e.getPlayer(),()->plugin.farm().update(e.getPlayer()));}
     @EventHandler(priority=EventPriority.HIGHEST)

@@ -41,4 +41,21 @@ public final class Platform {
         // Floodgate gives Bedrock players UUIDs whose most significant bits are zero.
         return player.getUniqueId().getMostSignificantBits() == 0L;
     }
+
+    /** A new server can also host older clients through ViaVersion; those need the book/menu fallback. */
+    public static boolean supportsDialogs(Player player) {
+        if (isBedrock(player)) return false;
+        var via = Bukkit.getPluginManager().getPlugin("ViaVersion");
+        if (via == null || !via.isEnabled()) return true;
+        try {
+            Class<?> version = Class.forName("com.viaversion.viaversion.api.protocol.version.ProtocolVersion");
+            Object api = Class.forName("com.viaversion.viaversion.api.Via").getMethod("getAPI").invoke(null);
+            Object client = Class.forName("com.viaversion.viaversion.api.ViaAPI")
+                    .getMethod("getPlayerProtocolVersion", UUID.class).invoke(api, player.getUniqueId());
+            Object firstDialogClient = version.getField("v1_21_6").get(null);
+            return (boolean) version.getMethod("newerThanOrEqualTo", version).invoke(client, firstDialogClient);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+            return false;
+        }
+    }
 }

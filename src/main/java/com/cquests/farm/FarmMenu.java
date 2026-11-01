@@ -44,10 +44,18 @@ public final class FarmMenu implements LockedMenu {
         if(slot==31){if(plugin.farm().inFarm(player))plugin.farm().equip(player);else plugin.farm().strip(player);return;}
         if(slot==34&&confirm!=null){int id=confirm;confirm=null;plugin.farm().purchase(player,id);fill();return;}
         Integer id=choices.get(slot);if(id==null)return;
-        var tier=plugin.farm().tier(id);confirm=id;
+        var tier=plugin.farm().tier(id);if(tier==null){fill();return;}
+        var data=plugin.questManager().data(player);
+        boolean eligible=id==data.hoeTier()+1&&plugin.progression().level(data)>=tier.level();
+        confirm=eligible?id:null;
         inventory.setItem(22,QuestMenu.item(tier.material(),"<gold>Review "+Text.escape(tier.name()),List.of(
                 "<gray>Level "+tier.level()+" • <green>$"+Text.formatMoney(tier.cost()),"<aqua>XP ×"+tier.multiplier(),
                 "<gray>Upgrades must follow the tier order.")));
+        if(!eligible){
+            String reason=id<=data.hoeTier()?"You already own this tier.":id!=data.hoeTier()+1?"Unlock the previous tier first.":"Reach Wayfarer level "+tier.level()+" first.";
+            inventory.setItem(34,QuestMenu.item(Material.GRAY_CONCRETE,"<gray>Purchase unavailable",List.of("<yellow>"+reason)));
+            return;
+        }
         inventory.setItem(34,QuestMenu.item(Material.LIME_CONCRETE,"<green><bold>Confirm purchase",List.of(
                 "<gray>Charges $"+Text.formatMoney(tier.cost())+" only if eligible.",
                 "<gray>The tool stays bound to your personal locker.")));

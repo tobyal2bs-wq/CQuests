@@ -12,6 +12,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayerStoreTest {
+    @Test void reconnectBeforeQuitSaveKeepsLatestLedger(@TempDir File folder) {
+        java.util.List<Runnable> tasks=new java.util.ArrayList<>();
+        PlayerStore store=new PlayerStore(folder,Logger.getLogger("test"),tasks::add);
+        UUID id=UUID.randomUUID();PlayerData first=store.get(id);
+        first.complete("welcome",true);first.setHoeTier(2);store.unload(id);
+        PlayerData rejoined=store.get(id);
+        org.junit.jupiter.api.Assertions.assertSame(first,rejoined);
+        tasks.removeFirst().run();
+        org.junit.jupiter.api.Assertions.assertSame(rejoined,store.cached(id));
+        assertTrue(rejoined.isCompleted("welcome"));assertEquals(2,rejoined.hoeTier());
+        rejoined.addSkillXp(100);store.unload(id);tasks.removeFirst().run();
+        org.junit.jupiter.api.Assertions.assertNull(store.cached(id));
+        assertEquals(100,store.get(id).skillXp());
+    }
+    @Test void oldQueuedSaveCannotOverwriteNewSessionOrRestore(@TempDir File folder) throws Exception {
+        java.util.List<Runnable> tasks=new java.util.ArrayList<>();
+        PlayerStore store=new PlayerStore(folder,Logger.getLogger("test"),tasks::add);
+        UUID id=UUID.randomUUID();PlayerData first=store.get(id);first.setHoeTier(1);
+        store.saveNow(first);Runnable late=tasks.removeFirst();
+        first.setHoeTier(2);store.unload(id);tasks.removeFirst().run();
+        PlayerData next=store.get(id);next.setHoeTier(3);store.saveAllNow();late.run();
+        assertEquals(3,new PlayerStore(folder,Logger.getLogger("test")).get(id).hoeTier());
+        store.unload(id);PlayerData restored=store.restore(id,GOOD);tasks.removeFirst().run();
+        org.junit.jupiter.api.Assertions.assertSame(restored,store.cached(id));
+        assertTrue(new PlayerStore(folder,Logger.getLogger("test")).get(id).isCompleted("welcome"));
+    }
     @Test void customSkillAndPaidUnlockSurviveRestartAndInitializeOnlyOnce(@TempDir File folder) {
         PlayerStore store=new PlayerStore(folder,Logger.getLogger("test"));UUID id=UUID.randomUUID();
         PlayerData data=store.get(id);assertTrue(!data.skillInitialized());

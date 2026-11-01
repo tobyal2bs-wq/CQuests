@@ -17,7 +17,7 @@ public final class NativeDialogue {
         catch (ClassNotFoundException | LinkageError e) { return false; }
     }
     public static boolean open(CQuestsPlugin plugin, Player player, Component title, List<String> text, String label, String token) {
-        if (!available()) return false;
+        if (!available() || !com.cquests.util.Platform.supportsDialogs(player)) return false;
         try {
             Class<?> dialog = Class.forName("io.papermc.paper.dialog.Dialog");
             Class<?> base = Class.forName(ROOT+"DialogBase"), baseBuilder = Class.forName(ROOT+"DialogBase$Builder");

@@ -154,7 +154,7 @@ public final class Achievements {
         chapters().forEach(c -> keys.add(chapterKey(c)));
         keys.add(journeyKey());
         keys.add(new NamespacedKey(plugin, "wanderers"));
-        for(int level:LEVELS)keys.add(new NamespacedKey(plugin,"level_"+level));
+        for(int level:LEVELS)keys.add(new NamespacedKey(plugin,"wayfarer_"+level));
         for (Milestones.Goal goal : Milestones.ALL) keys.add(new NamespacedKey(plugin, goal.id()));
         for (NamespacedKey key : keys) {
             Advancement advancement = Bukkit.getAdvancement(key);

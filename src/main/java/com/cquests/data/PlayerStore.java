@@ -29,17 +29,28 @@ public final class PlayerStore {
     private final File dir;
     private final Logger log;
     private final Map<UUID, PlayerData> cache = new ConcurrentHashMap<>();
+    private final Map<UUID, Object> unloading = new ConcurrentHashMap<>();
+    private final java.util.function.Consumer<Runnable> submit;
 
     public PlayerStore(File dataFolder, Logger log) {
+        this(dataFolder, log, Sched::async);
+    }
+
+    PlayerStore(File dataFolder, Logger log, java.util.function.Consumer<Runnable> submit) {
         this.dir = new File(dataFolder, "players");
         this.log = log;
+        this.submit = submit;
         //noinspection ResultOfMethodCallIgnored
         dir.mkdirs();
     }
 
     /** Safe to call from any thread; blocks on disk the first time a player is seen. */
     public PlayerData get(UUID uuid) {
-        return cache.computeIfAbsent(uuid, this::load);
+        return cache.compute(uuid, (id, current) -> {
+            // Reconnects reuse the latest ledger while the quit save is still queued.
+            unloading.remove(id);
+            return current == null ? load(id) : current;
+        });
     }
 
     public File dir() {
@@ -51,16 +62,35 @@ public final class PlayerStore {
     }
 
     public void unload(UUID uuid) {
-        PlayerData data = cache.remove(uuid);
-        if (data != null && data.dirty()) {
-            Sched.async(() -> write(data));
-        }
+        Object ticket = new Object();
+        PlayerData data = cache.computeIfPresent(uuid, (id, current) -> {
+            unloading.put(id, ticket);
+            return current;
+        });
+        if (data == null) return;
+        submit.accept(() -> {
+            write(data);
+            cache.computeIfPresent(uuid, (id, current) -> {
+                if (current == data && unloading.get(id) == ticket) {
+                    synchronized (dir) {
+                        synchronized (data) {
+                            if (!data.dirty() && data.writtenSeq >= data.saveSeq) {
+                                unloading.remove(id, ticket);
+                                data.retired = true;
+                                return null;
+                            }
+                        }
+                    }
+                }
+                return current;
+            });
+        });
     }
 
     public void saveDirtyAsync() {
         for (PlayerData data : cache.values()) {
             if (data.dirty()) {
-                Sched.async(() -> write(data));
+                submit.accept(() -> write(data));
             }
         }
     }
@@ -157,11 +187,11 @@ public final class PlayerStore {
 
     /**
      * Saves right away: the snapshot is taken on the calling thread, the disk write happens async.
-     * Used after rewards so a crash can never hand out the same reward twice.
+     * Used after rewards to minimize rollback; an abrupt process crash can still interrupt a queued save.
      */
     public void saveNow(PlayerData data) {
         Snapshot snapshot = snapshot(data);
-        Sched.async(() -> writeIfNewer(data, snapshot));
+        submit.accept(() -> writeIfNewer(data, snapshot));
     }
 
     private record Snapshot(YamlConfiguration yaml, long seq) {
@@ -244,20 +274,22 @@ public final class PlayerStore {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(yamlText);
         PlayerData restored = parse(uuid, yaml);
-        synchronized (dir) {
-            PlayerData old = cache.get(uuid);
-            if (old != null) {
-                old.retired = true;
+        final IOException[] failure = new IOException[1];
+        cache.compute(uuid, (id, old) -> {
+            synchronized (dir) {
+                try {
+                    unloading.remove(id);
+                    File target = new File(dir, uuid + ".yml");
+                    if (target.exists()) {
+                        Files.copy(target.toPath(), new File(dir, uuid + ".yml.before-restore").toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                    Files.writeString(target.toPath(), yamlText, StandardCharsets.UTF_8);
+                    if (old != null) old.retired = true;
+                    return old == null ? null : restored;
+                } catch (IOException e) { failure[0] = e; return old; }
             }
-            File target = new File(dir, uuid + ".yml");
-            if (target.exists()) {
-                Files.copy(target.toPath(), new File(dir, uuid + ".yml.before-restore").toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
-            Files.writeString(target.toPath(), yamlText, StandardCharsets.UTF_8);
-            if (old != null) {
-                cache.put(uuid, restored);
-            }
-        }
+        });
+        if (failure[0] != null) throw failure[0];
         return restored;
     }
 }
