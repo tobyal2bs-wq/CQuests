@@ -29,7 +29,7 @@ printf 'online-mode=false\nlevel-type=minecraft\\:flat\ngenerate-structures=fals
 mkdir -p plugins/CQuests/players
 # This legacy client suite exercises the compatible menu and original story flow. Native dialogs,
 # overhead speech and level gates have separate integration coverage (VALIDATION-1.2.md).
-printf 'dialogue:\n  overhead-speech: false\n' > plugins/CQuests/config.yml
+printf 'server-name: "CQuests CI"\ndialogue:\n  overhead-speech: false\n' > plugins/CQuests/config.yml
 printf 'levels:\n  quest-gates: false\n' > plugins/CQuests/farming.yml
 printf 'completed:\n- welcome\n- story_stephan\nside-done:\n  stephan: 3\nstarted: 1\n' > plugins/CQuests/players/00000000-0000-0000-0000-000000000001.yml
 
@@ -54,7 +54,7 @@ wait_for "Done (" 300
 if [ "$PROJECT" = "paper" ] && [ "$VERSION" = "1.21.4" ]; then
   BOT_DIR=$(mktemp -d)
   cp "$GITHUB_WORKSPACE/.github/scripts/bot.js" "$BOT_DIR/"
-  (cd "$BOT_DIR" && npm install --silent --no-audit --no-fund mineflayer@4 > /dev/null)
+  (cd "$BOT_DIR" && npm install --silent --no-audit --no-fund mineflayer@4.39.0 > /dev/null)
   # The last quest of chapter 1 and of the whole story, read from quests.yml.
   read -r CHAPTER_ONE_END STORY_END < <(python3 - "$GITHUB_WORKSPACE/src/main/resources/quests.yml" <<'PY'
 import re, sys
@@ -70,7 +70,7 @@ print([q for q, c in chapters if c == 1][-1], chapters[-1][0])
 PY
 )
   echo "Chapter 1 ends with $CHAPTER_ONE_END, the story ends with $STORY_END"
-  CHAPTER_ONE_END="$CHAPTER_ONE_END" STORY_END="$STORY_END" MC_VERSION="$VERSION" node "$BOT_DIR/bot.js" > bot.log 2>&1 &
+  CHAPTER_ONE_END="$CHAPTER_ONE_END" STORY_END="$STORY_END" MC_VERSION="$VERSION" MC_SERVER_NAME="CQuests CI" node "$BOT_DIR/bot.js" > bot.log 2>&1 &
   BOT=$!
   wait_for "CQBot joined the game" 60
   echo "op CQBot" >> console

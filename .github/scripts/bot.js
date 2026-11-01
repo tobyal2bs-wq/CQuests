@@ -4,6 +4,8 @@ const bot = mineflayer.createBot({ host: '127.0.0.1', port: Number(process.env.M
 const chat = []
 const bars = []
 const actionBars = []
+const welcomeTitle = 'Welcome to ' + (process.env.MC_SERVER_NAME || 'Dawn SMP')
+const welcomeComplete = 'Quest complete: ' + welcomeTitle
 let books = 0
 let responseToken = null
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -47,7 +49,7 @@ async function converse (npc) {
 bot.once('spawn', async () => {
   try {
     // Reconnect tests use a player that has already seen the first-join guide.
-    if (process.env.RECONNECT_TEST !== 'true') await message(/Welcome to Dawn SMP/)
+    if (process.env.RECONNECT_TEST !== 'true') await until(() => chat.some(m => m.includes(welcomeTitle)), 'configured welcome: ' + welcomeTitle)
     await sleep(4500)
     if (process.env.RECONNECT_TEST === 'true') {
       await until(() => bars.length > 0, 'tracker preference restored after restart')
@@ -69,9 +71,9 @@ bot.once('spawn', async () => {
     await until(() => responseToken, 'book conversation has a response')
     let start = chat.length
     await command('/quests respond ' + responseToken)
-    await message(/Quest complete: Welcome to Dawn SMP/, start)
+    await until(() => chat.slice(start).some(m => m.includes(welcomeComplete)), welcomeComplete)
     await command('/quests respond ' + responseToken)
-    check(chat.filter(m => /Quest complete: Welcome to Dawn SMP/.test(m)).length === 1, 'book rewards cannot be claimed twice')
+    check(chat.filter(m => m.includes(welcomeComplete)).length === 1, 'book rewards cannot be claimed twice')
     await command('/quests mode menu')
     await command('/cq npc tp astra')
     await sleep(4500)
