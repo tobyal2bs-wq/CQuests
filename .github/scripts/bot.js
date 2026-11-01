@@ -112,7 +112,10 @@ bot.once('spawn', async () => {
       await command('/execute in minecraft:' + dimension + ' run tp CQBot 640.5 72 640.5')
       await sleep(2500)
       await command('/fill 630 60 630 650 75 650 air')
-      await command('/fill 630 63 630 650 63 650 ' + material)
+      // Nether lava must be enclosed below the test surface: removing only its source must
+      // not leave flowing lava beneath the platform and invalidate the subsequent safe case.
+      const floorY = dimension === 'the_nether' ? 60 : 63
+      await command('/fill 630 ' + floorY + ' 630 650 63 650 ' + material)
       await command('/tp CQBot 640.5 64 640.5')
       await sleep(500)
     }

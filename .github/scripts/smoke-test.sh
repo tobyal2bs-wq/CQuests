@@ -49,6 +49,9 @@ wait_for() {
 }
 
 wait_for "Done (" 300
+# Placement uses asynchronous chunk snapshots. Wait for it before reload/stop cancels that job,
+# especially on fresh Folia worlds where generation can outlast the initial server startup.
+wait_for "Auto-placed" 300
 
 # On Paper 1.21.4 a test player joins and plays the start of the story.
 if [ "$PROJECT" = "paper" ] && [ "$VERSION" = "1.21.4" ]; then
