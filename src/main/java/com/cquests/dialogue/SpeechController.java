@@ -23,9 +23,11 @@ public final class SpeechController implements Listener {
     private static final class Session {
         final String npc; final Location anchor; final List<String> sentences; final Runnable open;
         final SpeechChatBuffer chat=new SpeechChatBuffer();final UUID token=UUID.randomUUID();final SpeechTiming timing;
-        volatile TextDisplay display; ScheduledTask task; int line, letters, pause,characterWait,rows=1; volatile boolean ready; long readyUntil;
+        final SpeechPlayback playback;
+        volatile TextDisplay display; ScheduledTask task; int letters,characterWait,rows=1; volatile boolean ready; long readyUntil;
         Session(String npc,Location anchor,List<String> sentences,Runnable open,SpeechTiming timing) {
             this.timing=timing;this.npc=npc;this.anchor=anchor;this.sentences=sentences;this.open=open;
+            this.playback=new SpeechPlayback(sentences,timing);
         }
     }
     private final CQuestsPlugin plugin;
@@ -37,7 +39,7 @@ public final class SpeechController implements Listener {
         Session s=sessions.get(player.getUniqueId());
         if(s==null)return false;
         if(!s.npc.equals(npc.id())) {stop(player);return false;}
-        if(s.ready) {stop(player);s.open.run();} else s.letters=Integer.MAX_VALUE;
+        if(s.playback.click()) {stop(player);s.open.run();}
         return true;
     }
     public void start(Player player,NpcDef npc,List<String> rich,Runnable open) {
@@ -83,27 +85,21 @@ public final class SpeechController implements Listener {
             if(!Character.isWhitespace(visible.charAt(visible.length()-1)))player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);
             return;
         }
-        if(s.pause-->0)return;
-        if(s.line>=s.sentences.size()){
+        SpeechPlayback.Frame frame=s.playback.tick();
+        if(frame==null)return;
+        if(frame.ready()){
             if(s.rows!=1){s.rows=1;plugin.nameplates().lines(s.npc,s.token,1);}
-            s.ready=true;s.letters=0;s.characterWait=0;s.readyUntil=System.currentTimeMillis()+120_000;flush(player,s);return;
+            s.ready=true;s.letters=0;s.characterWait=0;s.readyUntil=System.currentTimeMillis()+120_000;flush(player,s);
+            Sched.entity(s.display,()->s.display.text(Component.empty()));return;
         }
-        if(s.letters!=Integer.MAX_VALUE&&s.characterWait-->0)return;
-        s.characterWait=s.timing.characterTicks()-1;
-        String sentence=s.sentences.get(s.line);
-        int count=sentence.codePointCount(0,sentence.length());
-        s.letters=s.letters==Integer.MAX_VALUE?count:Math.min(count,s.letters+1);
-        String visible=sentence.substring(0,sentence.offsetByCodePoints(0,s.letters));
-        int rows=Math.max(1,(s.letters+35)/36);
+        String visible=frame.visible();
+        int rows=Math.max(1,(visible.codePointCount(0,visible.length())+35)/36);
         if(rows!=s.rows){s.rows=rows;plugin.nameplates().lines(s.npc,s.token,rows);}
         Sched.entity(s.display,()->s.display.text(Text.mm("<white>"+Text.escape(visible))));
         if(!visible.isEmpty()&&!Character.isWhitespace(visible.charAt(visible.length()-1)))
             player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);
-        if(s.letters>=count) {
-            player.sendMessage(Text.mm(plugin.characters().speechPrefix(npc)+"<white>"+Text.escape(sentence)));
-            s.line++;s.letters=0;s.pause=s.timing.readingTicks();
-
-        }
+        if(frame.completed()!=null)
+            player.sendMessage(Text.mm(plugin.characters().speechPrefix(npc)+"<white>"+Text.escape(frame.completed())));
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void chat(AsyncChatEvent event) {
