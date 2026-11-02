@@ -99,7 +99,7 @@ public final class DialogueManager {
                     plugin.send(player, plugin.settings().msg("more-work", "<yellow><npc> has more work for you. Click them again.")
                             .replace("<npc>", plugin.npcs().mention(npc.id())));
                 }
-            }, "Claim rewards");
+            }, "Here you go. Job done!");
             return;
         }
 
@@ -135,7 +135,7 @@ public final class DialogueManager {
                 lines.add(new Line(false, acceptPrompt(player)));
                 speak(player, npc, lines, null);
             } else {
-                speak(player, npc, lines, () -> acceptPending(player), "Accept quest");
+                speak(player, npc, lines, () -> acceptPending(player), "Count me in.");
             }
             return;
         }
@@ -203,8 +203,8 @@ public final class DialogueManager {
     private String rewardPreview(Quest quest) {
         List<String> rewards = qm().rewardLines(quest.reward());
         String list = rewards.isEmpty() ? "<gray>nothing but thanks" : String.join("<gray>, ", rewards);
-        return "<dark_gray>» <gray>Quest: <white><bold>" + Text.escape(quest.name()) + "</bold></white> <dark_gray>(Lv "
-                + quest.level() + ")</dark_gray> <gray>Reward: " + list;
+        return "<gold><bold>" + Text.escape(quest.name()) + "</bold></gold>\n<gray>Wayfarer level <aqua>"
+                + quest.level() + "</aqua>\n<gray>For your trouble: " + list;
     }
 
     private String acceptPrompt(Player player) {

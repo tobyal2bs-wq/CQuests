@@ -30,12 +30,12 @@ public final class NativeDialogue {
             baseBuilder.getMethod("canCloseWithEscape",boolean.class).invoke(baseB,true);
             Object builtBase = baseBuilder.getMethod("build").invoke(baseB);
             Object exit = button.getMethod("create",Component.class,Component.class,int.class,action)
-                    .invoke(null,Component.text("Return to the world"),null,200,null);
+                    .invoke(null,Component.text("See you around"),null,200,null);
             List<Object> buttons;
             if (token != null) {
                 Object click = action.getMethod("staticAction",ClickEvent.class).invoke(null,ClickEvent.runCommand("/quests respond "+token));
                 Object accept = button.getMethod("create",Component.class,Component.class,int.class,action)
-                        .invoke(null,Text.mm("<gold><bold>"+Text.escape(label)),Component.text("Your choice is checked again before it is applied."),220,click);
+                        .invoke(null,Text.mm("<gold><bold>"+Text.escape(label)),Component.text("Reply and return to the world."),200,click);
                 buttons=List.of(accept);
             } else buttons=List.of(exit);
             Object typeB = type.getMethod("multiAction",List.class).invoke(null,buttons);

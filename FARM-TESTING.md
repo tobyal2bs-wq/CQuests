@@ -1,5 +1,7 @@
 # Test the farm on a small plot
 
+For the click-to-upgrade anvil and its current/next hoe screen, see [WORKSHOP-1.3.4.md](WORKSHOP-1.3.4.md). Players only right-click the registered anvil; the commands below are one-time administrator setup.
+
 Use WorldEdit and WorldGuard. Pick a small test plot away from other players' builds, fill it with farmland/water and mature wheat, and use Survival mode (Creative harvesting is intentionally disabled).
 
 1. Select opposite plot corners with the WorldEdit axe (`//wand`), then `//expand vert` so the region includes the crop height. Define a new region: `/rg define cquests_farmtest`. Optionally `/rg flag cquests_farmtest build deny` verifies protected-field harvesting.

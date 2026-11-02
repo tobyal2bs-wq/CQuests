@@ -41,16 +41,16 @@ public final class DialogueView implements LockedMenu {
 
     private void fill() {
         for (int i = 0; i < 54; i++) inventory.setItem(i, QuestMenu.item(Material.BLACK_STAINED_GLASS_PANE, " ", List.of()));
-        inventory.setItem(4, QuestMenu.item(Material.VILLAGER_SPAWN_EGG, "<white><bold>" + npc.name(),
-                List.of("<gray>" + Text.escape(npc.title()), "<aqua>Conversation • " + (page + 1) + "/" + pages.size())));
-        inventory.setItem(22, QuestMenu.item(Material.WRITABLE_BOOK, "<gold>" + npc.name() + " says…",
+        inventory.setItem(4, QuestMenu.item(Material.PLAYER_HEAD, "<white><bold>" + npc.name(),
+                List.of("<gray>" + Text.escape(npc.title()), "<aqua>Page " + (page + 1) + "/" + pages.size())));
+        inventory.setItem(22, QuestMenu.item(Material.WRITABLE_BOOK, "<gold>" + npc.name() + "</gold><gray> says…",
                 pages.get(page).stream().map(s -> "<white>" + Text.escape(s)).toList()));
-        if (token != null) inventory.setItem(40, QuestMenu.item(Material.LIME_CONCRETE, "<green><bold>" + Text.escape(label),
-                List.of("<gray>" + (page + 1 < pages.size() ? "Read the remaining pages first." : "Click to confirm."))));
-        inventory.setItem(49, QuestMenu.item(Material.BARRIER, "<red>Close", List.of("<gray>You can speak again any time.")));
+        if (token != null) inventory.setItem(40, QuestMenu.item(page + 1 < pages.size() ? Material.GRAY_CONCRETE : Material.LIME_CONCRETE, "<green><bold>" + Text.escape(label),
+                List.of("<gray>" + (page + 1 < pages.size() ? "There is more to hear. Turn the page." : "Click to reply."))));
+        inventory.setItem(49, QuestMenu.item(Material.BARRIER, "<gray>See you around", List.of("<gray>You can speak again any time.")));
         if (page > 0) inventory.setItem(45, QuestMenu.item(Material.ARROW, "<white>Previous page", List.of()));
         if (page + 1 < pages.size()) inventory.setItem(53, QuestMenu.item(Material.ARROW, "<white>Next page", List.of()));
-        inventory.setItem(47, QuestMenu.item(Material.BOOK, "<white>Use book dialogue", List.of("<gray>Change this in /quests settings.")));
+        inventory.setItem(47, QuestMenu.item(Material.BOOK, "<white>Use book dialogue", List.of("<gray>Click to read this conversation in a book.")));
     }
 
     public void click(int slot, ClickType type) {
@@ -75,7 +75,7 @@ public final class DialogueView implements LockedMenu {
         String action = token == null ? "" : "<click:run_command:'/quests respond " + token + "'><dark_green><bold>["
                 + Text.escape(label) + "]</bold></dark_green></click>\n\n";
         pages.add(Text.mm("<black><bold>Your response</bold>\n\n" + action
-                + "<click:run_command:'/quests mode menu'><dark_blue>[Use menu dialogue]</dark_blue></click>\n\n<dark_gray>Menu buttons work with touch controls too.</dark_gray>"));
+                + "<click:run_command:'/quests mode menu'><dark_blue>[Use menu dialogue]</dark_blue></click>\n\n<dark_gray>Close the book to take a moment. You can speak again any time.</dark_gray>"));
         player.openBook(Book.book(Text.mm(npc.name()), Component.text("The Wanderers"), pages));
     }
 
