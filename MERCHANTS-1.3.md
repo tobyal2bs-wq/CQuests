@@ -7,13 +7,13 @@ Five merchants are supplied in `merchants.yml`. None spawns until an operator co
 Only a player whose server OP status is true can use these editor actions. Granting `cquests.admin`, `cquests.bypass` or a permission wildcard to a non-OP does not authorize merchant editing.
 
 1. Stand on safe outdoor ground: `/cq merchant spawn rowan`.
-2. Walk the route, using `/cq merchant point rowan` at each turn. Alternatively, `/cq merchant wand rowan` gives a stick: left-click ground to add a waypoint, right-click to undo. Wait for each validation message before selecting the next point.
-3. Stand where the storekeeper should stop: `/cq merchant shop rowan`. The store may have a roof.
-4. Run `/cq merchant walk rowan`. The villager walks from spawn through the waypoints to the store, then opens trading.
+2. Run `/cq merchant wand rowan`. Right-click ground blocks in order to mark the trail; left-click to undo. Gold floor blocks are a private preview, not real world edits or obtainable blocks. Wait for each saved-point message.
+3. Stand at the store, look in the direction the merchant should face, and run `/cq merchant end rowan`. This saves the endpoint and facing, clears the preview and starts walking. The store may have a roof.
+4. The villager walks through the trail in order, then faces your saved direction and opens trading. It never teleports between waypoints. `/cq merchant walk rowan` restarts an existing route. Manual `/cq merchant point rowan` and `/cq merchant shop rowan` remain supported.
 
 Use `/cq merchant list` for the five IDs: `rowan`, `brann`, `mira`, `sable`, `orin`. Repeat the setup for each merchant. Routes must stay in one world, with at most 64 waypoints and a maximum 32-block gap between successive stops. Floors, headroom, world borders, End support and Nether lava rules are checked. Spawn points use the outdoor NPC rules; store/waypoints allow roofs.
 
-`/cq merchant undo <id>` removes the last waypoint. `/cq merchant routeclear <id>` clears waypoints. Changing any location stops the current merchant until `/cq merchant walk <id>` is run again. `/cq merchant despawn <id>` disables it while retaining trades and locations. Enabled merchants start their route again after restart/reload.
+`/cq merchant undo <id>` removes the last waypoint. `/cq merchant routeclear <id>` clears waypoints. Changing any location stops the current merchant until `/cq merchant walk <id>` is run again. `/cq merchant despawn <id>` disables it while retaining trades and locations. Enabled merchants start their route again after restart/reload. Trail previews expire after two minutes and clear when you finish or leave. They do not modify WorldGuard regions, grant build access or create drops.
 
 Movement uses native pathfinding, not repeated teleports. Build a walkable route with sensible stairs and doors; a blocked stop closes trading and reports the route as blocked. Active routes retain plugin chunk tickets so merchants survive when no player is nearby. Routes are capped at 128 distinct chunks each; keep them short to limit memory use. Shared chunks are reference counted, and disabling/replacing a merchant releases its tickets. Five default merchants each use one ten-tick entity task. Shops remain frozen on arrival.
 
@@ -56,4 +56,8 @@ Completion reveals only appear through the existing ready-to-turn-in dialogue fl
 
 ## Update and rollback
 
-Stop the server and back up CQuests data/worlds. Replace the old JAR with `CQuests-1.3.0.jar`, keep your existing folder, then start normally. Missing `merchants.yml` and `twists.yml` are added. Merchant edits use queued atomic file replacement, drained on shutdown. Back up these two files alongside your other configurations. Rolling back requires the prior JAR and matching backup; older versions ignore merchant definitions and twist additions.
+Stop the server and back up CQuests data/worlds. Replace the old JAR with `CQuests-1.3.1.jar`, keep your existing folder, then start normally. Missing `merchants.yml` and `twists.yml` are added. Merchant edits use queued atomic file replacement, drained on shutdown. Back up these two files alongside your other configurations. Rolling back requires the prior JAR and matching backup; older versions ignore merchant definitions and twist additions.
+
+## Player skins for quest NPCs
+
+As an OP, use `/cq npc skin stephan Notch` (replace Notch with a valid Minecraft username). `/cq npc skin stephan default` uses the default player appearance; `/cq npc skin stephan villager` restores the villager. The existing `player-skin` setting in `npcs.yml` is also supported. These are native mannequin NPCs on Minecraft 1.21.9+; older servers fall back to villagers. Client skin loading depends on its access to Minecraft skin services. NPC names, chapter visibility, dialogue and quest IDs remain the same.

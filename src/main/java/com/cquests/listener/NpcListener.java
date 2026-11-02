@@ -28,6 +28,7 @@ import org.bukkit.inventory.EquipmentSlot;
 public final class NpcListener implements Listener {
 
     private final CQuestsPlugin plugin;
+    private final java.util.Map<java.util.UUID,Long> clicks=new java.util.concurrent.ConcurrentHashMap<>();
 
     public NpcListener(CQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -60,17 +61,27 @@ public final class NpcListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
+        var player=event.getPlayer();var point=plugin.spawns().points().get(npcId);var anchor=point==null?null:point.location();
+        if(!plugin.spawns().isCurrent(npcId,clicked)||anchor==null||!anchor.getWorld().equals(player.getWorld())||anchor.distanceSquared(player.getLocation())>64)return;
+        long now=System.nanoTime();if(now<clicks.getOrDefault(player.getUniqueId(),0L))return;clicks.put(player.getUniqueId(),now+150_000_000L);
         NpcDef npc = plugin.npcs().get(npcId);
-        if (npc != null) {
+        if (npc != null && plugin.questManager().shouldSee(plugin.questManager().data(player),npc)) {
             String role=plugin.farm().role(npc.id());
             boolean merchant=plugin.quests().storyFrom(npc.id()).isEmpty();
-            if(role!=null&&(merchant?!event.getPlayer().isSneaking():event.getPlayer().isSneaking())){
+            boolean sneak=com.cquests.merchant.MerchantService.editGesture(player);
+            if(role!=null&&(merchant?!sneak:sneak)){
                 Sched.entity(event.getPlayer(),()->com.cquests.farm.FarmMenu.open(plugin,event.getPlayer()));
                 return;
             }
             plugin.dialogue().onClick(event.getPlayer(), npc, clicked);
         }
     }
+
+    @EventHandler(priority=EventPriority.LOWEST)
+    public void onInteractAt(org.bukkit.event.player.PlayerInteractAtEntityEvent event){onInteract(event);}
+
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
+    public void onVehicle(org.bukkit.event.vehicle.VehicleEnterEvent event){if(NpcTag.isNpc(event.getEntered()))event.setCancelled(true);}
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDamage(EntityDamageEvent event) {
@@ -151,6 +162,7 @@ public final class NpcListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        clicks.remove(event.getPlayer().getUniqueId());
         plugin.dialogue().forget(event.getPlayer());
         plugin.speech().stop(event.getPlayer());
         plugin.tracker().forget(event.getPlayer());

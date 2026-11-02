@@ -13,14 +13,14 @@ public final class MerchantCommand {
         String id=args.length>2?args[2].toLowerCase(java.util.Locale.ROOT):"";
         if(plugin.merchants().get(id)==null){help(p);return;}
         switch(action){
-            case "spawn","shop","point"->plugin.merchants().setPoint(p,id,action,p.getLocation().clone());
+            case "spawn","shop","point","end"->plugin.merchants().setPoint(p,id,action,p.getLocation().clone());
             case "undo","routeclear"->plugin.merchants().undo(p,id,action.equals("routeclear"));
             case "walk"->plugin.merchants().walk(id,p);
             case "despawn"->plugin.merchants().disable(p,id);
             case "edit"->MerchantEditor.open(plugin,p,id);
-            case "wand"->{var leftovers=p.getInventory().addItem(plugin.merchants().wand(id));plugin.send(p,leftovers.isEmpty()?"<gold>Left-click safe ground to add route points; right-click to undo.":"<yellow>Make room for the route wand and try again.");}
+            case "wand"->{var leftovers=p.getInventory().addItem(plugin.merchants().wand(id));plugin.merchants().showTrail(p,id);plugin.send(p,leftovers.isEmpty()?"<gold>Right-click ground to mark the trail; left-click to undo. Finish with /cq merchant end "+id+".":"<yellow>Make room for the route wand and try again.");}
             default->help(p);
         }
     }
-    private void help(Player p){plugin.send(p,"<white>/cq merchant list\n<white>/cq merchant spawn|point|shop <id> <gray>• record where you stand\n<white>/cq merchant wand <id> <gray>• click a route\n<white>/cq merchant undo|routeclear <id>\n<white>/cq merchant walk|despawn|edit <id>\n<gray>Set spawn, add waypoints in order, set shop, then walk. Maximum gap: 32 blocks.");}
+    private void help(Player p){plugin.send(p,"<white>/cq merchant list\n<white>/cq merchant spawn|point|shop|end <id> <gray>• record where you stand\n<white>/cq merchant wand <id> <gray>• click a route\n<white>/cq merchant undo|routeclear <id>\n<white>/cq merchant walk|despawn|edit <id>\n<gray>Set spawn, use the wand to mark a trail, then end while facing the store direction. Maximum gap: 32 blocks.");}
 }

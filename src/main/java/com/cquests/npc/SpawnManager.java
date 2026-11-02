@@ -375,11 +375,12 @@ public final class SpawnManager {
                 if (method.getName().equals("setProfile") && method.getParameterCount() == 1
                         && method.getParameterTypes()[0].isAssignableFrom(profileClass)) {
                     method.invoke(e, profile);
-                    break;
+                    return;
                 }
             }
-        } catch (ReflectiveOperationException | LinkageError ignored) {
-            // keeps the default skin
+            throw new NoSuchMethodException("Mannequin.setProfile");
+        } catch (ReflectiveOperationException | LinkageError failure) {
+            plugin.getLogger().warning("Could not apply player skin for "+npc.id()+": "+failure.getClass().getSimpleName());
         }
     }
 

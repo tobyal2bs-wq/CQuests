@@ -58,6 +58,7 @@ public final class DialogueManager {
     }
 
     public void onClick(Player player, NpcDef npc, Entity entity) {
+        if(!near(player,npc.id()))return;
         if(plugin.speech().click(player,npc)) return;
         if (talking.contains(player.getUniqueId())) {
             return;

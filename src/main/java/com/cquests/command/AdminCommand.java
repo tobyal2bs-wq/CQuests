@@ -131,6 +131,16 @@ public final class AdminCommand implements TabExecutor {
                 plugin.spawns().placeChecked(npc, player.getLocation(), sender);
             }
             case "repair" -> plugin.spawns().repair(npc, sender);
+            case "skin" -> {
+                if (!sender.isOp()) { plugin.send(sender,"<red>Only operators can change NPC skins."); return; }
+                if(args.length!=4||!args[3].matches("[A-Za-z0-9_]{1,16}")){plugin.send(sender,"<red>/cq npc skin <id> <username|default|villager>");return;}
+                String skin=args[3].equalsIgnoreCase("villager")?"":args[3];
+                var file=new File(plugin.getDataFolder(),"npcs.yml");
+                var yaml=org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+                yaml.set("npcs."+npc.id()+".player-skin",skin);
+                try{yaml.save(file);plugin.reload();plugin.send(sender,"<green>NPC appearance saved; quests and progress preserved. Player skins require Minecraft 1.21.9+.");}
+                catch(IOException e){plugin.send(sender,"<red>Could not save skin: "+Text.escape(e.getMessage()));}
+            }
             case "rename" -> {
                 if (args.length < 4) { plugin.send(sender, "<red>/cq npc rename <id> <Display Name>"); return; }
                 String name = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
@@ -435,14 +445,14 @@ public final class AdminCommand implements TabExecutor {
         String first = args[0].toLowerCase(Locale.ROOT);
         if(first.equals("merchant")){
             if(!(sender instanceof Player p)||!p.isOp())return List.of();
-            if(args.length==2)return QuestsCommand.filter(List.of("list","spawn","point","shop","wand","undo","routeclear","walk","despawn","edit"),args[1]);
+            if(args.length==2)return QuestsCommand.filter(List.of("list","spawn","point","shop","end","wand","undo","routeclear","walk","despawn","edit"),args[1]);
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
         }
         if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","menu"),args[1]);
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();
         if (first.equals("npc")) {
             if (args.length == 2) {
-                return QuestsCommand.filter(List.of("list", "place", "remove", "tp", "repair", "rename"), args[1]);
+                return QuestsCommand.filter(List.of("list", "place", "remove", "tp", "repair", "rename", "skin"), args[1]);
             }
             if (args.length == 3) {
                 return QuestsCommand.filter(npcIds, args[2]);

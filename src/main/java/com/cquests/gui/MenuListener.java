@@ -8,6 +8,10 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 
 /** Locks the quest menu: no item can be moved in or out of it, whatever the click. */
 public final class MenuListener implements Listener {
+    private final org.bukkit.plugin.Plugin plugin;
+    public MenuListener(org.bukkit.plugin.Plugin plugin){this.plugin=plugin;}
+    private final java.util.Map<java.util.UUID,Object> queued=new java.util.concurrent.ConcurrentHashMap<>();
+    @EventHandler public void quit(org.bukkit.event.player.PlayerQuitEvent event){queued.remove(event.getPlayer().getUniqueId());}
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(InventoryClickEvent event) {
@@ -21,9 +25,12 @@ public final class MenuListener implements Listener {
             int slot = event.getRawSlot();
             var click = event.getClick();
             if (event.getWhoClicked() instanceof org.bukkit.entity.Player player) {
-                com.cquests.util.Sched.entity(player, () -> {
-                    if (player.getOpenInventory().getTopInventory().getHolder(false) == menu) menu.click(slot, click);
-                });
+                Object token=new Object();var id=player.getUniqueId();if(queued.putIfAbsent(id,token)!=null)return;
+                var scheduled=player.getScheduler().run(plugin, ignored->{
+                    try{if(player.getOpenInventory().getTopInventory().getHolder(false)==menu)menu.click(slot,click);}
+                    finally{queued.remove(id,token);}
+                },()->queued.remove(id,token));
+                if(scheduled==null)queued.remove(id,token);
             }
         }
     }

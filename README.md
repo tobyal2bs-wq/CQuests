@@ -1,3 +1,5 @@
+CQuests **1.3.1** simplifies merchant setup to spawn, wand trail, then end (including final facing), adds an OP skin command for quest NPCs, and bounds queued GUI callbacks during packet bursts. See [merchant setup](MERCHANTS-1.3.md) and [validation](AUDIT-1.3.1.md).
+
 # CQuests
 
 Version 1.3 adds five travelling merchant presets, operator-only route and trade editing, item/money/mixed trades, and additive story twists. See [MERCHANTS-1.3.md](MERCHANTS-1.3.md) for placement, GUI controls and security boundaries.
