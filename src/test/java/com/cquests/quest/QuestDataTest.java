@@ -155,7 +155,8 @@ class QuestDataTest {
     @Test
     void messagesFileIsRead() {
         assertTrue(settings.prefix.contains("QUESTS"));
-        assertTrue(settings.npcNameFormat.startsWith("<white>"), "villager names are white");
+        assertTrue(settings.npcNameFormat.startsWith("<gold>"), "NPC nameplates use readable gold names");
+        assertTrue(settings.npcNameFormat.contains("\n"), "level is on a separate line");
         assertFalse(settings.msg("quest-accepted", "").isEmpty());
         assertFalse(settings.msg("npc-chapter-gate", "").isEmpty());
     }

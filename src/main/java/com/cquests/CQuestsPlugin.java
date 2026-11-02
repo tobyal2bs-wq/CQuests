@@ -53,6 +53,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     private Directions directions;
     private ScheduledTask displayTicker;
     private SpeechController speech;
+    private com.cquests.npc.NpcNameplates nameplates;
     private Progression progression;
     private FarmService farm;
     private FarmCommand farmCommand;
@@ -85,6 +86,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         ContentUpgrade.apply(this);
         store = new PlayerStore(getDataFolder(), getLogger());
         questManager = new QuestManager(this);
+        nameplates = new com.cquests.npc.NpcNameplates(this);
         spawns = new SpawnManager(this);
         visibility = new VisibilityManager(this);
         dialogue = new DialogueManager(this);
@@ -234,6 +236,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     public Directions directions() { return directions; }
     public SpeechController speech() { return speech; }
+    public com.cquests.npc.NpcNameplates nameplates(){return nameplates;}
     public Progression progression() { return progression; }
     public FarmService farm() { return farm; }
     public FarmCommand farmCommand() { return farmCommand; }

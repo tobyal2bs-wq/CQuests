@@ -96,7 +96,8 @@ public final class Settings {
         }
         netheriteMinLevel = c.getInt("rewards.netherite-min-level", 85);
         moneyCommand = c.getString("money-command", "economy give %player% %amount%");
-        npcNameFormat = m.getString("formats.npc-name", c.getString("npc.name-format", "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"));
+        String nameFormat=m.getString("formats.npc-name",c.getString("npc.name-format",com.cquests.npc.NpcNameplates.FORMAT));
+        npcNameFormat=com.cquests.npc.NpcNameplates.LEGACY.equals(nameFormat)?com.cquests.npc.NpcNameplates.FORMAT:nameFormat;
         npcChatFormat = m.getString("formats.npc-chat", c.getString("npc.chat-format", "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>"));
         npcMentionFormat = m.getString("formats.npc-mention", c.getString("npc.mention-format", "<blue>Villager <name></blue>"));
 

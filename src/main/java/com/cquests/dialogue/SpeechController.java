@@ -22,10 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class SpeechController implements Listener {
     private static final class Session {
         final String npc; final Location anchor; final List<String> sentences; final Runnable open;
-        final SpeechChatBuffer chat=new SpeechChatBuffer();
-        volatile TextDisplay display; ScheduledTask task; int line, letters, pause; volatile boolean ready; long readyUntil;
-        Session(String npc,Location anchor,List<String> sentences,Runnable open) {
-            this.npc=npc;this.anchor=anchor;this.sentences=sentences;this.open=open;
+        final SpeechChatBuffer chat=new SpeechChatBuffer();final UUID token=UUID.randomUUID();final SpeechTiming timing;
+        volatile TextDisplay display; ScheduledTask task; int line, letters, pause,characterWait; volatile boolean ready; long readyUntil;
+        Session(String npc,Location anchor,List<String> sentences,Runnable open,SpeechTiming timing) {
+            this.timing=timing;this.npc=npc;this.anchor=anchor;this.sentences=sentences;this.open=open;
         }
     }
     private final CQuestsPlugin plugin;
@@ -46,11 +46,12 @@ public final class SpeechController implements Listener {
         Location at=point==null?player.getLocation():point.location();
         if(at==null)return;
         List<String> sentences=new ArrayList<>();
-        for(String line:rich)for(String sentence:Text.plain(Text.mm(line)).split("(?<=[.!?])\\s+"))
+        for(String line:rich)for(String sentence:SpeechTiming.sentences(Text.plain(Text.mm(line))))
             if(!sentence.isBlank())sentences.add(sentence);
         if(sentences.isEmpty())sentences.add("Take a moment to consider your next step.");
-        Session s=new Session(npc.id(),at.clone(),List.copyOf(sentences),open);
+        Session s=new Session(npc.id(),at.clone(),List.copyOf(sentences),open,new SpeechTiming(plugin.getConfig().getInt("dialogue.character-ticks",2),plugin.getConfig().getInt("dialogue.reading-pause-ticks",80)));
         sessions.put(player.getUniqueId(),s);
+        plugin.nameplates().begin(npc.id(),s.token);
         Sched.at(at,()->{
             if(sessions.get(player.getUniqueId())!=s)return;
             TextDisplay display=at.getWorld().spawn(at.clone().add(0,2.15,0),TextDisplay.class,d->{
@@ -71,6 +72,12 @@ public final class SpeechController implements Listener {
         if(!player.getWorld().equals(s.anchor.getWorld())||player.getLocation().distanceSquared(s.anchor)>100){stop(player);return;}
         if(s.ready){if(System.currentTimeMillis()>s.readyUntil)stop(player);return;}
         if(s.pause-->0)return;
+        if(s.line>=s.sentences.size()){
+            s.ready=true;s.readyUntil=System.currentTimeMillis()+120_000;flush(player,s);
+            Sched.entity(s.display,()->s.display.text(Text.mm("<yellow>Click to continue</yellow>\n<white>Choose your next step")));return;
+        }
+        if(s.letters!=Integer.MAX_VALUE&&s.characterWait-->0)return;
+        s.characterWait=s.timing.characterTicks()-1;
         String sentence=s.sentences.get(s.line);
         int count=sentence.codePointCount(0,sentence.length());
         s.letters=s.letters==Integer.MAX_VALUE?count:Math.min(count,s.letters+1);
@@ -80,12 +87,8 @@ public final class SpeechController implements Listener {
             player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);
         if(s.letters>=count) {
             player.sendMessage(Text.mm("<gold><bold>"+Text.escape(Text.plain(Text.mm(npc.name())))+"</bold></gold><gray> › </gray><white>"+Text.escape(sentence)));
-            s.line++;s.letters=0;s.pause=25;
-            if(s.line>=s.sentences.size()){
-                s.ready=true;s.readyUntil=System.currentTimeMillis()+120_000;
-                flush(player,s);
-                Sched.entity(s.display,()->s.display.text(Text.mm("<gold>Click "+Text.escape(Text.plain(Text.mm(npc.name())))+"</gold>\n<white>Choose your next step")));
-            }
+            s.line++;s.letters=0;s.pause=s.timing.readingTicks();
+
         }
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
@@ -100,7 +103,7 @@ public final class SpeechController implements Listener {
         }
     }
     private void flush(Player player,Session s){for(Component message:s.chat.resume())player.sendMessage(message);}
-    private void retire(Session s){if(s.task!=null)s.task.cancel();if(s.display!=null&&plugin.isEnabled())Sched.entity(s.display,s.display::remove);}
+    private void retire(Session s){plugin.nameplates().end(s.npc,s.token);if(s.task!=null)s.task.cancel();if(s.display!=null&&plugin.isEnabled())Sched.entity(s.display,s.display::remove);}
     public void stop(Player player){Session s=sessions.remove(player.getUniqueId());if(s!=null){retire(s);flush(player,s);}}
     public void stopAll(){for(UUID id:List.copyOf(sessions.keySet())){
         Session s=sessions.remove(id);if(s==null)continue;retire(s);

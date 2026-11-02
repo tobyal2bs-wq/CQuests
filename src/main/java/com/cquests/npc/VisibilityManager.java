@@ -41,7 +41,7 @@ public final class VisibilityManager {
         for (Map.Entry<String, LivingEntity> entry : plugin.spawns().live().entrySet()) {
             NpcDef npc = plugin.npcs().get(entry.getKey());
             if (npc != null) {
-                show(player, entry.getValue(), plugin.questManager().shouldSee(data, npc));
+                show(player,entry.getKey(), entry.getValue(), plugin.questManager().shouldSee(data, npc));
             }
         }
     }
@@ -52,16 +52,17 @@ public final class VisibilityManager {
             Sched.entity(player, () -> {
                 PlayerData data = plugin.store().cached(player.getUniqueId());
                 if (data != null) {
-                    show(player, villager, plugin.questManager().shouldSee(data, npc));
+                    show(player,npc.id(), villager, plugin.questManager().shouldSee(data, npc));
                 }
             });
         }
     }
 
-    private void show(Player player, LivingEntity villager, boolean visible) {
+    private void show(Player player,String id, LivingEntity villager, boolean visible) {
         if (!villager.isValid()) {
             return;
         }
+        plugin.nameplates().show(player,id,visible);
         if (visible) {
             player.showEntity(plugin, villager);
         } else {

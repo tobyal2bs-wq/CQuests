@@ -19,6 +19,9 @@ money-command: "economy give %player% %amount%"
 dialogue:
   # Private sentence-by-sentence text beneath the NPC name. Click again for native dialog choices.
   overhead-speech: true
+  # One character every two ticks, followed by four seconds to read each sentence.
+  character-ticks: 2
+  reading-pause-ticks: 80
   # Default for /quests and NPC conversations. Players can use /quests mode book|menu|chat.
   default-mode: book
   # Pause between lines a villager says (20 ticks = 1 second).
@@ -149,3 +152,7 @@ groups:
   COOKED_MEAT: [COOKED_BEEF, COOKED_PORKCHOP, COOKED_CHICKEN, COOKED_MUTTON, COOKED_RABBIT]
   FLOWERS: [DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY]
   SAPLINGS: ["*_SAPLING", MANGROVE_PROPAGULE]
+
+# Uppercase NPC display names; quest IDs and stored names are unchanged.
+npc:
+  uppercase-names: true

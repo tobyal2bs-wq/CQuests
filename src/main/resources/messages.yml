@@ -19,7 +19,7 @@ prefix: "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> "
 
 formats:
   # Name tag above an NPC. <name>, <level> and <title> are filled in.
-  npc-name: "<white><name></white> <dark_gray>[<gray>Lv <level></gray>]</dark_gray>"
+  npc-name: "<gold><bold><name></bold></gold>\n<gray>LEVEL <aqua><level></aqua></gray>"
   # A line a villager says. Only the player talking to it sees it. <name> and <text>.
   npc-chat: "<white><bold><name></bold></white> <dark_gray>»</dark_gray> <#e6e6e6><text>"
   # How a villager is written inside quest text, the menu and the journal.

@@ -201,6 +201,7 @@ public final class SpawnManager {
             if (plugin.isEnabled()) Sched.entity(entity, entity::remove);
         }
         live.clear();
+        plugin.nameplates().clear();
         flushWrites();
     }
 
@@ -254,6 +255,7 @@ public final class SpawnManager {
         boolean alive = current != null && current.isValid();
         if (current != null && !alive) {
             live.remove(npc.id(), current);
+            plugin.nameplates().remove(npc.id());
         }
         if (!world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
             return;
@@ -263,6 +265,7 @@ public final class SpawnManager {
         boolean playerNear = !loc.getNearbyPlayers(alive ? range + 16 : range).isEmpty();
         if (alive && !playerNear) {
             live.remove(npc.id(), current);
+            plugin.nameplates().remove(npc.id());
             current.remove();
             return;
         }
@@ -298,6 +301,7 @@ public final class SpawnManager {
             return;
         }
         live.put(npc.id(), entity);
+        plugin.nameplates().spawn(npc,entity,loc);
         plugin.visibility().onSpawn(npc, entity);
     }
 
@@ -331,12 +335,8 @@ public final class SpawnManager {
         e.setCollidable(false);
         e.setCanPickupItems(false);
         e.setRotation(loc.getYaw(), 0f);
-        String title = npc.title().isEmpty() ? "" : " <gray>" + Text.escape(npc.title()) + "</gray>";
-        e.customName(Text.mm(plugin.settings().npcNameFormat
-                .replace("<name>", "<bold>"+npc.name()+"</bold>")
-                .replace("<level>", Integer.toString(npc.level()))
-                .replace("<title>", title)));
-        e.setCustomNameVisible(true);
+        e.customName(null); // separate nameplate prevents a second tag appearing under the speech
+        e.setCustomNameVisible(false);
         e.setVisibleByDefault(false); // chapter visibility is applied before a player sees the NPC
     }
 
@@ -362,6 +362,7 @@ public final class SpawnManager {
     private void configureMannequin(LivingEntity e, NpcDef npc, Location loc) {
         configureCommon(e, npc, loc);
         immovable(e);
+        try{e.getClass().getMethod("setDescription",net.kyori.adventure.text.Component.class).invoke(e,net.kyori.adventure.text.Component.empty());}catch(ReflectiveOperationException|LinkageError ignored){}
         if (npc.playerSkin().equalsIgnoreCase("default")) {
             return;
         }
@@ -441,6 +442,7 @@ public final class SpawnManager {
     }
 
     private void despawn(String npcId) {
+        plugin.nameplates().remove(npcId);
         LivingEntity old = live.remove(npcId);
         if (old != null) {
             Sched.entity(old, old::remove);
