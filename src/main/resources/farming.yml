@@ -1,7 +1,7 @@
 # No farm is active until an admin saves an outline bound to an existing WorldGuard region.
 enabled: true
 levels:
-  maximum: 100
+  maximum: 500
   # Tuning reference, not a forced play-time lock or a completion-time guarantee.
   target-active-hours: 360
   reference-xp-per-second: 30

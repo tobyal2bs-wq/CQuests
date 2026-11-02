@@ -69,8 +69,11 @@ public final class DialogueManager {
         }
         PlayerData data = qm().data(player);
         if (!qm().shouldSee(data, npc)) return;
+        if (plugin.memories().offer(player,npc)) return;
         responses.remove(player.getUniqueId());
         List<Line> lines = new ArrayList<>();
+        String memory=plugin.memories().greeting(player,npc.id());
+        if(memory!=null)lines.add(new Line(true,memory));
 
         if (data.meet(npc.id())) {
             npc.intro().forEach(text -> lines.add(new Line(true, text)));
@@ -105,6 +108,7 @@ public final class DialogueManager {
 
         Quest waiting = qm().pendingAt(data, npc.id());
         if (waiting != null) {
+            if(plugin.adventures().offerBoss(player,npc))return;
             if (!talked && lines.isEmpty()) {
                 lines.add(new Line(true, pick(npc.idle(), "Still working on it? Take your time.")));
             }
@@ -141,6 +145,7 @@ public final class DialogueManager {
         }
 
         switch (offer.reason()) {
+            case "daily-level" -> lines.add(new Line(true,"Come back at Wayfarer level "+plugin.settings().dailyMinLevel+", {player}. A little time in the wheat fields will get you started."));
             case "locked" -> {
                 Quest next = qm().nextStoryQuest(data);
                 if(next!=null&&!plugin.progression().canTake(data,next.level()))
@@ -272,6 +277,7 @@ public final class DialogueManager {
         if(plugin.getConfig().getBoolean("dialogue.overhead-speech",true)){
             List<String> speech=lines.stream().filter(Line::speech).map(line->qm().fill(line.text(),player)).toList();
             List<String> details=lines.stream().map(line->qm().fill(line.text(),player)).toList();
+            if(speech.isEmpty())speech=details;
             plugin.speech().start(player,npc,speech,()->{
                 if(after!=null){
                     Pending offer=pending.get(player.getUniqueId());

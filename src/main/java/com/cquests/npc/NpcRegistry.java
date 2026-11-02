@@ -42,7 +42,7 @@ public final class NpcRegistry {
                     s.getString("title", ""),
                     s.getString("profession", "NONE"),
                     s.getString("skin", "PLAINS"),
-                    s.getInt("level", 0),
+                    s.getBoolean("daily",false)?settings.dailyMinLevel:s.getInt("level",0),
                     s.getInt("act", 1),
                     s.getBoolean("personal", false),
                     s.getBoolean("daily", false),

@@ -163,7 +163,7 @@ public final class QuestGenerator {
             return out;
         }
         int pool = Math.max(0, cfg.getInt("daily.pool-size", 60));
-        int level = cfg.getInt("daily.level", 45);
+        int level = settings.dailyMinLevel;
         int objectives = Math.max(1, cfg.getInt("daily.objectives", 2));
         for (int i = 0; i < pool; i++) {
             Random rnd = new Random(seed() * 17 + 99_991L * i);

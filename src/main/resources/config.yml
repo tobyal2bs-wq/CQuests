@@ -98,7 +98,7 @@ daily:
 spawning:
   # Five camp residents, plus the daily villager. Other unplaced NPCs use the surrounding world.
   # Existing saved positions are preserved; /cq camp explicitly arranges this layout.
-  camp-npcs: [stephan, jerry, rosie, copper_jack, luma]
+  camp-npcs: [stephan, jerry, rosie, copper_jack, luma, bob]
   # NPCs without a spot in spawns.yml are placed around the world spawn on startup.
   # Move them with /cq npc place <id> or /cq scatter.
   auto-place-unplaced: true
@@ -156,3 +156,18 @@ groups:
 # Uppercase NPC display names; quest IDs and stored names are unchanged.
 npc:
   uppercase-names: true
+
+# NPC story choices are configured in memories.yml. These toggles control temporary quest actors.
+adventures:
+  enabled: true
+  companions: true
+  wither: true
+
+progression:
+  daily-min-level: 10
+  chapter-levels:
+    1: 0
+    2: 100
+    3: 200
+    4: 300
+    5: 400

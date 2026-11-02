@@ -39,6 +39,9 @@ public final class QuestsCommand implements TabExecutor {
             return true;
         }
         switch (sub) {
+            case "encounter" -> {
+                if(!plugin.adventures().summon(player))plugin.send(player,"<yellow>You need an unfinished King Wakes quest, Survival/Adventure mode, and clear ground. Only one vessel can be active for you.");
+            }
             case "respond" -> {
                 if (args.length != 2 || !plugin.dialogue().respond(player, args[1]))
                     plugin.send(player, "<gray>This conversation has expired. Speak to the villager again.");
@@ -127,7 +130,7 @@ public final class QuestsCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("book", "menu", "settings", "mode", "directions", "achievements", "farm", "list", "track", "story", "accept", "abandon"), args[0]);
+            return filter(List.of("book", "menu", "settings", "mode", "directions", "achievements", "farm", "list", "track", "story", "accept", "abandon", "encounter"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("mode")) return filter(List.of("book", "menu", "chat"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("abandon") && sender instanceof Player player) {

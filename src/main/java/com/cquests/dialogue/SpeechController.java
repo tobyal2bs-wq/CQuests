@@ -23,7 +23,7 @@ public final class SpeechController implements Listener {
     private static final class Session {
         final String npc; final Location anchor; final List<String> sentences; final Runnable open;
         final SpeechChatBuffer chat=new SpeechChatBuffer();final UUID token=UUID.randomUUID();final SpeechTiming timing;
-        volatile TextDisplay display; ScheduledTask task; int line, letters, pause,characterWait; volatile boolean ready; long readyUntil;
+        volatile TextDisplay display; ScheduledTask task; int line, letters, pause,characterWait,rows=1; volatile boolean ready; long readyUntil;
         Session(String npc,Location anchor,List<String> sentences,Runnable open,SpeechTiming timing) {
             this.timing=timing;this.npc=npc;this.anchor=anchor;this.sentences=sentences;this.open=open;
         }
@@ -48,7 +48,7 @@ public final class SpeechController implements Listener {
         List<String> sentences=new ArrayList<>();
         for(String line:rich)for(String sentence:SpeechTiming.sentences(Text.plain(Text.mm(line))))
             if(!sentence.isBlank())sentences.add(sentence);
-        if(sentences.isEmpty())sentences.add("Take a moment to consider your next step.");
+        if(sentences.isEmpty())sentences.add("What do you need, "+player.getName()+"?");
         Session s=new Session(npc.id(),at.clone(),List.copyOf(sentences),open,new SpeechTiming(plugin.getConfig().getInt("dialogue.character-ticks",2),plugin.getConfig().getInt("dialogue.reading-pause-ticks",80)));
         sessions.put(player.getUniqueId(),s);
         plugin.nameplates().begin(npc.id(),s.token);
@@ -70,11 +70,20 @@ public final class SpeechController implements Listener {
     private void tick(Player player,NpcDef npc,Session s) {
         if(sessions.get(player.getUniqueId())!=s)return;
         if(!player.getWorld().equals(s.anchor.getWorld())||player.getLocation().distanceSquared(s.anchor)>100){stop(player);return;}
-        if(s.ready){if(System.currentTimeMillis()>s.readyUntil)stop(player);return;}
+        if(s.ready){
+            if(System.currentTimeMillis()>s.readyUntil){stop(player);return;}
+            String prompt="Click to continue";
+            if(s.letters>=prompt.length()||s.characterWait-->0)return;
+            s.characterWait=s.timing.characterTicks()-1;s.letters++;
+            String visible=prompt.substring(0,s.letters);
+            Sched.entity(s.display,()->s.display.text(Text.mm("<yellow>"+visible)));
+            if(!Character.isWhitespace(visible.charAt(visible.length()-1)))player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);
+            return;
+        }
         if(s.pause-->0)return;
         if(s.line>=s.sentences.size()){
-            s.ready=true;s.readyUntil=System.currentTimeMillis()+120_000;flush(player,s);
-            Sched.entity(s.display,()->s.display.text(Text.mm("<yellow>Click to continue</yellow>\n<white>Choose your next step")));return;
+            if(s.rows!=1){s.rows=1;plugin.nameplates().lines(s.npc,s.token,1);}
+            s.ready=true;s.letters=0;s.characterWait=0;s.readyUntil=System.currentTimeMillis()+120_000;flush(player,s);return;
         }
         if(s.letters!=Integer.MAX_VALUE&&s.characterWait-->0)return;
         s.characterWait=s.timing.characterTicks()-1;
@@ -82,6 +91,8 @@ public final class SpeechController implements Listener {
         int count=sentence.codePointCount(0,sentence.length());
         s.letters=s.letters==Integer.MAX_VALUE?count:Math.min(count,s.letters+1);
         String visible=sentence.substring(0,sentence.offsetByCodePoints(0,s.letters));
+        int rows=Math.max(1,(s.letters+35)/36);
+        if(rows!=s.rows){s.rows=rows;plugin.nameplates().lines(s.npc,s.token,rows);}
         Sched.entity(s.display,()->s.display.text(Text.mm("<white>"+Text.escape(visible))));
         if(!visible.isEmpty()&&!Character.isWhitespace(visible.charAt(visible.length()-1)))
             player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);

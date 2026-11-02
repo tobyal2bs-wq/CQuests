@@ -15,7 +15,8 @@ public final class Progression {
     public Progression(CQuestsPlugin plugin) { this.plugin = plugin; reload(); }
     public void reload() {
         var cfg = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "farming.yml"));
-        int max = Math.max(2, Math.min(1000, cfg.getInt("levels.maximum", 100)));
+        int configured=cfg.getInt("levels.maximum",500);
+        int max = Math.max(2, Math.min(1000,configured));
         long xp = Math.max(max, Math.round(cfg.getDouble("levels.target-active-hours", 360)
                 * 3600 * cfg.getDouble("levels.reference-xp-per-second", 30)));
         curve = new LevelCurve(max, xp, Math.max(1, cfg.getDouble("levels.curve-exponent", 2.2)));
@@ -32,7 +33,7 @@ public final class Progression {
         plugin.store().saveNow(data);
     }
     public int level(PlayerData data) { return curve.level(data.skillXp()); }
-    public boolean canTake(PlayerData data, int required) { return !gates || level(data) >= Math.min(curve.maxLevel(), Math.max(1, required)); }
+    public boolean canTake(PlayerData data, int required) { return !gates || level(data) >= Math.max(1, required); }
     public void award(Player player, long amount, boolean showHud) {
         PlayerData data = plugin.questManager().data(player);
         int before = level(data);

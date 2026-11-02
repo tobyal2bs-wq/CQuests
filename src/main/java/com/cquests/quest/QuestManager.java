@@ -237,6 +237,7 @@ public final class QuestManager {
     }
 
     private Offer dailyOffer(Player player, PlayerData data) {
+        if(!plugin.progression().canTake(data,settings().dailyMinLevel))return Offer.none("daily-level");
         List<Quest> pool = quests().dailyPool();
         if (pool.isEmpty()) {
             return Offer.none("nothing");
@@ -631,6 +632,7 @@ public final class QuestManager {
 
     /** Personal NPCs only show for players who met them, need them for a quest, or are due to meet them next. */
     public boolean shouldSee(PlayerData data, NpcDef npc) {
+        if(npc.daily()||settings().spawnNpcIds.contains(npc.id()))return true;
         // Active quests always keep their participants visible, including shared chapter NPCs.
         for (Quest quest : activeQuests(data)) if (quest.involves(npc.id())) return true;
         Quest next = nextStoryQuest(data);

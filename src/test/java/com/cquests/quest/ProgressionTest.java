@@ -50,6 +50,7 @@ class ProgressionTest {
         assertFalse(manager.shouldSee(data, future));
         assertTrue(manager.shouldSee(data, npcs.get("stephan")));
         assertTrue(manager.shouldSee(data, npcs.get("marigold")));
+        assertTrue(manager.shouldSee(data, npcs.get("bob")));
         for (var quest : quests.story()) {
             if (quest.chapter() < 5) data.complete(quest.id(), true);
         }
@@ -71,5 +72,22 @@ class ProgressionTest {
         assertEquals("B.O.B", npcs.get("BOB").name());
         assertNotNull(quests.side("luma", 1));
         assertEquals(5, quests.firstChapter("astra"));
+    }
+
+    @Test void chapterLevelsAndDailyEntryDoNotReplaceStoryPrerequisites(@org.junit.jupiter.api.io.TempDir File folder){
+        when(plugin.getDataFolder()).thenReturn(folder);
+        var progression=new com.cquests.progression.Progression(plugin);when(plugin.progression()).thenReturn(progression);
+        assertEquals(500,progression.curve().maxLevel());assertEquals(10,settings.dailyMinLevel);
+        assertEquals(10,npcs.get("marigold").level());assertTrue(settings.spawnNpcIds.contains("bob"));
+        assertTrue(quests.dailyPool().stream().allMatch(q->q.level()==10));
+        for(int chapter=2;chapter<=5;chapter++){
+            final int wanted=chapter;var quest=quests.story().stream().filter(q->q.chapter()==wanted).findFirst().orElseThrow();
+            assertEquals((chapter-1)*100,quest.level());
+            var data=new PlayerData(UUID.randomUUID());
+            data.addSkillXp(Long.MAX_VALUE);assertFalse(manager.requirementsMet(data,quest),"High level must not skip previous quests");
+            var below=new PlayerData(UUID.randomUUID());for(String previous:quest.requires())below.complete(previous,true);
+            below.addSkillXp(progression.curve().threshold(quest.level())-1);assertFalse(manager.requirementsMet(below,quest));
+            below.addSkillXp(1);assertTrue(manager.requirementsMet(below,quest));
+        }
     }
 }

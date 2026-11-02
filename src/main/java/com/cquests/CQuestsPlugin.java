@@ -62,6 +62,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     private ScheduledTask autosave;
     private BackupManager backups;
     private com.cquests.merchant.MerchantService merchants;
+    private com.cquests.adventure.NpcMemory memories;
+    private com.cquests.adventure.QuestAdventures adventures;
 
     @Override
     public void onEnable() {
@@ -77,13 +79,14 @@ public final class CQuestsPlugin extends JavaPlugin {
                 getConfig().set("money-command","economy give %player% %amount%");saveConfig();
             } catch(java.io.IOException e){getLogger().warning("Reward command migration deferred: "+e.getMessage());}
         }
-        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml"}) {
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
         }
 
         ContentUpgrade.apply(this);
+        com.cquests.progression.ProgressionUpgrade.apply(this);
         store = new PlayerStore(getDataFolder(), getLogger());
         questManager = new QuestManager(this);
         nameplates = new com.cquests.npc.NpcNameplates(this);
@@ -100,6 +103,8 @@ public final class CQuestsPlugin extends JavaPlugin {
         farmCommand = new FarmCommand(this);
         shield = new NpcShield(this);
         merchants = new com.cquests.merchant.MerchantService(this);
+        memories = new com.cquests.adventure.NpcMemory(this);
+        adventures = new com.cquests.adventure.QuestAdventures(this);
 
         loadData();
         Platform.init();
@@ -112,6 +117,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(speech, this);
         getServer().getPluginManager().registerEvents(new FarmListener(this), this);
         getServer().getPluginManager().registerEvents(new com.cquests.merchant.MerchantListener(this), this);
+        getServer().getPluginManager().registerEvents(adventures, this);
         register("quests", new QuestsCommand(this));
         register("cquests", new AdminCommand(this));
 
@@ -125,7 +131,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) new com.cquests.progression.SkillPlaceholders(this).register();
         displayTicker = Sched.globalTimer(t -> {
             for (var player : getServer().getOnlinePlayers()) Sched.entity(player, () -> {
-                tracker.update(player); farm.update(player);
+                tracker.update(player); farm.update(player); adventures.update(player);
                 if (!farm.inFarm(player) && !speech.busy(player)) directions.update(player);
             });
         }, 20, 10);
@@ -133,6 +139,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if(adventures!=null)adventures.shutdown();
         if(merchants!=null)merchants.shutdown();
         if (farmSave != null) farmSave.cancel();
         if (farm != null) farm.shutdown();
@@ -170,6 +177,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     }
 
     public void reload() {
+        adventures.clear(); memories.reload();
         speech.stopAll();
         dialogue.invalidateAll();
         spawns.stop();
@@ -241,6 +249,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     public FarmService farm() { return farm; }
     public FarmCommand farmCommand() { return farmCommand; }
     public com.cquests.merchant.MerchantService merchants(){return merchants;}
+    public com.cquests.adventure.NpcMemory memories(){return memories;}
+    public com.cquests.adventure.QuestAdventures adventures(){return adventures;}
 
     public Finale finale() {
         return finale;

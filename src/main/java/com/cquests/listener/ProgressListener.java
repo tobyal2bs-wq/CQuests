@@ -41,6 +41,7 @@ public final class ProgressListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDeath(EntityDeathEvent event) {
+        if(plugin.adventures()!=null&&plugin.adventures().marked(event.getEntity()))return;
         Player killer = event.getEntity().getKiller();
         if (killer == null || NpcTag.isNpc(event.getEntity())) {
             return;

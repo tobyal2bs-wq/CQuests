@@ -17,10 +17,17 @@ public final class NpcNameplates {
     private record Plate(LivingEntity npc,TextDisplay display,Location anchor) {}
     private final CQuestsPlugin plugin;
     private final Map<String,Plate> plates=new ConcurrentHashMap<>();
-    private final Map<String,Set<UUID>> speakers=new ConcurrentHashMap<>();
+    private final Map<String,Map<UUID,Integer>> speakers=new ConcurrentHashMap<>();
     public NpcNameplates(CQuestsPlugin plugin){this.plugin=plugin;}
     public Component label(NpcDef npc){
-        Component result=Text.mm(plugin.settings().npcNameFormat.replace("<name>",npc.name()).replace("<level>",Integer.toString(npc.level())).replace("<title>",Text.escape(npc.title())));
+        int chapter=plugin.quests()==null?1:plugin.quests().firstChapter(npc.id());
+        int level=npc.daily()?plugin.settings().dailyMinLevel:Math.max(npc.level(),plugin.settings().chapterLevels.getOrDefault(chapter,0));
+        String format=plugin.settings().npcNameFormat;
+        if(format.equals(FORMAT)){
+            String color=npc.daily()?"gold":switch(chapter){case 2->"green";case 3->"aqua";case 4->"light_purple";case 5->"red";default->"yellow";};
+            format=format.replace("<gold>","<"+color+">").replace("</gold>","</"+color+">");
+        }
+        Component result=Text.mm(format.replace("<name>",npc.name()).replace("<level>",Integer.toString(level)).replace("<title>",Text.escape(npc.title())));
         return plugin.getConfig().getBoolean("npc.uppercase-names",true)?uppercase(result):result;
     }
     public static Component uppercase(Component value){
@@ -35,9 +42,16 @@ public final class NpcNameplates {
         plates.put(definition.id(),new Plate(npc,display,anchor.clone()));
     }
     public void show(Player viewer,String id,boolean visible){Plate plate=plates.get(id);if(plate==null)return;if(visible)viewer.showEntity(plugin,plate.display());else viewer.hideEntity(plugin,plate.display());}
-    public void begin(String id,UUID token){speakers.compute(id,(key,old)->{Set<UUID> next=new HashSet<>(old==null?Set.of():old);next.add(token);return Set.copyOf(next);});move(id);}
-    public void end(String id,UUID token){speakers.computeIfPresent(id,(key,old)->{Set<UUID> next=new HashSet<>(old);next.remove(token);return next.isEmpty()?null:Set.copyOf(next);});move(id);}
-    public double height(String id){return speakers.containsKey(id)?3.85:2.45;}
+    /** Moving companions use the same two-line plate, visible only to their owner. */
+    public void follow(String id,Location at){
+        Plate old=plates.get(id);if(old==null)return;
+        Plate next=new Plate(old.npc(),old.display(),at.clone());
+        if(plates.replace(id,old,next))move(id);
+    }
+    public void begin(String id,UUID token){speakers.compute(id,(key,old)->{var next=new HashMap<UUID,Integer>(old==null?Map.of():old);next.put(token,1);return Map.copyOf(next);});move(id);}
+    public void lines(String id,UUID token,int rows){speakers.computeIfPresent(id,(key,old)->{if(!old.containsKey(token))return old;var next=new HashMap<>(old);next.put(token,Math.max(1,Math.min(4,rows)));return Map.copyOf(next);});move(id);}
+    public void end(String id,UUID token){speakers.computeIfPresent(id,(key,old)->{var next=new HashMap<>(old);next.remove(token);return next.isEmpty()?null:Map.copyOf(next);});move(id);}
+    public double height(String id){var rows=speakers.get(id);return rows==null?2.3:2.55+.225*(rows.values().stream().mapToInt(Integer::intValue).max().orElse(1)-1);}
     private void move(String id){if(!plugin.isEnabled())return;Plate plate=plates.get(id);if(plate!=null)Sched.entity(plate.display(),()->{if(plates.get(id)==plate)plate.display().teleportAsync(plate.anchor().clone().add(0,height(id),0));});}
     public void remove(String id){Plate plate=plates.remove(id);if(plate!=null&&plugin.isEnabled())Sched.entity(plate.display(),plate.display()::remove);}
     public void clear(){for(String id:List.copyOf(plates.keySet()))remove(id);speakers.clear();}

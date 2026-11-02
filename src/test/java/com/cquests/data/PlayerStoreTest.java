@@ -12,6 +12,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayerStoreTest {
+    @Test void decisionsSurviveRestartWithoutChangingQuestOrSkillState(@TempDir File folder){
+        var store=new PlayerStore(folder,Logger.getLogger("memory-test"));UUID id=UUID.randomUUID();var data=store.get(id);
+        data.complete("story_martha",true);assertTrue(data.decide("story_martha","kind"));data.addSkillXp(1234);data.setHoeTier(3);
+        store.saveAllNow();var read=new PlayerStore(folder,Logger.getLogger("memory-test")).get(id);
+        assertEquals("kind",read.decision("story_martha"));assertEquals(1234,read.skillXp());assertEquals(3,read.hoeTier());assertTrue(read.isCompleted("story_martha"));
+        org.junit.jupiter.api.Assertions.assertFalse(read.decide("story_martha","selfish"));
+    }
     @Test void reconnectBeforeQuitSaveKeepsLatestLedger(@TempDir File folder) {
         java.util.List<Runnable> tasks=new java.util.ArrayList<>();
         PlayerStore store=new PlayerStore(folder,Logger.getLogger("test"),tasks::add);

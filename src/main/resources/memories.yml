@@ -1,0 +1,31 @@
+# Choices affect remembered dialogue, never quest requirements or payout amounts.
+enabled: true
+decisions:
+  story_martha:
+    npc: martha
+    family: [steve]
+    prompt: "Steve is my brother. He thinks he has to guard every field himself. If the dead come back, will you stand with us?"
+    kind: "Send for me. You will not stand alone."
+    selfish: "Next time, find someone else."
+    warm: "{player}! I kept a lantern by the gate for you. A promise like yours means something here."
+    wary: "{player}. The gate is watched. We found someone who wanted to help."
+    family-warm: "Martha told me what you promised, {player}. My sister sleeps easier now. So do I."
+    family-wary: "Martha is my sister, {player}. She told me your answer. We will manage on our own."
+  story_lucy:
+    npc: lucy
+    family: [ned]
+    prompt: "Ned is my cousin. That hidden route passes his fishing spot. Will you keep our couriers' names to yourself?"
+    kind: "Their names stay with me."
+    selfish: "That depends on who is asking."
+    warm: "Good to see you, {player}. No courier has been followed since you gave me your word."
+    wary: "I moved the couriers, {player}. I could not leave their safety to a maybe."
+    family-warm: "Lucy says you can keep a secret, {player}. My cousin does not trust easily. You earned that."
+    family-wary: "Lucy warned me, {player}. My cousin and I will keep our plans to ourselves."
+  story_esme:
+    npc: esme
+    family: []
+    prompt: "When the vessel falls, the King will be helpless. Do we bring him home, or leave him to the ruins?"
+    kind: "We bring him home. Everyone deserves that chance."
+    selfish: "I came for the reward. The King is your problem."
+    warm: "You remembered the man inside the monster, {player}. I will not forget it."
+    wary: "You have your road, {player}. We will see the King safely along his."

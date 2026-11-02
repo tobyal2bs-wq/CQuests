@@ -32,6 +32,9 @@ public final class Settings {
     public final int sideQuestsPerChapter;
 
     public final String dailyNpc;
+    public final int dailyMinLevel;
+    public final Map<Integer,Integer> chapterLevels;
+    public final Set<String> spawnNpcIds;
     public final long dailyCooldownMillis;
     public final long dailyMoney;
 
@@ -85,6 +88,13 @@ public final class Settings {
      */
     public Settings(FileConfiguration c, ConfigurationSection m) {
         serverName = c.getString("server-name", "our server");
+        dailyMinLevel=Math.max(1,c.getInt("progression.daily-min-level",10));
+        var levels=new HashMap<Integer,Integer>();
+        for(int chapter=1;chapter<=5;chapter++)levels.put(chapter,Math.max(0,c.getInt("progression.chapter-levels."+chapter,chapter==1?0:(chapter-1)*100)));
+        chapterLevels=Map.copyOf(levels);
+        var spawn=new HashSet<>(c.getStringList("spawning.camp-npcs"));
+        if(spawn.isEmpty())spawn.addAll(List.of("stephan","jerry","rosie","copper_jack","luma"));
+        spawn.add("bob");spawnNpcIds=Set.copyOf(spawn);
         prefix = m.getString("prefix", c.getString("prefix", "<#8fd3ff><bold>QUESTS</bold></#8fd3ff> <dark_gray>»</dark_gray> "));
         countSpawnerMobs = c.getBoolean("quests.count-spawner-mobs", false);
         blockedItems = new HashSet<>();

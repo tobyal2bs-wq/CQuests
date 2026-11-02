@@ -62,14 +62,12 @@ public final class SpawnManager {
     }
 
     private static final double GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-    private static final List<String> DEFAULT_CAMP=List.of("stephan","jerry","rosie","copper_jack","luma");
     private boolean atCamp(NpcDef npc){
-        List<String> ids=plugin.getConfig().getStringList("spawning.camp-npcs");
-        return npc.daily()||(ids.isEmpty()?DEFAULT_CAMP:ids).contains(npc.id());
+        return npc.daily()||plugin.settings().spawnNpcIds.contains(npc.id());
     }
     /** Explicit relocation; existing saves are only moved when an admin requests it. */
     public void arrangeCamp(CommandSender feedback){
-        World world=plugin.settings().autoPlaceWorld.isEmpty()?Bukkit.getWorlds().get(0):Bukkit.getWorld(plugin.settings().autoPlaceWorld);
+        World world=feedback instanceof org.bukkit.entity.Player player?player.getWorld():plugin.settings().autoPlaceWorld.isEmpty()?Bukkit.getWorlds().get(0):Bukkit.getWorld(plugin.settings().autoPlaceWorld);
         if(world==null){tell(feedback,"<red>Spawn world is unavailable.");return;}
         Location center=world.getSpawnLocation();
         List<NpcDef> selected=plugin.npcs().all().stream().filter(n->{
@@ -77,7 +75,7 @@ public final class SpawnManager {
         }).toList();
         Map<String,Long> tokens=new java.util.HashMap<>();for(NpcDef n:selected)tokens.put(n.id(),edit(n.id()));
         autoNext(world,center,selected,0,tokens,epoch,new int[2]);
-        tell(feedback,"<gold>Arranging five camp residents plus the daily villager; other nearby residents move to the surrounding world. Progress is preserved.");
+        tell(feedback,"<gold>Arranging the spawn residents, including B.O.B and daily work, in "+world.getName()+". Other nearby residents move to the surrounding world. Progress is preserved.");
     }
 
     private final CQuestsPlugin plugin;
@@ -477,6 +475,8 @@ public final class SpawnManager {
      * admin's pos1/pos2 selection.
      */
     public void scatter(List<NpcDef> npcs, World world, int[] box, CommandSender feedback) {
+        int selected=npcs.size();npcs=npcs.stream().filter(npc->!atCamp(npc)).toList();
+        if(npcs.size()!=selected)tell(feedback,"<yellow>Kept "+(selected-npcs.size())+" spawn residents out of the scatter. Use /cq camp to arrange them at spawn.");
         if (npcs.isEmpty()) { tell(feedback, "<gray>No NPCs selected."); return; }
         long expectedEpoch = epoch;
         Map<String, Long> tokens = new java.util.HashMap<>();

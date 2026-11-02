@@ -19,6 +19,7 @@ public final class PlayerData {
     final Map<String, ActiveQuest> active = new LinkedHashMap<>();
     final Set<String> completed = new HashSet<>();
     final Set<String> met = new HashSet<>();
+    final Map<String, String> decisions = new LinkedHashMap<>();
     /** Side quests are done in order per NPC, so a count per NPC is all we store, even for a million quests. */
     final Map<String, Integer> sideDone = new HashMap<>();
     final List<JourneyEntry> journey = new ArrayList<>();
@@ -48,6 +49,15 @@ public final class PlayerData {
 
     public UUID uuid() {
         return uuid;
+    }
+
+    public synchronized String decision(String quest) { return decisions.get(quest); }
+    public synchronized Map<String, String> decisions() { return Map.copyOf(decisions); }
+    /** A story decision is permanent for this journey and cannot be replayed. */
+    public synchronized boolean decide(String quest, String choice) {
+        if (!completed.contains(quest) || decisions.containsKey(quest)
+                || !List.of("kind", "selfish").contains(choice) || decisions.size() >= 256) return false;
+        decisions.put(quest, choice); dirty = true; return true;
     }
 
     public synchronized long skillXp() { return skillXp; }
@@ -221,6 +231,7 @@ public final class PlayerData {
         met.clear();
         sideDone.clear();
         journey.clear();
+        decisions.clear();
         startedAt = 0;
         finaleReturn = null;
         storyBookGiven = false;

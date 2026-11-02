@@ -17,8 +17,9 @@ class NpcNameplatesTest {
     }
     @Test void nameplateStaysRaisedUntilBothConversationsEnd(){
         var plates=new NpcNameplates(mock(CQuestsPlugin.class));UUID first=UUID.randomUUID(),second=UUID.randomUUID();
-        assertEquals(2.45,plates.height("stephan"));plates.begin("stephan",first);plates.begin("stephan",second);
-        assertEquals(3.85,plates.height("stephan"));plates.end("stephan",first);assertEquals(3.85,plates.height("stephan"));
-        plates.end("stephan",first);assertEquals(3.85,plates.height("stephan"));plates.end("stephan",second);assertEquals(2.45,plates.height("stephan"));
+        assertEquals(2.3,plates.height("stephan"));plates.begin("stephan",first);plates.begin("stephan",second);
+        assertEquals(2.55,plates.height("stephan"));plates.lines("stephan",first,3);assertEquals(3.0,plates.height("stephan"));
+        plates.end("stephan",first);assertEquals(2.55,plates.height("stephan"));
+        plates.end("stephan",first);assertEquals(2.55,plates.height("stephan"));plates.end("stephan",second);assertEquals(2.3,plates.height("stephan"));
     }
 }

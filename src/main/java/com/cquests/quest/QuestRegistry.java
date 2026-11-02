@@ -165,10 +165,13 @@ public final class QuestRegistry {
             requires = category == QuestCategory.STORY && previousStory != null ? List.of(previousStory) : List.of();
         }
         int level = s.getInt("level", 0);
+        int chapter=category==QuestCategory.STORY?Math.max(1,s.getInt("chapter",1)):0;
+        int requiredLevel=category==QuestCategory.STORY?Math.max(level,settings.chapterLevels.getOrDefault(chapter,0))
+                :category==QuestCategory.DAILY?settings.dailyMinLevel:level;
         return new Quest(
                 id,
                 s.getString("name", id).replace("{server}", settings.serverName),
-                level,
+                requiredLevel,
                 category,
                 s.getInt("order", order),
                 giver,
@@ -180,7 +183,7 @@ public final class QuestRegistry {
                 twistLines(id,"complete-prepend",s.getStringList("complete"),true),
                 parseReward(id, s.getConfigurationSection("rewards"), level, settings, log),
                 s.getBoolean("big", false),
-                category == QuestCategory.STORY ? Math.max(1, s.getInt("chapter", 1)) : 0,
+                chapter,
                 s.getInt("side-required", -1));
     }
     private List<String> twistLines(String id,String key,List<String> original,boolean prepend){

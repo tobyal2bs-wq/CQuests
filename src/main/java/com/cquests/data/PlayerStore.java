@@ -182,6 +182,13 @@ public final class PlayerStore {
         data.skillInitialized = yaml.getBoolean("skill.initialized", yaml.contains("skill.xp"));
         data.wheatHarvested = Math.max(0, yaml.getLong("skill.wheat", 0));
         data.hoeTier = Math.max(0, yaml.getInt("skill.hoe-tier", 0));
+        var decisions = yaml.getConfigurationSection("npc-decisions");
+        if (decisions != null) for (String quest : decisions.getKeys(false)) {
+            String choice = decisions.getString(quest, "");
+            if (data.decisions.size() < 256 && quest.matches("[a-z0-9_-]{1,80}")
+                    && List.of("kind", "selfish").contains(choice) && data.completed.contains(quest))
+                data.decisions.put(quest, choice);
+        }
         return data;
     }
 
@@ -228,6 +235,7 @@ public final class PlayerStore {
             yaml.set("skill.initialized", data.skillInitialized);
             yaml.set("skill.wheat", data.wheatHarvested);
             yaml.set("skill.hoe-tier", data.hoeTier);
+            data.decisions.forEach((quest, choice) -> yaml.set("npc-decisions." + quest, choice));
             data.clean();
             return new Snapshot(yaml, ++data.saveSeq);
         }

@@ -216,6 +216,9 @@ public final class AdminCommand implements TabExecutor {
                 return;
             }
             world = sel[0].getWorld();
+            if(sender instanceof Player player&&!player.getWorld().equals(world)){
+                plugin.send(sender,"<yellow>Your selection belongs to another world. Set both corners here, or use /cq scatterworld in your current world.");return;
+            }
             box = new int[]{sel[0].getBlockX(), sel[0].getBlockY(), sel[0].getBlockZ(), sel[1].getBlockX(), sel[1].getBlockY(), sel[1].getBlockZ()};
         }
         plugin.send(sender, "<gray>Scattering " + npcs.size() + " NPCs...");
