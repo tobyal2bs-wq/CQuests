@@ -74,6 +74,11 @@ public final class NpcMemory {
         }
         return result;
     }
+    public String companionLine(PlayerData data) {
+        if("selfish".equals(data.decision("story_martha")))return "Martha told Steve what you said. I'll still help you through this, but promises matter here.";
+        if("kind".equals(data.decision("story_martha")))return "Steve says Martha is sleeping again. You did that. Now, where are we headed?";
+        return "I'll watch your back. You take the lead.";
+    }
     public void forget(Player player) { greeted.remove(player.getUniqueId()); }
     private final class ChoiceMenu implements LockedMenu {
         private final Player player;private final Decision decision;private final Inventory inventory;
@@ -95,7 +100,7 @@ public final class NpcMemory {
             if(used||(slot!=11&&slot!=15)||!decisions.contains(decision)||!near(player,decision.npc()))return;
             used=true;var data=plugin.questManager().data(player);
             if(!data.decide(decision.quest(),slot==11?"kind":"selfish")){player.closeInventory();return;}
-            plugin.store().saveNow(data);player.closeInventory();
+            plugin.store().saveNow(data);plugin.mail().notifyNew(player);player.closeInventory();
             plugin.send(player,"<gold>"+Text.escape(plugin.npcs().get(decision.npc()).name())+" <gray>will remember that.");
             var npc=plugin.npcs().get(decision.npc());
             plugin.speech().start(player,npc,List.of(plugin.questManager().fill(slot==11?decision.warm():decision.wary(),player)),()->{});

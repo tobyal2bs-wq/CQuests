@@ -152,6 +152,7 @@ public final class NpcListener implements Listener {
         plugin.progression().initialize(player);
         plugin.farm().update(player);
         Sched.entityLater(player, 40, () -> {
+            plugin.mail().notifyNew(player);
             plugin.finale().restoreIfNeeded(player);
             plugin.questManager().giveWelcome(player);
             plugin.visibility().refresh(player);
@@ -162,6 +163,7 @@ public final class NpcListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        plugin.mail().forget(event.getPlayer());
         clicks.remove(event.getPlayer().getUniqueId());
         plugin.dialogue().forget(event.getPlayer());
         plugin.speech().stop(event.getPlayer());

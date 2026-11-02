@@ -21,6 +21,7 @@ public final class SkillPlaceholders extends PlaceholderExpansion {
             case "xp" -> Long.toString(data.skillXp());
             case "xp_required" -> Long.toString(plugin.progression().curve().remaining(data.skillXp()));
             case "xp_progress" -> Long.toString(Math.round(plugin.progression().curve().progress(data.skillXp())*100));
+            case "sunflowers" -> Long.toString(data.sunflowers());
             case "wheat" -> Long.toString(data.wheatHarvested());
             case "hoe_tier" -> Integer.toString(data.hoeTier());
             default -> null;

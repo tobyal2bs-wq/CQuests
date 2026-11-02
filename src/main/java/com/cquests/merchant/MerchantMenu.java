@@ -18,8 +18,8 @@ public final class MerchantMenu implements LockedMenu {
     static String label(ItemStack item){return item==null?"None":item.getAmount()+" × "+Text.pretty(item.getType().name());}
     private void fill(){
         for(int i=0;i<45;i++)inventory.setItem(i,QuestMenu.item(Material.GRAY_STAINED_GLASS_PANE," ",List.of()));
-        var d=plugin.merchants().get(id);inventory.setItem(4,QuestMenu.item(Material.EMERALD,"<gold><bold>"+d.name(),List.of("<gray>Choose an offer, then confirm.","<gray>Named/enchanting data must match the cost exactly.")));
-        for(int i=0;i<7;i++){var offer=d.offers().get(i);if(offer!=null)inventory.setItem(10+i,QuestMenu.item(offer.reward().getType(),"<gold>Offer "+(i+1)+" <gray>• <white>"+label(offer.reward()),List.of("<gray>Give: <white>"+label(offer.first()),"<gray>Also: <white>"+label(offer.second()),"<gray>Money: <green>$"+Text.formatMoney(offer.money()),"<yellow>Click to review this trade.")));}
+        var d=plugin.merchants().get(id);inventory.setItem(4,QuestMenu.item(Material.EMERALD,"<gold><bold>"+plugin.characters().label(id,d.name()),List.of("<gray>Choose an offer, then confirm.","<gray>Named/enchanting data must match the cost exactly.")));
+        for(int i=0;i<7;i++){var offer=d.offers().get(i);if(offer!=null)inventory.setItem(10+i,QuestMenu.item(offer.reward().getType(),"<gold>Offer "+(i+1)+" <gray>• <white>"+label(offer.reward()),List.of("<gray>Give: <white>"+label(offer.first()),"<gray>Also: <white>"+label(offer.second()),"<gray>Money: <green>$"+Text.formatMoney(offer.money()),"<gray>Sunflower Tokens: <yellow>"+offer.sunflowers(),"<yellow>Click to review this trade.")));}
         inventory.setItem(40,QuestMenu.item(Material.BARRIER,"<red>Close",List.of()));
     }
     public void click(int slot,ClickType type){
@@ -30,6 +30,6 @@ public final class MerchantMenu implements LockedMenu {
         if(d==null||d.revision()!=revision||!plugin.merchants().nearShop(player,id)){player.closeInventory();plugin.send(player,"<yellow>Shop changed. Speak to the merchant again.");return;}
         var offer=d.offers().get(slot-10);if(offer==null)return;selected=slot-10;
         inventory.setItem(22,offer.reward());
-        inventory.setItem(31,QuestMenu.item(Material.LIME_CONCRETE,(demo?"<aqua><bold>Preview only • no payment":"<green><bold>Confirm one trade"),List.of("<gray>Give: <white>"+label(offer.first()),"<gray>Also: <white>"+label(offer.second()),"<gray>Money: <green>$"+Text.formatMoney(offer.money()),"<gray>Receive: <white>"+label(offer.reward()),"<gray>No items move unless the whole trade fits.")));
+        inventory.setItem(31,QuestMenu.item(Material.LIME_CONCRETE,(demo?"<aqua><bold>Preview only • no payment":"<green><bold>Confirm one trade"),List.of("<gray>Give: <white>"+label(offer.first()),"<gray>Also: <white>"+label(offer.second()),"<gray>Money: <green>$"+Text.formatMoney(offer.money()),"<gray>Sunflower Tokens: <yellow>"+offer.sunflowers(),"<gray>Receive: <white>"+label(offer.reward()),"<gray>No items move unless the whole trade fits.")));
     }
 }

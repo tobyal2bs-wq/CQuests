@@ -545,6 +545,7 @@ public final class QuestManager {
         plugin.store().saveNow(data);
         plugin.send(player, settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")
                 .replace("<quest>", Text.escape(quest.name())));
+        if(plugin.mail()!=null)plugin.mail().notifyNew(player);
         giveRewards(player, quest.reward());
         if(quest.category()==QuestCategory.STORY&&(quests().endsChapter(quest)||isFinalQuest(quest)))
             Sched.global(()->Bukkit.broadcast(Text.mm("<gold><bold>CHAPTER COMPLETE</bold></gold> <white>"+Text.escape(player.getName())

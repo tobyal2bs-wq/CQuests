@@ -53,6 +53,7 @@ public final class AdminCommand implements TabExecutor {
                         + plugin.quests().story().size() + " story quests, "
                         + String.format(Locale.ROOT, "%,d", plugin.quests().totalSide()) + " side quests.");
             }
+            case "character" -> plugin.characters().command(sender,args);
             case "npc" -> npc(sender, args);
             case "pos1", "pos2" -> pos(sender, args[0].equalsIgnoreCase("pos1") ? 0 : 1);
             case "scatter" -> scatter(sender, args);
@@ -142,16 +143,9 @@ public final class AdminCommand implements TabExecutor {
                 catch(IOException e){plugin.send(sender,"<red>Could not save skin: "+Text.escape(e.getMessage()));}
             }
             case "rename" -> {
-                if (args.length < 4) { plugin.send(sender, "<red>/cq npc rename <id> <Display Name>"); return; }
-                String name = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length));
-                if (name.length() > 48) { plugin.send(sender, "<red>Use a name of 48 characters or fewer."); return; }
-                var file = new File(plugin.getDataFolder(), "npcs.yml");
-                var yaml = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
-                yaml.set("npcs." + npc.id() + ".name", name);
-                try {
-                    yaml.save(file); plugin.reload();
-                    plugin.send(sender, "<green>Display name changed to " + Text.escape(name) + ". Quest IDs and progress preserved.");
-                } catch (IOException e) { plugin.send(sender, "<red>Could not save name: " + Text.escape(e.getMessage())); }
+                var forwarded=new ArrayList<String>(List.of("character",npc.id(),"name"));
+                forwarded.addAll(java.util.Arrays.asList(args).subList(3,args.length));
+                plugin.characters().command(sender,forwarded.toArray(String[]::new));
             }
             case "remove" -> plugin.send(sender, plugin.spawns().remove(npc.id())
                     ? "<green>Removed " + Text.escape(npc.name()) + " from the map."
@@ -443,7 +437,7 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "scatterworld", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         if(first.equals("merchant")){
@@ -452,6 +446,10 @@ public final class AdminCommand implements TabExecutor {
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
         }
         if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","menu"),args[1]);
+        if(first.equals("character")){
+            if(args.length==2){var ids=new ArrayList<String>();plugin.npcs().all().forEach(n->ids.add(n.id()));plugin.merchants().all().forEach(n->ids.add(n.id()));ids.add("pip");return QuestsCommand.filter(ids,args[1]);}
+            if(args.length==3)return QuestsCommand.filter(List.of("name","title","prefix","format","speech-prefix","intro","idle","arrival","reset"),args[2]);
+        }
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();
         if (first.equals("npc")) {
             if (args.length == 2) {

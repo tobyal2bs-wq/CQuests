@@ -12,6 +12,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlayerStoreTest {
+    @Test void mailAndSpentTokensSurviveRestartWithoutReissuingCurrency(@TempDir File folder){
+        var store=new PlayerStore(folder,Logger.getLogger("mail-test"));UUID id=UUID.randomUUID();var data=store.get(id);
+        data.addWheat(2250);assertTrue(data.spendSunflowers(2));assertTrue(data.readLetter("flora_first"));data.setHoeTier(3);data.addSkillXp(1234);
+        store.saveAllNow();var read=new PlayerStore(folder,Logger.getLogger("mail-test")).get(id);
+        assertEquals(1,read.sunflowers());assertTrue(read.letterRead("flora_first"));assertEquals(3,read.hoeTier());assertEquals(1234,read.skillXp());
+        assertTrue(read.spendSunflowers(1));org.junit.jupiter.api.Assertions.assertFalse(read.spendSunflowers(1));
+    }
     @Test void decisionsSurviveRestartWithoutChangingQuestOrSkillState(@TempDir File folder){
         var store=new PlayerStore(folder,Logger.getLogger("memory-test"));UUID id=UUID.randomUUID();var data=store.get(id);
         data.complete("story_martha",true);assertTrue(data.decide("story_martha","kind"));data.addSkillXp(1234);data.setHoeTier(3);

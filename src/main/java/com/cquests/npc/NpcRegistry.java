@@ -17,6 +17,9 @@ public final class NpcRegistry {
 
     private final Map<String, NpcDef> npcs = new LinkedHashMap<>();
     private Settings settings;
+    private NpcCustomization customization;
+    public void customization(NpcCustomization customization){this.customization=customization;}
+    private NpcDef decorated(NpcDef npc){return customization==null?npc:customization.apply(npc);}
     private final Map<String, Integer> chapters = new LinkedHashMap<>();
 
     public void load(File file, Settings settings, Logger log) {
@@ -57,10 +60,11 @@ public final class NpcRegistry {
     public NpcDef get(String id) {
         if (id == null) return null;
         NpcDef exact = npcs.get(id.toLowerCase(Locale.ROOT));
-        if (exact != null) return exact;
+        if (exact != null) return decorated(exact);
         String lookup = id.replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT);
         NpcDef match = null;
-        for (NpcDef npc : npcs.values()) {
+        for (NpcDef raw : npcs.values()) {
+            NpcDef npc=decorated(raw);
             if (Text.plain(Text.mm(npc.name())).replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT).equals(lookup)) {
                 if (match != null) return null;
                 match = npc;
@@ -72,7 +76,7 @@ public final class NpcRegistry {
     public int chapter(String id) { return chapters.getOrDefault(id, 0); }
 
     public Collection<NpcDef> all() {
-        return npcs.values();
+        return npcs.values().stream().map(this::decorated).toList();
     }
 
     /** "<blue>Villager Stephan</blue>" style mention used inside quest text. */

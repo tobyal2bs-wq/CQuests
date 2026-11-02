@@ -3,11 +3,13 @@ package com.cquests.merchant;
 import org.bukkit.inventory.ItemStack;
 
 /** Detached offer values; GUI preview lore never changes the real item templates. */
-public record TradeOffer(ItemStack first,ItemStack second,ItemStack reward,long money) {
+public record TradeOffer(ItemStack first,ItemStack second,ItemStack reward,long money,long sunflowers) {
+    public TradeOffer(ItemStack first,ItemStack second,ItemStack reward,long money) { this(first,second,reward,money,0); }
     public TradeOffer {
         first=copy(first);second=copy(second);reward=copy(reward);
         if(money<0||money>1_000_000_000L)throw new IllegalArgumentException("Money price must be 0–1,000,000,000");
-        if(reward==null||(first==null&&second==null&&money==0))throw new IllegalArgumentException("Set a reward and at least one cost");
+        if(sunflowers<0||sunflowers>1_000_000_000L)throw new IllegalArgumentException("Sunflower price must be 0–1,000,000,000");
+        if(reward==null||(first==null&&second==null&&money==0&&sunflowers==0))throw new IllegalArgumentException("Set a reward and at least one cost");
     }
     private static ItemStack copy(ItemStack item){
         if(empty(item))return null;

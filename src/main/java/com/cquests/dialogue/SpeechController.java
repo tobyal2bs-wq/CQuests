@@ -41,9 +41,12 @@ public final class SpeechController implements Listener {
         return true;
     }
     public void start(Player player,NpcDef npc,List<String> rich,Runnable open) {
-        stop(player);
         var point=plugin.spawns().points().get(npc.id());
         Location at=point==null?player.getLocation():point.location();
+        startAt(player,npc,rich,open,at);
+    }
+    public void startAt(Player player,NpcDef npc,List<String> rich,Runnable open,Location at) {
+        stop(player);
         if(at==null)return;
         List<String> sentences=new ArrayList<>();
         for(String line:rich)for(String sentence:SpeechTiming.sentences(Text.plain(Text.mm(line))))
@@ -97,7 +100,7 @@ public final class SpeechController implements Listener {
         if(!visible.isEmpty()&&!Character.isWhitespace(visible.charAt(visible.length()-1)))
             player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);
         if(s.letters>=count) {
-            player.sendMessage(Text.mm("<gold><bold>"+Text.escape(Text.plain(Text.mm(npc.name())))+"</bold></gold><gray> › </gray><white>"+Text.escape(sentence)));
+            player.sendMessage(Text.mm(plugin.characters().speechPrefix(npc)+"<white>"+Text.escape(sentence)));
             s.line++;s.letters=0;s.pause=s.timing.readingTicks();
 
         }

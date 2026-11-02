@@ -37,3 +37,12 @@ merchants:
     offers:
       1: {cost-a: "AMETHYST_SHARD 16", cost-b: "COPPER_INGOT 8", reward: "GLOW_INK_SAC 8", money: 0}
       2: {cost-a: "PRISMARINE_SHARD 24", cost-b: "PRISMARINE_CRYSTALS 20", reward: "SEA_LANTERN 4", money: 0}
+  flora:
+    name: "<yellow>Flora the Fieldkeeper"
+    profession: FARMER
+    enabled: false
+    offers:
+      1: {sunflowers: 1, reward: "GOLDEN_CARROT 16", money: 0}
+      2: {sunflowers: 3, reward: "EXPERIENCE_BOTTLE 16", money: 0}
+      3: {sunflowers: 8, reward: "NAME_TAG 1", money: 0}
+      4: {sunflowers: 12, reward: "BELL 1", money: 0}

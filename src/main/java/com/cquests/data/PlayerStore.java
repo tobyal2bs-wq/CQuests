@@ -182,6 +182,9 @@ public final class PlayerStore {
         data.skillInitialized = yaml.getBoolean("skill.initialized", yaml.contains("skill.xp"));
         data.wheatHarvested = Math.max(0, yaml.getLong("skill.wheat", 0));
         data.hoeTier = Math.max(0, yaml.getInt("skill.hoe-tier", 0));
+        data.sunflowersSpent = Math.max(0, Math.min(data.wheatHarvested / 750, yaml.getLong("discoveries.sunflowers-spent", 0)));
+        for (String letter : yaml.getStringList("mail.read"))
+            if (data.lettersRead.size() < 512 && letter.matches("[a-z0-9_-]{1,80}")) data.lettersRead.add(letter);
         var decisions = yaml.getConfigurationSection("npc-decisions");
         if (decisions != null) for (String quest : decisions.getKeys(false)) {
             String choice = decisions.getString(quest, "");
@@ -235,6 +238,8 @@ public final class PlayerStore {
             yaml.set("skill.initialized", data.skillInitialized);
             yaml.set("skill.wheat", data.wheatHarvested);
             yaml.set("skill.hoe-tier", data.hoeTier);
+            yaml.set("discoveries.sunflowers-spent", data.sunflowersSpent);
+            yaml.set("mail.read", new ArrayList<>(data.lettersRead));
             data.decisions.forEach((quest, choice) -> yaml.set("npc-decisions." + quest, choice));
             data.clean();
             return new Snapshot(yaml, ++data.saveSeq);

@@ -9,6 +9,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class BarterInventoryTest {
+    @Test void sunflowerOnlyOfferIsValidAndStillRequiresInventorySpace(){
+        var offer=new TradeOffer(null,null,stack(Material.DIAMOND,1),0,2);
+        assertEquals(2,offer.sunflowers());assertNotNull(BarterInventory.exchange(new ItemStack[1],offer));
+        assertNull(BarterInventory.exchange(new ItemStack[]{stack(Material.STONE,64)},offer));
+        assertThrows(IllegalArgumentException.class,()->new TradeOffer(null,null,stack(Material.DIAMOND,1),0,-1));
+    }
     private static final Map<ItemStack,String> tags=Collections.synchronizedMap(new IdentityHashMap<>());
     // ItemStack's matching/cloning contract without a running server registry.
     private static ItemStack stack(Material type,int count,String tag){

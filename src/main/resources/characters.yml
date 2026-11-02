@@ -1,0 +1,7 @@
+# Per-character overrides; MiniMessage is supported. Use /cq character to edit without replacing IDs.
+# Intro/idle are lists; format is the overhead nameplate, speech-prefix is the chat speaker.
+# Existing names and dialogue are used wherever an override is absent.
+characters:
+  flora:
+    idle:
+      - "Oh, that little sun in your pouch? I know someone who can put it to good use. Me."

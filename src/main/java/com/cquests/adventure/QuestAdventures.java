@@ -71,10 +71,10 @@ public final class QuestAdventures implements Listener {
             if(!villager.isValid()){helperSlots.release();return;}
             var session=new Session(player,quest,villager);companions.put(id,session);player.showEntity(plugin,villager);
             String label="companion_"+id;
-            plugin.nameplates().spawn(new NpcDef(label,"<gold>Pip</gold>","Your companion","WEAPONSMITH","PLAINS",
-                    plugin.progression().level(plugin.questManager().data(player)),1,true,false,false,"",List.of(),List.of()),villager,at);
+            plugin.nameplates().spawn(plugin.characters().apply(new NpcDef(label,"<gold>Pip</gold>","Your companion","WEAPONSMITH","PLAINS",
+                    plugin.progression().level(plugin.questManager().data(player)),1,true,false,false,"",List.of(),List.of())),villager,at);
             plugin.nameplates().show(player,label,true);
-            plugin.send(player,"<gold>Pip <gray>jogs up beside you. <white>I'll watch your back. You take the lead.");
+            plugin.send(player,plugin.characters().label("pip","<gold>Pip")+" <gray>jogs up beside you. <white>"+plugin.characters().text("pip","arrival",plugin.memories().companionLine(plugin.questManager().data(player))));
             villager.getScheduler().runAtFixedRate(plugin,t->{if(!tick(session,false)){t.cancel();return;}},()->retired(companions,id,session),5,5);
             return;
         }

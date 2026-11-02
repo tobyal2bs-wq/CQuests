@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
-/** Five bounded native pathfinders. Entity state stays on entity schedulers; trading stays on the player. */
+/** Bounded native pathfinders. Entity state stays on entity schedulers; trading stays on the player. */
 public final class MerchantService {
     private final CQuestsPlugin plugin;
     private final File file;
@@ -80,12 +80,16 @@ public final class MerchantService {
     }
     private synchronized void load(){
         yaml=YamlConfiguration.loadConfiguration(file);Map<String,MerchantDefinition> found=new LinkedHashMap<>();
+        if(!yaml.contains("merchants.flora")){
+            var defaults=YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(java.util.Objects.requireNonNull(plugin.getResource("merchants.yml")),java.nio.charset.StandardCharsets.UTF_8));
+            var flora=defaults.getConfigurationSection("merchants.flora");if(flora!=null)flora.getValues(true).forEach((k,v)->{if(!(v instanceof org.bukkit.configuration.ConfigurationSection))yaml.set("merchants.flora."+k,v);});
+        }
         var root=yaml.getConfigurationSection("merchants");
         if(root!=null)for(String id:root.getKeys(false))try{
             if(!id.matches("[a-z0-9_-]{1,40}"))continue;String p="merchants."+id+".";
             List<TradeOffer> offers=new ArrayList<>(Collections.nCopies(7,null));
             for(int i=0;i<7;i++)try{String t=p+"offers."+(i+1)+".";ItemStack reward=item(t+"reward");if(reward==null)continue;
-                TradeOffer offer=new TradeOffer(item(t+"cost-a"),item(t+"cost-b"),reward,yaml.getLong(t+"money",0));
+                TradeOffer offer=new TradeOffer(item(t+"cost-a"),item(t+"cost-b"),reward,yaml.getLong(t+"money",0),yaml.getLong(t+"sunflowers",0));
                 if(!safeItem(offer.first())||!safeItem(offer.second())||!safeItem(offer.reward()))throw new IllegalArgumentException("Bound tools and filled-container templates are not tradeable");offers.set(i,offer);
             }catch(RuntimeException e){plugin.getLogger().warning("Merchant "+id+" offer "+(i+1)+" disabled: "+e.getMessage());}
             List<MerchantPoint> route=new ArrayList<>();for(String value:yaml.getStringList(p+"route")){MerchantPoint point=MerchantPoint.decode(value);if(point==null)throw new IllegalArgumentException("Invalid route point");route.add(point);}
@@ -107,7 +111,7 @@ public final class MerchantService {
         Map<String,MerchantDefinition> copy=new LinkedHashMap<>(definitions);copy.put(d.id(),d);definitions=Map.copyOf(copy);
         String p="merchants."+d.id()+".";yaml.set(p+"name",d.name());yaml.set(p+"profession",d.profession());yaml.set(p+"enabled",d.enabled());
         yaml.set(p+"spawn",d.spawn()==null?null:d.spawn().encode());yaml.set(p+"shop",d.shop()==null?null:d.shop().encode());yaml.set(p+"route",d.route().stream().map(MerchantPoint::encode).toList());
-        for(int i=0;i<7;i++){String t=p+"offers."+(i+1);TradeOffer offer=d.offers().get(i);yaml.set(t,null);if(offer!=null){yaml.set(t+".cost-a",offer.first());yaml.set(t+".cost-b",offer.second());yaml.set(t+".reward",offer.reward());yaml.set(t+".money",offer.money());}}
+        for(int i=0;i<7;i++){String t=p+"offers."+(i+1);TradeOffer offer=d.offers().get(i);yaml.set(t,null);if(offer!=null){yaml.set(t+".cost-a",offer.first());yaml.set(t+".cost-b",offer.second());yaml.set(t+".reward",offer.reward());yaml.set(t+".money",offer.money());yaml.set(t+".sunflowers",offer.sunflowers());}}
         String snapshot=yaml.saveToString();writes.incrementAndGet();writer.execute(()->{
             try{Path temp=file.toPath().resolveSibling("merchants.yml.tmp");Files.writeString(temp,snapshot);
                 try{Files.move(temp,file.toPath(),StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}catch(AtomicMoveNotSupportedException e){Files.move(temp,file.toPath(),StandardCopyOption.REPLACE_EXISTING);}
@@ -166,7 +170,7 @@ public final class MerchantService {
             if(error!=null||!Boolean.TRUE.equals(ok)){synchronized(this){if(live.get(id)==walk)stop(id);}tell(feedback,"<red>The route has an unsafe stop. Re-select it on solid ground.");return;}
             Location at=d.spawn().location();Sched.at(at,()->{
                 if(!running||live.get(id)!=walk)return;
-                Villager entity=at.getWorld().spawn(at,Villager.class,v->{v.getPersistentDataContainer().set(tag,PersistentDataType.STRING,id);v.setPersistent(false);if(isDemo(id))v.setVisibleByDefault(false);v.setInvulnerable(true);v.setSilent(true);v.setCollidable(false);v.setCanPickupItems(false);v.setAdult();v.setAgeLock(true);var profession=Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft(d.profession().toLowerCase(Locale.ROOT)));if(profession!=null)v.setProfession(profession);v.setRemoveWhenFarAway(false);v.customName(Text.mm("<bold>"+d.name()+"</bold> <gray>• Travelling"));v.setCustomNameVisible(true);});
+                Villager entity=at.getWorld().spawn(at,Villager.class,v->{v.getPersistentDataContainer().set(tag,PersistentDataType.STRING,id);v.setPersistent(false);if(isDemo(id))v.setVisibleByDefault(false);v.setInvulnerable(true);v.setSilent(true);v.setCollidable(false);v.setCanPickupItems(false);v.setAdult();v.setAgeLock(true);var profession=Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft(d.profession().toLowerCase(Locale.ROOT)));if(profession!=null)v.setProfession(profession);v.setRemoveWhenFarAway(false);v.customName(plugin.characters().merchantLabel(id,d.name(),"Travelling"));v.setCustomNameVisible(true);});
                 walk.entity=entity;walk.position=MerchantPoint.at(at);
                 Demo demo=demos.get(id);if(demo!=null){Player viewer=Bukkit.getPlayer(demo.owner);if(viewer!=null)Sched.entity(viewer,()->{if(demos.get(id)==demo&&canEdit(viewer))viewer.showEntity(plugin,entity);});}
                 entity.getScheduler().runAtFixedRate(plugin,t->{if(!running||live.get(id)!=walk){t.cancel();entity.remove();return;}tick(id,walk);},()->{synchronized(this){if(live.get(id)==walk)stop(id);}},10,10);
@@ -202,13 +206,13 @@ public final class MerchantService {
         Location target=walk.route.get(walk.next).location();
         if(target==null||!current.getWorld().equals(target.getWorld())){blocked(id,walk);return;}
         if(current.distanceSquared(target)<=1.0){
-            if(++walk.next>=walk.route.size()){walk.shop=true;entity.getPathfinder().stopPathfinding();entity.setAI(false);entity.setRotation(walk.route.getLast().yaw(),0);var d=get(id);entity.customName(Text.mm("<bold>"+(d==null?id:d.name())+"</bold> <green>• Open"));return;}
+            if(++walk.next>=walk.route.size()){walk.shop=true;entity.getPathfinder().stopPathfinding();entity.setAI(false);entity.setRotation(walk.route.getLast().yaw(),0);var d=get(id);entity.customName(plugin.characters().merchantLabel(id,d==null?id:d.name(),"Open"));return;}
             walk.ticks=0;target=walk.route.get(walk.next).location();
         }
         walk.ticks+=10;if(walk.ticks>1200){blocked(id,walk);return;}
         if(walk.ticks%20==10)entity.getPathfinder().moveTo(target,.8);
     }
-    private void blocked(String id,Walk walk){walk.blocked=true;walk.entity.getPathfinder().stopPathfinding();walk.entity.setAI(false);var d=get(id);walk.entity.customName(Text.mm("<bold>"+(d==null?id:d.name())+"</bold> <red>• Route blocked"));plugin.getLogger().warning("Merchant "+id+" route blocked. Repair the path and use /cq merchant walk "+id+".");}
+    private void blocked(String id,Walk walk){walk.blocked=true;walk.entity.getPathfinder().stopPathfinding();walk.entity.setAI(false);var d=get(id);walk.entity.customName(plugin.characters().merchantLabel(id,d==null?id:d.name(),"Route blocked"));plugin.getLogger().warning("Merchant "+id+" route blocked. Repair the path and use /cq merchant walk "+id+".");}
     public boolean nearShop(Player player,String id){
         Walk walk=live.get(id);MerchantDefinition d=get(id);if(!demoAccess(player,id)||!running||!player.isOnline()||d==null||d.shop()==null||walk==null||!walk.shop||walk.position==null)return false;
         Location loc=walk.position.location(),shop=d.shop().location();return loc!=null&&shop!=null&&loc.getWorld().equals(shop.getWorld())&&loc.distanceSquared(shop)<=4&&loc.getWorld().equals(player.getWorld())&&loc.distanceSquared(player.getLocation())<=64;
@@ -219,12 +223,17 @@ public final class MerchantService {
         tradeCooldown.put(player.getUniqueId(),now+200_000_000L);
         ItemStack[] before=player.getInventory().getStorageContents(),after=BarterInventory.exchange(before,offer);
         if(after==null){plugin.send(player,"<yellow>You need the exact requested items and room for the reward. Nothing was taken.");return false;}
+        var data=plugin.questManager().data(player);
+        if(offer.sunflowers()>data.sunflowers()){plugin.send(player,"<yellow>You need "+offer.sunflowers()+" Sunflower Tokens. Your pouch has "+data.sunflowers()+".");return false;}
         var payment=economy.charge(player,offer.money());if(payment==null){plugin.send(player,"<red>The money payment was declined or Vault is unavailable. Your items were kept.");return false;}
+        if(!data.spendSunflowers(offer.sunflowers())){if(!payment.refund())plugin.getLogger().severe("Sunflower trade refund failed for "+player.getUniqueId());return false;}
         try{player.getInventory().setStorageContents(after);}catch(RuntimeException e){
+            data.refundSunflowers(offer.sunflowers());
             try{player.getInventory().setStorageContents(before);}catch(RuntimeException rollback){plugin.getLogger().severe("Merchant inventory rollback failed for "+player.getUniqueId()+": "+rollback);}
             finally{if(!payment.refund())plugin.getLogger().severe("Merchant refund failed for "+player.getUniqueId()+" amount "+offer.money());}
             plugin.getLogger().severe("Merchant trade commit failed for "+player.getUniqueId()+": "+e);plugin.send(player,"<red>Trade failed. Payment rollback was attempted; contact an operator if your balance is incorrect.");return false;
         }
+        if(offer.sunflowers()>0)plugin.store().saveNow(data);
         player.playSound(player.getLocation(),Sound.ENTITY_VILLAGER_YES,.7f,1.1f);plugin.send(player,"<green>Trade complete.");return true;
     }
     public void interact(Player player,String id,boolean editingGesture){
@@ -232,8 +241,14 @@ public final class MerchantService {
         if(isDemo(id)){if(nearShop(player,id))MerchantMenu.open(plugin,player,id);else plugin.send(player,"<yellow>Watch the demo walk to its endpoint first.");return;}
         if(editingGesture&&canEdit(player)){MerchantEditor.open(plugin,player,id);return;}
         if(!nearShop(player,id)){plugin.send(player,"<yellow>Meet this merchant at the store after they finish walking.");return;}
-        MerchantMenu.open(plugin,player,id);
+        var d=get(id);var lines=plugin.characters().lines(id,"idle",List.of());
+        if(!lines.isEmpty()){
+            var speaker=new com.cquests.model.NpcDef(id,plugin.characters().text(id,"name",d.name()),"","NONE","PLAINS",0,1,false,false,false,"",List.of(),lines);
+            if(plugin.speech().click(player,speaker))return;
+            plugin.speech().startAt(player,speaker,lines.stream().map(s->plugin.questManager().fill(s,player)).toList(),()->{if(nearShop(player,id))MerchantMenu.open(plugin,player,id);},d.shop().location());
+        }else MerchantMenu.open(plugin,player,id);
     }
+    public void refreshLabels(){for(var entry:live.entrySet()){var w=entry.getValue();var d=get(entry.getKey());if(w.entity!=null&&d!=null){Sched.entity(w.entity,()->w.entity.customName(plugin.characters().merchantLabel(d.id(),d.name(),w.shop?"Open":w.blocked?"Route blocked":"Travelling")));}}}
     public synchronized void disable(Player player,String id){MerchantDefinition d=get(id);if(!canEdit(player)||d==null||!running)return;stop(id);save(changed(d,d.spawn(),d.route(),d.shop(),d.offers(),false));plugin.send(player,"<gray>Merchant disabled; route and trades retained.");}
     private void stop(String id){Walk walk=live.remove(id);if(walk!=null){release(walk);if(walk.entity!=null&&plugin.isEnabled())Sched.entity(walk.entity,walk.entity::remove);}}
     private void stopAll(){for(String id:List.copyOf(live.keySet()))stop(id);for(Demo demo:demos.values())if(demo.expiry!=null)demo.expiry.cancel();demos.clear();}

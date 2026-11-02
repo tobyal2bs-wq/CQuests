@@ -20,6 +20,8 @@ public final class PlayerData {
     final Set<String> completed = new HashSet<>();
     final Set<String> met = new HashSet<>();
     final Map<String, String> decisions = new LinkedHashMap<>();
+    final Set<String> lettersRead = new HashSet<>();
+    long sunflowersSpent;
     /** Side quests are done in order per NPC, so a count per NPC is all we store, even for a million quests. */
     final Map<String, Integer> sideDone = new HashMap<>();
     final List<JourneyEntry> journey = new ArrayList<>();
@@ -66,12 +68,26 @@ public final class PlayerData {
         if (!skillInitialized) { skillXp=Math.max(skillXp,minimum);skillInitialized=true;dirty=true; }
     }
     public synchronized long wheatHarvested() { return wheatHarvested; }
+    /** Earned only by accepted farm harvests. Inventory flowers never represent currency. */
+    public synchronized long sunflowers() { return Math.max(0, wheatHarvested / 750 - sunflowersSpent); }
+    public synchronized boolean spendSunflowers(long amount) {
+        if (amount < 0 || amount > sunflowers()) return false;
+        sunflowersSpent += amount; dirty |= amount > 0; return true;
+    }
+    public synchronized void refundSunflowers(long amount) {
+        if (amount > 0 && amount <= sunflowersSpent) { sunflowersSpent -= amount; dirty = true; }
+    }
+    public synchronized boolean letterRead(String id) { return lettersRead.contains(id); }
+    public synchronized boolean readLetter(String id) {
+        if (id == null || !id.matches("[a-z0-9_-]{1,80}") || lettersRead.size() >= 512) return false;
+        boolean added = lettersRead.add(id); dirty |= added; return added;
+    }
     public synchronized int hoeTier() { return hoeTier; }
     public synchronized void setHoeTier(int tier) { hoeTier = Math.max(0, tier); dirty = true; }
     public synchronized void addSkillXp(long amount) {
         if (amount > 0) { skillXp = amount > Long.MAX_VALUE - skillXp ? Long.MAX_VALUE : skillXp + amount; dirty = true; }
     }
-    public synchronized void addWheat(long amount) { if (amount > 0) { wheatHarvested += amount; dirty = true; } }
+    public synchronized void addWheat(long amount) { if (amount > 0) { wheatHarvested = amount > Long.MAX_VALUE - wheatHarvested ? Long.MAX_VALUE : wheatHarvested + amount; dirty = true; } }
 
     public synchronized boolean trackerOn(boolean defaultValue) {
         return trackerOn == null ? defaultValue : trackerOn;

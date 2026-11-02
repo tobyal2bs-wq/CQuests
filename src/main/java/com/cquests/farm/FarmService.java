@@ -176,6 +176,7 @@ public final class FarmService {
             Sched.entity(player,()->{
                 if(!running)return;
                 var data=plugin.questManager().data(player);data.addWheat(1);
+                plugin.mail().discovered(player);
                 int wheat=ThreadLocalRandom.current().nextDouble()<tier.chance()?2:1;
                 player.getInventory().addItem(new ItemStack(Material.WHEAT,wheat)); // full bags don't create farm-item drops
                 plugin.questManager().progress(player,ObjectiveType.HARVEST,"WHEAT",1);

@@ -1,0 +1,62 @@
+# Authored letters unlock from saved quest/choice/meeting/farming state. No claimable rewards.
+enabled: true
+letters:
+  first_welcome:
+    sender: Stephan
+    subject: A place at our table
+    met: stephan
+    body:
+      - "{player}, I meant to say this before you left: there is always a chair for you here. Jerry says we cannot afford another mouth. Jerry has also set out another bowl."
+      - "If the road gets too loud, come back. We have quiet work and terrible soup. — Stephan"
+  martha_kind:
+    sender: Steve
+    subject: She told me what you promised
+    quest: story_martha
+    decision: kind
+    body:
+      - "My sister Martha told me about your promise. She pretended it was nothing. Then she checked the fence twice and finally slept. Your words reached further than you think. — Steve"
+  martha_selfish:
+    sender: Steve
+    subject: About the fields
+    quest: story_martha
+    decision: selfish
+    body:
+      - "Martha said you have your own troubles. I understand. I will take the night watch myself. If you come by, do not expect her to ask twice. — Steve"
+  lucy_kind:
+    sender: Ned
+    subject: A name kept off the road
+    quest: story_lucy
+    decision: kind
+    body:
+      - "Lucy says you kept your word about the couriers. She is my cousin. Those names are people who eat at our table, not marks on a delivery list. Thank you for remembering that. — Ned"
+  lucy_selfish:
+    sender: Ned
+    subject: The road has ears
+    quest: story_lucy
+    decision: selfish
+    body:
+      - "Lucy told me you would not promise silence. That is your choice. We have moved the meeting place. Ask her directly if you want to understand what that cost us. — Ned"
+  flora_first:
+    sender: Flora
+    subject: A little sun between the stalks
+    wheat: 750
+    body:
+      - "Found one, did you? Those little sunflowers turn up in the oldest fields. I collect them. Your token is in your discovery pouch; it will not fall out when you die. Come find my store when the roads are ready. — Flora"
+  pip_watch:
+    sender: Pip
+    subject: You took the lead
+    quest: story_martha
+    body:
+      - "I said I would watch your back. I did not say I was good at the waiting part. Next time we meet a scarecrow that moves, you still get to go first. — Pip"
+  lost_button:
+    sender: Lucy
+    subject: That ridiculous button
+    wheat: 3000
+    body:
+      - "A courier's brass button turned up in your wheat. I know the coat it came from. No, I will not tell you whose. You have earned the right to laugh about it when we meet. — Lucy"
+  field_marker:
+    sender: B.O.B
+    subject: Something older than the farm
+    wheat: 10000
+    body:
+      - "That stone marker you uncovered is not a boundary post. The scratches face inward. Someone was counting what came out of the field. Leave it where it is for now. I want another look. — B.O.B"

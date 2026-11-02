@@ -62,6 +62,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     private ScheduledTask autosave;
     private BackupManager backups;
     private com.cquests.merchant.MerchantService merchants;
+    private com.cquests.adventure.QuestMail mail;
+    private com.cquests.npc.NpcCustomization characters;
     private com.cquests.adventure.NpcMemory memories;
     private com.cquests.adventure.QuestAdventures adventures;
 
@@ -79,7 +81,7 @@ public final class CQuestsPlugin extends JavaPlugin {
                 getConfig().set("money-command","economy give %player% %amount%");saveConfig();
             } catch(java.io.IOException e){getLogger().warning("Reward command migration deferred: "+e.getMessage());}
         }
-        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml"}) {
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml", "letters.yml", "characters.yml"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
@@ -87,6 +89,9 @@ public final class CQuestsPlugin extends JavaPlugin {
 
         ContentUpgrade.apply(this);
         com.cquests.progression.ProgressionUpgrade.apply(this);
+        characters = new com.cquests.npc.NpcCustomization(this);
+        npcs.customization(characters);
+        mail = new com.cquests.adventure.QuestMail(this);
         store = new PlayerStore(getDataFolder(), getLogger());
         questManager = new QuestManager(this);
         nameplates = new com.cquests.npc.NpcNameplates(this);
@@ -139,6 +144,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if(characters!=null)characters.shutdown();
         if(adventures!=null)adventures.shutdown();
         if(merchants!=null)merchants.shutdown();
         if (farmSave != null) farmSave.cancel();
@@ -177,7 +183,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     }
 
     public void reload() {
-        adventures.clear(); memories.reload();
+        adventures.clear(); memories.reload(); mail.reload(); characters.reload();
         speech.stopAll();
         dialogue.invalidateAll();
         spawns.stop();
@@ -249,6 +255,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     public FarmService farm() { return farm; }
     public FarmCommand farmCommand() { return farmCommand; }
     public com.cquests.merchant.MerchantService merchants(){return merchants;}
+    public com.cquests.adventure.QuestMail mail(){return mail;}
+    public com.cquests.npc.NpcCustomization characters(){return characters;}
     public com.cquests.adventure.NpcMemory memories(){return memories;}
     public com.cquests.adventure.QuestAdventures adventures(){return adventures;}
 
