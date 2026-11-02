@@ -120,11 +120,20 @@ bot.once('spawn', async () => {
     async function terrain (dimension, material) {
       await command('/execute in minecraft:' + dimension + ' run tp CQBot 640.5 72 640.5')
       await sleep(2500)
-      await command('/fill 630 60 630 650 75 650 air')
-      // Nether lava must be enclosed below the test surface: removing only its source must
-      // not leave flowing lava beneath the platform and invalidate the subsequent safe case.
-      const floorY = dimension === 'the_nether' ? 60 : 63
-      await command('/fill 630 ' + floorY + ' 630 650 63 650 ' + material)
+      if (dimension === 'the_nether') {
+        // Seal outside the checked ten-block circle before clearing it. Natural
+        // lavafalls and neighbouring lava must not flow back into the safe case.
+        await command('/fill 628 76 628 652 76 652 netherrack')
+        await command('/fill 628 60 628 628 75 652 netherrack')
+        await command('/fill 652 60 628 652 75 652 netherrack')
+        await command('/fill 629 60 628 651 75 628 netherrack')
+        await command('/fill 629 60 652 651 75 652 netherrack')
+        await command('/fill 629 60 629 651 75 651 air')
+        await command('/fill 629 60 629 651 63 651 netherrack')
+      } else {
+        await command('/fill 630 60 630 650 75 650 air')
+        await command('/fill 630 63 630 650 63 650 ' + material)
+      }
       await command('/tp CQBot 640.5 64 640.5')
       await sleep(500)
     }
