@@ -1,0 +1,88 @@
+name: Publish CQuests 1.4.0
+
+on:
+  push:
+    branches: [claude/project-thread-eax6qq]
+    paths: [.github/workflows/release-1.4.0.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cquests-1.4.0
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_SHA: fb872c379888134a34d36f273f3dd91a4991c289
+      CHECKED_RUN: '41477451297'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fb872c379888134a34d36f273f3dd91a4991c289
+      - name: Verify checked commit and collect its tested JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.head_sha')" = "$SOURCE_SHA"
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.conclusion')" = success
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN/jobs --jq '[.jobs[] | select(.conclusion != "success")] | length')" = 0
+          if gh release view v1.4.0 >/dev/null 2>&1; then
+            echo 'Release v1.4.0 already exists; refusing to replace it.' >&2
+            exit 1
+          fi
+          gh run download "$CHECKED_RUN" --name CQuests --dir tested
+          test -f tested/CQuests-1.4.0.jar
+      - name: Package source, setup guide and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out/bundle
+          cp tested/CQuests-1.4.0.jar out/
+          git archive --format=zip --prefix=CQuests/ --output=out/CQuests-1.4.0-source.zip HEAD
+          cp out/CQuests-1.4.0.jar out/CQuests-1.4.0-source.zip WORKSHOP-1.3.4.md ADVENTURES-1.4.0.md FARM-TESTING.md out/bundle/
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,os,zipfile
+          out=Path('out');bundle=out/'bundle'
+          def digest(p,kind='sha256'):return hashlib.new(kind,p.read_bytes()).hexdigest()
+          manifest={'version':'1.4.0','commit':os.environ['SOURCE_SHA'],'tested_jar_from_run':int(os.environ['CHECKED_RUN']),'github_actions':'https://github.com/'+os.environ['GH_REPO']+'/actions/runs/'+os.environ['CHECKED_RUN'],'unit_tests':83,'note':'JAR is downloaded unchanged from the successful build and server smoke-test run. Paper/Folia 26.2 protocol and restart checks passed on local JAR SHA256 9c287e530cee58bf042b2fcfefab4fcebfa42989b1f446d5808ebdfe2c8da084. This CI-built artifact can differ in ZIP timestamps.','files':{p.name:{'bytes':p.stat().st_size,'sha256':digest(p),'sha1':digest(p,'sha1')} for p in sorted(bundle.iterdir())}}
+          (bundle/'MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          with zipfile.ZipFile(out/'CQuests-1.4.0-release.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in sorted(bundle.iterdir()):z.write(p,'CQuests-1.4.0/'+p.name)
+          files=sorted(p for p in out.iterdir() if p.is_file())
+          (out/'CQuests-1.4.0-CHECKSUMS.txt').write_text(''.join(f'SHA256 {digest(p)}  {p.name}\nSHA1   {digest(p,"sha1")}  {p.name}\n' for p in files))
+          PY
+          cat > out/notes.md <<'NOTES'
+          NPCs remember your journey, with authored choices, family reactions and quest companions.
+
+          - Speak to Martha, Lucy or Esme after their story quest to make a lasting personal choice. Steve and Ned react to their relatives' stories. Decisions are saved per UUID and cannot be replayed for another outcome. Other NPCs recognise returning players and completed work. No external AI service or chat recording is used.
+          - Pip walks with the player during Scarecrow Watch and Eve of Waking, using the same private two-line nameplate layout. He helps against nearby matching quest monsters after the player attacks; no PvP or passive-animal assistance.
+          - During The King Wakes, speak to Aldis and choose Face the vessel, or use `/quests encounter`. The Wither's heads target its owner, bystanders cannot damage it or receive its damage, terrain damage and ordinary drops/XP are suppressed, and one kill objective is credited. Encounters have limits and withdraw on departure/death/logout/timeout.
+          - Nameplates sit closely above progressive speech. The continue prompt also types progressively; the extra prompt line is removed. Chapter colours share one name/level layout.
+          - Daily work starts at level 10. Chapter entry defaults are 0 / 100 / 200 / 300 / 400. Previous quests remain required regardless of level. The former default cap expands from 100 to 500 with a farming.yml backup; saved XP stays intact, so its corresponding level can change. Custom caps are retained.
+          - Spawn residents: Stephan, Jerry, Rosie, Copper Jack, Luma, B.O.B and Granny Marigold. `/cq camp` deliberately arranges them in the current world's spawn. Scattering skips spawn residents, uses the current world by default and preserves player progress. Old selections from another world are rejected.
+
+          Validation: 83 unit tests; successful Paper 1.21.4, Paper latest and Folia latest CI checks. Separate Paper/Folia 26.2 protocol tests exercised private typing, actual companion movement/combat, decision menus and family reactions, Wither head targets, bystander/owner damage, projectile damage sources, one kill credit, chapter gates, dailies and the existing farming/merchant replay guards. Full server restart tests verified saved decisions, family reactions, tools, completed encounter state, merchant routes/offers and reading pauses. No graphical client or hosted custom-economy verification is claimed.
+          https://github.com/tobyal2bs-wq/CQuests/actions/runs/41477451297
+
+          Install: stop the server, back up CQuests data, replace the JAR and keep the data folder. No player reset is needed. Read ADVENTURES-1.4.0.md for the changed progression, memories, spawn list, companion quests and encounter controls. Stage-test your actual Vault economy and visual layout.
+
+          The published JAR is downloaded unchanged from the successful CI run. Source, setup guides and SHA256/SHA1 checksums are included in the release assets.
+          NOTES
+      - name: Create, verify and publish release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create v1.4.0 out/CQuests-1.4.0.jar out/CQuests-1.4.0-source.zip out/CQuests-1.4.0-release.zip out/CQuests-1.4.0-CHECKSUMS.txt --target "$SOURCE_SHA" --title 'CQuests 1.4.0 - NPC memories, companions and chapter progression' --notes-file out/notes.md --draft
+          test "$(gh release view v1.4.0 --json assets --jq '.assets | length')" = 4
+          gh release edit v1.4.0 --draft=false --latest
+          gh release view v1.4.0 --json url,isDraft,tagName,assets >> "$GITHUB_STEP_SUMMARY"
