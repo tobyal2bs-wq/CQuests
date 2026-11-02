@@ -20,6 +20,7 @@ public final class NpcNameplates {
     private final Map<String,Map<UUID,Integer>> speakers=new ConcurrentHashMap<>();
     public NpcNameplates(CQuestsPlugin plugin){this.plugin=plugin;}
     public Component label(NpcDef npc){
+        if(plugin.characters()!=null)npc=plugin.characters().apply(npc);
         int chapter=plugin.quests()==null?1:plugin.quests().firstChapter(npc.id());
         int level=npc.daily()?plugin.settings().dailyMinLevel:Math.max(npc.level(),plugin.settings().chapterLevels.getOrDefault(chapter,0));
         String format=plugin.settings().npcNameFormat;
