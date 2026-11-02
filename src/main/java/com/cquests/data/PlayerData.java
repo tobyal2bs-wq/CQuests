@@ -21,6 +21,9 @@ public final class PlayerData {
     final Set<String> met = new HashSet<>();
     final Map<String, String> decisions = new LinkedHashMap<>();
     final Set<String> lettersRead = new HashSet<>();
+    final Map<String,Long> mailReceived=new LinkedHashMap<>();
+    final List<MailEntry> mailThread=new ArrayList<>();
+    long aiDay,aiLast,correspondenceAt;int aiCalls;
     long sunflowersSpent;
     /** Side quests are done in order per NPC, so a count per NPC is all we store, even for a million quests. */
     final Map<String, Integer> sideDone = new HashMap<>();
@@ -78,6 +81,20 @@ public final class PlayerData {
         if (amount > 0 && amount <= sunflowersSpent) { sunflowersSpent -= amount; dirty = true; }
     }
     public synchronized boolean letterRead(String id) { return lettersRead.contains(id); }
+    public synchronized long receiveMail(String id,long now){
+        if(!id.matches("[a-z0-9_-]{1,80}")||now<=0)return 0;
+        Long old=mailReceived.get(id);if(old!=null)return old;if(mailReceived.size()>=512)return 0;
+        mailReceived.put(id,now);dirty=true;return now;
+    }
+    public synchronized long mailReceived(String id){return mailReceived.getOrDefault(id,0L);}
+    public synchronized List<MailEntry> mailThread(){return List.copyOf(mailThread);}
+    public synchronized void addMail(MailEntry entry){mailThread.add(entry);while(mailThread.size()>40)mailThread.removeFirst();dirty=true;}
+    public synchronized boolean reserveCorrespondence(long now){if(now<correspondenceAt+5000)return false;correspondenceAt=now;dirty=true;return true;}
+    public synchronized boolean reserveAi(long now,int maximum){
+        long day=Math.floorDiv(now,86_400_000L);if(day>aiDay){aiDay=day;aiCalls=0;}
+        if(maximum<1||aiCalls>=maximum||now<aiLast+30_000)return false;
+        aiCalls++;aiLast=now;dirty=true;return true;
+    }
     public synchronized boolean readLetter(String id) {
         if (id == null || !id.matches("[a-z0-9_-]{1,80}") || lettersRead.size() >= 512) return false;
         boolean added = lettersRead.add(id); dirty |= added; return added;

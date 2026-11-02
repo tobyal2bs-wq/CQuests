@@ -76,6 +76,7 @@ public final class DialogueManager {
         if(memory!=null)lines.add(new Line(true,memory));
 
         if (data.meet(npc.id())) {
+            plugin.mail().notifyNew(player);
             npc.intro().forEach(text -> lines.add(new Line(true, text)));
             plugin.visibility().refresh(player);
             plugin.finale().achievements().sync(player);

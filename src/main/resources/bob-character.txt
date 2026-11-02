@@ -1,0 +1,3 @@
+CQUESTS_CHARACTER_PENDING
+Replace this file with B.O.B's personality, background, emotional reactions and example letters.
+This file guides the model at request time; it does not fine-tune or train a new model.

@@ -182,6 +182,14 @@ public final class PlayerStore {
         data.skillInitialized = yaml.getBoolean("skill.initialized", yaml.contains("skill.xp"));
         data.wheatHarvested = Math.max(0, yaml.getLong("skill.wheat", 0));
         data.hoeTier = Math.max(0, yaml.getInt("skill.hoe-tier", 0));
+        var received=yaml.getConfigurationSection("mail.received");
+        if(received!=null)for(String id:received.getKeys(false))if(id.matches("[a-z0-9_-]{1,80}")&&data.mailReceived.size()<512&&received.getLong(id)>0)data.mailReceived.put(id,received.getLong(id));
+        for(var entry:yaml.getMapList("mail.thread"))try{
+            if(data.mailThread.size()>=40)break;
+            data.mailThread.add(new MailEntry((String)entry.get("source"),(String)entry.get("sender"),(String)entry.get("text"),((Number)entry.get("time")).longValue(),Boolean.TRUE.equals(entry.get("from-player"))));
+        }catch(RuntimeException ignored){}
+        data.correspondenceAt=Math.max(0,yaml.getLong("mail.last-reply",0));
+        data.aiDay=Math.max(0,yaml.getLong("mail.ai.day",0));data.aiLast=Math.max(0,yaml.getLong("mail.ai.last",0));data.aiCalls=Math.max(0,yaml.getInt("mail.ai.calls",0));
         data.sunflowersSpent = Math.max(0, Math.min(data.wheatHarvested / 750, yaml.getLong("discoveries.sunflowers-spent", 0)));
         for (String letter : yaml.getStringList("mail.read"))
             if (data.lettersRead.size() < 512 && letter.matches("[a-z0-9_-]{1,80}")) data.lettersRead.add(letter);
@@ -240,6 +248,10 @@ public final class PlayerStore {
             yaml.set("skill.hoe-tier", data.hoeTier);
             yaml.set("discoveries.sunflowers-spent", data.sunflowersSpent);
             yaml.set("mail.read", new ArrayList<>(data.lettersRead));
+            data.mailReceived.forEach((id,time)->yaml.set("mail.received."+id,time));
+            yaml.set("mail.thread",data.mailThread.stream().map(e->Map.of("source",e.source(),"sender",e.sender(),"text",e.text(),"time",e.time(),"from-player",e.fromPlayer())).toList());
+            yaml.set("mail.last-reply",data.correspondenceAt);
+            yaml.set("mail.ai.day",data.aiDay);yaml.set("mail.ai.last",data.aiLast);yaml.set("mail.ai.calls",data.aiCalls);
             data.decisions.forEach((quest, choice) -> yaml.set("npc-decisions." + quest, choice));
             data.clean();
             return new Snapshot(yaml, ++data.saveSeq);

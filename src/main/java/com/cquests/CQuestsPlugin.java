@@ -62,6 +62,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     private ScheduledTask autosave;
     private BackupManager backups;
     private com.cquests.merchant.MerchantService merchants;
+    private com.cquests.adventure.GeminiMail gemini;
+    private com.cquests.merchant.NativeMarket market;
     private com.cquests.adventure.QuestMail mail;
     private com.cquests.npc.NpcCustomization characters;
     private com.cquests.adventure.NpcMemory memories;
@@ -81,7 +83,7 @@ public final class CQuestsPlugin extends JavaPlugin {
                 getConfig().set("money-command","economy give %player% %amount%");saveConfig();
             } catch(java.io.IOException e){getLogger().warning("Reward command migration deferred: "+e.getMessage());}
         }
-        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml", "letters.yml", "characters.yml"}) {
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml", "letters.yml", "characters.yml", "ai-mail.yml", "bob-character.txt"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
@@ -91,6 +93,8 @@ public final class CQuestsPlugin extends JavaPlugin {
         com.cquests.progression.ProgressionUpgrade.apply(this);
         characters = new com.cquests.npc.NpcCustomization(this);
         npcs.customization(characters);
+        gemini = new com.cquests.adventure.GeminiMail(this);
+        market = new com.cquests.merchant.NativeMarket(this);
         mail = new com.cquests.adventure.QuestMail(this);
         store = new PlayerStore(getDataFolder(), getLogger());
         questManager = new QuestManager(this);
@@ -115,6 +119,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         Platform.init();
         finale.achievements().register();
 
+        getServer().getPluginManager().registerEvents(market,this);
         getServer().getPluginManager().registerEvents(new NpcListener(this), this);
         getServer().getPluginManager().registerEvents(new ProgressListener(this), this);
         getServer().getPluginManager().registerEvents(new ShieldListener(this), this);
@@ -144,6 +149,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if(gemini!=null)gemini.shutdown();
         if(characters!=null)characters.shutdown();
         if(adventures!=null)adventures.shutdown();
         if(merchants!=null)merchants.shutdown();
@@ -183,6 +189,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     }
 
     public void reload() {
+        market.clear();gemini.reload();
         adventures.clear(); memories.reload(); mail.reload(); characters.reload();
         speech.stopAll();
         dialogue.invalidateAll();
@@ -255,6 +262,8 @@ public final class CQuestsPlugin extends JavaPlugin {
     public FarmService farm() { return farm; }
     public FarmCommand farmCommand() { return farmCommand; }
     public com.cquests.merchant.MerchantService merchants(){return merchants;}
+    public com.cquests.adventure.GeminiMail gemini(){return gemini;}
+    public com.cquests.merchant.NativeMarket market(){return market;}
     public com.cquests.adventure.QuestMail mail(){return mail;}
     public com.cquests.npc.NpcCustomization characters(){return characters;}
     public com.cquests.adventure.NpcMemory memories(){return memories;}

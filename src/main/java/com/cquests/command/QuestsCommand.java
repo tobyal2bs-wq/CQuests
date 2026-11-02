@@ -39,7 +39,7 @@ public final class QuestsCommand implements TabExecutor {
             return true;
         }
         switch (sub) {
-            case "mail" -> plugin.mail().open(player);
+            case "mail" -> plugin.mail().command(player,args);
             case "discoveries" -> plugin.mail().discoveries(player);
             case "encounter" -> {
                 if(!plugin.adventures().summon(player))plugin.send(player,"<yellow>You need an unfinished King Wakes quest, Survival/Adventure mode, and clear ground. Only one vessel can be active for you.");

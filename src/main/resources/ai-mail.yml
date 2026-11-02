@@ -1,0 +1,6 @@
+# Disabled until you select a model, configure the environment variable and supply B.O.B's character.
+enabled: false
+model: ''
+api-key-environment: CQUESTS_GEMINI_API_KEY
+daily-requests-per-player: 12
+daily-requests-server: 100

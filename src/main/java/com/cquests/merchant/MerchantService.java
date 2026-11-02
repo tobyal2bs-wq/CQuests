@@ -68,7 +68,7 @@ public final class MerchantService {
     public boolean current(Entity entity){String id=id(entity);Walk w=id==null?null:live.get(id);return w!=null&&w.entity==entity;}
     public boolean safeItem(ItemStack item){
         if(item==null||item.getType().isAir())return true;
-        if(plugin.farm().marked(item)||plugin.farmCommand().wand(item)||item.getItemMeta().getPersistentDataContainer().has(wand,PersistentDataType.STRING))return false;
+        if(plugin.market().ghost(item)||plugin.farm().marked(item)||plugin.farmCommand().wand(item)||item.getItemMeta().getPersistentDataContainer().has(wand,PersistentDataType.STRING))return false;
         var meta=item.getItemMeta();
         return !(meta instanceof BundleMeta)&&!(meta instanceof BlockStateMeta state&&state.getBlockState() instanceof InventoryHolder);
     }
@@ -238,15 +238,15 @@ public final class MerchantService {
     }
     public void interact(Player player,String id,boolean editingGesture){
         if(get(id)==null||!demoAccess(player,id))return;
-        if(isDemo(id)){if(nearShop(player,id))MerchantMenu.open(plugin,player,id);else plugin.send(player,"<yellow>Watch the demo walk to its endpoint first.");return;}
+        if(isDemo(id)){if(nearShop(player,id))plugin.market().open(player,id);else plugin.send(player,"<yellow>Watch the demo walk to its endpoint first.");return;}
         if(editingGesture&&canEdit(player)){MerchantEditor.open(plugin,player,id);return;}
         if(!nearShop(player,id)){plugin.send(player,"<yellow>Meet this merchant at the store after they finish walking.");return;}
         var d=get(id);var lines=plugin.characters().lines(id,"idle",List.of());
         if(!lines.isEmpty()){
             var speaker=new com.cquests.model.NpcDef(id,plugin.characters().text(id,"name",d.name()),"","NONE","PLAINS",0,1,false,false,false,"",List.of(),lines);
             if(plugin.speech().click(player,speaker))return;
-            plugin.speech().startAt(player,speaker,lines.stream().map(s->plugin.questManager().fill(s,player)).toList(),()->{if(nearShop(player,id))MerchantMenu.open(plugin,player,id);},d.shop().location());
-        }else MerchantMenu.open(plugin,player,id);
+            plugin.speech().startAt(player,speaker,lines.stream().map(s->plugin.questManager().fill(s,player)).toList(),()->{if(nearShop(player,id))plugin.market().open(player,id);},d.shop().location());
+        }else plugin.market().open(player,id);
     }
     public void refreshLabels(){for(var entry:live.entrySet()){var w=entry.getValue();var d=get(entry.getKey());if(w.entity!=null&&d!=null){Sched.entity(w.entity,()->w.entity.customName(plugin.characters().merchantLabel(d.id(),d.name(),w.shop?"Open":w.blocked?"Route blocked":"Travelling")));}}}
     public synchronized void disable(Player player,String id){MerchantDefinition d=get(id);if(!canEdit(player)||d==null||!running)return;stop(id);save(changed(d,d.spawn(),d.route(),d.shop(),d.offers(),false));plugin.send(player,"<gray>Merchant disabled; route and trades retained.");}
