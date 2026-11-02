@@ -10,8 +10,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 import java.io.File;
 import java.util.*;
 
@@ -85,9 +83,6 @@ public final class QuestMail {
             if(slot<0||slot>=45||page*45+slot>=visible.size())return;
             var letter=visible.get(page*45+slot);var data=plugin.questManager().data(player);
             if(!letters.contains(letter)||!letter.eligible(data)){player.closeInventory();return;}
-            data.readLetter(letter.id());plugin.store().saveNow(data);notified.remove(player.getUniqueId());
-            var book=new ItemStack(Material.WRITTEN_BOOK);var meta=(BookMeta)book.getItemMeta();
-            meta.title(Text.mm(Text.escape(letter.subject())));meta.author(Text.mm(Text.escape(letter.sender())));
             var pages=new ArrayList<net.kyori.adventure.text.Component>();
             for(var paragraph:letter.body()){
                 String value=paragraph.replace("{player}",Text.escape(player.getName()));
@@ -95,7 +90,9 @@ public final class QuestMail {
                     pages.add(Text.mm("<black>"+Text.escape(String.join("\n",lines))));
             }
             if(pages.isEmpty())pages.add(Text.mm("<black>The rest of the page is blank."));
-            meta.pages(pages.subList(0,Math.min(100,pages.size())));book.setItemMeta(meta);player.closeInventory();player.openBook(book);
+            player.closeInventory();
+            player.openBook(net.kyori.adventure.inventory.Book.book(Text.mm(Text.escape(letter.subject())),Text.mm(Text.escape(letter.sender())),pages.subList(0,Math.min(100,pages.size()))));
+            data.readLetter(letter.id());plugin.store().saveNow(data);notified.remove(player.getUniqueId());
         }
     }
 }
