@@ -51,6 +51,7 @@ public final class QuestRegistry {
     private final Map<String, List<Quest>> storyByGiver = new HashMap<>();
     private final List<Quest> dailyPool = new ArrayList<>();
     private final Map<Integer, String> chapterNames = new HashMap<>();
+    private YamlConfiguration twists;
 
     public void load(File questsFile, File generatorFile, Settings settings, NpcRegistry npcs, Logger log) {
         byId.clear();
@@ -66,6 +67,7 @@ public final class QuestRegistry {
         generation++;
         chapterNames.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(questsFile);
+        twists=YamlConfiguration.loadConfiguration(new File(questsFile.getParentFile(),"twists.yml"));
         ConfigurationSection chapters = yaml.getConfigurationSection("chapters");
         if (chapters != null) {
             for (String key : chapters.getKeys(false)) {
@@ -174,12 +176,17 @@ public final class QuestRegistry {
                 requires,
                 List.copyOf(objectives),
                 s.getString("description", null),
-                s.getStringList("offer"),
-                s.getStringList("complete"),
+                twistLines(id,"offer-append",s.getStringList("offer"),false),
+                twistLines(id,"complete-prepend",s.getStringList("complete"),true),
                 parseReward(id, s.getConfigurationSection("rewards"), level, settings, log),
                 s.getBoolean("big", false),
                 category == QuestCategory.STORY ? Math.max(1, s.getInt("chapter", 1)) : 0,
                 s.getInt("side-required", -1));
+    }
+    private List<String> twistLines(String id,String key,List<String> original,boolean prepend){
+        if(twists==null||!twists.getBoolean("enabled",true))return original;
+        List<String> extra=twists.getStringList("quests."+id+"."+key);List<String> result=new ArrayList<>();
+        if(prepend)result.addAll(extra);result.addAll(original);if(!prepend)result.addAll(extra);return List.copyOf(result);
     }
 
     /**

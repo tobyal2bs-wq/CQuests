@@ -58,6 +58,7 @@ public final class AdminCommand implements TabExecutor {
             case "scatter" -> scatter(sender, args);
             case "scatterworld" -> scatterWorld(sender, args);
             case "farm" -> plugin.farmCommand().run(sender,args);
+            case "merchant" -> new com.cquests.merchant.MerchantCommand(plugin).run(sender,args);
             case "camp" -> plugin.spawns().arrangeCamp(sender);
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
@@ -86,6 +87,7 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq farm wand|outside <id></yellow> <gray>select a farm outline
                 <yellow>/cq farm save <id> <wg-region></yellow> <gray>bind the outline to WorldGuard
                 <yellow>/cq farm anvil</yellow> <gray>bind the anvil you look at
+                <yellow>/cq merchant list</yellow> <gray>five travelling merchants; OP-only route/trade editor
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
                 <yellow>/cq quest <id></yellow> <gray>show a quest's details
                 <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic
@@ -428,9 +430,14 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "scatterworld", "camp", "farm", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "npc", "pos1", "pos2", "scatter", "scatterworld", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
+        if(first.equals("merchant")){
+            if(!(sender instanceof Player p)||!p.isOp())return List.of();
+            if(args.length==2)return QuestsCommand.filter(List.of("list","spawn","point","shop","wand","undo","routeclear","walk","despawn","edit"),args[1]);
+            if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
+        }
         if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","menu"),args[1]);
         List<String> npcIds = plugin.npcs().all().stream().map(NpcDef::id).toList();
         if (first.equals("npc")) {

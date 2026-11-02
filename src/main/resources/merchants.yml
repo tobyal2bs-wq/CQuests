@@ -1,0 +1,39 @@
+# Examples, not forced locations. OPs set spawn -> route points -> shop -> walk.
+# Each offer supports cost-a, optional cost-b, money (Vault), and reward.
+# The GUI copies item templates; it never consumes the OP's sample items.
+merchants:
+  rowan:
+    name: "<gold>Rowan the Provisioner"
+    profession: FARMER
+    enabled: false
+    offers:
+      1: {cost-a: "WHEAT 32", reward: "COOKED_BEEF 8", money: 0}
+      2: {cost-a: "CARROT 24", reward: "BAKED_POTATO 16", money: 0}
+  brann:
+    name: "<yellow>Brann the Forgehand"
+    profession: TOOLSMITH
+    enabled: false
+    offers:
+      1: {cost-a: "RAW_IRON 32", cost-b: "COAL 8", reward: "IRON_INGOT 24", money: 0}
+      2: {cost-a: "RAW_COPPER 24", reward: "COPPER_INGOT 16", money: 0}
+  mira:
+    name: "<aqua>Mira the Wayfinder"
+    profession: CARTOGRAPHER
+    enabled: false
+    offers:
+      1: {cost-a: "PAPER 8", cost-b: "COMPASS 1", reward: "MAP 1", money: 0}
+      2: {cost-a: "IRON_INGOT 4", cost-b: "REDSTONE 1", reward: "COMPASS 1", money: 0}
+  sable:
+    name: "<light_purple>Sable the Salvager"
+    profession: LEATHERWORKER
+    enabled: false
+    offers:
+      1: {cost-a: "ROTTEN_FLESH 32", reward: "LEATHER 4", money: 0}
+      2: {cost-a: "BONE 16", reward: "ARROW 16", money: 0}
+  orin:
+    name: "<green>Orin the Deep Delver"
+    profession: MASON
+    enabled: false
+    offers:
+      1: {cost-a: "AMETHYST_SHARD 16", cost-b: "COPPER_INGOT 8", reward: "GLOW_INK_SAC 8", money: 0}
+      2: {cost-a: "PRISMARINE_SHARD 24", cost-b: "PRISMARINE_CRYSTALS 20", reward: "SEA_LANTERN 4", money: 0}

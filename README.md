@@ -1,5 +1,7 @@
 # CQuests
 
+Version 1.3 adds five travelling merchant presets, operator-only route and trade editing, item/money/mixed trades, and additive story twists. See [MERCHANTS-1.3.md](MERCHANTS-1.3.md) for placement, GUI controls and security boundaries.
+
 Version 1.2.3 closes an offhand farm-container bypass, preserves placed-block quest protection through piston movement, and prevents conversation chat loss during buffer overflow or conversation completion. It includes the previous reconnect/save, personal-tool and client compatibility fixes. See [AUDIT-1.2.3.md](AUDIT-1.2.3.md) and [AUDIT-1.2.2.md](AUDIT-1.2.2.md) for validation and remaining limits.
 
 A villager quest plugin targeting **Paper 1.21.4 through 26.2 and compatible forks**, with region schedulers for Folia and compatible views for Bedrock/Geyser. The exact tested builds are recorded in [VALIDATION-1.2.md](VALIDATION-1.2.md); arbitrary engines and versions are not universally guaranteed.

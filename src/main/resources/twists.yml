@@ -1,0 +1,43 @@
+# Additive story scenes. Disable or edit these without changing quest IDs, requirements or progress.
+enabled: true
+quests:
+  story_lucy:
+    offer-append:
+      - "One more thing. The last bandage order carried a mark I did not recognise. Keep your eyes open."
+    complete-prepend:
+      - "Wait. This thread matches the sealed parcel left outside my door. It was never an order for bandages."
+      - "Stitched into the cloth is a route through the camp, with every watch post marked. Someone has been studying us."
+      - "I will hide the route. Ask questions carefully; whoever drew it knows our names."
+  story_ned:
+    offer-append:
+      - "A traveller paid me to keep fishing this stretch. Odd thing: they never asked for the catch."
+    complete-prepend:
+      - "There is a strip of oilskin caught inside it. This treasure was wrapped before it reached the water."
+      - "It says: Follow the gold, but count the locks. Someone wanted you to find this."
+      - "The traveller knew you would come. I thought I was selling fishing advice. I may have been delivering a message."
+  story_hugo:
+    offer-append:
+      - "The piglins will not name the buyer who paid them to watch our roads. Perhaps this gold will change that."
+    complete-prepend:
+      - "The piglins recognised the mint on our gold: Aldmere. The roads were bought with the kingdom's own treasury."
+      - "They did not call the five objects keys. They called them locks. Somebody has been telling us half the truth."
+      - "Find out what is being kept inside before we open anything."
+  story_quill:
+    offer-append:
+      - "Sculk remembers sound. I want to hear the moment the old wardens sealed the deep."
+    complete-prepend:
+      - "Listen. That is not an attack cry in the echo. It is a plea: Do not wake the vessel."
+      - "The Hollow King was trapped between the five wards. His voice is still beneath the warning."
+      - "Breaking the locks alone could give him a body he cannot control. We must choose how the waking ends."
+  story_esme:
+    offer-append:
+      - "Bring the gem blocks, but let me examine the wards before you touch the tomb."
+    complete-prepend:
+      - "Here is the missing truth. These settings do not arm a weapon; they open five restraints."
+      - "The King is a prisoner. The vessel will wake when we free him, and it will fight us whether he wishes it or not."
+      - "We can still save him. Prepare the edge, clear the road, then destroy the vessel after the restraints release."
+  story_aldric:
+    complete-prepend:
+      - "Aldric sent word ahead of you. The hidden route was not an invasion plan: it mapped safe passages for the people still trapped in Aldmere."
+      - "He planted the fishing message because a courier through the gate would have been followed. He needed someone the wardens would overlook."
+      - "You began by helping strangers. That is why he trusted you with a kingdom. Come, let us open the roads and bring our people home."

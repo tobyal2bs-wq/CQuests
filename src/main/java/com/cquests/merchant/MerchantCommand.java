@@ -1,0 +1,26 @@
+package com.cquests.merchant;
+
+import com.cquests.CQuestsPlugin;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+public final class MerchantCommand {
+    private final CQuestsPlugin plugin;public MerchantCommand(CQuestsPlugin plugin){this.plugin=plugin;}
+    public void run(CommandSender sender,String[] args){
+        if(!(sender instanceof Player p)||!MerchantService.canEdit(p)){plugin.send(sender,"<red>Only an operator in game can configure merchants.");return;}
+        String action=args.length>1?args[1].toLowerCase(java.util.Locale.ROOT):"help";
+        if(action.equals("list")){for(var d:plugin.merchants().all())plugin.send(p,"<gold>"+d.id()+" <gray>• "+plugin.merchants().status(d.id())+" • "+d.route().size()+" waypoints • "+(d.spawn()==null?"spawn missing":"spawn set")+" • "+(d.shop()==null?"store missing":"store set"));return;}
+        String id=args.length>2?args[2].toLowerCase(java.util.Locale.ROOT):"";
+        if(plugin.merchants().get(id)==null){help(p);return;}
+        switch(action){
+            case "spawn","shop","point"->plugin.merchants().setPoint(p,id,action,p.getLocation().clone());
+            case "undo","routeclear"->plugin.merchants().undo(p,id,action.equals("routeclear"));
+            case "walk"->plugin.merchants().walk(id,p);
+            case "despawn"->plugin.merchants().disable(p,id);
+            case "edit"->MerchantEditor.open(plugin,p,id);
+            case "wand"->{var leftovers=p.getInventory().addItem(plugin.merchants().wand(id));plugin.send(p,leftovers.isEmpty()?"<gold>Left-click safe ground to add route points; right-click to undo.":"<yellow>Make room for the route wand and try again.");}
+            default->help(p);
+        }
+    }
+    private void help(Player p){plugin.send(p,"<white>/cq merchant list\n<white>/cq merchant spawn|point|shop <id> <gray>• record where you stand\n<white>/cq merchant wand <id> <gray>• click a route\n<white>/cq merchant undo|routeclear <id>\n<white>/cq merchant walk|despawn|edit <id>\n<gray>Set spawn, add waypoints in order, set shop, then walk. Maximum gap: 32 blocks.");}
+}

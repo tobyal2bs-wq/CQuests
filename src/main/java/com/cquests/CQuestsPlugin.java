@@ -60,6 +60,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     private NpcShield shield;
     private ScheduledTask autosave;
     private BackupManager backups;
+    private com.cquests.merchant.MerchantService merchants;
 
     @Override
     public void onEnable() {
@@ -75,7 +76,7 @@ public final class CQuestsPlugin extends JavaPlugin {
                 getConfig().set("money-command","economy give %player% %amount%");saveConfig();
             } catch(java.io.IOException e){getLogger().warning("Reward command migration deferred: "+e.getMessage());}
         }
-        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml"}) {
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
@@ -96,6 +97,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         farm = new FarmService(this);
         farmCommand = new FarmCommand(this);
         shield = new NpcShield(this);
+        merchants = new com.cquests.merchant.MerchantService(this);
 
         loadData();
         Platform.init();
@@ -107,11 +109,13 @@ public final class CQuestsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
         getServer().getPluginManager().registerEvents(speech, this);
         getServer().getPluginManager().registerEvents(new FarmListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.cquests.merchant.MerchantListener(this), this);
         register("quests", new QuestsCommand(this));
         register("cquests", new AdminCommand(this));
 
         spawns.load();
         spawns.start();
+        merchants.start();
         autosave = Sched.asyncTimer(store::saveDirtyAsync, 60);
         backups = new BackupManager(this);
         backups.start();
@@ -127,6 +131,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if(merchants!=null)merchants.shutdown();
         if (farmSave != null) farmSave.cancel();
         if (farm != null) farm.shutdown();
         if (speech != null) speech.stopAll();
@@ -171,6 +176,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         Platform.init();
         spawns.load();
         progression.reload(); farm.reload();
+        merchants.reload();
         spawns.start();
         backups.start();
         finale.achievements().register();
@@ -231,6 +237,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     public Progression progression() { return progression; }
     public FarmService farm() { return farm; }
     public FarmCommand farmCommand() { return farmCommand; }
+    public com.cquests.merchant.MerchantService merchants(){return merchants;}
 
     public Finale finale() {
         return finale;

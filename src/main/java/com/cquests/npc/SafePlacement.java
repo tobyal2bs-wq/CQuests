@@ -15,15 +15,19 @@ public final class SafePlacement {
     private SafePlacement() {}
 
     public static CompletableFuture<Location> find(World world, double x, double z, Integer minFeet, Integer maxFeet, float yaw) {
-        return inspect(world, x, z, minFeet, maxFeet, yaw, null);
+        return inspect(world, x, z, minFeet, maxFeet, yaw, null,true);
     }
 
     public static CompletableFuture<Boolean> validate(Location location) {
         return inspect(location.getWorld(), location.getX(), location.getZ(), null, null,
-                location.getYaw(), location.getBlockY()).thenApply(result -> result != null);
+                location.getYaw(), location.getBlockY(),true).thenApply(result -> result != null);
+    }
+    /** Stores may have roofs; retain floor, headroom, End support and Nether lava checks. */
+    public static CompletableFuture<Boolean> validateWalkStop(Location location){
+        return inspect(location.getWorld(),location.getX(),location.getZ(),null,null,location.getYaw(),location.getBlockY(),false).thenApply(result->result!=null);
     }
 
-    private static CompletableFuture<Location> inspect(World world, double x, double z, Integer minFeet, Integer maxFeet, float yaw, Integer exactY) {
+    private static CompletableFuture<Location> inspect(World world, double x, double z, Integer minFeet, Integer maxFeet, float yaw, Integer exactY,boolean requireSky) {
         World.Environment environment = world.getEnvironment();
         int radius = environment == World.Environment.NORMAL ? 0 : 10;
         int bx = (int) Math.floor(x), bz = (int) Math.floor(z);
@@ -57,7 +61,7 @@ public final class SafePlacement {
             int y = exactY == null ? TerrainSafety.find(blocks, environment, bx, bz,
                     minFeet == null ? bottom + 1 : minFeet, Math.min(top - 2, maxFeet == null ? top - 2 : maxFeet), bottom)
                     : (TerrainSafety.safe(blocks, environment, bx, exactY, bz, bottom) ? exactY : Integer.MIN_VALUE);
-            return y == Integer.MIN_VALUE || !TerrainSafety.exposed(blocks,environment,bx,y,bz,top)
+            return y == Integer.MIN_VALUE || (requireSky&&!TerrainSafety.exposed(blocks,environment,bx,y,bz,top))
                     ? null : new Location(world, x, y, z, yaw, 0f);
         });
     }

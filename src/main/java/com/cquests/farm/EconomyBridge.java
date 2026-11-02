@@ -20,15 +20,29 @@ public final class EconomyBridge {
     }
     public boolean available(){refresh();return binding!=null;}
     public boolean withdraw(Player player,long amount) {
-        if(amount==0)return true;
-        if(amount<0)return false;
-        refresh();Binding current=binding;if(current==null)return false;
+        return charge(player,amount)!=null;
+    }
+    public static final class Payment {
+        private final java.util.function.BooleanSupplier action;
+        private final java.util.concurrent.atomic.AtomicBoolean refunded=new java.util.concurrent.atomic.AtomicBoolean();
+        private Payment(java.util.function.BooleanSupplier action){this.action=action;}
+        public boolean refund(){return refunded.compareAndSet(false,true)&&action.getAsBoolean();}
+    }
+    public Payment charge(Player player,long amount) {
+        if(amount==0)return new Payment(()->true);
+        if(amount<0)return null;
+        refresh();Binding current=binding;if(current==null)return null;
         try {
             Method balance=current.api().getMethod("getBalance",OfflinePlayer.class);
             double value=((Number)balance.invoke(current.provider(),player)).doubleValue();
-            if(!Double.isFinite(value)||value<amount)return false;
+            if(!Double.isFinite(value)||value<amount)return null;
             Object result=current.api().getMethod("withdrawPlayer",OfflinePlayer.class,double.class).invoke(current.provider(),player,(double)amount);
-            return (boolean)result.getClass().getMethod("transactionSuccess").invoke(result);
-        }catch(ReflectiveOperationException|RuntimeException e){return false;}
+            if(!(boolean)result.getClass().getMethod("transactionSuccess").invoke(result))return null;
+            return new Payment(()->{
+                try{Object response=current.api().getMethod("depositPlayer",OfflinePlayer.class,double.class).invoke(current.provider(),player,(double)amount);
+                    return (boolean)response.getClass().getMethod("transactionSuccess").invoke(response);
+                }catch(ReflectiveOperationException|RuntimeException e){return false;}
+            });
+        }catch(ReflectiveOperationException|RuntimeException e){return null;}
     }
 }
