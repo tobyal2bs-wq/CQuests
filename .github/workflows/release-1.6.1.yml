@@ -1,0 +1,88 @@
+name: Publish CQuests 1.6.1
+
+on:
+  push:
+    branches: [claude/project-thread-eax6qq]
+    paths: [.github/workflows/release-1.6.1.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cquests-1.6.1
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_SHA: 5977c1d252290383cfd8bb0186ef7b2d1f91871a
+      CHECKED_RUN: '41508957301'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: 5977c1d252290383cfd8bb0186ef7b2d1f91871a
+      - name: Verify checked commit and collect its tested JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.head_sha')" = "$SOURCE_SHA"
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.conclusion')" = success
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN/jobs --jq '[.jobs[] | select(.conclusion != "success")] | length')" = 0
+          if gh release view v1.6.1 >/dev/null 2>&1; then
+            echo 'Release v1.6.1 already exists; refusing to replace it.' >&2
+            exit 1
+          fi
+          gh run download "$CHECKED_RUN" --name CQuests --dir tested
+          test -f tested/CQuests-1.6.1.jar
+          grep -Fq 'version = "1.6.1"' build.gradle.kts
+      - name: Package source, setup guide and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out/bundle
+          cp tested/CQuests-1.6.1.jar out/
+          git archive --format=zip --prefix=CQuests/ --output=out/CQuests-1.6.1-source.zip HEAD
+          cp out/CQuests-1.6.1.jar out/CQuests-1.6.1-source.zip DIALOGUE-FIX-1.6.1.md MERCHANTS-AND-AI-MAIL-1.6.0.md MAIL-AND-DISCOVERIES-1.5.0.md WORKSHOP-1.3.4.md ADVENTURES-1.4.0.md FARM-TESTING.md out/bundle/
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,os,zipfile
+          out=Path('out');bundle=out/'bundle'
+          def digest(p,kind='sha256'):return hashlib.new(kind,p.read_bytes()).hexdigest()
+          manifest={'version':'1.6.1','commit':os.environ['SOURCE_SHA'],'tested_jar_from_run':int(os.environ['CHECKED_RUN']),'github_actions':'https://github.com/'+os.environ['GH_REPO']+'/actions/runs/'+os.environ['CHECKED_RUN'],'unit_tests':110,'note':'JAR is downloaded unchanged from the successful build and server smoke-test run. Paper/Folia 26.2 dialogue animation and click-to-advance protocol checks passed on local JAR SHA256 1659a4fd268f9f5ea50cbbceb71f9d171d8c5a03f7a18622ba226b8bb4fe293b. This CI-built artifact can differ in ZIP timestamps.','files':{p.name:{'bytes':p.stat().st_size,'sha256':digest(p),'sha1':digest(p,'sha1')} for p in sorted(bundle.iterdir())}}
+          (bundle/'MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          with zipfile.ZipFile(out/'CQuests-1.6.1-release.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in sorted(bundle.iterdir()):z.write(p,'CQuests-1.6.1/'+p.name)
+          files=sorted(p for p in out.iterdir() if p.is_file())
+          (out/'CQuests-1.6.1-CHECKSUMS.txt').write_text(''.join(f'SHA256 {digest(p)}  {p.name}\nSHA1   {digest(p,"sha1")}  {p.name}\n' for p in files))
+          PY
+          cat > out/notes.md <<'NOTES'
+          Fixes NPC sentences appearing all at once after clicking during a reading pause.
+
+          - Every spoken sentence keeps its letter-by-letter animation. Finishing one sentence no longer marks the following sentence as already typed.
+          - Click while text is typing to reveal the rest of that sentence. Click during its reading pause to start the next sentence immediately, with animation.
+          - After the final sentence, click to open the choices immediately. The previous text is removed with the conversation.
+          - With no clicks, the configured character speed and reading time remain in effect. The shared fix covers quest NPC, merchant and companion overhead speech.
+          - Existing player progress, quests, NPC definitions, merchant trades and optional Gemini setup are retained. AI is still disabled by default.
+
+          Validation: 110 unit tests, including sentence-by-sentence rendering, pause-boundary clicks, repeated finish clicks, immediate final continuation and Unicode text. Local Paper/Folia 26.2 protocol tests observed partial and completed text for all three sentences, typing sounds, skipped ten-second pauses, immediate final continuation and removal of the overhead text. The linked CI run passed its build, Paper 1.21.4, Paper latest and Folia latest checks. Graphical rendering and the hosted server have not been verified.
+          https://github.com/tobyal2bs-wq/CQuests/actions/runs/41508957301
+
+          Stop the server, back up CQuests data, replace the JAR and retain the data folder. See DIALOGUE-FIX-1.6.1.md for click behaviour. No configuration reset is needed.
+
+          The public JAR is downloaded unchanged from the successful CI run. Source, guides and SHA256/SHA1 checksums are included. Local protocol checks used the same source; the local JAR checksum is recorded in the manifest because ZIP timestamps can differ.
+          NOTES
+      - name: Create, verify and publish release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create v1.6.1 out/CQuests-1.6.1.jar out/CQuests-1.6.1-source.zip out/CQuests-1.6.1-release.zip out/CQuests-1.6.1-CHECKSUMS.txt --target "$SOURCE_SHA" --title 'CQuests 1.6.1 - NPC animation and click-to-advance fix' --notes-file out/notes.md --draft
+          test "$(gh release view v1.6.1 --json assets --jq '.assets | length')" = 4
+          gh release edit v1.6.1 --draft=false --latest
+          gh release view v1.6.1 --json url,isDraft,tagName,assets >> "$GITHUB_STEP_SUMMARY"
