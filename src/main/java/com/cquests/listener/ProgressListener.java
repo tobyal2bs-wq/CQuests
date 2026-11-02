@@ -11,6 +11,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityBreedEvent;
@@ -72,6 +74,12 @@ public final class ProgressListener implements Listener {
             count(event.getPlayer(), ObjectiveType.PLACE, event.getBlockPlaced().getType().name(), 1);
         }
     }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onExtend(BlockPistonExtendEvent event) { placed.move(event.getBlocks(),event.getDirection()); }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onRetract(BlockPistonRetractEvent event) { placed.move(event.getBlocks(),event.getDirection()); }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCraft(CraftItemEvent event) {

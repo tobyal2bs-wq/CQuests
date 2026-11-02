@@ -8,6 +8,33 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.*;
 
 class FarmGuardsTest {
+    @Test void onlySoilWithPendingCropIsProtectedFromNaturalDecay() {
+        CQuestsPlugin plugin=mock(CQuestsPlugin.class);FarmService farm=mock(FarmService.class);when(plugin.farm()).thenReturn(farm);
+        var soil=mock(org.bukkit.block.Block.class);var crop=mock(org.bukkit.block.Block.class);
+        when(soil.getType()).thenReturn(org.bukkit.Material.FARMLAND);when(soil.getRelative(0,1,0)).thenReturn(crop);
+        var location=new org.bukkit.Location(mock(org.bukkit.World.class),10,64,10);when(crop.getLocation()).thenReturn(location);
+        var pending=mock(org.bukkit.event.block.BlockFadeEvent.class);when(pending.getBlock()).thenReturn(soil);
+        when(farm.pendingRegrowth(location)).thenReturn(true);new FarmListener(plugin).fade(pending);verify(pending).setCancelled(true);
+        var ordinary=mock(org.bukkit.event.block.BlockFadeEvent.class);when(ordinary.getBlock()).thenReturn(soil);
+        when(farm.pendingRegrowth(location)).thenReturn(false);new FarmListener(plugin).fade(ordinary);verify(ordinary,never()).setCancelled(true);
+    }
+    @Test void offhandClickCannotOpenContainerInsideFarm() {
+        CQuestsPlugin plugin=mock(CQuestsPlugin.class);FarmService farm=mock(FarmService.class);when(plugin.farm()).thenReturn(farm);
+        Player player=mock(Player.class);when(farm.inFarm(player)).thenReturn(true);
+        var block=mock(org.bukkit.block.Block.class);when(block.getState()).thenReturn(mock(org.bukkit.block.Chest.class));
+        var event=mock(org.bukkit.event.player.PlayerInteractEvent.class);when(event.getPlayer()).thenReturn(player);
+        when(event.getHand()).thenReturn(EquipmentSlot.OFF_HAND);when(event.getClickedBlock()).thenReturn(block);
+        when(event.getAction()).thenReturn(org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK);
+        new FarmListener(plugin).interact(event);verify(event).setCancelled(true);
+    }
+    @Test void offhandToolCannotTriggerSecondHarvest() {
+        CQuestsPlugin plugin=mock(CQuestsPlugin.class);FarmService farm=mock(FarmService.class);when(plugin.farm()).thenReturn(farm);
+        Player player=mock(Player.class);when(farm.inFarm(player)).thenReturn(true);ItemStack hoe=mock(ItemStack.class);
+        when(farm.marked(hoe)).thenReturn(true);var event=mock(org.bukkit.event.player.PlayerInteractEvent.class);
+        when(event.getPlayer()).thenReturn(player);when(event.getItem()).thenReturn(hoe);when(event.getHand()).thenReturn(EquipmentSlot.OFF_HAND);
+        when(event.getClickedBlock()).thenReturn(mock(org.bukkit.block.Block.class));when(event.getAction()).thenReturn(org.bukkit.event.block.Action.LEFT_CLICK_BLOCK);
+        new FarmListener(plugin).interact(event);verify(event).setCancelled(true);verify(farm,never()).harvest(any(),any());
+    }
     @Test void armorStandCannotTakeBoundToolDuringExitCleanup() {
         CQuestsPlugin plugin=mock(CQuestsPlugin.class);FarmService farm=mock(FarmService.class);
         when(plugin.farm()).thenReturn(farm);Player player=mock(Player.class);

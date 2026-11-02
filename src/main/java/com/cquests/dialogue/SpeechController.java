@@ -17,13 +17,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /** One private hologram and one repeating task per active conversation, never per idle NPC. */
 public final class SpeechController implements Listener {
     private static final class Session {
         final String npc; final Location anchor; final List<String> sentences; final Runnable open;
-        final Queue<Component> chat=new ConcurrentLinkedQueue<>();
+        final SpeechChatBuffer chat=new SpeechChatBuffer();
         volatile TextDisplay display; ScheduledTask task; int line, letters, pause; volatile boolean ready; long readyUntil;
         Session(String npc,Location anchor,List<String> sentences,Runnable open) {
             this.npc=npc;this.anchor=anchor;this.sentences=sentences;this.open=open;
@@ -94,11 +93,13 @@ public final class SpeechController implements Listener {
         for(var entry:sessions.entrySet()) {
             Session s=entry.getValue();if(s.ready)continue;
             var viewer=org.bukkit.Bukkit.getPlayer(entry.getKey());
-            if(viewer!=null&&event.viewers().remove(viewer)&&s.chat.size()<64)
-                s.chat.add(event.renderer().render(event.getPlayer(),event.getPlayer().displayName(),event.message(),viewer));
+            if(viewer!=null&&event.viewers().contains(viewer)) {
+                Component message=event.renderer().render(event.getPlayer(),event.getPlayer().displayName(),event.message(),viewer);
+                s.chat.defer(message,()->event.viewers().remove(viewer));
+            }
         }
     }
-    private void flush(Player player,Session s){Component c;while((c=s.chat.poll())!=null)player.sendMessage(c);}
+    private void flush(Player player,Session s){for(Component message:s.chat.resume())player.sendMessage(message);}
     private void retire(Session s){if(s.task!=null)s.task.cancel();if(s.display!=null&&plugin.isEnabled())Sched.entity(s.display,s.display::remove);}
     public void stop(Player player){Session s=sessions.remove(player.getUniqueId());if(s!=null){retire(s);flush(player,s);}}
     public void stopAll(){for(UUID id:List.copyOf(sessions.keySet())){

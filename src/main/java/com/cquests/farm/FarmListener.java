@@ -18,17 +18,17 @@ public final class FarmListener implements Listener {
     public FarmListener(CQuestsPlugin plugin){this.plugin=plugin;}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void interact(PlayerInteractEvent e){
-        if(e.getHand()!=org.bukkit.inventory.EquipmentSlot.HAND)return;
+        boolean mainHand=e.getHand()==org.bukkit.inventory.EquipmentSlot.HAND;
         Player p=e.getPlayer();var block=e.getClickedBlock();
-        if(block!=null&&plugin.farmCommand().wand(e.getItem())&&p.hasPermission("cquests.admin")){
+        if(mainHand&&block!=null&&plugin.farmCommand().wand(e.getItem())&&p.hasPermission("cquests.admin")){
             e.setCancelled(true);plugin.farmCommand().point(p,block,e.getAction()==Action.RIGHT_CLICK_BLOCK);return;
         }
-        if(block!=null&&plugin.farm().upgrader(block)&&e.getAction()==Action.RIGHT_CLICK_BLOCK){
+        if(mainHand&&block!=null&&plugin.farm().upgrader(block)&&e.getAction()==Action.RIGHT_CLICK_BLOCK){
             e.setCancelled(true);Sched.entity(p,()->FarmMenu.open(plugin,p));return;
         }
         if(plugin.farm().marked(e.getItem())){
             e.setCancelled(true);
-            if(block!=null&&e.getAction()==Action.LEFT_CLICK_BLOCK)plugin.farm().harvest(p,block);
+            if(mainHand&&block!=null&&e.getAction()==Action.LEFT_CLICK_BLOCK)plugin.farm().harvest(p,block);
             if(!plugin.farm().inFarm(p))plugin.farm().strip(p);
         }else if(plugin.farm().inFarm(p)&&e.getAction()==Action.RIGHT_CLICK_BLOCK){
             // No containers, shops or workstations can take the bound tool inside a field.
@@ -43,6 +43,11 @@ public final class FarmListener implements Listener {
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void damage(BlockDamageEvent e){if(plugin.farm().marked(e.getItemInHand())){e.setCancelled(true);plugin.farm().harvest(e.getPlayer(),e.getBlock());}}
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void fade(BlockFadeEvent e){
+        if(e.getBlock().getType()==Material.FARMLAND&&plugin.farm().pendingRegrowth(e.getBlock().getRelative(0,1,0).getLocation()))
+            e.setCancelled(true);
+    }
     @EventHandler(priority=EventPriority.HIGHEST)
     public void drop(PlayerDropItemEvent e){if(plugin.farm().marked(e.getItemDrop().getItemStack()))e.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST)

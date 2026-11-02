@@ -153,6 +153,10 @@ public final class FarmService {
         plugin.send(player,"<green>Unlocked "+Text.escape(tier.name())+"<gray>. Stored in your personal locker.");
         return true;
     }
+    /** Keep dry soil intact only during an accepted crop's regrowth gap. */
+    public boolean pendingRegrowth(Location crop){
+        return running&&pending.contains(new Spot(crop.getWorld().getName(),crop.getBlockX(),crop.getBlockY(),crop.getBlockZ()));
+    }
     /** Triggered only for one block; even high-tier tools never harvest neighbors. */
     public void harvest(Player player,Block block){
         if(!player.isOnline()||player.getGameMode()==GameMode.SPECTATOR||player.getGameMode()==GameMode.CREATIVE
