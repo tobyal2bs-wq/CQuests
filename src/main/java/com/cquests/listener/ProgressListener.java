@@ -57,14 +57,13 @@ public final class ProgressListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
         boolean playerPlaced = placed.remove(event.getBlock());
-        if (playerPlaced && plugin.settings().ignorePlacedBlocks) {
-            return;
-        }
         String key = event.getBlock().getType().name();
         if (event.getBlock().getBlockData() instanceof Ageable crop && crop.getAge() >= crop.getMaximumAge()) {
             count(event.getPlayer(), ObjectiveType.HARVEST, key, 1);
         }
-        count(event.getPlayer(), ObjectiveType.MINE, key, 1);
+        if (!playerPlaced || !plugin.settings().ignorePlacedBlocks) {
+            count(event.getPlayer(), ObjectiveType.MINE, key, 1);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

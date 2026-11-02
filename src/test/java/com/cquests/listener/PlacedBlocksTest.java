@@ -9,6 +9,35 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class PlacedBlocksTest {
+    @Test void maturePlayerPlantedCropCountsForHarvestButNotMining() {
+        var f=progressFixture(Material.WHEAT,7);new PlacedBlocks().add(f.block());f.listener().onBreak(f.event());
+        verify(f.manager()).progress(f.player(),com.cquests.model.ObjectiveType.HARVEST,"WHEAT",1);
+        verify(f.manager(),never()).progress(any(),eq(com.cquests.model.ObjectiveType.MINE),anyString(),anyInt());
+    }
+    @Test void immaturePlayerPlantedCropDoesNotCountForHarvest() {
+        var f=progressFixture(Material.WHEAT,0);new PlacedBlocks().add(f.block());f.listener().onBreak(f.event());
+        verifyNoInteractions(f.manager());
+    }
+    @Test void placedOreRemainsBlockedWhileNaturalOreCounts() {
+        var placed=progressFixture(Material.DIAMOND_ORE,-1);new PlacedBlocks().add(placed.block());placed.listener().onBreak(placed.event());
+        verifyNoInteractions(placed.manager());
+        var natural=progressFixture(Material.DIAMOND_ORE,-1);natural.listener().onBreak(natural.event());
+        verify(natural.manager()).progress(natural.player(),com.cquests.model.ObjectiveType.MINE,"DIAMOND_ORE",1);
+    }
+    private record ProgressFixture(ProgressListener listener,com.cquests.quest.QuestManager manager,
+                                   org.bukkit.entity.Player player,Block block,org.bukkit.event.block.BlockBreakEvent event) {}
+    private static ProgressFixture progressFixture(Material material,int age) {
+        var plugin=mock(com.cquests.CQuestsPlugin.class);var manager=mock(com.cquests.quest.QuestManager.class);
+        when(plugin.questManager()).thenReturn(manager);
+        when(plugin.settings()).thenReturn(new com.cquests.Settings(new org.bukkit.configuration.file.YamlConfiguration()));
+        Chunk chunk=mock(Chunk.class);PersistentDataContainer data=container();when(chunk.getPersistentDataContainer()).thenReturn(data);
+        World world=mock(World.class);when(world.getMinHeight()).thenReturn(-64);Block block=block(chunk,world,1,64,1);
+        when(block.getType()).thenReturn(material);
+        if(age>=0){var crop=mock(org.bukkit.block.data.Ageable.class);when(crop.getAge()).thenReturn(age);when(crop.getMaximumAge()).thenReturn(7);when(block.getBlockData()).thenReturn(crop);}
+        var player=mock(org.bukkit.entity.Player.class);var event=mock(org.bukkit.event.block.BlockBreakEvent.class);
+        when(event.getBlock()).thenReturn(block);when(event.getPlayer()).thenReturn(player);
+        return new ProgressFixture(new ProgressListener(plugin),manager,player,block,event);
+    }
     @Test void pistonChainCarriesMarksAcrossChunkBoundaryAndBack() {
         World world=mock(World.class);when(world.getMinHeight()).thenReturn(-64);
         Chunk left=mock(Chunk.class),right=mock(Chunk.class);
