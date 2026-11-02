@@ -104,10 +104,14 @@ bot.once('spawn', async () => {
     check(bot.inventory.items().length === before, 'menu items cannot be taken')
     bot.closeWindow(bot.currentWindow)
     start = chat.length
-    await command('/cq scatterworld luma 10000 10000 world 0 0')
+    await command('/cq scatterworld bob 64 64')
+    await message(/Kept 1 spawn residents out of the scatter/, start)
+    console.log('OK B.O.B stays at spawn during world scattering')
+    start = chat.length
+    await command('/cq scatterworld martha 10000 10000')
     await message(/Scattered 1 NPCs; 0 skipped/, start)
     start = chat.length
-    await command('/cq scatterworld luma 64 64 world 384 384')
+    await command('/cq scatterworld martha 64 64 world 384 384')
     await message(/Scattered 1 NPCs; 0 skipped/, start)
     await command('/quests list')
     await message(/The Wanderers/)
