@@ -30,7 +30,12 @@ async function until (condition, label, ms = 30000) {
 async function message (re, start = 0) { await until(() => chat.slice(start).some(m => re.test(m)), String(re)) }
 async function command (text) { const start = chat.length; bot.chat(text); await sleep(350); return start }
 function named (name) {
-  return Object.values(bot.entities).find(e => e.name === 'villager' && JSON.stringify(e.metadata || []).includes(name))
+  const entities = Object.values(bot.entities)
+  const oldTag = entities.find(e => e.name === 'villager' && JSON.stringify(e.metadata || []).includes(name))
+  if (oldTag) return oldTag
+  const plate = entities.find(e => e.name === 'text_display' && JSON.stringify(e.metadata || []).includes(name.toUpperCase()) && JSON.stringify(e.metadata || []).includes('LEVEL'))
+  return plate && entities.find(e => e.name === 'villager' && Math.abs(e.position.x - plate.position.x) < 0.75 && Math.abs(e.position.z - plate.position.z) < 0.75 && plate.position.y - e.position.y > 1 && plate.position.y - e.position.y < 5)
+
 }
 async function converse (npc) {
   if (bot.currentWindow) bot.closeWindow(bot.currentWindow)
