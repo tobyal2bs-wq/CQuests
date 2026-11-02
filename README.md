@@ -1,3 +1,5 @@
+CQuests **1.3.2** adds `/cq merchant test [id|stop]`: a private temporary walk and trade preview that does not spend items or money or alter saved merchants. See [setup](MERCHANTS-1.3.md) and [validation](AUDIT-1.3.2.md).
+
 CQuests **1.3.1** simplifies merchant setup to spawn, wand trail, then end (including final facing), adds an OP skin command for quest NPCs, and bounds queued GUI callbacks during packet bursts. See [merchant setup](MERCHANTS-1.3.md) and [validation](AUDIT-1.3.1.md).
 
 # CQuests

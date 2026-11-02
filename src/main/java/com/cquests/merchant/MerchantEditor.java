@@ -13,7 +13,7 @@ public final class MerchantEditor implements LockedMenu {
     private final CQuestsPlugin plugin;private final Player player;private final String id;private final Inventory inventory;
     private long revision,money;private int selected,field=20;private ItemStack first,second,reward;
     private MerchantEditor(CQuestsPlugin plugin,Player player,String id){this.plugin=plugin;this.player=player;this.id=id;inventory=Bukkit.createInventory(this,54,"Merchant editor • OP only");load(0);}
-    public static void open(CQuestsPlugin plugin,Player player,String id){if(!MerchantService.canEdit(player)||plugin.merchants().get(id)==null)return;player.openInventory(new MerchantEditor(plugin,player,id).inventory);}
+    public static void open(CQuestsPlugin plugin,Player player,String id){if(!MerchantService.canEdit(player)||plugin.merchants().isDemo(id)||plugin.merchants().get(id)==null)return;player.openInventory(new MerchantEditor(plugin,player,id).inventory);}
     public UUID viewer(){return player.getUniqueId();}public Inventory getInventory(){return inventory;}
     private boolean allowed(){if(MerchantService.canEdit(player))return true;player.closeInventory();return false;}
     private void load(int slot){var d=plugin.merchants().get(id);if(d==null){player.closeInventory();return;}selected=slot;revision=d.revision();var offer=d.offers().get(slot);

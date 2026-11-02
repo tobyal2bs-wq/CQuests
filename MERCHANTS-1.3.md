@@ -56,8 +56,14 @@ Completion reveals only appear through the existing ready-to-turn-in dialogue fl
 
 ## Update and rollback
 
-Stop the server and back up CQuests data/worlds. Replace the old JAR with `CQuests-1.3.1.jar`, keep your existing folder, then start normally. Missing `merchants.yml` and `twists.yml` are added. Merchant edits use queued atomic file replacement, drained on shutdown. Back up these two files alongside your other configurations. Rolling back requires the prior JAR and matching backup; older versions ignore merchant definitions and twist additions.
+Stop the server and back up CQuests data/worlds. Replace the old JAR with `CQuests-1.3.2.jar`, keep your existing folder, then start normally. Missing `merchants.yml` and `twists.yml` are added. Merchant edits use queued atomic file replacement, drained on shutdown. Back up these two files alongside your other configurations. Rolling back requires the prior JAR and matching backup; older versions ignore merchant definitions and twist additions.
 
 ## Player skins for quest NPCs
 
 As an OP, use `/cq npc skin stephan Notch` (replace Notch with a valid Minecraft username). `/cq npc skin stephan default` uses the default player appearance; `/cq npc skin stephan villager` restores the villager. The existing `player-skin` setting in `npcs.yml` is also supported. These are native mannequin NPCs on Minecraft 1.21.9+; older servers fall back to villagers. Client skin loading depends on its access to Minecraft skin services. NPC names, chapter visibility, dialogue and quest IDs remain the same.
+
+## Quick walking and inventory test
+
+Stand on open, flat outdoor ground as an OP and run `/cq merchant test`. A private temporary copy of Rowan starts two blocks ahead, walks six blocks, then opens its trade preview when you right-click. `/cq merchant test brann` (or mira, sable, orin) previews another preset. Confirming a demo offer moves no items or money; demos cannot save edited offers. Production merchant definitions and coordinates are unchanged. The demo is removed after two minutes, on logout/reload, or with `/cq merchant test stop`. Starting another test replaces your previous demo. At most four operator demos run at once.
+
+The five real merchants do not spawn from their unconfigured presets. `/cq merchant end <id>` or `/cq merchant walk <id>` starts a configured merchant, and enabled merchants repeat their walk after restart/reload. Quest NPC spawning is separate from these travelling merchants.

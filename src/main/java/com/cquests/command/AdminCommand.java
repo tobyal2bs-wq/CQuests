@@ -445,7 +445,7 @@ public final class AdminCommand implements TabExecutor {
         String first = args[0].toLowerCase(Locale.ROOT);
         if(first.equals("merchant")){
             if(!(sender instanceof Player p)||!p.isOp())return List.of();
-            if(args.length==2)return QuestsCommand.filter(List.of("list","spawn","point","shop","end","wand","undo","routeclear","walk","despawn","edit"),args[1]);
+            if(args.length==2)return QuestsCommand.filter(List.of("test","list","spawn","point","shop","end","wand","undo","routeclear","walk","despawn","edit"),args[1]);
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
         }
         if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","menu"),args[1]);

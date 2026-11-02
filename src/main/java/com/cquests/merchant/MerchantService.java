@@ -25,6 +25,8 @@ public final class MerchantService {
     private final TrailPreview preview=new TrailPreview();
     private volatile Map<String,MerchantDefinition> definitions=Map.of();
     private final Map<String,Walk> live=new ConcurrentHashMap<>();
+    private static final class Demo {final UUID owner;volatile MerchantDefinition definition;volatile io.papermc.paper.threadedregions.scheduler.ScheduledTask expiry;Demo(UUID owner,MerchantDefinition definition){this.owner=owner;this.definition=definition;}}
+    private final Map<String,Demo> demos=new ConcurrentHashMap<>();
     private record Ticket(World world,int x,int z) {Location location(){return new Location(world,x*16,world.getMinHeight(),z*16);}}
     private final Map<Ticket,Integer> tickets=new HashMap<>();
     private final Map<UUID,Long> tradeCooldown=new ConcurrentHashMap<>();
@@ -44,7 +46,24 @@ public final class MerchantService {
         this.plugin=plugin;file=new File(plugin.getDataFolder(),"merchants.yml");tag=new NamespacedKey(plugin,"travelling_merchant");wand=new NamespacedKey(plugin,"merchant_wand");load();
     }
     public Collection<MerchantDefinition> all(){return definitions.values().stream().sorted(Comparator.comparing(MerchantDefinition::id)).toList();}
-    public MerchantDefinition get(String id){return definitions.get(id);}
+    public MerchantDefinition get(String id){Demo demo=demos.get(id);return demo==null?definitions.get(id):demo.definition;}
+    public boolean isDemo(String id){return demos.containsKey(id);}
+    public boolean demoAccess(Player player,String id){Demo demo=demos.get(id);return demo==null||(canEdit(player)&&demo.owner.equals(player.getUniqueId()));}
+    public synchronized void test(Player player,String preset){
+        if(!running||!canEdit(player))return;
+        if(preset.equalsIgnoreCase("stop")){stopDemo(player);plugin.send(player,"<gray>Merchant demo removed.");return;}
+        MerchantDefinition template=definitions.get(preset);if(template==null){plugin.send(player,"<yellow>Use /cq merchant test [rowan|brann|mira|sable|orin|stop]");return;}
+        stopDemo(player);if(demos.size()>=4){plugin.send(player,"<yellow>Four merchant demos are already running. Try again shortly.");return;}
+        Location start=player.getLocation().clone();var direction=start.getDirection().setY(0);if(direction.lengthSquared()<.01)direction=new org.bukkit.util.Vector(0,0,1);direction.normalize();
+        start.add(direction.clone().multiply(2));Location finish=start.clone().add(direction.clone().multiply(6));finish.setYaw(start.getYaw()+180);
+        String id="demo_"+player.getUniqueId().toString().replace("-","");if(definitions.containsKey(id)){plugin.send(player,"<red>Reserved demo ID conflicts with your configuration.");return;}
+        Demo demo=new Demo(player.getUniqueId(),new MerchantDefinition(id,"<aqua>Demo • "+template.name(),template.profession(),MerchantPoint.at(start),List.of(),MerchantPoint.at(finish),template.offers(),false,revisions.incrementAndGet()));
+        demos.put(id,demo);walk(id,player);
+        demo.expiry=player.getScheduler().runDelayed(plugin,ignored->{synchronized(this){if(demos.get(id)==demo)stopDemo(player);}},null,2400);
+        plugin.send(player,"<gold>Merchant demo: watch the six-block walk, then right-click to preview trades. No items or money move. Stand on flat outdoor ground. Removes after two minutes; /cq merchant test stop removes it sooner.");
+    }
+    private synchronized void stopDemo(Player player){String id="demo_"+player.getUniqueId().toString().replace("-","");Demo demo=demos.remove(id);if(demo!=null){if(demo.expiry!=null)demo.expiry.cancel();stop(id);}}
+
     public String id(Entity entity){return entity.getPersistentDataContainer().get(tag,PersistentDataType.STRING);}
     public boolean current(Entity entity){String id=id(entity);Walk w=id==null?null:live.get(id);return w!=null&&w.entity==entity;}
     public boolean safeItem(ItemStack item){
@@ -84,6 +103,7 @@ public final class MerchantService {
     public String status(String id){Walk walk=live.get(id);return walk==null?"Not spawned":walk.entity==null?"Validating route":walk.blocked?"Route blocked":walk.shop?"Open":"Travelling";}
     public synchronized void reload(){preview.clearAll();stopAll();if(writes.get()==0)load();else plugin.getLogger().info("Merchant saves are pending; retaining the latest in-memory configuration.");start();}
     private synchronized void save(MerchantDefinition d){
+        Demo demo=demos.get(d.id());if(demo!=null){demo.definition=d;return;}
         Map<String,MerchantDefinition> copy=new LinkedHashMap<>(definitions);copy.put(d.id(),d);definitions=Map.copyOf(copy);
         String p="merchants."+d.id()+".";yaml.set(p+"name",d.name());yaml.set(p+"profession",d.profession());yaml.set(p+"enabled",d.enabled());
         yaml.set(p+"spawn",d.spawn()==null?null:d.spawn().encode());yaml.set(p+"shop",d.shop()==null?null:d.shop().encode());yaml.set(p+"route",d.route().stream().map(MerchantPoint::encode).toList());
@@ -98,12 +118,12 @@ public final class MerchantService {
         return new MerchantDefinition(d.id(),d.name(),d.profession(),spawn,route,shop,offers,enabled,revisions.incrementAndGet());
     }
     public synchronized boolean offer(Player player,String id,int slot,TradeOffer offer,long expected){
-        MerchantDefinition d=get(id);if(!canEdit(player)||!running||d==null||d.revision()!=expected||slot<0||slot>=7)return false;
+        MerchantDefinition d=get(id);if(isDemo(id)||!canEdit(player)||!running||d==null||d.revision()!=expected||slot<0||slot>=7)return false;
         if(offer!=null&&(!safeItem(offer.first())||!safeItem(offer.second())||!safeItem(offer.reward())))return false;
         List<TradeOffer> offers=new ArrayList<>(d.offers());offers.set(slot,offer);save(changed(d,d.spawn(),d.route(),d.shop(),offers,d.enabled()));return true;
     }
     public void setPoint(Player player,String id,String kind,Location loc){
-        MerchantDefinition before=get(id);if(!canEdit(player)||before==null||!running||!Set.of("spawn","point","shop","end").contains(kind))return;
+        MerchantDefinition before=get(id);if(isDemo(id)||!canEdit(player)||before==null||!running||!Set.of("spawn","point","shop","end").contains(kind))return;
         if(!editing.add(player.getUniqueId())){plugin.send(player,"<yellow>Wait for the previous point to finish validating.");return;}
         var future=kind.equals("spawn")?SafePlacement.validate(loc):SafePlacement.validateWalkStop(loc);
         future.whenComplete((valid,error)->Sched.entity(player,()->{try{
@@ -119,7 +139,7 @@ public final class MerchantService {
         }finally{editing.remove(player.getUniqueId());}}));
     }
     public synchronized void undo(Player player,String id,boolean clear){
-        MerchantDefinition d=get(id);if(!canEdit(player)||d==null||!running)return;var route=new ArrayList<>(d.route());if(clear)route.clear();else if(!route.isEmpty())route.removeLast();
+        MerchantDefinition d=get(id);if(isDemo(id)||!canEdit(player)||d==null||!running)return;var route=new ArrayList<>(d.route());if(clear)route.clear();else if(!route.isEmpty())route.removeLast();
         preview.clear(player);stop(id);save(changed(d,d.spawn(),route,d.shop(),d.offers(),false));plugin.send(player,"<green>Route now has "+route.size()+" points.");
     }
     public ItemStack wand(String id){var item=new ItemStack(Material.STICK);item.editMeta(m->{m.displayName(Text.mm("<gold>Merchant route: "+Text.escape(id)));m.lore(List.of(Text.mm("<gray>Right click ground: mark trail. Left click: undo.")));m.getPersistentDataContainer().set(wand,PersistentDataType.STRING,id);});return item;}
@@ -146,8 +166,9 @@ public final class MerchantService {
             if(error!=null||!Boolean.TRUE.equals(ok)){synchronized(this){if(live.get(id)==walk)stop(id);}tell(feedback,"<red>The route has an unsafe stop. Re-select it on solid ground.");return;}
             Location at=d.spawn().location();Sched.at(at,()->{
                 if(!running||live.get(id)!=walk)return;
-                Villager entity=at.getWorld().spawn(at,Villager.class,v->{v.getPersistentDataContainer().set(tag,PersistentDataType.STRING,id);v.setPersistent(false);v.setInvulnerable(true);v.setSilent(true);v.setCollidable(false);v.setCanPickupItems(false);v.setAdult();v.setAgeLock(true);var profession=Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft(d.profession().toLowerCase(Locale.ROOT)));if(profession!=null)v.setProfession(profession);v.setRemoveWhenFarAway(false);v.customName(Text.mm("<bold>"+d.name()+"</bold> <gray>• Travelling"));v.setCustomNameVisible(true);});
+                Villager entity=at.getWorld().spawn(at,Villager.class,v->{v.getPersistentDataContainer().set(tag,PersistentDataType.STRING,id);v.setPersistent(false);if(isDemo(id))v.setVisibleByDefault(false);v.setInvulnerable(true);v.setSilent(true);v.setCollidable(false);v.setCanPickupItems(false);v.setAdult();v.setAgeLock(true);var profession=Registry.VILLAGER_PROFESSION.get(NamespacedKey.minecraft(d.profession().toLowerCase(Locale.ROOT)));if(profession!=null)v.setProfession(profession);v.setRemoveWhenFarAway(false);v.customName(Text.mm("<bold>"+d.name()+"</bold> <gray>• Travelling"));v.setCustomNameVisible(true);});
                 walk.entity=entity;walk.position=MerchantPoint.at(at);
+                Demo demo=demos.get(id);if(demo!=null){Player viewer=Bukkit.getPlayer(demo.owner);if(viewer!=null)Sched.entity(viewer,()->{if(demos.get(id)==demo&&canEdit(viewer))viewer.showEntity(plugin,entity);});}
                 entity.getScheduler().runAtFixedRate(plugin,t->{if(!running||live.get(id)!=walk){t.cancel();entity.remove();return;}tick(id,walk);},()->{synchronized(this){if(live.get(id)==walk)stop(id);}},10,10);
                 synchronized(this){MerchantDefinition current=get(id);if(current!=null&&live.get(id)==walk)save(changed(current,current.spawn(),current.route(),current.shop(),current.offers(),true));}
                 tell(feedback,"<green>"+id+" is walking to the store. Trading opens on arrival.");
@@ -189,11 +210,11 @@ public final class MerchantService {
     }
     private void blocked(String id,Walk walk){walk.blocked=true;walk.entity.getPathfinder().stopPathfinding();walk.entity.setAI(false);var d=get(id);walk.entity.customName(Text.mm("<bold>"+(d==null?id:d.name())+"</bold> <red>• Route blocked"));plugin.getLogger().warning("Merchant "+id+" route blocked. Repair the path and use /cq merchant walk "+id+".");}
     public boolean nearShop(Player player,String id){
-        Walk walk=live.get(id);MerchantDefinition d=get(id);if(!running||!player.isOnline()||d==null||d.shop()==null||walk==null||!walk.shop||walk.position==null)return false;
+        Walk walk=live.get(id);MerchantDefinition d=get(id);if(!demoAccess(player,id)||!running||!player.isOnline()||d==null||d.shop()==null||walk==null||!walk.shop||walk.position==null)return false;
         Location loc=walk.position.location(),shop=d.shop().location();return loc!=null&&shop!=null&&loc.getWorld().equals(shop.getWorld())&&loc.distanceSquared(shop)<=4&&loc.getWorld().equals(player.getWorld())&&loc.distanceSquared(player.getLocation())<=64;
     }
     public synchronized boolean trade(Player player,String id,int slot,long revision){
-        MerchantDefinition d=get(id);if(d==null||d.revision()!=revision||!nearShop(player,id)||slot<0||slot>=7){plugin.send(player,"<yellow>This offer changed or the merchant is out of reach. Open the shop again.");return false;}
+        MerchantDefinition d=get(id);if(isDemo(id)||d==null||d.revision()!=revision||!nearShop(player,id)||slot<0||slot>=7){plugin.send(player,"<yellow>This offer changed or the merchant is out of reach. Open the shop again.");return false;}
         TradeOffer offer=d.offers().get(slot);if(offer==null)return false;long now=System.nanoTime();Long due=tradeCooldown.get(player.getUniqueId());if(due!=null&&now<due)return false;
         tradeCooldown.put(player.getUniqueId(),now+200_000_000L);
         ItemStack[] before=player.getInventory().getStorageContents(),after=BarterInventory.exchange(before,offer);
@@ -207,15 +228,16 @@ public final class MerchantService {
         player.playSound(player.getLocation(),Sound.ENTITY_VILLAGER_YES,.7f,1.1f);plugin.send(player,"<green>Trade complete.");return true;
     }
     public void interact(Player player,String id,boolean editingGesture){
-        if(get(id)==null)return;
+        if(get(id)==null||!demoAccess(player,id))return;
+        if(isDemo(id)){if(nearShop(player,id))MerchantMenu.open(plugin,player,id);else plugin.send(player,"<yellow>Watch the demo walk to its endpoint first.");return;}
         if(editingGesture&&canEdit(player)){MerchantEditor.open(plugin,player,id);return;}
         if(!nearShop(player,id)){plugin.send(player,"<yellow>Meet this merchant at the store after they finish walking.");return;}
         MerchantMenu.open(plugin,player,id);
     }
     public synchronized void disable(Player player,String id){MerchantDefinition d=get(id);if(!canEdit(player)||d==null||!running)return;stop(id);save(changed(d,d.spawn(),d.route(),d.shop(),d.offers(),false));plugin.send(player,"<gray>Merchant disabled; route and trades retained.");}
     private void stop(String id){Walk walk=live.remove(id);if(walk!=null){release(walk);if(walk.entity!=null&&plugin.isEnabled())Sched.entity(walk.entity,walk.entity::remove);}}
-    private void stopAll(){for(String id:List.copyOf(live.keySet()))stop(id);}
+    private void stopAll(){for(String id:List.copyOf(live.keySet()))stop(id);for(Demo demo:demos.values())if(demo.expiry!=null)demo.expiry.cancel();demos.clear();}
     private void tell(Player player,String message){if(player!=null)Sched.entity(player,()->plugin.send(player,message));else plugin.getLogger().info(Text.plain(Text.mm(message)));}
-    public void forget(Player player){preview.clear(player);tradeCooldown.remove(player.getUniqueId());editing.remove(player.getUniqueId());}
+    public void forget(Player player){stopDemo(player);preview.clear(player);tradeCooldown.remove(player.getUniqueId());editing.remove(player.getUniqueId());}
     public synchronized void shutdown(){running=false;preview.discard();if(startup!=null)startup.cancel();stopAll();writer.shutdown();try{if(!writer.awaitTermination(10,TimeUnit.SECONDS))plugin.getLogger().warning("Merchant saves did not drain within 10 seconds");}catch(InterruptedException e){Thread.currentThread().interrupt();}}
 }
