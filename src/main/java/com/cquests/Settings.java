@@ -150,7 +150,7 @@ public final class Settings {
         roamMinutes = Math.max(0, c.getLong("spawning.roam-minutes", 0));
         trackerEnabled = c.getBoolean("tracker.enabled", true);
         trackerDefault = c.getBoolean("tracker.default-on", false);
-        directionsDefault = c.getBoolean("directions.default-on", false);
+        directionsDefault = c.getBoolean("directions.default-on", true);
         backupsEnabled = c.getBoolean("backups.enabled", true);
         backupEveryHours = Math.max(1, c.getLong("backups.every-hours", 6));
         backupKeep = Math.max(1, c.getInt("backups.keep", 28));

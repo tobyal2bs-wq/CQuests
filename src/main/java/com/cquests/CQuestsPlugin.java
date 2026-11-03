@@ -149,6 +149,7 @@ public final class CQuestsPlugin extends JavaPlugin {
             for (var player : getServer().getOnlinePlayers()) Sched.entity(player, () -> {
                 tracker.update(player); boolean inFarm=farm.updateAndCheck(player, audit); adventures.update(player);
                 if (!inFarm && !speech.busy(player)) directions.update(player);
+                if (audit && !directions.enabled(player)) directions.updateCompass(player);
             });
         }, 20, 10);
     }

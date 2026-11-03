@@ -153,11 +153,13 @@ public final class FarmService {
         long now=System.currentTimeMillis();Long last=hints.get(player.getUniqueId());
         if(last!=null&&now-last<3000)return;hints.put(player.getUniqueId(),now);
         if(player.getGameMode()==GameMode.CREATIVE){player.sendActionBar(Text.mm("<yellow>Switch to survival mode to harvest with the farm hoe."));return;}
-        if(!hasTool(player)&&inFarm(player))equip(player);
+        if(!hasTool(player)&&inFarm(player))equip(player,false);
         player.sendActionBar(Text.mm(hasTool(player)?"<yellow>Hold your farm hoe and left-click mature wheat.":"<yellow>Stand inside the field to get your farm hoe."));
     }
     private final Map<UUID,Long> hints=new java.util.concurrent.ConcurrentHashMap<>();
-    public boolean equip(Player player){
+    public boolean equip(Player player){return equip(player,true);}
+    /** @param select also switch the hotbar to the hoe (on entering the field, not on a hint) */
+    public boolean equip(Player player,boolean select){
         var data=plugin.questManager().data(player);
         // The first tool is free: hand it out on the way in instead of making players find the anvil first.
         Tier first=tiers.get(1);
@@ -171,7 +173,7 @@ public final class FarmService {
         for(int i=0;i<9;i++){ItemStack stack=player.getInventory().getItem(i);if(stack==null||stack.getType().isAir()){slot=i;break;}}
         if(slot<0){plugin.send(player,"<yellow>Make room in your hotbar, then use the field locker.");return false;}
         player.getInventory().setItem(slot,tool(player,tier));
-        if(slot<9)player.getInventory().setHeldItemSlot(slot);
+        if(select&&slot<9)player.getInventory().setHeldItemSlot(slot);
         return true;
     }
     public boolean purchase(Player player,int id){

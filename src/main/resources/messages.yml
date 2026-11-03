@@ -36,6 +36,9 @@ quest:
   abandoned: "<gray>Abandoned <white><quest></white>."
   no-offer: "<red>There is no quest offer waiting. Click a villager first."
   # After a daily quest. <streak> days in a row, <bonus> extra money (daily.streak-* in config.yml).
+  # Starting a chapter costs money (chapters.cost in config.yml). <chapter>, <cost>, <name>.
+  chapter-cost-missing: "<red>Chapter <chapter> costs <gold><cost></gold> to start. Come back when you have it."
+  chapter-cost-paid: "<gold>You paid <cost> to begin Chapter <chapter>: <name>."
   daily-streak: "<gold>🔥 Daily streak: <white><streak> day(s)</white>. <gray>Streak bonus: <green>+<bonus></green>. Come back tomorrow to keep it going!"
 
 # Shown once to brand new players, without the prefix. "" turns it off.

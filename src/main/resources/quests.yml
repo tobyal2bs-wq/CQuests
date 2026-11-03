@@ -2340,19 +2340,223 @@ quests:
       - "Twenty of them. Then their beast will come looking for you."
     complete:
       - "The road is quieter. Too quiet. Their beast is angry now."
-      - "Go and see {npc:garrick} next. They could use you."
+      - "Go and see {npc:hedda} next. They could use you."
     rewards:
       money: 3300
       items:
         - "GOLDEN_APPLE 3"
-  story_garrick:
-    name: "The Iron Tusk"
+  story_hedda:
+    name: "Hunter's Stew"
     level: 109
     order: 110
+    giver: "hedda"
+    chapter: 6
+    requires: [story_pemberly]
+    objectives:
+      - "DELIVER COOKED_BEEF|COOKED_MUTTON|COOKED_PORKCHOP 24 cooked meat"
+    description: "Bring cooked meat to {npc:hedda} for the hunters' stew."
+    offer:
+      - "Bring me cooked meat for the stew pot."
+      - "Twenty four pieces. The hunters eat like bears."
+    complete:
+      - "Smell that? That's courage, simmering."
+      - "Go and see {npc:torvald} next. They could use you."
+    rewards:
+      money: 3350
+      items:
+        - "EXPERIENCE_BOTTLE 48"
+  story_torvald:
+    name: "Shield Wall"
+    level: 110
+    order: 111
+    giver: "torvald"
+    chapter: 6
+    requires: [story_hedda]
+    objectives:
+      - "CRAFT SHIELD 6 shields"
+    description: "Craft shields for {npc:torvald}'s hunting party."
+    offer:
+      - "Craft six shields for the hunting party."
+      - "Planks and one iron ingot each."
+    complete:
+      - "Six shields. Six hunters who'll come home."
+      - "Go and see {npc:fern_tracker} next. They could use you."
+    rewards:
+      money: 3400
+      items:
+        - "EMERALD_BLOCK 2"
+  story_fern_tracker:
+    name: "Raider Trail"
+    level: 111
+    order: 112
+    giver: "fern_tracker"
+    chapter: 6
+    requires: [story_torvald]
+    objectives:
+      - "KILL PILLAGER|VINDICATOR 12 raiders"
+    description: "Stop twelve of Gorehorn's raiders for {npc:fern_tracker}."
+    offer:
+      - "Follow the trail and stop the raiders."
+      - "Twelve of them. They work for the beast."
+    complete:
+      - "The trail goes cold. Good. That means they're gone."
+      - "Go and see {npc:magda} next. They could use you."
+    rewards:
+      money: 3450
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_magda:
+    name: "Tripwire Line"
+    level: 112
+    order: 113
+    giver: "magda"
+    chapter: 6
+    requires: [story_fern_tracker]
+    objectives:
+      - "CRAFT TRIPWIRE_HOOK 8 tripwire hooks"
+      - "DELIVER STRING 16 string"
+    description: "Help {npc:magda} build a tripwire line at the forest edge."
+    offer:
+      - "Craft tripwire hooks and bring string."
+      - "We'll string the forest edge."
+    complete:
+      - "Now we'll hear them coming. Ding!"
+      - "Go and see {npc:ironjaw_hunter} next. They could use you."
+    rewards:
+      money: 3500
+      items:
+        - "DIAMOND 4"
+  story_ironjaw_hunter:
+    name: "Sergeant Ironjaw"
+    level: 113
+    order: 114
+    giver: "ironjaw_hunter"
+    chapter: 6
+    big: true
+    requires: [story_magda]
+    objectives:
+      - "KILL VINDICATOR 1 Sergeant Ironjaw"
+    description: "Defeat Sergeant Ironjaw, Gorehorn's right hand, in a fight called by {npc:ironjaw_hunter}."
+    offer:
+      - "Click me when you're ready and I'll lure him out."
+      - "He fights only you. Nobody else can be hurt, and he breaks nothing."
+    complete:
+      - "Ironjaw's axe, as a trophy. The raiders will think twice."
+      - "Go and see {npc:elsie_herd} next. They could use you."
+    rewards:
+      money: 6000
+      items:
+        - "DIAMOND 4"
+        - "IRON_BLOCK 4"
+  story_elsie_herd:
+    name: "Gather the Flock"
+    level: 114
+    order: 115
+    giver: "elsie_herd"
+    chapter: 6
+    requires: [story_ironjaw_hunter]
+    objectives:
+      - "BREED SHEEP 6 sheep"
+    description: "Breed sheep to rebuild {npc:elsie_herd}'s scattered flock."
+    offer:
+      - "Help me rebuild the flock."
+      - "Six new lambs should do it."
+    complete:
+      - "Baa! That's sheep for thank you."
+      - "Go and see {npc:osric_archive} next. They could use you."
+    rewards:
+      money: 3650
+      items:
+        - "GOLDEN_APPLE 3"
+  story_osric_archive:
+    name: "Burnt Pages"
+    level: 115
+    order: 116
+    giver: "osric_archive"
+    chapter: 6
+    requires: [story_elsie_herd]
+    objectives:
+      - "CRAFT BOOK 16 books"
+    description: "Craft books so {npc:osric_archive} can save Aldmere's records."
+    offer:
+      - "Craft sixteen books."
+      - "I'll copy what's left before it crumbles."
+    complete:
+      - "History, saved. Twice, this time."
+      - "Go and see {npc:tilly_orchard} next. They could use you."
+    rewards:
+      money: 3700
+      items:
+        - "EXPERIENCE_BOTTLE 48"
+  story_tilly_orchard:
+    name: "Replant the Orchard"
+    level: 116
+    order: 117
+    giver: "tilly_orchard"
+    chapter: 6
+    requires: [story_osric_archive]
+    objectives:
+      - "PLACE OAK_SAPLING|BIRCH_SAPLING|SPRUCE_SAPLING|CHERRY_SAPLING 24 saplings"
+    description: "Replant the orchard for {npc:tilly_orchard}."
+    offer:
+      - "Plant saplings around the orchard."
+      - "Twenty four. Wherever there's grass."
+    complete:
+      - "In ten years this'll be a forest. In ten minutes, a nice start."
+      - "Go and see {npc:gunnar} next. They could use you."
+    rewards:
+      money: 3750
+      items:
+        - "EMERALD_BLOCK 2"
+  story_gunnar:
+    name: "Ridge Wall"
+    level: 117
+    order: 118
+    giver: "gunnar"
+    chapter: 6
+    requires: [story_tilly_orchard]
+    objectives:
+      - "PLACE COBBLESTONE|STONE_BRICKS|DEEPSLATE_BRICKS 128 wall blocks"
+    description: "Build a wall on the ridge for {npc:gunnar}."
+    offer:
+      - "Build me a wall on the ridge."
+      - "Two stacks of good stone."
+    complete:
+      - "That'll hold. Probably. Let's not test it."
+      - "Go and see {npc:wynne} next. They could use you."
+    rewards:
+      money: 3800
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_wynne:
+    name: "Healing Draughts"
+    level: 118
+    order: 119
+    giver: "wynne"
+    chapter: 6
+    requires: [story_gunnar]
+    objectives:
+      - "DELIVER GLISTERING_MELON_SLICE 4 glistering melon"
+      - "DELIVER GOLDEN_CARROT 8 golden carrots"
+    description: "Bring healing ingredients to {npc:wynne} before the hunt."
+    offer:
+      - "Bring me glistering melon and golden carrots."
+      - "I'll brew something that keeps you standing."
+    complete:
+      - "Drink this when it hurts. Drink two when it hurts a lot."
+      - "Go and see {npc:garrick} next. They could use you."
+    rewards:
+      money: 3900
+      items:
+        - "DIAMOND 4"
+  story_garrick:
+    name: "The Iron Tusk"
+    level: 119
+    order: 120
     giver: "garrick"
     chapter: 6
     big: true
-    requires: [story_pemberly]
+    requires: [story_wynne]
     objectives:
       - "KILL RAVAGER 1 Gorehorn the Iron Tusk"
     description: "Face Gorehorn, the Iron Tusk, in a fight called by {npc:garrick}."
@@ -2369,8 +2573,8 @@ quests:
         - "DIAMOND 8"
   story_marisol:
     name: "Silent Harbour"
-    level: 110
-    order: 111
+    level: 120
+    order: 121
     giver: "marisol"
     chapter: 7
     requires: [story_garrick]
@@ -2389,8 +2593,8 @@ quests:
         - "NETHERITE_SCRAP 1"
   story_hugh:
     name: "Ferry Across"
-    level: 111
-    order: 112
+    level: 121
+    order: 122
     giver: "hugh"
     chapter: 7
     requires: [story_marisol]
@@ -2409,8 +2613,8 @@ quests:
         - "GOLDEN_APPLE 3"
   story_coral:
     name: "Reef Mending"
-    level: 112
-    order: 113
+    level: 122
+    order: 123
     giver: "coral"
     chapter: 7
     requires: [story_hugh]
@@ -2429,8 +2633,8 @@ quests:
         - "EXPERIENCE_BOTTLE 48"
   story_kelpie:
     name: "Kelp Crisis"
-    level: 113
-    order: 114
+    level: 123
+    order: 124
     giver: "kelpie"
     chapter: 7
     requires: [story_coral]
@@ -2449,8 +2653,8 @@ quests:
         - "EMERALD_BLOCK 2"
   story_tobias_net:
     name: "Mending Nets"
-    level: 114
-    order: 115
+    level: 124
+    order: 125
     giver: "tobias_net"
     chapter: 7
     requires: [story_kelpie]
@@ -2469,8 +2673,8 @@ quests:
         - "DIAMOND_BLOCK 1"
   story_dex_diver:
     name: "Down Below"
-    level: 115
-    order: 116
+    level: 125
+    order: 126
     giver: "dex_diver"
     chapter: 7
     requires: [story_tobias_net]
@@ -2489,8 +2693,8 @@ quests:
         - "DIAMOND 4"
   story_seraphine:
     name: "Turtle Watch"
-    level: 116
-    order: 117
+    level: 126
+    order: 127
     giver: "seraphine"
     chapter: 7
     requires: [story_dex_diver]
@@ -2509,8 +2713,8 @@ quests:
         - "NETHERITE_SCRAP 1"
   story_conch:
     name: "Ship Shape"
-    level: 117
-    order: 118
+    level: 127
+    order: 128
     giver: "conch"
     chapter: 7
     requires: [story_seraphine]
@@ -2530,8 +2734,8 @@ quests:
         - "GOLDEN_APPLE 3"
   story_nerissa:
     name: "Water Breathing"
-    level: 118
-    order: 119
+    level: 128
+    order: 129
     giver: "nerissa"
     chapter: 7
     requires: [story_conch]
@@ -2543,19 +2747,222 @@ quests:
       - "Then the sea will let you breathe."
     complete:
       - "The sea will let you breathe now. Whether it lets you leave is up to you."
-      - "Go and see {npc:brine} next. They could use you."
+      - "Go and see {npc:barnaby} next. They could use you."
     rewards:
       money: 3700
       items:
         - "EXPERIENCE_BOTTLE 48"
+  story_barnaby:
+    name: "New Nets"
+    level: 129
+    order: 130
+    giver: "barnaby"
+    chapter: 7
+    requires: [story_nerissa]
+    objectives:
+      - "DELIVER STRING 32 string"
+    description: "Bring string to {npc:barnaby} to mend the harbour nets."
+    offer:
+      - "Bring me string for new nets."
+      - "Thirty two. The big nets."
+    complete:
+      - "Nets mended. Fish, beware."
+      - "Go and see {npc:isla} next. They could use you."
+    rewards:
+      money: 3750
+      items:
+        - "EMERALD_BLOCK 2"
+  story_isla:
+    name: "Coral Charts"
+    level: 130
+    order: 131
+    giver: "isla"
+    chapter: 7
+    requires: [story_barnaby]
+    objectives:
+      - "MINE TUBE_CORAL_BLOCK|BRAIN_CORAL_BLOCK|BUBBLE_CORAL_BLOCK|FIRE_CORAL_BLOCK|HORN_CORAL_BLOCK 12 coral blocks"
+    description: "Gather coral from the reef so {npc:isla} can chart it."
+    offer:
+      - "Bring me coral samples from the reef."
+      - "Twelve blocks. Use a silk touch tool if you have one."
+    complete:
+      - "Now we know every hiding spot."
+      - "Go and see {npc:gill} next. They could use you."
+    rewards:
+      money: 3800
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_gill:
+    name: "Catch of the Day"
+    level: 131
+    order: 132
+    giver: "gill"
+    chapter: 7
+    requires: [story_isla]
+    objectives:
+      - "FISH COD|SALMON 24 fish"
+    description: "Catch fish for {npc:gill}'s market stall."
+    offer:
+      - "Catch fish for the market."
+      - "Cod or salmon. Twenty four."
+    complete:
+      - "Fresh fish! The whole city smells like the sea again."
+      - "Go and see {npc:lighthouse_lu} next. They could use you."
+    rewards:
+      money: 3850
+      items:
+        - "DIAMOND 4"
+  story_lighthouse_lu:
+    name: "Light the Tower"
+    level: 132
+    order: 133
+    giver: "lighthouse_lu"
+    chapter: 7
+    requires: [story_gill]
+    objectives:
+      - "CRAFT SEA_LANTERN 8 sea lanterns"
+    description: "Craft sea lanterns to relight {npc:lighthouse_lu}'s lighthouse."
+    offer:
+      - "Craft sea lanterns for the lighthouse."
+      - "Prismarine shards and crystals."
+    complete:
+      - "The light sweeps the bay again. Ships will find their way."
+      - "Go and see {npc:frostpaw_keeper} next. They could use you."
+    rewards:
+      money: 3900
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_frostpaw_keeper:
+    name: "Old Frostpaw"
+    level: 133
+    order: 134
+    giver: "frostpaw_keeper"
+    chapter: 7
+    big: true
+    requires: [story_lighthouse_lu]
+    objectives:
+      - "KILL POLAR_BEAR 1 Old Frostpaw"
+    description: "Defeat Old Frostpaw, guardian of the northern ice, in a fight called by {npc:frostpaw_keeper}."
+    offer:
+      - "Click me when you're ready and I'll wake it."
+      - "It fights only you. Nobody else can be hurt, and it breaks nothing."
+    complete:
+      - "The ice is open. The northern route is ours."
+      - "Go and see {npc:pearl_tide} next. They could use you."
+    rewards:
+      money: 6000
+      items:
+        - "DIAMOND 4"
+        - "PRISMARINE_CRYSTALS 16"
+  story_pearl_tide:
+    name: "Shell Song"
+    level: 134
+    order: 135
+    giver: "pearl_tide"
+    chapter: 7
+    requires: [story_frostpaw_keeper]
+    objectives:
+      - "DELIVER NAUTILUS_SHELL 3 nautilus shells"
+    description: "Bring nautilus shells to {npc:pearl_tide}."
+    offer:
+      - "Bring me nautilus shells."
+      - "The drowned sometimes carry them."
+    complete:
+      - "Listen. The sea is singing again."
+      - "Go and see {npc:skipper} next. They could use you."
+    rewards:
+      money: 4050
+      items:
+        - "EXPERIENCE_BOTTLE 48"
+  story_skipper:
+    name: "New Boats"
+    level: 135
+    order: 136
+    giver: "skipper"
+    chapter: 7
+    requires: [story_pearl_tide]
+    objectives:
+      - "CRAFT OAK_BOAT|SPRUCE_BOAT|BIRCH_BOAT|JUNGLE_BOAT|ACACIA_BOAT|DARK_OAK_BOAT|MANGROVE_BOAT|CHERRY_BOAT 4 boats"
+    description: "Craft boats to restart {npc:skipper}'s ferry."
+    offer:
+      - "Craft four boats for the ferry."
+      - "Any wood. Boats aren't picky."
+    complete:
+      - "All aboard! Mind the gap. And the drowned."
+      - "Go and see {npc:mira_kelp} next. They could use you."
+    rewards:
+      money: 4100
+      items:
+        - "EMERALD_BLOCK 2"
+  story_mira_kelp:
+    name: "Kelp Harvest"
+    level: 136
+    order: 137
+    giver: "mira_kelp"
+    chapter: 7
+    requires: [story_skipper]
+    objectives:
+      - "CRAFT DRIED_KELP_BLOCK 16 dried kelp blocks"
+    description: "Craft dried kelp blocks for {npc:mira_kelp}'s furnaces."
+    offer:
+      - "Craft dried kelp blocks."
+      - "Smelt kelp, then nine to a block."
+    complete:
+      - "Fuel for a whole winter. Smells weird, burns great."
+      - "Go and see {npc:anchor} next. They could use you."
+    rewards:
+      money: 4150
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_anchor:
+    name: "Beach Patrol"
+    level: 137
+    order: 138
+    giver: "anchor"
+    chapter: 7
+    requires: [story_mira_kelp]
+    objectives:
+      - "KILL DROWNED 20 drowned"
+    description: "Hold the beach against twenty drowned with {npc:anchor}."
+    offer:
+      - "Hold the beach with me."
+      - "Twenty drowned. Then the harbour can sleep."
+    complete:
+      - "The beach is quiet. Thanks. I'll keep standing here."
+      - "Go and see {npc:wade_diver} next. They could use you."
+    rewards:
+      money: 4200
+      items:
+        - "DIAMOND 4"
+  story_wade_diver:
+    name: "Deep Breath"
+    level: 138
+    order: 139
+    giver: "wade_diver"
+    chapter: 7
+    requires: [story_anchor]
+    objectives:
+      - "CRAFT TURTLE_HELMET 1 turtle shell"
+      - "DELIVER PUFFERFISH 4 pufferfish"
+    description: "Help {npc:wade_diver} prepare a dive to Queen Brinewyn's lair."
+    offer:
+      - "Craft a turtle shell and bring me pufferfish."
+      - "I'll brew water breathing from them."
+    complete:
+      - "Shell on, potion down, and don't look the queen in the eye."
+      - "Go and see {npc:brine} next. They could use you."
+    rewards:
+      money: 4300
+      items:
+        - "NETHERITE_SCRAP 1"
   story_brine:
     name: "Queen of the Drowned"
-    level: 119
-    order: 120
+    level: 139
+    order: 140
     giver: "brine"
     chapter: 7
     big: true
-    requires: [story_nerissa]
+    requires: [story_wade_diver]
     objectives:
       - "KILL DROWNED 1 Queen Brinewyn"
     description: "Face Queen Brinewyn, summoned by {npc:brine}."
@@ -2572,8 +2979,8 @@ quests:
         - "TRIDENT 1"
   story_cinder:
     name: "Heat Shield"
-    level: 120
-    order: 121
+    level: 140
+    order: 141
     giver: "cinder"
     chapter: 8
     requires: [story_brine]
@@ -2592,8 +2999,8 @@ quests:
         - "GOLDEN_APPLE 3"
   story_magmus:
     name: "Basalt Walls"
-    level: 121
-    order: 122
+    level: 141
+    order: 142
     giver: "magmus"
     chapter: 8
     requires: [story_cinder]
@@ -2612,8 +3019,8 @@ quests:
         - "EXPERIENCE_BOTTLE 48"
   story_ash:
     name: "Soul Whispers"
-    level: 122
-    order: 123
+    level: 142
+    order: 143
     giver: "ash"
     chapter: 8
     requires: [story_magmus]
@@ -2632,8 +3039,8 @@ quests:
         - "EMERALD_BLOCK 2"
   story_brimstone:
     name: "Hoglin Herd"
-    level: 123
-    order: 124
+    level: 143
+    order: 144
     giver: "brimstone"
     chapter: 8
     requires: [story_ash]
@@ -2652,8 +3059,8 @@ quests:
         - "DIAMOND_BLOCK 1"
   story_quartzine:
     name: "Quartz Runes"
-    level: 124
-    order: 125
+    level: 144
+    order: 145
     giver: "quartzine"
     chapter: 8
     requires: [story_brimstone]
@@ -2672,8 +3079,8 @@ quests:
         - "DIAMOND 4"
   story_goldtooth:
     name: "Golden Bribe"
-    level: 125
-    order: 126
+    level: 145
+    order: 146
     giver: "goldtooth"
     chapter: 8
     requires: [story_quartzine]
@@ -2692,8 +3099,8 @@ quests:
         - "NETHERITE_SCRAP 1"
   story_warpwick:
     name: "Warped Shortcut"
-    level: 126
-    order: 127
+    level: 146
+    order: 147
     giver: "warpwick"
     chapter: 8
     requires: [story_goldtooth]
@@ -2712,8 +3119,8 @@ quests:
         - "GOLDEN_APPLE 3"
   story_fennel:
     name: "Fireproof"
-    level: 127
-    order: 128
+    level: 147
+    order: 148
     giver: "fennel"
     chapter: 8
     requires: [story_warpwick]
@@ -2733,8 +3140,8 @@ quests:
         - "EXPERIENCE_BOTTLE 48"
   story_ignatius:
     name: "Court Guards"
-    level: 128
-    order: 129
+    level: 148
+    order: 149
     giver: "ignatius"
     chapter: 8
     requires: [story_fennel]
@@ -2746,19 +3153,221 @@ quests:
       - "Twenty five blazes."
     complete:
       - "She's seen you now. She's coming. Go to the herald."
-      - "Go and see {npc:emberly} next. They could use you."
+      - "Go and see {npc:soot} next. They could use you."
     rewards:
       money: 4100
       items:
         - "EMERALD_BLOCK 2"
+  story_soot:
+    name: "Charcoal Run"
+    level: 149
+    order: 150
+    giver: "soot"
+    chapter: 8
+    requires: [story_ignatius]
+    objectives:
+      - "SMELT CHARCOAL 32 charcoal"
+    description: "Smelt charcoal for {npc:soot}."
+    offer:
+      - "Smelt charcoal for the court's forges."
+      - "Logs in, charcoal out."
+    complete:
+      - "Black as night and twice as useful."
+      - "Go and see {npc:vesta} next. They could use you."
+    rewards:
+      money: 4150
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_vesta:
+    name: "Eternal Flame"
+    level: 150
+    order: 151
+    giver: "vesta"
+    chapter: 8
+    requires: [story_soot]
+    objectives:
+      - "DELIVER BLAZE_POWDER 12 blaze powder"
+    description: "Bring blaze powder to {npc:vesta} for the eternal flame."
+    offer:
+      - "Bring blaze powder to feed the flame."
+      - "Twelve should calm it."
+    complete:
+      - "Burning bright again. Pyra will feel that."
+      - "Go and see {npc:crag} next. They could use you."
+    rewards:
+      money: 4200
+      items:
+        - "DIAMOND 4"
+  story_crag:
+    name: "Basalt Bridge"
+    level: 151
+    order: 152
+    giver: "crag"
+    chapter: 8
+    requires: [story_vesta]
+    objectives:
+      - "MINE BASALT|BLACKSTONE 96 basalt or blackstone"
+    description: "Mine basalt for {npc:crag}'s bridge over the lava sea."
+    offer:
+      - "Mine basalt or blackstone for the bridge."
+      - "Ninety six blocks. Don't fall in."
+    complete:
+      - "A bridge across fire. Not bad for a Tuesday."
+      - "Go and see {npc:fizz} next. They could use you."
+    rewards:
+      money: 4250
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_fizz:
+    name: "Cool Head"
+    level: 152
+    order: 153
+    giver: "fizz"
+    chapter: 8
+    requires: [story_crag]
+    objectives:
+      - "DELIVER MAGMA_CREAM 8 magma cream"
+    description: "Bring magma cream to {npc:fizz} for fire resistance potions."
+    offer:
+      - "Bring magma cream."
+      - "Eight. For fire resistance potions."
+    complete:
+      - "Drink up. You're fireproof for a while. Don't test it in lava."
+      - "Go and see {npc:enforcer_hunter} next. They could use you."
+    rewards:
+      money: 4300
+      items:
+        - "GOLDEN_APPLE 3"
+  story_enforcer_hunter:
+    name: "Goldtooth's Enforcer"
+    level: 153
+    order: 154
+    giver: "enforcer_hunter"
+    chapter: 8
+    big: true
+    requires: [story_fizz]
+    objectives:
+      - "KILL PIGLIN_BRUTE 1 Goldtooth's Enforcer"
+    description: "Defeat Goldtooth's Enforcer in a fight called by {npc:enforcer_hunter}."
+    offer:
+      - "Click me when you're ready and I'll bang on the vault door."
+      - "He fights only you. Nobody else can be hurt, and he breaks nothing."
+    complete:
+      - "The vault is open. The bounty is yours."
+      - "Go and see {npc:strider_sal} next. They could use you."
+    rewards:
+      money: 6000
+      items:
+        - "DIAMOND 5"
+        - "GOLD_BLOCK 4"
+  story_strider_sal:
+    name: "Lava Ride"
+    level: 154
+    order: 155
+    giver: "strider_sal"
+    chapter: 8
+    requires: [story_enforcer_hunter]
+    objectives:
+      - "BREED STRIDER 2 striders"
+    description: "Breed striders for {npc:strider_sal}'s lava ferry."
+    offer:
+      - "Breed two striders."
+      - "Warped fungus. They love it."
+    complete:
+      - "Saddle up! Mind the drip."
+      - "Go and see {npc:goldie} next. They could use you."
+    rewards:
+      money: 4450
+      items:
+        - "EMERALD_BLOCK 2"
+  story_goldie:
+    name: "Gold Rush"
+    level: 155
+    order: 156
+    giver: "goldie"
+    chapter: 8
+    requires: [story_strider_sal]
+    objectives:
+      - "MINE NETHER_GOLD_ORE|GILDED_BLACKSTONE 32 gold ore"
+    description: "Mine nether gold for {npc:goldie}'s piglin trades."
+    offer:
+      - "Mine nether gold."
+      - "Thirty two blocks. Keep your helmet golden."
+    complete:
+      - "Shiny! The piglins will love us."
+      - "Go and see {npc:ghast_watch} next. They could use you."
+    rewards:
+      money: 4500
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_ghast_watch:
+    name: "Clear Skies"
+    level: 156
+    order: 157
+    giver: "ghast_watch"
+    chapter: 8
+    requires: [story_goldie]
+    objectives:
+      - "KILL GHAST 3 ghasts"
+    description: "Shoot down ghasts threatening the Ember Court for {npc:ghast_watch}."
+    offer:
+      - "Shoot down three ghasts."
+      - "Hit their fireballs back. Very satisfying."
+    complete:
+      - "Quiet skies. Well, quieter."
+      - "Go and see {npc:obsidia} next. They could use you."
+    rewards:
+      money: 4550
+      items:
+        - "DIAMOND 4"
+  story_obsidia:
+    name: "Portal Repair"
+    level: 157
+    order: 158
+    giver: "obsidia"
+    chapter: 8
+    requires: [story_ghast_watch]
+    objectives:
+      - "MINE OBSIDIAN 14 obsidian"
+    description: "Mine obsidian for {npc:obsidia} to repair a portal home."
+    offer:
+      - "Mine fourteen obsidian."
+      - "Bring a diamond pickaxe and patience."
+    complete:
+      - "The portal hums. Home is one step away."
+      - "Go and see {npc:quill_scribe} next. They could use you."
+    rewards:
+      money: 4600
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_quill_scribe:
+    name: "Fireproof Pages"
+    level: 158
+    order: 159
+    giver: "quill_scribe"
+    chapter: 8
+    requires: [story_obsidia]
+    objectives:
+      - "CRAFT BOOKSHELF 6 bookshelves"
+    description: "Craft bookshelves for {npc:quill_scribe}'s court library."
+    offer:
+      - "Craft bookshelves for the court library."
+      - "Six of them."
+    complete:
+      - "The laws are safe. And so is the gossip."
+      - "Go and see {npc:emberly} next. They could use you."
+    rewards:
+      money: 4700
+      items:
+        - "GOLDEN_APPLE 3"
   story_emberly:
     name: "The Ember Matriarch"
-    level: 129
-    order: 130
+    level: 159
+    order: 160
     giver: "emberly"
     chapter: 8
     big: true
-    requires: [story_ignatius]
+    requires: [story_quill_scribe]
     objectives:
       - "KILL BLAZE 1 Pyra the Ember Matriarch"
     description: "Face Pyra, the Ember Matriarch, called by {npc:emberly}."
@@ -2775,8 +3384,8 @@ quests:
         - "BLAZE_ROD 16"
   story_hollis:
     name: "Night Shift"
-    level: 130
-    order: 131
+    level: 160
+    order: 161
     giver: "hollis"
     chapter: 9
     requires: [story_emberly]
@@ -2795,8 +3404,8 @@ quests:
         - "EXPERIENCE_BOTTLE 48"
   story_bonnie:
     name: "Bone Harvest"
-    level: 131
-    order: 132
+    level: 161
+    order: 162
     giver: "bonnie"
     chapter: 9
     requires: [story_hollis]
@@ -2815,8 +3424,8 @@ quests:
         - "EMERALD_BLOCK 2"
   story_requiem:
     name: "Sheet Music"
-    level: 132
-    order: 133
+    level: 162
+    order: 163
     giver: "requiem"
     chapter: 9
     requires: [story_bonnie]
@@ -2836,8 +3445,8 @@ quests:
         - "DIAMOND_BLOCK 1"
   story_tallow:
     name: "Candle Vigil"
-    level: 133
-    order: 134
+    level: 163
+    order: 164
     giver: "tallow"
     chapter: 9
     requires: [story_requiem]
@@ -2856,8 +3465,8 @@ quests:
         - "DIAMOND 4"
   story_grimsby:
     name: "Crypt Door"
-    level: 134
-    order: 135
+    level: 164
+    order: 165
     giver: "grimsby"
     chapter: 9
     requires: [story_tallow]
@@ -2876,8 +3485,8 @@ quests:
         - "NETHERITE_SCRAP 1"
   story_wren_bone:
     name: "Pack Leader"
-    level: 135
-    order: 136
+    level: 165
+    order: 166
     giver: "wren_bone"
     chapter: 9
     requires: [story_grimsby]
@@ -2896,8 +3505,8 @@ quests:
         - "GOLDEN_APPLE 3"
   story_morrow:
     name: "Holy Edge"
-    level: 136
-    order: 137
+    level: 166
+    order: 167
     giver: "morrow"
     chapter: 9
     requires: [story_wren_bone]
@@ -2916,8 +3525,8 @@ quests:
         - "EXPERIENCE_BOTTLE 48"
   story_vesper:
     name: "The Choir's Guard"
-    level: 137
-    order: 138
+    level: 167
+    order: 168
     giver: "vesper"
     chapter: 9
     requires: [story_morrow]
@@ -2936,8 +3545,8 @@ quests:
         - "EMERALD_BLOCK 2"
   story_sexton:
     name: "Funeral Bell"
-    level: 138
-    order: 139
+    level: 168
+    order: 169
     giver: "sexton"
     chapter: 9
     requires: [story_vesper]
@@ -2950,19 +3559,221 @@ quests:
       - "Two gold blocks, four iron blocks."
     complete:
       - "The bell is cast. When you're ready, go to the herald."
-      - "Go and see {npc:mortimer} next. They could use you."
+      - "Go and see {npc:dirge} next. They could use you."
     rewards:
       money: 4500
       items:
         - "DIAMOND_BLOCK 1"
+  story_dirge:
+    name: "Louder Choir"
+    level: 169
+    order: 170
+    giver: "dirge"
+    chapter: 9
+    requires: [story_sexton]
+    objectives:
+      - "CRAFT NOTE_BLOCK 12 note blocks"
+    description: "Craft note blocks so {npc:dirge}'s choir can drown out the Bone Choir."
+    offer:
+      - "Craft twelve note blocks."
+      - "We'll drown them out."
+    complete:
+      - "La-la-LAAA! Take that, skeletons."
+      - "Go and see {npc:marrow} next. They could use you."
+    rewards:
+      money: 4550
+      items:
+        - "DIAMOND 4"
+  story_marrow:
+    name: "Graveyard Flowers"
+    level: 170
+    order: 171
+    giver: "marrow"
+    chapter: 9
+    requires: [story_dirge]
+    objectives:
+      - "DELIVER BONE 48 bones"
+    description: "Bring bones to {npc:marrow} for the graveyard flowers."
+    offer:
+      - "Bring me bones."
+      - "Forty eight. Skeletons have plenty."
+    complete:
+      - "Bone meal for a thousand flowers. The dead will sleep easier."
+      - "Go and see {npc:candle} next. They could use you."
+    rewards:
+      money: 4600
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_candle:
+    name: "Crypt Candles"
+    level: 171
+    order: 172
+    giver: "candle"
+    chapter: 9
+    requires: [story_marrow]
+    objectives:
+      - "CRAFT CANDLE 16 candles"
+    description: "Craft candles to light the crypts for {npc:candle}."
+    offer:
+      - "Craft sixteen candles for the crypts."
+      - "String and honeycomb."
+    complete:
+      - "Sixteen little lights. The crypts feel less creepy. Slightly."
+      - "Go and see {npc:stone_mourner} next. They could use you."
+    rewards:
+      money: 4650
+      items:
+        - "GOLDEN_APPLE 3"
+  story_stone_mourner:
+    name: "Gravestones"
+    level: 172
+    order: 173
+    giver: "stone_mourner"
+    chapter: 9
+    requires: [story_candle]
+    objectives:
+      - "CRAFT CHISELED_STONE_BRICKS|POLISHED_ANDESITE|POLISHED_DIORITE|POLISHED_GRANITE 32 carved stone"
+    description: "Craft carved stone for {npc:stone_mourner}'s gravestones."
+    offer:
+      - "Craft carved stone for new gravestones."
+      - "Thirty two pieces. Neat and polished."
+    complete:
+      - "Every name restored. Thank you."
+      - "Go and see {npc:cantor_hunter} next. They could use you."
+    rewards:
+      money: 4700
+      items:
+        - "EXPERIENCE_BOTTLE 48"
+  story_cantor_hunter:
+    name: "The Frost Cantor"
+    level: 173
+    order: 174
+    giver: "cantor_hunter"
+    chapter: 9
+    big: true
+    requires: [story_stone_mourner]
+    objectives:
+      - "KILL STRAY 1 The Frost Cantor"
+    description: "Defeat the Frost Cantor of the Bone Choir in a fight called by {npc:cantor_hunter}."
+    offer:
+      - "Click me when you're ready and I'll call him down."
+      - "He fights only you. Nobody else can be hurt, and he breaks nothing."
+    complete:
+      - "Silence on the frozen hill. Beautiful."
+      - "Go and see {npc:nightjar} next. They could use you."
+    rewards:
+      money: 6000
+      items:
+        - "DIAMOND 6"
+        - "EXPERIENCE_BOTTLE 32"
+  story_nightjar:
+    name: "Night Watch"
+    level: 174
+    order: 175
+    giver: "nightjar"
+    chapter: 9
+    requires: [story_cantor_hunter]
+    objectives:
+      - "KILL ZOMBIE|HUSK|ZOMBIE_VILLAGER 30 zombies"
+    description: "Keep the graveyard safe from zombies with {npc:nightjar}."
+    offer:
+      - "Help me keep watch."
+      - "Thirty zombies. Then we can rest."
+    complete:
+      - "Dawn. Finally. Go sleep, you earned it."
+      - "Go and see {npc:ossia} next. They could use you."
+    rewards:
+      money: 4850
+      items:
+        - "DIAMOND_BLOCK 1"
+  story_ossia:
+    name: "Lapis Ink"
+    level: 175
+    order: 176
+    giver: "ossia"
+    chapter: 9
+    requires: [story_nightjar]
+    objectives:
+      - "MINE LAPIS_ORE|DEEPSLATE_LAPIS_ORE 16 lapis ore"
+    description: "Mine lapis so {npc:ossia} can read the spells of the dead."
+    offer:
+      - "Mine lapis ore for ink."
+      - "Sixteen blocks of ore."
+    complete:
+      - "Now I can read their verses. And unwrite them."
+      - "Go and see {npc:thorne} next. They could use you."
+    rewards:
+      money: 4900
+      items:
+        - "DIAMOND 4"
+  story_thorne:
+    name: "Fill the Graves"
+    level: 176
+    order: 177
+    giver: "thorne"
+    chapter: 9
+    requires: [story_ossia]
+    objectives:
+      - "PLACE DIRT|COARSE_DIRT|ROOTED_DIRT|PODZOL 64 dirt"
+    description: "Fill the old graves for {npc:thorne}."
+    offer:
+      - "Place dirt to fill the graves."
+      - "Sixty four blocks. Respectfully."
+    complete:
+      - "Rest easy, everyone. Again."
+      - "Go and see {npc:lark} next. They could use you."
+    rewards:
+      money: 4950
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_lark:
+    name: "Ring the Bells"
+    level: 177
+    order: 178
+    giver: "lark"
+    chapter: 9
+    requires: [story_thorne]
+    objectives:
+      - "DELIVER GOLD_INGOT 24 gold ingots"
+    description: "Bring gold to {npc:lark} for a new chapel bell."
+    offer:
+      - "Bring gold for a new bell."
+      - "Twenty four ingots. Bells are hungry."
+    complete:
+      - "DONG. Oh, that's lovely. DONG."
+      - "Go and see {npc:silas_bones} next. They could use you."
+    rewards:
+      money: 5000
+      items:
+        - "GOLDEN_APPLE 3"
+  story_silas_bones:
+    name: "Thin the Ranks"
+    level: 178
+    order: 179
+    giver: "silas_bones"
+    chapter: 9
+    requires: [story_lark]
+    objectives:
+      - "KILL SKELETON|STRAY|WITHER_SKELETON 40 skeletons"
+    description: "Thin Sir Mortis's skeleton army with {npc:silas_bones}."
+    offer:
+      - "Help me thin the Bone Choir."
+      - "Forty skeletons. Any kind."
+    complete:
+      - "That's forty fewer voices in the Choir."
+      - "Go and see {npc:mortimer} next. They could use you."
+    rewards:
+      money: 5100
+      items:
+        - "EXPERIENCE_BOTTLE 48"
   story_mortimer:
     name: "The Bone Choir"
-    level: 139
-    order: 140
+    level: 179
+    order: 180
     giver: "mortimer"
     chapter: 9
     big: true
-    requires: [story_sexton]
+    requires: [story_silas_bones]
     objectives:
       - "KILL WITHER_SKELETON 1 Sir Mortis"
     description: "Face Sir Mortis, conductor of the Bone Choir, called by {npc:mortimer}."
@@ -2979,8 +3790,8 @@ quests:
         - "GOLDEN_APPLE 6"
   story_echo:
     name: "Sculk Samples"
-    level: 140
-    order: 141
+    level: 180
+    order: 181
     giver: "echo"
     chapter: 10
     requires: [story_mortimer]
@@ -2999,8 +3810,8 @@ quests:
         - "EMERALD_BLOCK 2"
   story_whisper:
     name: "Soft Steps"
-    level: 141
-    order: 142
+    level: 181
+    order: 182
     giver: "whisper"
     chapter: 10
     requires: [story_echo]
@@ -3019,8 +3830,8 @@ quests:
         - "DIAMOND_BLOCK 1"
   story_gloam:
     name: "Silent Light"
-    level: 142
-    order: 143
+    level: 182
+    order: 183
     giver: "gloam"
     chapter: 10
     requires: [story_whisper]
@@ -3039,8 +3850,8 @@ quests:
         - "DIAMOND 4"
   story_anvara:
     name: "Ancient Halls"
-    level: 143
-    order: 144
+    level: 183
+    order: 184
     giver: "anvara"
     chapter: 10
     requires: [story_gloam]
@@ -3059,8 +3870,8 @@ quests:
         - "NETHERITE_SCRAP 1"
   story_oriel:
     name: "Glow Garden"
-    level: 144
-    order: 145
+    level: 184
+    order: 185
     giver: "oriel"
     chapter: 10
     requires: [story_anvara]
@@ -3079,8 +3890,8 @@ quests:
         - "GOLDEN_APPLE 3"
   story_flint_deep:
     name: "Echo Shards"
-    level: 145
-    order: 146
+    level: 185
+    order: 186
     giver: "flint_deep"
     chapter: 10
     requires: [story_oriel]
@@ -3099,8 +3910,8 @@ quests:
         - "EXPERIENCE_BOTTLE 48"
   story_tamsin:
     name: "Deep Map"
-    level: 146
-    order: 147
+    level: 186
+    order: 187
     giver: "tamsin"
     chapter: 10
     requires: [story_flint_deep]
@@ -3119,8 +3930,8 @@ quests:
         - "EMERALD_BLOCK 2"
   story_hush:
     name: "Wool Walls"
-    level: 147
-    order: 148
+    level: 187
+    order: 188
     giver: "hush"
     chapter: 10
     requires: [story_tamsin]
@@ -3139,8 +3950,8 @@ quests:
         - "DIAMOND_BLOCK 1"
   story_stephan_elder:
     name: "One Last Favour"
-    level: 148
-    order: 149
+    level: 188
+    order: 189
     giver: "stephan_elder"
     chapter: 10
     requires: [story_hush]
@@ -3153,19 +3964,223 @@ quests:
       - "Bring me apples and a totem. I'll bless them."
     complete:
       - "Blessed. Go on, {player}. The Wanderers are with you."
-      - "Go and see {npc:aldis_elder} next. They could use you."
+      - "Go and see {npc:murmur} next. They could use you."
     rewards:
       money: 4900
       items:
         - "DIAMOND 4"
+  story_murmur:
+    name: "Quiet Steps"
+    level: 189
+    order: 190
+    giver: "murmur"
+    chapter: 10
+    requires: [story_stephan_elder]
+    objectives:
+      - "CRAFT WHITE_CARPET|GRAY_CARPET|BLACK_CARPET|BROWN_CARPET 32 carpets"
+    description: "Craft carpets to muffle the tunnels for {npc:murmur}."
+    offer:
+      - "Craft carpets to muffle our steps."
+      - "Thirty two. Soft ones."
+    complete:
+      - "(A soft, grateful smile.)"
+      - "Go and see {npc:sculk_sage} next. They could use you."
+    rewards:
+      money: 4950
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_sculk_sage:
+    name: "Sculk Samples"
+    level: 190
+    order: 191
+    giver: "sculk_sage"
+    chapter: 10
+    requires: [story_murmur]
+    objectives:
+      - "MINE SCULK|SCULK_VEIN 48 sculk"
+    description: "Mine sculk samples for {npc:sculk_sage}'s research."
+    offer:
+      - "Mine sculk samples."
+      - "Forty eight. Quietly."
+    complete:
+      - "Fascinating. It's like a nervous system. For the whole cave."
+      - "Go and see {npc:amethyst} next. They could use you."
+    rewards:
+      money: 5000
+      items:
+        - "GOLDEN_APPLE 3"
+  story_amethyst:
+    name: "Ringing Crystals"
+    level: 191
+    order: 192
+    giver: "amethyst"
+    chapter: 10
+    requires: [story_sculk_sage]
+    objectives:
+      - "MINE AMETHYST_CLUSTER 12 amethyst clusters"
+      - "CRAFT SPYGLASS 1 spyglass"
+    description: "Gather amethyst for {npc:amethyst} and craft a spyglass for the deep."
+    offer:
+      - "Mine amethyst clusters and craft a spyglass."
+      - "You'll need to see far down there."
+    complete:
+      - "Listen to them chime. The Listener hates it."
+      - "Go and see {npc:burrow} next. They could use you."
+    rewards:
+      money: 5050
+      items:
+        - "EXPERIENCE_BOTTLE 48"
+  story_burrow:
+    name: "Safe Tunnel"
+    level: 192
+    order: 193
+    giver: "burrow"
+    chapter: 10
+    requires: [story_amethyst]
+    objectives:
+      - "MINE DEEPSLATE|COBBLED_DEEPSLATE|TUFF 192 deepslate"
+    description: "Dig a safe tunnel toward the Listener's hall for {npc:burrow}."
+    offer:
+      - "Dig the tunnel with me."
+      - "Three stacks of deepslate."
+    complete:
+      - "Halfway there. Or halfway back, depending on your mood."
+      - "Go and see {npc:wind_hunter} next. They could use you."
+    rewards:
+      money: 5100
+      items:
+        - "EMERALD_BLOCK 2"
+  story_wind_hunter:
+    name: "The Echo Wind"
+    level: 193
+    order: 194
+    giver: "wind_hunter"
+    chapter: 10
+    big: true
+    requires: [story_burrow]
+    objectives:
+      - "KILL BREEZE 1 The Echo Wind"
+    description: "Defeat the Echo Wind in a fight called by {npc:wind_hunter}."
+    offer:
+      - "Click me when you're ready and I'll call it."
+      - "It fights only you. Nobody else can be hurt, and it breaks nothing."
+    complete:
+      - "The winds are still. The way down is open."
+      - "Go and see {npc:mossa} next. They could use you."
+    rewards:
+      money: 6000
+      items:
+        - "DIAMOND 8"
+        - "ECHO_SHARD 4"
+  story_mossa:
+    name: "Moss Carpet"
+    level: 194
+    order: 195
+    giver: "mossa"
+    chapter: 10
+    requires: [story_wind_hunter]
+    objectives:
+      - "PLACE MOSS_BLOCK|MOSS_CARPET 48 moss"
+    description: "Line the tunnel with moss for {npc:mossa}."
+    offer:
+      - "Place moss along the tunnel."
+      - "Forty eight blocks or carpets."
+    complete:
+      - "Soft as a pillow. Quiet as a cloud."
+      - "Go and see {npc:drip} next. They could use you."
+    rewards:
+      money: 5250
+      items:
+        - "DIAMOND 4"
+  story_drip:
+    name: "Axolotl Friends"
+    level: 195
+    order: 196
+    giver: "drip"
+    chapter: 10
+    requires: [story_mossa]
+    objectives:
+      - "BREED AXOLOTL 2 axolotls"
+    description: "Breed axolotls to guard the cave lakes for {npc:drip}."
+    offer:
+      - "Breed two axolotls."
+      - "Tropical fish in a bucket. They love it."
+    complete:
+      - "Look at them wiggle. Best guards in the deep."
+      - "Go and see {npc:warden_scholar} next. They could use you."
+    rewards:
+      money: 5300
+      items:
+        - "NETHERITE_SCRAP 1"
+  story_warden_scholar:
+    name: "Silence the Shriekers"
+    level: 196
+    order: 197
+    giver: "warden_scholar"
+    chapter: 10
+    requires: [story_drip]
+    objectives:
+      - "MINE SCULK_SHRIEKER|SCULK_SENSOR 6 shriekers or sensors"
+    description: "Silence the sculk shriekers and sensors for {npc:warden_scholar}."
+    offer:
+      - "Break the shriekers and sensors."
+      - "Six of them. Sneak. Always sneak."
+    complete:
+      - "Forty years of reading, and you just walked up and did it."
+      - "Go and see {npc:kestrel} next. They could use you."
+    rewards:
+      money: 5350
+      items:
+        - "GOLDEN_APPLE 3"
+  story_kestrel:
+    name: "Final Armour"
+    level: 197
+    order: 198
+    giver: "kestrel"
+    chapter: 10
+    requires: [story_warden_scholar]
+    objectives:
+      - "CRAFT DIAMOND_CHESTPLATE|NETHERITE_CHESTPLATE 1 chestplate"
+      - "CRAFT DIAMOND_HELMET|NETHERITE_HELMET 1 helmet"
+    description: "Craft diamond armour before you face the deep, as {npc:kestrel} asks."
+    offer:
+      - "Craft yourself proper armour."
+      - "A chestplate and a helmet. Diamond or better."
+    complete:
+      - "Now you look like someone who comes back."
+      - "Go and see {npc:wanderer_end} next. They could use you."
+    rewards:
+      money: 5400
+      items:
+        - "EXPERIENCE_BOTTLE 48"
+  story_wanderer_end:
+    name: "All Together"
+    level: 198
+    order: 199
+    giver: "wanderer_end"
+    chapter: 10
+    requires: [story_kestrel]
+    objectives:
+      - "DELIVER COOKED_BEEF|BAKED_POTATO|PUMPKIN_PIE|COOKED_SALMON 32 food"
+    description: "Share a last meal with {npc:wanderer_end} before the end."
+    offer:
+      - "Share a last meal with us."
+      - "Bring food for everyone. Thirty two portions."
+    complete:
+      - "Whatever happens down there, you're one of us. Always."
+      - "Go and see {npc:aldis_elder} next. They could use you."
+    rewards:
+      money: 5500
+      items:
+        - "EMERALD_BLOCK 2"
   story_aldis_elder:
     name: "Ears of the Hollow"
-    level: 149
-    order: 150
+    level: 199
+    order: 200
     giver: "aldis_elder"
     chapter: 10
     big: true
-    requires: [story_stephan_elder]
+    requires: [story_wanderer_end]
     objectives:
       - "KILL WARDEN 1 The Listener Below"
     description: "Face the Listener Below, the last of the Hollow, called by {npc:aldis_elder}."

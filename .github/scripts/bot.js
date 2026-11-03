@@ -171,6 +171,20 @@ bot.once('spawn', async () => {
     await command('/execute in minecraft:overworld run tp CQBot 0.5 10 0.5')
     await command('/cq npc tp stephan')
     }
+    start = chat.length
+    await command('/quests where')
+    await message(/Next:|Nobody is waiting/, start)
+    console.log('OK /quests where names the next villager')
+    start = chat.length
+    await command('/cq test boss story_ironjaw_hunter')
+    await message(/Sergeant Ironjaw.*wakes|could not start/, start)
+    await command('/cq test bossphase')
+    await sleep(1500)
+    start = chat.length
+    await command('/cq test bossstop')
+    await message(/Boss fight ended|No boss fight/, start)
+    await command('/cq test bossevent roar')
+    console.log('OK test boss fight starts, rages and stops')
     await command('/cq test achievement 3')
     await command('/quests achievements')
     await message(/A Helping Hand/)

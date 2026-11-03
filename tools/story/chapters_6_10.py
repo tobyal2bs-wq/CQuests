@@ -1,8 +1,10 @@
-# Chapters 6 to 10 for CQuests 1.7.0. Each chapter has ten villagers; the tenth sends you into a
+# Chapters 6 to 10 for CQuests 1.7.0 and 1.8.0. Each chapter has twenty villagers; the tenth sends you into a
 # private boss fight (bosses.yml). Run:  python3 tools/story/chapters_6_10.py src/main/resources
 # It rewrites the block between the "# >>> chapters 6-10" markers in npcs.yml and quests.yml, so it
 # is safe to run again. No quest asks for wheat.
-import json, re, sys
+import json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from chapters_6_10_extra import EXTRA
 
 q = json.dumps
 
@@ -385,6 +387,9 @@ SKIN = {"PLAINS":"PLAINS","DESERT":"DESERT","SAVANNA":"SAVANNA","SWAMP":"SWAMP",
 TOP_ITEMS = ["DIAMOND 4", "NETHERITE_SCRAP 1", "GOLDEN_APPLE 3", "EXPERIENCE_BOTTLE 48", "EMERALD_BLOCK 2", "DIAMOND_BLOCK 1"]
 BOSS_ITEMS = {6: ["NETHERITE_INGOT 1", "DIAMOND 8"], 7: ["HEART_OF_THE_SEA 1", "TRIDENT 1"], 8: ["NETHERITE_INGOT 1", "BLAZE_ROD 16"],
               9: ["NETHERITE_INGOT 2", "GOLDEN_APPLE 6"], 10: ["NETHERITE_INGOT 3", "DIAMOND_BLOCK 4"]}
+MINI_BOSSES = {"ironjaw_hunter", "frostpaw_keeper", "enforcer_hunter", "cantor_hunter", "wind_hunter"}
+MINI_ITEMS = {6: ["DIAMOND 4", "IRON_BLOCK 4"], 7: ["DIAMOND 4", "PRISMARINE_CRYSTALS 16"], 8: ["DIAMOND 5", "GOLD_BLOCK 4"],
+              9: ["DIAMOND 6", "EXPERIENCE_BOTTLE 32"], 10: ["DIAMOND 8", "ECHO_SHARD 4"]}
 SKINNED = {"pemberly": "default", "conch": "default", "ignatius": "default", "stephan_elder": "default"}
 BABY = {"pip_scout", "kelpie"}
 
@@ -397,11 +402,12 @@ def build():
     prev = "story_aldric"
     order = 101
     for ch in sorted(R):
-        rows = R[ch]
-        assert len(rows) == 10, (ch, len(rows))
+        # The original nine, the ten from 1.8.0, then the boss villager last.
+        rows = R[ch][:-1] + EXTRA[ch] + [R[ch][-1]]
+        assert len(rows) == 20, (ch, len(rows))
         for j, r in enumerate(rows):
             (id, name, prof, skin, title, intro, qname, objs, offer, desc, complete, idle) = r
-            level = 100 + (ch - 6) * 10 + j
+            level = 100 + (ch - 6) * 20 + j
             n = f"  {id}:\n    name: {q(name)}\n    title: {q(title)}\n    profession: {prof}\n    skin: {SKIN.get(skin, 'PLAINS')}\n"
             n += f"    level: {level}\n    act: 2\n    chapter: {ch}\n    personal: true\n"
             if id in BABY: n += "    baby: true\n"
@@ -413,11 +419,12 @@ def build():
             if not last and not objs[-1].startswith("TALK"):
                 complete.append("Go and see {npc:%s} next. They could use you." % rows[j + 1][0])
             boss = last
-            money = 10000 if boss else int(round((2800 + (ch - 6) * 400 + j * 60) / 50.0)) * 50
-            items = BOSS_ITEMS[ch] if boss else [TOP_ITEMS[(ch + j) % len(TOP_ITEMS)]]
+            mini = id in MINI_BOSSES
+            money = 10000 if boss else 6000 if mini else int(round((2800 + (ch - 6) * 400 + j * 60) / 50.0)) * 50
+            items = BOSS_ITEMS[ch] if boss else MINI_ITEMS[ch] if mini else [TOP_ITEMS[(ch + j) % len(TOP_ITEMS)]]
             qid = "story_" + id
             s = f"  {qid}:\n    name: {q(qname)}\n    level: {level}\n    order: {order}\n    giver: {q(id)}\n    chapter: {ch}\n"
-            if boss: s += "    big: true\n"
+            if boss or mini: s += "    big: true\n"
             s += f"    requires: [{prev}]\n    objectives:\n" + lst(objs, 6) + f"    description: {q(desc)}\n"
             s += "    offer:\n" + lst(offer, 6) + "    complete:\n" + lst(complete, 6)
             s += f"    rewards:\n      money: {money}\n      items:\n" + lst(items, 8)
@@ -437,8 +444,8 @@ def splice(path, section_header, block):
 if __name__ == "__main__":
     out = sys.argv[1]
     npcs, quests, chapters = build()
-    ids = [r[0] for ch in R for r in R[ch]]
-    assert len(set(ids)) == 50
+    ids = [r[0] for ch in R for r in R[ch]] + [r[0] for ch in EXTRA for r in EXTRA[ch]]
+    assert len(set(ids)) == 100
     splice(out + "/npcs.yml", "npcs:", npcs)
     splice(out + "/quests.yml", "quests:", quests)
     # chapter names go into the chapters: map at the top of quests.yml

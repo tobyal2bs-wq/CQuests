@@ -265,8 +265,12 @@ public final class QuestManager {
             plugin.send(player,"<yellow>Finish the previous tasks and reach Wayfarer level "+Math.max(1,quest.level())+" before taking this quest.");
             return false;
         }
+        if (data.isActive(quest.id()) || (quest.category() != QuestCategory.DAILY && isDone(data, quest))) return false;
+        com.cquests.farm.EconomyBridge.Payment paid = force ? null : payChapter(player, quest);
+        if (!force && paid == null) return false;
         synchronized (data) {
             if (data.isActive(quest.id()) || (quest.category() != QuestCategory.DAILY && isDone(data, quest))) {
+                if (paid != null) paid.refund();
                 return false;
             }
             data.start(new ActiveQuest(quest.id(), quest.objectives().size(), System.currentTimeMillis()));
@@ -283,6 +287,46 @@ public final class QuestManager {
         return true;
     }
 
+    private final com.cquests.farm.EconomyBridge economy = new com.cquests.farm.EconomyBridge();
+    private volatile boolean warnedNoEconomy;
+
+    /** Money a player pays to start this chapter (its first story quest), 0 for every other quest. */
+    public long chapterCost(Quest quest) {
+        if (quest.category() != QuestCategory.STORY || quest.chapter() <= 1) return 0;
+        var config = plugin.getConfig();
+        if (config == null || !config.getBoolean("chapters.costs-enabled", true)) return 0;
+        List<Quest> story = quests().story();
+        int index = story.indexOf(quest);
+        if (index <= 0 || story.get(index - 1).chapter() == quest.chapter()) return 0;
+        return Math.max(0, config.getLong("chapters.cost." + quest.chapter(), defaultChapterCost(quest.chapter())));
+    }
+
+    static long defaultChapterCost(int chapter) {
+        long[] costs = {0, 0, 2_500, 5_000, 10_000, 20_000, 35_000, 50_000, 75_000, 100_000, 150_000};
+        return chapter < costs.length ? costs[chapter] : 150_000L + (chapter - 10) * 50_000L;
+    }
+
+    /** Charges the chapter cost; a payment that does nothing when there is no cost. Null when the player can't pay. */
+    private com.cquests.farm.EconomyBridge.Payment payChapter(Player player, Quest quest) {
+        long cost = chapterCost(quest);
+        com.cquests.farm.EconomyBridge.Payment none = economy.charge(player, 0);
+        if (cost <= 0) return none;
+        if (!economy.available()) {
+            if (!warnedNoEconomy) { warnedNoEconomy = true; plugin.getLogger().info("Chapter costs need Vault and an economy plugin; chapters are free until one is installed."); }
+            return none;
+        }
+        var payment = economy.charge(player, cost);
+        if (payment == null) {
+            plugin.send(player, settings().msg("chapter-cost-missing", "<red>Chapter <chapter> costs <gold><cost></gold> to start. Come back when you have it.")
+                    .replace("<chapter>", Integer.toString(quest.chapter())).replace("<cost>", Text.formatMoney(cost)));
+            return null;
+        }
+        plugin.send(player, settings().msg("chapter-cost-paid", "<gold>You paid <cost> to begin Chapter <chapter>: <name>.")
+                .replace("<chapter>", Integer.toString(quest.chapter())).replace("<cost>", Text.formatMoney(cost))
+                .replace("<name>", Text.escape(quests().chapterName(quest.chapter()))));
+        return payment;
+    }
+
     public void giveWelcome(Player player) {
         Quest welcome = quests().get(settings().welcomeQuest);
         PlayerData data = data(player);
@@ -294,6 +338,8 @@ public final class QuestManager {
             // A short how to play for brand new players.
             player.sendMessage(Text.mm(fill(tip, player)));
         }
+        // Tell brand new players where the first villager stands, once the welcome text has been read.
+        Sched.entityLater(player, 100, () -> { if (player.isOnline()) plugin.directions().explain(player, true); });
     }
 
     public boolean abandon(Player player, Quest quest) {

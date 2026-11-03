@@ -33,7 +33,7 @@ public final class QuestAdventures implements Listener {
         volatile Location playerAt;volatile boolean active=true;
         volatile Location helperAt;
         Boss boss;java.util.concurrent.Semaphore slots;final List<Mob> minions=new java.util.concurrent.CopyOnWriteArrayList<>();
-        volatile boolean phased;long nextEvent;net.kyori.adventure.bossbar.BossBar bar;
+        volatile boolean phased,test;long nextEvent;net.kyori.adventure.bossbar.BossBar bar;
         final java.util.concurrent.atomic.AtomicBoolean released=new java.util.concurrent.atomic.AtomicBoolean();
         Session(Player player,String quest,Mob mob){this.player=player;this.quest=quest;this.mob=mob;origin=mob.getLocation();helperAt=origin;playerAt=player.getLocation();}
     }
@@ -95,7 +95,7 @@ public final class QuestAdventures implements Listener {
     public void update(Player player){
         UUID id=player.getUniqueId();if(!running||!plugin.getConfig().getBoolean("adventures.enabled",true))return;
         Session boss=bosses.get(id),helper=companions.get(id);
-        if(boss!=null){if(!playable(player)||!active(player,boss.quest)||!same(boss.origin,player.getLocation(),48))stop(bosses,id,boss);else boss.playerAt=player.getLocation();}
+        if(boss!=null){if(!player.isOnline()||player.isDead()||(!boss.test&&(!playable(player)||!active(player,boss.quest)))||!same(boss.origin,player.getLocation(),48))stop(bosses,id,boss);else boss.playerAt=player.getLocation();}
         if(helper!=null){if(!playable(player)||!active(player,helper.quest)||!helper.origin.getWorld().equals(player.getWorld()))stop(companions,id,helper);else helper.playerAt=player.getLocation();return;}
         if(!plugin.getConfig().getBoolean("adventures.companions",true)||!playable(player)||companions.size()>=32||System.nanoTime()<retry.getOrDefault(id,0L))return;
         for(String quest:ESCORTS)if(active(player,quest)){
@@ -162,13 +162,41 @@ public final class QuestAdventures implements Listener {
     }
     /** /quests encounter: calls the boss of whichever boss quest the player has open. */
     public boolean summon(Player player){Boss b=activeBoss(player,null);return b!=null&&summon(player,b);}
-    public boolean summon(Player player,Boss b){
+    public boolean summon(Player player,Boss b){return summon(player,b,false);}
+    /** Boss quest ids for /cq test boss. */
+    public java.util.Collection<String> bossIds(){return new java.util.TreeSet<>(bossDefs.keySet());}
+    /**
+     * /cq test boss: the real fight for an admin, in any game mode, without the quest or the villager.
+     * Nothing counts and nothing drops. Creative players can watch it without being hurt.
+     */
+    public boolean testBoss(Player player,String quest){
+        Boss b=bossDefs.get(quest.toLowerCase(Locale.ROOT));
+        if(b==null){plugin.send(player,"<red>No boss for "+Text.escape(quest)+". Bosses: <white>"+String.join(", ",bossIds()));return false;}
+        var old=bosses.get(player.getUniqueId());if(old!=null)stop(bosses,player.getUniqueId(),old);
+        return summon(player,b,true);
+    }
+    /** Jumps the test boss to half health so the phase, minions and events play now. */
+    public boolean testPhase(Player player){
+        var session=bosses.get(player.getUniqueId());if(session==null||!session.test)return false;
+        Sched.entity(session.mob,()->{if(session.mob.isValid())session.mob.setHealth(Math.max(1,maxHealthOf(session.mob)/2-1));});return true;
+    }
+    public boolean testStop(Player player){var session=bosses.get(player.getUniqueId());if(session==null)return false;stop(bosses,player.getUniqueId(),session);return true;}
+    /** Plays one boss event on the player alone. */
+    public boolean testEvent(Player player,String event){
+        String e=event.toLowerCase(Locale.ROOT);if(!EVENTS.contains(e))return false;
+        Location at=player.getLocation();
+        if(e.equals("lightning"))for(int i=0;i<3;i++){Location strike=at.clone().add(java.util.concurrent.ThreadLocalRandom.current().nextInt(-5,6),0,java.util.concurrent.ThreadLocalRandom.current().nextInt(-5,6));if(Bukkit.isOwnedByCurrentRegion(strike))strike.getWorld().strikeLightningEffect(strike);}
+        else effect(player,e,at.clone().add(at.getDirection().multiply(3)));
+        return true;
+    }
+    public static final List<String> EVENTS=List.of("lightning","darkness","slowness","levitate","roar");
+    private boolean summon(Player player,Boss b,boolean test){
         UUID id=player.getUniqueId();
         if(player.getWorld().getDifficulty()==Difficulty.PEACEFUL){plugin.send(player,"<yellow>Bosses cannot wake in a Peaceful world.");return false;}
         boolean allowed=b.quest().equals("story_aldis")?plugin.getConfig().getBoolean("adventures.wither",true):true;
         if(!running||!bossesEnabled||!allowed||!plugin.getConfig().getBoolean("adventures.enabled",true)
-                ||!playable(player)||!active(player,b.quest())||bosses.containsKey(id))return false;
-        if(!plugin.memories().near(player,b.giver())){plugin.send(player,"<yellow>Stand near "+Text.escape(plugin.npcs().name(b.giver()))+" to call it.");return false;}
+                ||(!test&&(!playable(player)||!active(player,b.quest())))||bosses.containsKey(id))return false;
+        if(!test&&!plugin.memories().near(player,b.giver())){plugin.send(player,"<yellow>Stand near "+Text.escape(plugin.npcs().name(b.giver()))+" to call it.");return false;}
         Location at=ground(player.getLocation(),6);
         if(at==null){plugin.send(player,"<yellow>Find clear, solid ground with space beside you first.");return false;}
         // A bounded clear volume avoids summoning inside walls, trees or a cave ceiling.
@@ -189,11 +217,12 @@ public final class QuestAdventures implements Listener {
             if(e instanceof Wither w){w.setInvulnerableTicks(0);if(w.getBossBar()!=null)w.getBossBar().setVisible(false);}
         });}catch(RuntimeException error){slots.release();plugin.send(player,"<yellow>It could not enter this area. Try another clear spot.");return false;}
         if(!mob.isValid()){slots.release();return false;}
-        Session session=new Session(player,b.quest(),mob);session.boss=b;session.slots=slots;session.nextEvent=System.nanoTime()+20_000_000_000L;
+        Session session=new Session(player,b.quest(),mob);session.boss=b;session.test=test;session.slots=slots;session.nextEvent=System.nanoTime()+20_000_000_000L;
         session.bar=net.kyori.adventure.bossbar.BossBar.bossBar(Text.mm(b.name()),1f,net.kyori.adventure.bossbar.BossBar.Color.RED,net.kyori.adventure.bossbar.BossBar.Overlay.NOTCHED_10);
         bosses.put(id,session);player.showEntity(plugin,mob);player.showBossBar(session.bar);
         mob.getScheduler().runAtFixedRate(plugin,t->{if(!tick(session,true))t.cancel();},()->retired(bosses,id,session),1,5);
         player.showTitle(net.kyori.adventure.title.Title.title(Text.mm(b.name()),Text.mm("<gray>Stand your ground.")));
+        if(test)plugin.send(player,"<gray>Test fight: nothing counts and nothing drops. <yellow>/cq test bossphase</yellow> jumps to half health, <yellow>/cq test bossstop</yellow> ends it.");
         plugin.send(player,b.name()+" <gold>wakes. <white>Stand your ground.");return true;
     }
     private static void maxHealth(LivingEntity e,double health){
@@ -243,13 +272,20 @@ public final class QuestAdventures implements Listener {
             Location strike=at.clone().add(java.util.concurrent.ThreadLocalRandom.current().nextInt(-5,6),0,java.util.concurrent.ThreadLocalRandom.current().nextInt(-5,6));
             if(Bukkit.isOwnedByCurrentRegion(strike))strike.getWorld().strikeLightningEffect(strike);
         }
-        if(events.contains("darkness"))player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DARKNESS,100,0,false,false,true));
-        if(events.contains("slowness"))player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS,80,1,false,false,true));
-        if(events.contains("levitate"))player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.LEVITATION,30,0,false,false,true));
-        if(events.contains("roar")){
-            player.playSound(at,Sound.ENTITY_RAVAGER_ROAR,1f,0.7f);
-            var push=at.toVector().subtract(session.mob.getLocation().toVector()).setY(0);
-            if(push.lengthSquared()>0.01)player.setVelocity(push.normalize().multiply(1.2).setY(0.45));
+        for(String e:List.of("darkness","slowness","levitate","roar"))if(events.contains(e))effect(player,e,session.mob.getLocation());
+    }
+    private static void effect(Player player,String event,Location from){
+        Location at=player.getLocation();
+        switch(event){
+            case "darkness" -> player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DARKNESS,100,0,false,false,true));
+            case "slowness" -> player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS,80,1,false,false,true));
+            case "levitate" -> player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.LEVITATION,30,0,false,false,true));
+            case "roar" -> {
+                player.playSound(at,Sound.ENTITY_RAVAGER_ROAR,1f,0.7f);
+                var push=at.toVector().subtract(from.toVector()).setY(0);
+                if(push.lengthSquared()>0.01)player.setVelocity(push.normalize().multiply(1.2).setY(0.45));
+            }
+            default -> {}
         }
     }
     private final class BossMenu implements LockedMenu{
@@ -346,6 +382,7 @@ public final class QuestAdventures implements Listener {
         var session=bosses.get(id);
         if(session!=null&&session.mob.getUniqueId().equals(event.getEntity().getUniqueId())&&bosses.remove(id,session)){
             retired(bosses,id,session);String type=event.getEntity().getType().name();Boss b=session.boss;
+            if(session.test){Sched.entity(session.player,()->plugin.send(session.player,"<green>Test boss defeated. <gray>Nothing was counted."));return;}
             Sched.entity(session.player,()->{if(running&&active(session.player,session.quest)){
                 plugin.questManager().progress(session.player,ObjectiveType.KILL,type,1,true);
                 if(b!=null&&plugin.discord()!=null)plugin.discord().bossDefeated(session.player,Text.plain(Text.mm(b.name())));

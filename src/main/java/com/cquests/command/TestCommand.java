@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 final class TestCommand {
 
     static final List<String> ACTIONS = List.of("messages", "welcome", "celebrate", "chapter", "ending", "achievement",
-            "finish", "unfinish", "roam", "book");
+            "finish", "unfinish", "roam", "book", "boss", "bossphase", "bossstop", "bossevent", "discord", "where", "all");
 
     /** What /cq test finish changed, so /cq test unfinish can put it back exactly. */
     private record Undo(List<String> completed, int sideDone) {
@@ -52,7 +52,14 @@ final class TestCommand {
                 <yellow>/cq test finish <npc></yellow> <gray>pretend you finished a villager, so it disappears for you
                 <yellow>/cq test unfinish <npc></yellow> <gray>undo that, the villager comes back
                 <yellow>/cq test roam <npc></yellow> <gray>move a scattered villager to a new spot now
-                <yellow>/cq test book</yellow> <gray>read your Your Story book as it is so far""");
+                <yellow>/cq test book</yellow> <gray>read your Your Story book as it is so far
+                <yellow>/cq test boss <quest></yellow> <gray>start that boss fight next to you (any game mode, nothing counts; creative to just watch)
+                <yellow>/cq test bossphase</yellow> <gray>jump your test boss to half health: rage, minions and events
+                <yellow>/cq test bossstop</yellow> <gray>end your boss fight
+                <yellow>/cq test bossevent <lightning|darkness|slowness|levitate|roar></yellow> <gray>feel one boss event
+                <yellow>/cq test discord <chapter|boss|streak|journey></yellow> <gray>send a sample post to your Discord webhook
+                <yellow>/cq test where</yellow> <gray>show how players are pointed to their next villager
+                <yellow>/cq test all</yellow> <gray>list every boss you can test""");
     }
 
     void run(CommandSender sender, String[] args) {
@@ -84,9 +91,39 @@ final class TestCommand {
                 case "unfinish" -> unfinish(player, arg);
                 case "roam" -> roam(player, arg);
                 case "book" -> StoryBook.open(plugin, player);
+                case "boss" -> {
+                    if (arg.isBlank()) plugin.send(player, "<yellow>/cq test boss <quest></yellow> <gray>Bosses: <white>" + String.join(", ", plugin.adventures().bossIds()));
+                    else if (!plugin.adventures().testBoss(player, arg)) plugin.send(player, "<yellow>The boss could not start. Stand on open, solid ground with space around you, not in Peaceful.");
+                }
+                case "bossphase" -> { if (!plugin.adventures().testPhase(player)) plugin.send(player, "<yellow>Start one first with /cq test boss <quest>."); }
+                case "bossstop" -> plugin.send(player, plugin.adventures().testStop(player) ? "<gray>Boss fight ended." : "<gray>No boss fight is running for you.");
+                case "bossevent" -> { if (!plugin.adventures().testEvent(player, arg)) plugin.send(player, "<yellow>Events: " + String.join(", ", com.cquests.adventure.QuestAdventures.EVENTS)); }
+                case "discord" -> discord(player, arg);
+                case "where" -> plugin.directions().explain(player, true);
+                case "all" -> {
+                    plugin.send(player, "<gold>Every boss</gold> <gray>(click to start a test fight)");
+                    for (String id : plugin.adventures().bossIds()) {
+                        Quest q = plugin.quests().get(id);
+                        player.sendMessage(Text.mm("<yellow><click:run_command:'/cq test boss " + id + "'><hover:show_text:'Start this test fight'> ▶ " + id
+                                + "</hover></click> <gray>" + (q == null ? "(chapter switched off)" : "Chapter " + q.chapter() + ": " + Text.escape(q.name()))));
+                    }
+                    plugin.send(player, "<gray>Also: /cq test celebrate, chapter <n>, ending, bossevent <event>, discord <event>, where, welcome.");
+                }
                 default -> help(player);
             }
         });
+    }
+
+    private void discord(Player player, String what) {
+        var hook = plugin.discord();
+        if (hook == null || !hook.enabled()) { plugin.send(player, "<yellow>Set discord.webhook-url in config.yml and /cq reload first."); return; }
+        switch (what.toLowerCase(Locale.ROOT)) {
+            case "boss" -> hook.bossDefeated(player, "Gorehorn, the Iron Tusk");
+            case "streak" -> hook.dailyStreak(player, 7);
+            case "journey" -> hook.journeyFinished(player);
+            default -> hook.chapterComplete(player, 1, plugin.quests().chapterName(1));
+        }
+        plugin.send(player, "<green>Sample post sent to Discord. <gray>(Event switches under discord.events still apply.)");
     }
 
     // ------------------------------------------------------------------ messages

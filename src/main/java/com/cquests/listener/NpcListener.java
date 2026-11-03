@@ -162,6 +162,7 @@ public final class NpcListener implements Listener {
         plugin.dialogue().forget(event.getPlayer());
         plugin.speech().stop(event.getPlayer());
         plugin.tracker().forget(event.getPlayer());
+        plugin.directions().forget(event.getPlayer());
         plugin.shield().forget(event.getPlayer());
         plugin.store().unload(event.getPlayer().getUniqueId());
     }

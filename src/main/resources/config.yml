@@ -72,8 +72,9 @@ tracker:
   default-on: false
 
 directions:
-  # /quests directions toggles an arrow and distance in meters. Saved per player.
-  default-on: false
+  # An arrow and the distance to the next villager above the hotbar. /quests directions toggles it,
+  # /quests where says who and where in chat. Every player's compass also points to the next villager.
+  default-on: true
 
 # ----------------------------------------------------------- ANIMATIONS
 celebrations:
@@ -168,6 +169,19 @@ chapters:
   # start off. Turn one on in game with /cq chapter 6 on, or edit this list and /cq reload.
   # Chapter 1 can never be switched off.
   locked: [6, 7, 8, 9, 10]
+  # Starting a new chapter (taking its first story quest) costs money, paid through Vault.
+  # Without Vault and an economy plugin chapters stay free. Set costs-enabled: false to turn it off.
+  costs-enabled: true
+  cost:
+    2: 2500
+    3: 5000
+    4: 10000
+    5: 20000
+    6: 35000
+    7: 50000
+    8: 75000
+    9: 100000
+    10: 150000
 
 # ----------------------------------------------------------- DISCORD
 discord:

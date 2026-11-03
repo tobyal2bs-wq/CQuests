@@ -13,6 +13,26 @@ final class ContentUpgrade {
     static void apply(CQuestsPlugin plugin) {
         applySideVillagers(plugin);
         applyChapters(plugin);
+        applyChapters18(plugin);
+    }
+
+    /**
+     * 1.8.0: chapters 6 to 10 grow from 10 to 20 villagers each, with five mini bosses. New villagers,
+     * quests and bosses are added; the story chain (order and requires) of chapter 6+ quests is
+     * updated so the new quests slot in. Text an admin changed is kept.
+     */
+    private static void applyChapters18(CQuestsPlugin plugin) {
+        File marker = new File(plugin.getDataFolder(), ".content-1.8.0");
+        if (marker.exists()) return;
+        try {
+            java.util.function.BiPredicate<String, Object> later = (id, value) -> value instanceof org.bukkit.configuration.ConfigurationSection c && c.getInt("chapter") >= 6;
+            merge(plugin, "npcs.yml", "npcs", later, ".before-1.8.0", List.of());
+            merge(plugin, "quests.yml", "quests", later, ".before-1.8.0", List.of("order", "requires", "level"));
+            merge(plugin, "bosses.yml", "bosses", (id, value) -> true, ".before-1.8.0", List.of());
+            Files.writeString(marker.toPath(), "Chapters 6-10 now have 20 villagers each and five mini bosses. Existing IDs and progress preserved.\n");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not add the 1.8.0 villagers; existing files kept: " + e.getMessage());
+        }
     }
 
     /**
@@ -46,6 +66,12 @@ final class ContentUpgrade {
 
     /** Copies sections from the bundled file that the server's copy doesn't have yet, keeping a backup once. */
     private static void merge(CQuestsPlugin plugin, String name, String root, java.util.function.BiPredicate<String, Object> wanted) throws Exception {
+        merge(plugin, name, root, wanted, ".before-1.7.0", List.of());
+    }
+
+    /** @param sync keys copied from the bundled file onto entries the server already has (story chain fields) */
+    private static void merge(CQuestsPlugin plugin, String name, String root, java.util.function.BiPredicate<String, Object> wanted,
+                              String backupSuffix, List<String> sync) throws Exception {
         File file = new File(plugin.getDataFolder(), name);
         if (!file.exists()) return;
         try (var stream = plugin.getResource(name)) {
@@ -58,13 +84,20 @@ final class ContentUpgrade {
             boolean changed = false;
             for (String id : section.getKeys(false)) {
                 String path = root + "." + id;
-                if (!wanted.test(id, section.get(id)) || current.contains(path)) continue;
+                if (!wanted.test(id, section.get(id))) continue;
+                if (current.contains(path)) {
+                    for (String key : sync) {
+                        Object value = section.get(id + "." + key);
+                        if (value != null && !value.equals(current.get(path + "." + key))) { current.set(path + "." + key, value); changed = true; }
+                    }
+                    continue;
+                }
                 if (section.isConfigurationSection(id)) current.createSection(path, section.getConfigurationSection(id).getValues(true));
                 else current.set(path, section.get(id));
                 changed = true;
             }
             if (changed) {
-                File backup = new File(plugin.getDataFolder(), name + ".before-1.7.0");
+                File backup = new File(plugin.getDataFolder(), name + backupSuffix);
                 if (!backup.exists()) Files.copy(file.toPath(), backup.toPath());
                 current.save(file);
             }

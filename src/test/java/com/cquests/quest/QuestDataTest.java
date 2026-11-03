@@ -286,7 +286,11 @@ class QuestDataTest {
         QuestRegistry open = unlocked(all, warnings);
         assertEquals(List.of(), warnings);
         List<Quest> story = open.story();
-        assertEquals(151, story.size());
+        assertEquals(201, story.size());
+        for (int chapter = 6; chapter <= 10; chapter++) {
+            int c = chapter;
+            assertEquals(20, story.stream().filter(q -> q.chapter() == c).count(), "chapter " + c + " has 20 story quests");
+        }
         Set<Integer> chapters = new HashSet<>();
         for (int i = 1; i < story.size(); i++) {
             Quest quest = story.get(i);
@@ -295,6 +299,10 @@ class QuestDataTest {
             assertTrue(quest.chapter() >= story.get(i - 1).chapter());
         }
         assertEquals(Set.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), chapters);
+        for (String mini : List.of("story_ironjaw_hunter", "story_frostpaw_keeper", "story_enforcer_hunter", "story_cantor_hunter", "story_wind_hunter")) {
+            assertNotNull(open.get(mini), mini);
+            assertEquals(ObjectiveType.KILL, open.get(mini).objectives().get(0).type());
+        }
         for (String boss : List.of("story_garrick", "story_brine", "story_emberly", "story_mortimer", "story_aldis_elder")) {
             Quest quest = open.get(boss);
             assertNotNull(quest, boss);
@@ -333,6 +341,17 @@ class QuestDataTest {
             assertEquals(quest.giver(), section.getString(id + ".giver"), id + " giver");
             EntityType type = EntityType.valueOf(section.getString(id + ".entity"));
             assertTrue(type.isAlive(), id);
+        }
+    }
+
+    @Test
+    void chaptersCostMoreAsTheyGo() {
+        assertEquals(0, QuestManager.defaultChapterCost(1));
+        long last = 0;
+        for (int chapter = 2; chapter <= 12; chapter++) {
+            long cost = QuestManager.defaultChapterCost(chapter);
+            assertTrue(cost > last, "chapter " + chapter);
+            last = cost;
         }
     }
 }

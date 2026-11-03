@@ -1,7 +1,8 @@
 # ===================================================================
 #  CQuests bosses
 # ===================================================================
-#  The last quest of chapters 5 to 10 is a private boss fight. The quest giver offers a
+#  The last quest of chapters 5 to 10 is a private boss fight, and chapters 6 to 10 also have a
+#  mini boss halfway through. The quest giver offers a
 #  "Face it" button (or the player types /quests encounter near them).
 #
 #  Every boss and its minions:
@@ -44,6 +45,23 @@ bosses:
     minions: VINDICATOR
     minion-count: 3
     events: [roar, lightning]
+  story_ironjaw_hunter:
+    giver: ironjaw_hunter
+    entity: VINDICATOR
+    name: "<red>Sergeant Ironjaw"
+    health: 160
+    weapon: IRON_AXE
+    minions: PILLAGER
+    minion-count: 2
+    events: [roar]
+  story_frostpaw_keeper:
+    giver: frostpaw_keeper
+    entity: POLAR_BEAR
+    name: "<white><bold>Old Frostpaw"
+    health: 200
+    minions: NONE
+    minion-count: 0
+    events: [slowness, roar]
   story_brine:
     giver: brine
     entity: DROWNED
@@ -53,6 +71,15 @@ bosses:
     minions: DROWNED
     minion-count: 4
     events: [slowness, lightning]
+  story_enforcer_hunter:
+    giver: enforcer_hunter
+    entity: PIGLIN_BRUTE
+    name: "<gold>Goldtooth's Enforcer"
+    health: 220
+    weapon: GOLDEN_AXE
+    minions: NONE
+    minion-count: 0
+    events: [roar, lightning]
   story_emberly:
     giver: emberly
     entity: BLAZE
@@ -61,6 +88,15 @@ bosses:
     minions: BLAZE
     minion-count: 2
     events: [levitate, lightning]
+  story_cantor_hunter:
+    giver: cantor_hunter
+    entity: STRAY
+    name: "<aqua>The Frost Cantor"
+    health: 180
+    weapon: BOW
+    minions: SKELETON
+    minion-count: 2
+    events: [slowness, darkness]
   story_mortimer:
     giver: mortimer
     entity: WITHER_SKELETON
@@ -70,6 +106,14 @@ bosses:
     minions: SKELETON
     minion-count: 4
     events: [darkness, roar]
+  story_wind_hunter:
+    giver: wind_hunter
+    entity: BREEZE
+    name: "<white><bold>The Echo Wind"
+    health: 200
+    minions: NONE
+    minion-count: 0
+    events: [levitate, lightning]
   story_aldis_elder:
     giver: aldis_elder
     entity: WARDEN
