@@ -39,6 +39,8 @@ Performance: one light timer per active fight on the boss's own region thread (F
 
 ## Discord webhook
 
+Each post is a coloured embed per event with the player's face and skin (from mc-heads.net), a title, fields for the chapter or boss, the player's level and a story progress bar, a footer with your server name and a timestamp. `discord.banner-url` adds a wide picture under every post.
+
 Set `discord.webhook-url` and run `/cq reload`. CQuests posts when a player finishes a chapter, finishes the whole journey, beats a boss, or reaches a 7, 30 or 100 day daily streak (and every full year). Each event can be switched off or reworded under `discord.events` and `discord.messages`.
 
 * Sent on one background thread, never the server thread; at most one post every 2 seconds and at most 64 waiting.

@@ -11,6 +11,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -53,48 +55,113 @@ public final class DiscordWebhook {
     }
 
     public void chapterComplete(Player player, int chapter, String chapterName) {
-        post("chapter-complete", "📖 **<player>** finished Chapter <chapter>: <name>", 0x55FFFF,
-                player.getName(), "<chapter>", Integer.toString(chapter), "<name>", chapterName);
+        String next = plugin.quests().chapterName(chapter + 1);
+        post(player, "chapter-complete", "📖  Chapter " + chapter + " complete", "**<player>** finished **Chapter <chapter>: <name>**",
+                0x3BA7FF, List.of(field("📚 Chapter", chapter + " · " + chapterName),
+                        field("➡️ Up next", next.isEmpty() || plugin.settings().lockedChapters.contains(chapter + 1) ? "The story so far is done" : "Chapter " + (chapter + 1) + " · " + next)),
+                "<chapter>", Integer.toString(chapter), "<name>", chapterName);
     }
 
     public void journeyFinished(Player player) {
-        post("journey-finished", "🏆 **<player>** finished the whole journey on <server>!", 0xFFAA00, player.getName(), "<server>", plugin.settings().serverName);
+        post(player, "journey-finished", "🏆  Journey complete", "**<player>** finished the whole journey on <server>!",
+                0xFFB020, List.of(field("👣 Days on the road", Long.toString(daysSinceStart(player)))),
+                "<server>", plugin.settings().serverName);
     }
 
     public void bossDefeated(Player player, String boss) {
-        post("boss-defeated", "⚔️ **<player>** defeated **<boss>**!", 0xFF5555, player.getName(), "<boss>", boss);
+        post(player, "boss-defeated", "⚔️  Boss defeated", "**<player>** defeated **<boss>**!",
+                0xE5484D, List.of(field("💀 Boss", boss)), "<boss>", boss);
     }
 
     public void dailyStreak(Player player, int days) {
-        post("daily-streak", "🔥 **<player>** is on a <days>-day daily quest streak!", 0xFF8800, player.getName(), "<days>", Integer.toString(days));
+        post(player, "daily-streak", "🔥  " + days + "-day streak", "**<player>** is on a **<days>-day** daily quest streak!",
+                0xFF7A1A, List.of(field("🔥 Streak", days + " days in a row")), "<days>", Integer.toString(days));
+    }
+
+    record Field(String name, String value) { }
+    private static Field field(String name, String value) { return new Field(name, value); }
+
+    private long daysSinceStart(Player player) {
+        var data = plugin.store().cached(player.getUniqueId());
+        long started = data == null ? 0 : data.startedAt();
+        return started <= 0 ? 1 : Math.max(1, (System.currentTimeMillis() - started) / 86_400_000L + 1);
+    }
+
+    /** Level and story progress for every embed; read from memory on the player's own thread. */
+    private List<Field> stats(Player player) {
+        var data = plugin.store().cached(player.getUniqueId());
+        if (data == null) return List.of();
+        int total = plugin.quests().story().size(), done = 0;
+        for (var quest : plugin.quests().story()) if (data.isCompleted(quest.id())) done++;
+        int percent = total == 0 ? 0 : (int) Math.round(done * 100.0 / total);
+        return List.of(field("⭐ Level", Integer.toString(plugin.progression().level(data))),
+                field("📜 Story", done + "/" + total + "  " + bar(percent) + "  " + percent + "%"));
+    }
+
+    /** ▰▰▰▰▱▱▱▱▱▱ */
+    static String bar(int percent) {
+        int filled = Math.max(0, Math.min(10, Math.round(percent / 10f)));
+        return "▰".repeat(filled) + "▱".repeat(10 - filled);
     }
 
     /** @param pairs placeholder, value, placeholder, value ... */
-    private void post(String event, String fallback, int color, String player, String... pairs) {
+    private void post(Player player, String event, String title, String fallback, int color, List<Field> fields, String... pairs) {
         String target = url;
         ConfigurationSection c = config;
         if (target.isEmpty() || c == null || !c.getBoolean("events." + event, true)) return;
-        String text = c.getString("messages." + event, fallback).replace("<player>", clean(player));
+        String text = c.getString("messages." + event, fallback).replace("<player>", clean(player.getName()));
         for (int i = 0; i + 1 < pairs.length; i += 2) text = text.replace(pairs[i], clean(pairs[i + 1]));
-        JsonObject embed = new JsonObject();
-        embed.addProperty("description", text.length() > 4000 ? text.substring(0, 4000) : text);
-        embed.addProperty("color", color);
-        JsonArray embeds = new JsonArray();
-        embeds.add(embed);
-        JsonObject body = new JsonObject();
-        body.addProperty("username", c.getString("username", plugin.settings().serverName + " Quests"));
-        String avatar = c.getString("avatar-url", "");
-        if (avatar.startsWith("https://")) body.addProperty("avatar_url", avatar);
-        body.add("embeds", embeds);
-        JsonObject mentions = new JsonObject();
-        mentions.add("parse", new JsonArray()); // never ping @everyone or roles, whatever a name contains
-        body.add("allowed_mentions", mentions);
-        String json = body.toString();
+        List<Field> all = new ArrayList<>(fields);
+        all.addAll(stats(player));
+        String json = body(c, player.getName(), player.getUniqueId().toString().replace("-", ""), title, text, color, all).toString();
         try {
             sender.execute(() -> send(target, json));
         } catch (RuntimeException ignored) {
             // shutting down
         }
+    }
+
+    JsonObject body(ConfigurationSection c, String playerName, String uuid, String title, String text, int color, List<Field> fields) {
+        String server = plugin.settings().serverName;
+        JsonObject embed = new JsonObject();
+        JsonObject author = new JsonObject();
+        author.addProperty("name", playerName);
+        String head = c.getString("player-head-url", "https://mc-heads.net/avatar/<uuid>/64").replace("<uuid>", uuid).replace("<player>", playerName);
+        if (head.startsWith("https://")) author.addProperty("icon_url", head);
+        embed.add("author", author);
+        embed.addProperty("title", title);
+        embed.addProperty("description", text.length() > 4000 ? text.substring(0, 4000) : text);
+        embed.addProperty("color", color);
+        JsonArray list = new JsonArray();
+        for (Field f : fields) {
+            if (f.value() == null || f.value().isBlank()) continue;
+            JsonObject o = new JsonObject();
+            o.addProperty("name", f.name());
+            o.addProperty("value", f.value().length() > 1000 ? f.value().substring(0, 1000) : f.value());
+            o.addProperty("inline", true);
+            list.add(o);
+        }
+        if (!list.isEmpty()) embed.add("fields", list);
+        String body = c.getString("player-body-url", "https://mc-heads.net/body/<uuid>/128").replace("<uuid>", uuid).replace("<player>", playerName);
+        if (body.startsWith("https://")) { JsonObject t = new JsonObject(); t.addProperty("url", body); embed.add("thumbnail", t); }
+        String banner = c.getString("banner-url", "");
+        if (banner.startsWith("https://")) { JsonObject i = new JsonObject(); i.addProperty("url", banner); embed.add("image", i); }
+        JsonObject footer = new JsonObject();
+        footer.addProperty("text", server + " • CQuests");
+        String icon = c.getString("avatar-url", "");
+        if (icon.startsWith("https://")) footer.addProperty("icon_url", icon);
+        embed.add("footer", footer);
+        embed.addProperty("timestamp", java.time.Instant.now().toString());
+        JsonArray embeds = new JsonArray();
+        embeds.add(embed);
+        JsonObject out = new JsonObject();
+        out.addProperty("username", c.getString("username", server + " Quests"));
+        if (icon.startsWith("https://")) out.addProperty("avatar_url", icon);
+        out.add("embeds", embeds);
+        JsonObject mentions = new JsonObject();
+        mentions.add("parse", new JsonArray()); // never ping @everyone or roles, whatever a name contains
+        out.add("allowed_mentions", mentions);
+        return out;
     }
 
     private void send(String target, String json) {

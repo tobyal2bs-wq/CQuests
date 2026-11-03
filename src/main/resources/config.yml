@@ -176,14 +176,21 @@ discord:
   # and never ping @everyone, roles or users.
   webhook-url: ""
   username: "CQuests"
+  # Picture for the webhook and the footer of every post (any https image link).
   avatar-url: ""
+  # The player's face next to their name and their skin on the right of every post.
+  # <uuid> and <player> are filled in. "" turns either off. These pictures come from mc-heads.net.
+  player-head-url: "https://mc-heads.net/avatar/<uuid>/64"
+  player-body-url: "https://mc-heads.net/body/<uuid>/128"
+  # Optional wide picture under every post, e.g. your server banner.
+  banner-url: ""
   events:
     chapter-complete: true
     journey-finished: true
     boss-defeated: true
     # Posted at 7, 30 and 100 days and every full year.
     daily-streak: true
-  # Optional custom text. Placeholders: <player>, <chapter>, <name>, <boss>, <days>, <server>.
+  # Optional custom text for the line under the title. Placeholders: <player>, <chapter>, <name>, <boss>, <days>, <server>.
   messages:
     chapter-complete: "📖 **<player>** finished Chapter <chapter>: <name>"
     journey-finished: "🏆 **<player>** finished the whole journey on <server>!"
