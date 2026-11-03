@@ -42,7 +42,7 @@ public final class SkillPlaceholders extends PlaceholderExpansion {
             boolean shortForm=key.endsWith("_short");
             Long n=number(data,key.substring(0,key.lastIndexOf('_')));
             if(n==null)return null;
-            return shortForm?compact(n):String.format(Locale.ROOT,"%,d",n);
+            return shortForm?Text.compact(n):String.format(Locale.ROOT,"%,d",n);
         }
         Long n=number(data,key);
         if(n!=null)return Long.toString(n);
@@ -133,16 +133,5 @@ public final class SkillPlaceholders extends PlaceholderExpansion {
     private static String bar(double progress){
         int filled=(int)Math.round(Math.max(0,Math.min(1,progress))*10);
         return "■".repeat(filled)+"□".repeat(10-filled);
-    }
-    /** 999, 1.2K, 34.5K, 1.2M, 3B. */
-    static String compact(long n){
-        if(n<0)return "-"+compact(n==Long.MIN_VALUE?Long.MAX_VALUE:-n);
-        if(n<1000)return Long.toString(n);
-        String[] units={"K","M","B","T","Q"};
-        double value=n;int unit=-1;
-        while(value>=1000&&unit<units.length-1){value/=1000;unit++;}
-        String text=value>=100?Long.toString((long)value):String.format(Locale.ROOT,"%.1f",Math.floor(value*10)/10);
-        if(text.endsWith(".0"))text=text.substring(0,text.length()-2);
-        return text+units[unit];
     }
 }

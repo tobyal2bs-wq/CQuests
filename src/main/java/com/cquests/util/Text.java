@@ -80,4 +80,15 @@ public final class Text {
         }
         return minutes + "m";
     }
+    /** 999, 1.2K, 34.5K, 1.2M, 3B. */
+    public static String compact(long n){
+        if(n<0)return "-"+compact(n==Long.MIN_VALUE?Long.MAX_VALUE:-n);
+        if(n<1000)return Long.toString(n);
+        String[] units={"K","M","B","T","Q"};
+        double value=n;int unit=-1;
+        while(value>=1000&&unit<units.length-1){value/=1000;unit++;}
+        String text=value>=100?Long.toString((long)value):String.format(Locale.ROOT,"%.1f",Math.floor(value*10)/10);
+        if(text.endsWith(".0"))text=text.substring(0,text.length()-2);
+        return text+units[unit];
+    }
 }
