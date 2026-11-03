@@ -24,7 +24,7 @@ Mini bosses follow the same rules as the big ones: only you see them, they only 
 
 ## Chapters cost money
 
-Starting a chapter (taking its first story quest) costs money through Vault: 2,500 for chapter 2, then 5k, 10k, 20k, 35k, 50k, 75k, 100k and 150k for chapter 10. If the player can't pay, the villager says how much it costs and nothing is taken. If the quest can't start, the money is refunded. Change the prices under `chapters.cost` in `config.yml`, or turn them off with `chapters.costs-enabled: false`. Without Vault and an economy plugin, chapters stay free.
+Starting a chapter (taking its first story quest) costs money through Vault: 25k for chapter 2, then 50k, 100k, 250k, 500k, 750k, 1M, 1.5M and 2.5M for chapter 10 (since 1.8.1). If the player can't pay, the villager says how much it costs and nothing is taken. If the quest can't start, the money is refunded. Change the prices under `chapters.cost` in `config.yml`, or turn them off with `chapters.costs-enabled: false`. Without Vault and an economy plugin, chapters stay free.
 
 ## Test everything
 

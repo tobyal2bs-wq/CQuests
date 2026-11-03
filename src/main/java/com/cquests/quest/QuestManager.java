@@ -302,8 +302,8 @@ public final class QuestManager {
     }
 
     static long defaultChapterCost(int chapter) {
-        long[] costs = {0, 0, 2_500, 5_000, 10_000, 20_000, 35_000, 50_000, 75_000, 100_000, 150_000};
-        return chapter < costs.length ? costs[chapter] : 150_000L + (chapter - 10) * 50_000L;
+        long[] costs = {0, 0, 25_000, 50_000, 100_000, 250_000, 500_000, 750_000, 1_000_000, 1_500_000, 2_500_000};
+        return chapter < costs.length ? costs[chapter] : 2_500_000L + (chapter - 10) * 1_000_000L;
     }
 
     /** Charges the chapter cost; a payment that does nothing when there is no cost. Null when the player can't pay. */

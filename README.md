@@ -1,3 +1,5 @@
+CQuests **1.8.1** raises chapter costs to 25k (chapter 2) up to 2.5M (chapter 10). See [RELEASE-1.8.1.md](RELEASE-1.8.1.md).
+
 CQuests **1.8.0** gives chapters 6 to 10 twenty villagers each with mini bosses, makes chapters cost money, adds `/cq test boss` and friends, and points every compass at the next villager (`/quests where`). See [RELEASE-1.8.0.md](RELEASE-1.8.0.md).
 
 CQuests **1.7.2** fixes the wheat farm: inside a saved field only the farm hoe harvests, new players get the free hoe automatically, and the action bar explains what to do. See [RELEASE-1.7.2.md](RELEASE-1.7.2.md).

@@ -173,15 +173,15 @@ chapters:
   # Without Vault and an economy plugin chapters stay free. Set costs-enabled: false to turn it off.
   costs-enabled: true
   cost:
-    2: 2500
-    3: 5000
-    4: 10000
-    5: 20000
-    6: 35000
-    7: 50000
-    8: 75000
-    9: 100000
-    10: 150000
+    2: 25000
+    3: 50000
+    4: 100000
+    5: 250000
+    6: 500000
+    7: 750000
+    8: 1000000
+    9: 1500000
+    10: 2500000
 
 # ----------------------------------------------------------- DISCORD
 discord:
