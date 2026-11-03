@@ -61,7 +61,7 @@ class ProgressionTest {
     @Test void storyQuotasAreOptionalAndOldQuestIdsStillResolve() {
         assertFalse(settings.sideGatesEnabled);
         assertFalse(settings.trackerDefault);
-        assertFalse(settings.directionsDefault);
+        assertTrue(settings.directionsDefault, "the arrow to the next villager is on for new players");
         PlayerData data = new PlayerData(UUID.randomUUID());
         for (var quest : quests.story()) {
             assertEquals(0, manager.sideRequired(quest));
