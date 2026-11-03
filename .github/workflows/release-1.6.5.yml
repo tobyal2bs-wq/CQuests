@@ -1,0 +1,88 @@
+name: Publish CQuests 1.6.5
+
+on:
+  push:
+    branches: [claude/project-thread-eax6qq]
+    paths: [.github/workflows/release-1.6.5.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cquests-1.6.5
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_SHA: 9300cb31f827399c8f348177a4599c57da5f254c
+      CHECKED_RUN: '41611510436'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: 9300cb31f827399c8f348177a4599c57da5f254c
+      - name: Verify checked commit and collect its tested JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.head_sha')" = "$SOURCE_SHA"
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.conclusion')" = success
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN/jobs --jq '[.jobs[] | select(.conclusion != "success")] | length')" = 0
+          if gh release view v1.6.5 >/dev/null 2>&1; then
+            echo 'Release v1.6.5 already exists; refusing to replace it.' >&2
+            exit 1
+          fi
+          gh run download "$CHECKED_RUN" --name CQuests --dir tested
+          test -f tested/CQuests-1.6.5.jar
+          grep -Fq 'version = "1.6.5"' build.gradle.kts
+      - name: Package source, setup guide and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out/bundle
+          cp tested/CQuests-1.6.5.jar out/
+          git archive --format=zip --prefix=CQuests/ --output=out/CQuests-1.6.5-source.zip HEAD
+          cp out/CQuests-1.6.5.jar out/CQuests-1.6.5-source.zip ANVIL-AND-COMMANDS-1.6.5.md QUEST-HOME-1.6.4.md OPTIMISATION-1.6.3.md MAIL-DIALOGUE-1.6.2.md DIALOGUE-FIX-1.6.1.md MERCHANTS-AND-AI-MAIL-1.6.0.md MAIL-AND-DISCOVERIES-1.5.0.md WORKSHOP-1.3.4.md ADVENTURES-1.4.0.md FARM-TESTING.md out/bundle/
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,os,zipfile
+          out=Path('out');bundle=out/'bundle'
+          def digest(p,kind='sha256'):return hashlib.new(kind,p.read_bytes()).hexdigest()
+          manifest={'version':'1.6.5','commit':os.environ['SOURCE_SHA'],'tested_jar_from_run':int(os.environ['CHECKED_RUN']),'github_actions':'https://github.com/'+os.environ['GH_REPO']+'/actions/runs/'+os.environ['CHECKED_RUN'],'unit_tests':130,'note':'JAR is downloaded unchanged from the successful build and server smoke-test run. Paper/Folia 26.2 OP anvil placement, protected custom upgrades, range/replay guards, mail and full restart checks passed on local JAR SHA256 10c3a6dd249e1d189575aedf275405eb6550fe0f8df7bcd7fc5fbf087a7a5b0d. This CI-built artifact can differ in ZIP timestamps.','files':{p.name:{'bytes':p.stat().st_size,'sha256':digest(p),'sha1':digest(p,'sha1')} for p in sorted(bundle.iterdir())}}
+          (bundle/'MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          with zipfile.ZipFile(out/'CQuests-1.6.5-release.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in sorted(bundle.iterdir()):z.write(p,'CQuests-1.6.5/'+p.name)
+          files=sorted(p for p in out.iterdir() if p.is_file())
+          (out/'CQuests-1.6.5-CHECKSUMS.txt').write_text(''.join(f'SHA256 {digest(p)}  {p.name}\nSHA1   {digest(p,"sha1")}  {p.name}\n' for p in files))
+          PY
+          cat > out/notes.md <<'NOTES'
+          Players use quests and mail separately; hoe upgrades belong to a physical anvil.
+
+          - `/quests` stays focused on quests and their tracker/direction settings. `/quest mail` opens mail separately. The unrelated hub buttons were removed, and no new standalone player commands were added.
+          - As OP, run `/cq farm anvil` to receive a named, marked Fieldsmith Anvil item. Place it on solid ground. Players right-click the placed anvil to open the existing custom hoe-upgrade GUI.
+          - Obtaining and placing the marked item require actual OP status, even when another player has the admin permission. Multiple station locations are saved. Existing legacy single-anvil bindings are retained; `/cq farm bind` registers an existing anvil for OPs.
+          - Player farm commands, quest menus and farm NPC roles no longer open upgrades remotely. The GUI checks the registered station and six-block range on every click, including before purchases. Prices, sequential tiers and replay guards remain authoritative.
+          - Non-OP breaking, explosions and falling-block changes cannot remove a registered workshop. OP breaking unregisters it. Mail, quest progress, stored tools and existing preferences are preserved.
+
+          Validation: 130 unit tests covering OP-only item creation/placement, station protection, multiple saved stations, legacy binding, reload/removal, range and no-station access. Paper/Folia 26.2 protocol tests exercised actual OP give/place and non-OP placement rejection, custom GUI clicks, repeated purchase packets, distance rejection, gravity protection, separate quest/mail screens and actual OP removal. Full server restarts verified both anvil locations, purchased hoe tier and reopening the GUI. The mail dialogue regression passed. The linked CI run passed build, Paper 1.21.4, Paper latest and Folia latest checks. The local economy was a Vault test provider; no hosted economy or graphical-client review is claimed.
+          https://github.com/tobyal2bs-wq/CQuests/actions/runs/41611510436
+
+          Stop the server, back up CQuests data, replace the JAR and keep the data folder. See ANVIL-AND-COMMANDS-1.6.5.md. The old look-to-bind use of `/cq farm anvil` is now `/cq farm bind`; `/cq farm anvil` gives the special item.
+
+          The public JAR is downloaded unchanged from the successful CI run. Source, guides and SHA256/SHA1 checksums are included. Local protocol checks used the same source; the manifest records the local JAR hash because ZIP timestamps can differ.
+          NOTES
+      - name: Create, verify and publish release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create v1.6.5 out/CQuests-1.6.5.jar out/CQuests-1.6.5-source.zip out/CQuests-1.6.5-release.zip out/CQuests-1.6.5-CHECKSUMS.txt --target "$SOURCE_SHA" --title 'CQuests 1.6.5 - Separate quests and mail with OP-placed upgrade anvils' --notes-file out/notes.md --draft
+          test "$(gh release view v1.6.5 --json assets --jq '.assets | length')" = 4
+          gh release edit v1.6.5 --draft=false --latest
+          gh release view v1.6.5 --json url,isDraft,tagName,assets >> "$GITHUB_STEP_SUMMARY"
