@@ -32,13 +32,14 @@ public final class QuestsCommand implements TabExecutor {
             sender.sendMessage("Only players have a quest journal.");
             return true;
         }
-        String sub = args.length == 0 ? plugin.questManager().data(player).menuMode(plugin.settings().defaultMenu) : args[0].toLowerCase(Locale.ROOT);
+        String sub = args.length == 0 ? "journal" : args[0].toLowerCase(Locale.ROOT);
         // NPC response buttons remain usable without journal permission, as direct NPC clicks were.
         if (!List.of("accept", "respond", "mode").contains(sub) && !player.hasPermission("quests.use")) {
             plugin.send(player, "<red>You need quests.use to open the journal or change tracking.");
             return true;
         }
         switch (sub) {
+            case "journal" -> com.cquests.gui.QuestJournal.command(plugin,player,args);
             case "mail" -> plugin.mail().command(player,args);
             case "discoveries" -> plugin.mail().discoveries(player);
             case "encounter" -> {
@@ -56,13 +57,14 @@ public final class QuestsCommand implements TabExecutor {
                     data.setMenuMode(args[1].toLowerCase(Locale.ROOT));
                     plugin.store().saveNow(data);
                     plugin.dialogue().forget(player);
-                    plugin.send(player, "<white>Journal and fallback dialogue: <aqua>" + data.menuMode("book"));
+                    plugin.send(player, "<white>Fallback NPC conversations: <aqua>" + data.menuMode("book"));
                 }
             }
             case "directions" -> plugin.send(player, "<white>Villager directions: <aqua>" + (plugin.directions().toggle(player) ? "on" : "off"));
             case "achievements" -> plugin.finale().achievements().show(player);
             case "farm" -> com.cquests.farm.FarmMenu.open(plugin,player);
-            case "settings", "menu" -> QuestMenu.open(plugin, player);
+            case "settings" -> com.cquests.gui.QuestJournal.command(plugin,player,new String[]{"journal","settings"});
+            case "menu" -> QuestMenu.open(plugin, player);
             case "chat" -> list(player);
             case "accept" -> {
                 if (!plugin.dialogue().acceptPending(player)) {
@@ -76,7 +78,7 @@ public final class QuestsCommand implements TabExecutor {
             case "story" -> story(player);
             case "list" -> list(player);
             case "abandon" -> abandon(player, args);
-            default -> QuestMenu.open(plugin, player);
+            default -> com.cquests.gui.QuestJournal.open(plugin, player);
         }
         return true;
     }

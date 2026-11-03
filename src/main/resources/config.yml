@@ -22,7 +22,8 @@ dialogue:
   # One character every two ticks, followed by four seconds to read each sentence.
   character-ticks: 2
   reading-pause-ticks: 80
-  # Default for /quests and NPC conversations. Players can use /quests mode book|menu|chat.
+  # Fallback NPC conversation preference. /quests opens the simple quest home.
+  # Explicit /quests book, /quests menu and /quests chat remain available.
   default-mode: book
   # Pause between lines a villager says (20 ticks = 1 second).
   line-delay-ticks: 35

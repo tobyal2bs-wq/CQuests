@@ -56,8 +56,10 @@ public final class FarmMenu implements LockedMenu {
                 "<gray>Your hoe is stored when you leave.","<gray>Enter the fields to collect it.",
                 "<yellow>Click to collect your hoe.")));
         inventory.setItem(40,QuestMenu.item(Material.BARRIER,"<red>Close",List.of()));
+        inventory.setItem(36,QuestMenu.item(Material.ARROW,"<white>Back to quest home",List.of()));
     }
     public void click(int slot,ClickType type){
+        if(slot==36){com.cquests.gui.QuestJournal.open(plugin,player);return;}
         if(slot==40){player.closeInventory();return;}
         if(slot==31){if(plugin.farm().inFarm(player))plugin.farm().equip(player);else plugin.send(player,"<yellow>Step into the fields to collect your hoe.");return;}
         if(slot==34&&confirm!=null){

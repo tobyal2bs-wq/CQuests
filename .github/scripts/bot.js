@@ -7,6 +7,8 @@ const actionBars = []
 const welcomeTitle = 'Welcome to ' + (process.env.MC_SERVER_NAME || 'Dawn SMP')
 const welcomeComplete = 'Quest complete: ' + welcomeTitle
 let books = 0
+let journalDialogs = 0
+bot._client.on('packet', (packet, meta) => { if (meta.name === 'show_dialog' && JSON.stringify(packet).includes('Quest home')) journalDialogs++ })
 let responseToken = null
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 bot.on('messagestr', m => { console.log('CHAT ' + m); chat.push(m) })
@@ -58,7 +60,7 @@ bot.once('spawn', async () => {
     await sleep(4500)
     if (process.env.RECONNECT_TEST === 'true') {
       await until(() => bars.length > 0, 'tracker preference restored after restart')
-      await command('/quests')
+      await command('/quests menu')
       await until(() => bot.currentWindow, 'saved menu preference after restart')
       await until(() => bot.currentWindow?.slots[46]?.name === 'recovery_compass', 'saved menu item packets arrive')
       check(bot.currentWindow.slots[46]?.name === 'recovery_compass', 'settings controls restored')
@@ -68,7 +70,11 @@ bot.once('spawn', async () => {
     check(bars.length === 0, 'boss bar is off by default')
     await command('/gamemode creative')
     await command('/quests')
-    await until(() => books > 0, 'journal defaults to book')
+    await until(() => journalDialogs > 0 || bot.currentWindow?.slots[13]?.name === 'map', 'simple quest home opens')
+    check(journalDialogs > 0 || bot.currentWindow?.slots[13]?.name === 'map', 'quest home is available without a book')
+    if (bot.currentWindow) bot.closeWindow(bot.currentWindow)
+    await command('/quests book')
+    await until(() => books > 0, 'explicit legacy book remains available')
     await command('/cq npc tp stephan')
     await until(() => named('Stephan'), 'Stephan actually spawns', 45000)
     await sleep(1000)

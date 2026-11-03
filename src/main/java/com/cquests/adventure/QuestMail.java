@@ -60,6 +60,7 @@ public final class QuestMail {
         if(page>0)buttons.add(new MailDialog.Button("Previous letters","/quest mail inbox "+(page-1)));
         if((page+1)*5<available.size())buttons.add(new MailDialog.Button("More letters","/quest mail inbox "+(page+1)));
         if(!data.mailThread().isEmpty())buttons.add(new MailDialog.Button("Sent letters & replies","/quest mail replies"));
+        buttons.add(new MailDialog.Button("Back to quest home","/quests"));
         buttons.add(new MailDialog.Button("Close","/quest mail close"));
         player.closeInventory();
         if(!MailDialog.open(plugin,player,"Your mail",lines,buttons,false))new Mailbox(player,page/9).open();
@@ -194,6 +195,7 @@ public final class QuestMail {
                         List.of("<gray>From "+Text.escape(l.sender()),"<gray>Delivered "+time(data.mailReceived(l.id())),read?"<gray>Read • click to reread":"<yellow>Unopened • click to read")));
             }
             inventory.setItem(50,QuestMenu.item(Material.WRITABLE_BOOK,"<gold>Replies and conversations",List.of("<gray>Read your correspondence.")));
+            inventory.setItem(48,QuestMenu.item(Material.ARROW,"<white>Back to quest home",List.of()));
             if(visible.isEmpty())inventory.setItem(22,QuestMenu.item(Material.FEATHER,"<gray>No letters yet",List.of("<gray>Get to know the villagers and work the fields.")));
             if(this.page>0)inventory.setItem(45,QuestMenu.item(Material.ARROW,"<yellow>Previous",List.of()));
             inventory.setItem(49,QuestMenu.item(Material.SUNFLOWER,"<gold>Sunflower Tokens: "+data.sunflowers(),List.of("<gray>Safely banked • spend at Flora's store.","<gray>One token per 750 successful wheat harvests.")));
@@ -202,6 +204,7 @@ public final class QuestMail {
         void open(){player.openInventory(inventory);}
         public UUID viewer(){return player.getUniqueId();}public Inventory getInventory(){return inventory;}
         public void click(int slot,ClickType type){
+            if(slot==48){com.cquests.gui.QuestJournal.open(plugin,player);return;}
             if(slot==45&&page>0){new Mailbox(player,page-1).open();return;}
             if(slot==53&&(page+1)*45<visible.size()){new Mailbox(player,page+1).open();return;}
             if(slot==50){history(player,0);return;}

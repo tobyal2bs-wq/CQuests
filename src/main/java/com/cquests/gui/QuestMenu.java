@@ -95,15 +95,16 @@ public final class QuestMenu implements LockedMenu {
                     "<gray>Look for the white names around spawn.")));
         }
         chapters(data);
-        inventory.setItem(SLOT_BOOK, item(Material.WRITABLE_BOOK, "<gold>Open the journal book", List.of("<gray>Every quest, page by page.")));
+        inventory.setItem(SLOT_BOOK, item(Material.WRITABLE_BOOK, "<gold>Optional journal book", List.of("<gray>Every quest, page by page.")));
+        inventory.setItem(45,item(Material.ARROW,"<white>Back to quest home",List.of()));
         inventory.setItem(SLOT_CLOSE, item(Material.BARRIER, "<red>Close", List.of()));
         boolean on = plugin.tracker().enabled(player);
         inventory.setItem(SLOT_TRACKER, item(Material.COMPASS, "<aqua>Quest tracker: " + (on ? "<green>on" : "<red>off"),
                 List.of("<gray>The bar at the top of your screen.", "<yellow>Click to turn it " + (on ? "off" : "on") + ".")));
         inventory.setItem(46, item(Material.RECOVERY_COMPASS, "<white>Directions: " + (plugin.directions().enabled(player) ? "<green>on" : "<gray>off"),
                 List.of("<gray>An arrow and distance to your villager.", "<yellow>Click to toggle.")));
-        inventory.setItem(52, item(Material.WRITABLE_BOOK, "<white>Journal view: " + data.menuMode(plugin.settings().defaultMenu),
-                List.of("<gray>Book, menu or chat journal.","<gray>NPC choices use native dialogs when supported.", "<yellow>Click to change.")));
+        inventory.setItem(52, item(Material.WRITABLE_BOOK, "<white>NPC fallback view: " + data.menuMode(plugin.settings().defaultMenu),
+                List.of("<gray>Used when native NPC dialogue is unavailable.", "<yellow>Click to change.")));
         inventory.setItem(47, item(Material.EMERALD, "<white>Milestones", List.of("<gray>View your next achievement.", "<yellow>Click to open.")));
         inventory.setItem(53,item(Material.WOODEN_HOE,"<gold>Field workshop",List.of("<gray>Wayfarer level "+plugin.progression().level(data),"<gray>Personal tools and upgrades.")));
     }
@@ -244,6 +245,7 @@ public final class QuestMenu implements LockedMenu {
 
     /** Called by the listener for a click in the top inventory; the click itself is already cancelled. */
     public void click(int slot, ClickType type) {
+        if(slot==45){QuestJournal.open(plugin,player);return;}
         String questId = questAt.get(slot);
         if (questId != null) {
             Quest quest = plugin.quests().get(questId);
