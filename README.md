@@ -1,3 +1,5 @@
+CQuests **1.8.0** gives chapters 6 to 10 twenty villagers each with mini bosses, makes chapters cost money, adds `/cq test boss` and friends, and points every compass at the next villager (`/quests where`). See [RELEASE-1.8.0.md](RELEASE-1.8.0.md).
+
 CQuests **1.7.2** fixes the wheat farm: inside a saved field only the farm hoe harvests, new players get the free hoe automatically, and the action bar explains what to do. See [RELEASE-1.7.2.md](RELEASE-1.7.2.md).
 
 CQuests **1.7.1** gives the Discord posts a proper embed: player face and skin, title, fields, a story progress bar and a footer. See [RELEASE-1.7.1.md](RELEASE-1.7.1.md).
@@ -75,6 +77,9 @@ WorldGuard is required for farming, alongside its matching WorldEdit dependency.
 | `/cq test finish <npc>` | op | Act as if you finished a villager, so it disappears for you |
 | `/cq test unfinish <npc>` | op | Undo that exactly; the villager comes back |
 | `/cq test roam <npc>` | op | Move a scattered villager to a new spot now |
+| `/cq test boss <quest>`, `bossphase`, `bossstop`, `bossevent <event>`, `all` | op | Start any boss fight next to you and watch it (nothing counts) |
+| `/cq test discord <event>` | op | Send a sample Discord post |
+| `/quests where` | `quests.use` | Who to visit next, how far and which way |
 | `/cq test book` | op | Read your "Your Story" book as it is so far |
 | `/cq backup` | op | Back up all quest data now |
 | `/cq backups` | op | List backups, newest first |
@@ -184,7 +189,7 @@ Every quest NPC, every merchant and Pip the companion can be renamed in game or 
 
 ### Chapters 6 to 10 and bosses
 
-1.7.0 ships five more chapters with 10 villagers each: 6 The Iron Tusk, 7 Tides of the Drowned, 8 The Ember Court, 9 The Bone Choir and 10 The Listener Below. They are **off** until you switch them on, so you can try them first:
+1.7.0 ships five more chapters, with 20 villagers each since 1.8.0 (a mini boss halfway, a boss at the end): 6 The Iron Tusk, 7 Tides of the Drowned, 8 The Ember Court, 9 The Bone Choir and 10 The Listener Below. They are **off** until you switch them on, so you can try them first:
 
 * `/cq chapter` lists every chapter and whether it is on. `/cq chapter 6 on` switches chapter 6 on for everyone, `/cq chapter 6 off` hides it again. This writes `chapters.locked` in `config.yml` and reloads.
 * While a chapter is off its villagers do not spawn and its quests do not exist. Players who already finished chapter 5 continue into chapter 6 as soon as it is on. Progress in a chapter you switch off is kept.
