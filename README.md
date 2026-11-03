@@ -1,3 +1,5 @@
+CQuests **1.7.1** gives the Discord posts a proper embed: player face and skin, title, fields, a story progress bar and a footer. See [RELEASE-1.7.1.md](RELEASE-1.7.1.md).
+
 CQuests **1.7.0** adds chapters 6 to 10 (50 new villagers, each chapter ending in a private boss fight), switched off until you run `/cq chapter 6 on`. It also adds Discord webhook announcements, daily quest streaks, `/cq scatterworld` across the whole world, a PlaceholderAPI placeholder for every number and name, and removes wheat from every quest. See [RELEASE-1.7.0.md](RELEASE-1.7.0.md).
 
 CQuests **1.6.6** is a stability and performance release: NPCs under roofs or trees spawn again, a server-wide mob movement listener is gone, offline players leave memory, and renaming an NPC now changes its name everywhere (quest text, tracker, directions, mail, menus) and works from the console. See [RELEASE-1.6.6.md](RELEASE-1.6.6.md).
