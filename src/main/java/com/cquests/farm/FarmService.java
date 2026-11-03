@@ -27,7 +27,8 @@ public final class FarmService {
     }
     private final CQuestsPlugin plugin;
     private final File file,pendingFile;
-    private final NamespacedKey hoeKey,ownerKey,tierKey;
+    private final NamespacedKey hoeKey,ownerKey,tierKey,anvilKey;
+    private volatile Set<Spot> upgraders=Set.of();
     private final Map<UUID,Long> cooldowns=new ConcurrentHashMap<>();
     private final Set<UUID> inside=ConcurrentHashMap.newKeySet();
     private final Set<Spot> pending=ConcurrentHashMap.newKeySet();
@@ -44,13 +45,14 @@ public final class FarmService {
     public FarmService(CQuestsPlugin plugin){
         this.plugin=plugin;file=new File(plugin.getDataFolder(),"farming.yml");pendingFile=new File(plugin.getDataFolder(),"farm-regrowth.yml");
         hoeKey=new NamespacedKey(plugin,"farm_hoe");ownerKey=new NamespacedKey(plugin,"farm_owner");tierKey=new NamespacedKey(plugin,"farm_tier");
+        anvilKey=new NamespacedKey(plugin,"farm_upgrader");
         reload();
         for(String s:YamlConfiguration.loadConfiguration(pendingFile).getStringList("pending")){
             Spot spot=Spot.decode(s);if(spot!=null)pending.add(spot);
         }
         restoreLoaded();
     }
-    public void reload(){
+    public synchronized void reload(){
         config=YamlConfiguration.loadConfiguration(file);
         enabled=config.getBoolean("enabled",true);blockCommands=config.getBoolean("harvest.commands-blocked",true);
         particles=config.getBoolean("harvest.particles",true);xp=Math.max(1,config.getLong("harvest.xp-per-wheat",10));
@@ -76,7 +78,7 @@ public final class FarmService {
             list.add(new FarmArea(id,config.getString(p+"world","world"),config.getString(p+"region",""),
                     bounds.get(1),bounds.get(4),new Polygon(vertices),config.getBoolean(p+"outside"),bounds.stream().mapToInt(Integer::intValue).toArray()));
         }catch(RuntimeException e){plugin.getLogger().warning("Farm area "+id+" is invalid and remains disabled: "+e.getMessage());}
-        areas=List.copyOf(list);economy.refresh();
+        areas=List.copyOf(list);upgraders=readUpgraders();economy.refresh();
     }
     public Collection<Tier> tiers(){return tiers.values().stream().sorted(Comparator.comparingInt(Tier::id)).toList();}
     public Tier tier(int id){return tiers.get(id);}
@@ -223,8 +225,17 @@ public final class FarmService {
         config.set(p+"bounds",Arrays.stream(bounds).boxed().toList());
         saveConfig();reload();
     }
-    public synchronized void setUpgrader(Location loc){config.set("upgrader",new Spot(loc.getWorld().getName(),loc.getBlockX(),loc.getBlockY(),loc.getBlockZ()).encode());saveConfig();}
-    public boolean upgrader(Block b){return new Spot(b.getWorld().getName(),b.getX(),b.getY(),b.getZ()).encode().equals(config.getString("upgrader"));}
+    private static Spot spot(Location loc){return new Spot(loc.getWorld().getName(),loc.getBlockX(),loc.getBlockY(),loc.getBlockZ());}
+    private Set<Spot> readUpgraders(){var result=new HashSet<Spot>();for(String value:config.getStringList("upgraders")){var point=Spot.decode(value);if(point!=null)result.add(point);}var old=Spot.decode(config.getString("upgrader",""));if(old!=null)result.add(old);return Set.copyOf(result);}
+    public synchronized void setUpgrader(Location loc){config.set("upgrader",spot(loc).encode());saveConfig();upgraders=readUpgraders();}
+    public synchronized void addUpgrader(Location loc){var next=new HashSet<>(upgraders);next.add(spot(loc));config.set("upgraders",next.stream().map(Spot::encode).sorted().toList());saveConfig();upgraders=Set.copyOf(next);}
+    public synchronized void removeUpgrader(Location loc){var point=spot(loc);var next=new HashSet<>(upgraders);if(!next.remove(point))return;upgraders=Set.copyOf(next);config.set("upgraders",next.stream().map(Spot::encode).sorted().toList());if(point.encode().equals(config.getString("upgrader")))config.set("upgrader",null);saveConfig();}
+    public boolean registeredUpgrader(Location loc){return upgraders.contains(spot(loc));}
+    public boolean upgrader(Block b){return b!=null&&switch(b.getType()){case ANVIL,CHIPPED_ANVIL,DAMAGED_ANVIL->registeredUpgrader(b.getLocation());default->false;};}
+    public boolean validUpgrader(Player player,Spot point){if(point==null||!upgraders.contains(point)||!point.world().equals(player.getWorld().getName()))return false;var at=player.getEyeLocation();double x=at.getX()-point.x()-.5,y=at.getY()-point.y()-.5,z=at.getZ()-point.z()-.5;return x*x+y*y+z*z<=36;}
+    public Spot nearbyUpgrader(Player player){for(var point:upgraders)if(validUpgrader(player,point))return point;return null;}
+    public boolean anvilItem(ItemStack item){return item!=null&&item.getType()==Material.ANVIL&&item.hasItemMeta()&&item.getItemMeta().getPersistentDataContainer().has(anvilKey,PersistentDataType.BYTE);}
+    public ItemStack anvilItem(){var item=new ItemStack(Material.ANVIL);item.editMeta(meta->{meta.displayName(Text.mm("<!italic><gold><bold>Fieldsmith Anvil"));meta.lore(List.of(Text.mm("<gray>OP: place on solid ground to create a workshop."),Text.mm("<yellow>Players: right-click to upgrade your hoe.")));meta.getPersistentDataContainer().set(anvilKey,PersistentDataType.BYTE,(byte)1);});return item;}
     public String role(String npc){for(String role:List.of("shop","upgrader","locker"))if(npc.equalsIgnoreCase(config.getString("npcs."+role,"")))return role;return null;}
     private void saveConfig(){try{config.save(file);}catch(Exception e){throw new IllegalStateException("Farm configuration could not be saved",e);}}
     public synchronized void shutdown(){running=false;savePending();writer.shutdown();try{if(!writer.awaitTermination(10,TimeUnit.SECONDS))plugin.getLogger().warning("Farm writer did not drain within 10 seconds");}catch(InterruptedException e){Thread.currentThread().interrupt();}}

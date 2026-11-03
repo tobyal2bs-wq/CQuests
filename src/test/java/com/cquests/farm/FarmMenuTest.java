@@ -23,6 +23,7 @@ class FarmMenuTest {
         var player=mock(Player.class);var data=mock(PlayerData.class);var inventory=mock(Inventory.class);
         when(plugin.farm()).thenReturn(farm);when(plugin.questManager()).thenReturn(quests);
         when(plugin.progression()).thenReturn(levels);when(quests.data(player)).thenReturn(data);
+        var station=new FarmService.Spot("world",0,64,0);when(farm.nearbyUpgrader(player)).thenReturn(station);when(farm.validUpgrader(player,station)).thenReturn(true);
         when(levels.level(data)).thenReturn(100);when(data.hoeTier()).thenReturn(1);
         for(int i=1;i<=3;i++)when(farm.tier(i)).thenReturn(new FarmService.Tier(i,"Hoe "+i,Material.WOODEN_HOE,5000,1,1.2,0,5));
         try(var bukkit=mockStatic(Bukkit.class);var items=mockStatic(QuestMenu.class)) {
@@ -42,5 +43,9 @@ class FarmMenuTest {
             menu.click(24,ClickType.LEFT);menu.click(34,ClickType.LEFT);
             verify(farm).purchase(player,3);
         }
+    }
+    @Test void noStationCannotOpenTheUpgradeInventory(){
+        var plugin=mock(CQuestsPlugin.class);var farm=mock(FarmService.class);var player=mock(Player.class);when(plugin.farm()).thenReturn(farm);
+        FarmMenu.open(plugin,player);verify(player,never()).openInventory(any(Inventory.class));verify(farm,never()).purchase(any(),anyInt());
     }
 }

@@ -126,6 +126,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new MenuListener(this), this);
         getServer().getPluginManager().registerEvents(speech, this);
         getServer().getPluginManager().registerEvents(new FarmListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.cquests.farm.FarmAnvils(this), this);
         getServer().getPluginManager().registerEvents(new com.cquests.merchant.MerchantListener(this), this);
         getServer().getPluginManager().registerEvents(adventures, this);
         register("quests", new QuestsCommand(this));

@@ -32,11 +32,17 @@ public final class FarmCommand {
     public void run(CommandSender sender,String[] args){
         if(!(sender instanceof Player p)){sender.sendMessage("Run the farm editor in game.");return;}
         String action=args.length>1?args[1].toLowerCase(Locale.ROOT):"help";
-        if(action.equals("menu")){FarmMenu.open(plugin,p);return;}
+        if(action.equals("menu")){plugin.send(p,"<yellow>Use /cq farm anvil to get a Fieldsmith Anvil, then place and right-click it.");return;}
         if(action.equals("anvil")){
+            if(!p.isOp()){plugin.send(p,"<red>Only OPs can obtain a Fieldsmith Anvil.");return;}
+            if(p.getInventory().firstEmpty()<0){plugin.send(p,"<yellow>Make room in your inventory first.");return;}
+            p.getInventory().addItem(plugin.farm().anvilItem());plugin.send(p,"<green>Place the Fieldsmith Anvil on solid ground. Players can right-click it to upgrade hoes.");return;
+        }
+        if(action.equals("bind")){
+            if(!p.isOp()){plugin.send(p,"<red>Only OPs can bind a Fieldsmith Anvil.");return;}
             var block=p.getTargetBlockExact(6);
             if(block==null||!block.getType().name().endsWith("ANVIL")){plugin.send(p,"<red>Look at the anvil you want to bind.");return;}
-            plugin.farm().setUpgrader(block.getLocation());plugin.send(p,"<green>Field workshop bound to this anvil.");return;
+            plugin.farm().addUpgrader(block.getLocation());plugin.send(p,"<green>Field workshop bound to this anvil.");return;
         }
         if((action.equals("wand")||action.equals("outside"))&&args.length>=3){
             String id=args[2].toLowerCase(Locale.ROOT);
@@ -62,7 +68,7 @@ public final class FarmCommand {
             }catch(RuntimeException e){plugin.send(p,"<red>"+Text.escape(e.getMessage()));}
             return;
         }
-        plugin.send(p,"<white>/cq farm wand <id> <gray>• include outline\n<white>/cq farm outside <id> <gray>• WG region minus outline\n<white>/cq farm save <id> <wg-region>\n<white>/cq farm anvil <gray>• bind the anvil you look at\n<white>/cq farm menu");
+        plugin.send(p,"<white>/cq farm wand <id> <gray>• include outline\n<white>/cq farm outside <id> <gray>• WG region minus outline\n<white>/cq farm save <id> <wg-region>\n<white>/cq farm anvil <gray>• OP: get a Fieldsmith Anvil\n<white>/cq farm bind <gray>• OP: bind an existing anvil");
     }
     public void forget(Player p){selections.remove(p.getUniqueId());}
 }

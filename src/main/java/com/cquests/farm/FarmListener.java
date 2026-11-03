@@ -23,9 +23,6 @@ public final class FarmListener implements Listener {
         if(mainHand&&block!=null&&plugin.farmCommand().wand(e.getItem())&&p.hasPermission("cquests.admin")){
             e.setCancelled(true);plugin.farmCommand().point(p,block,e.getAction()==Action.RIGHT_CLICK_BLOCK);return;
         }
-        if(mainHand&&block!=null&&plugin.farm().upgrader(block)&&e.getAction()==Action.RIGHT_CLICK_BLOCK){
-            e.setCancelled(true);Sched.entity(p,()->FarmMenu.open(plugin,p));return;
-        }
         if(plugin.farm().marked(e.getItem())){
             e.setCancelled(true);
             if(mainHand&&block!=null&&e.getAction()==Action.LEFT_CLICK_BLOCK)plugin.farm().harvest(p,block);

@@ -70,7 +70,7 @@ public final class NpcListener implements Listener {
             boolean merchant=plugin.quests().storyFrom(npc.id()).isEmpty();
             boolean sneak=com.cquests.merchant.MerchantService.editGesture(player);
             if(role!=null&&(merchant?!sneak:sneak)){
-                Sched.entity(event.getPlayer(),()->com.cquests.farm.FarmMenu.open(plugin,event.getPlayer()));
+                plugin.send(player,"<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe. Enter the fields to collect your stored tool.");
                 return;
             }
             plugin.dialogue().onClick(event.getPlayer(), npc, clicked);

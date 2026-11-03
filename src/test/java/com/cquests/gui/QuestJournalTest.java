@@ -62,10 +62,10 @@ class QuestJournalTest {
         c.run("journal","story");assertTrue(c.screen().lines().toString().contains("Reach Wayfarer level 100 first"));
         assertTrue(c.screen().buttons().stream().noneMatch(b->b.command().contains("accept")||b.command().contains("guide")));
     });}
-    @Test void settingsAndFarmHelpAlwaysReturnHome(){check(c->{
+    @Test void questSettingsStayInQuestsAndFarmRouteCannotOpenUpgrades(){check(c->{
         c.run("journal","settings");assertEquals("Quest settings",c.screen().title());assertEquals(3,c.screen().buttons().size());
         c.run("journal","tracker");verify(c.plugin().tracker()).toggle(c.player());assertEquals("Quest settings",c.screen().title());
-        c.run("journal","farm");assertEquals("Farming & tools",c.screen().title());assertTrue(c.screen().buttons().stream().anyMatch(b->b.label().equals("Back to quest home")));
+        c.run("journal","farm");assertEquals("Quest home",c.screen().title());assertTrue(c.screen().buttons().stream().noneMatch(b->b.command().contains("farm")||b.command().contains("mail")));
     });}
     @Test void showingDirectionsIsIdempotentAndDoesNotToggleThemOff(){check(c->{
         c.run("journal","guide","welcome");verify(c.plugin().directions()).toggle(c.player());

@@ -87,7 +87,8 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq camp</yellow> <gray>arrange five residents plus the daily NPC
                 <yellow>/cq farm wand|outside <id></yellow> <gray>select a farm outline
                 <yellow>/cq farm save <id> <wg-region></yellow> <gray>bind the outline to WorldGuard
-                <yellow>/cq farm anvil</yellow> <gray>bind the anvil you look at
+                <yellow>/cq farm anvil</yellow> <gray>OP: get the special hoe-upgrade anvil
+                <yellow>/cq farm bind</yellow> <gray>OP: bind an existing anvil
                 <yellow>/cq merchant list</yellow> <gray>five travelling merchants; OP-only route/trade editor
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
                 <yellow>/cq quest <id></yellow> <gray>show a quest's details
@@ -445,7 +446,7 @@ public final class AdminCommand implements TabExecutor {
             if(args.length==2)return QuestsCommand.filter(List.of("test","list","spawn","point","shop","end","wand","undo","routeclear","walk","despawn","edit"),args[1]);
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
         }
-        if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","menu"),args[1]);
+        if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","bind"),args[1]);
         if(first.equals("character")){
             if(args.length==2){var ids=new ArrayList<String>();plugin.npcs().all().forEach(n->ids.add(n.id()));plugin.merchants().all().forEach(n->ids.add(n.id()));ids.add("pip");return QuestsCommand.filter(ids,args[1]);}
             if(args.length==3)return QuestsCommand.filter(List.of("name","title","prefix","format","speech-prefix","intro","idle","arrival","reset"),args[2]);

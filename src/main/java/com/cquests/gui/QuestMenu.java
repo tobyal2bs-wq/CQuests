@@ -106,7 +106,6 @@ public final class QuestMenu implements LockedMenu {
         inventory.setItem(52, item(Material.WRITABLE_BOOK, "<white>NPC fallback view: " + data.menuMode(plugin.settings().defaultMenu),
                 List.of("<gray>Used when native NPC dialogue is unavailable.", "<yellow>Click to change.")));
         inventory.setItem(47, item(Material.EMERALD, "<white>Milestones", List.of("<gray>View your next achievement.", "<yellow>Click to open.")));
-        inventory.setItem(53,item(Material.WOODEN_HOE,"<gold>Field workshop",List.of("<gray>Wayfarer level "+plugin.progression().level(data),"<gray>Personal tools and upgrades.")));
     }
 
     private ItemStack chapterItem(PlayerData data) {
@@ -265,7 +264,6 @@ public final class QuestMenu implements LockedMenu {
             return;
         }
         switch (slot) {
-            case 53 -> com.cquests.farm.FarmMenu.open(plugin,player);
             case 46 -> { plugin.directions().toggle(player); fill(); }
             case 47 -> { player.closeInventory(); plugin.finale().achievements().show(player); }
             case 52 -> {

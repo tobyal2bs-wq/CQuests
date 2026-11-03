@@ -47,4 +47,16 @@ class FarmPersistenceTest {
             assertEquals(java.util.List.of(crop.encode()),YamlConfiguration.loadConfiguration(file.toFile()).getStringList("pending"));
         }finally{service.shutdown();}
     }
+    @Test void multipleAnvilsAndLegacyBindingSurviveReloadAndRemoval(){
+        var service=service();var world=mock(org.bukkit.World.class);when(world.getName()).thenReturn("world");
+        var a=new org.bukkit.Location(world,1,64,2);var b=new org.bukkit.Location(world,8,64,2);var old=new org.bukkit.Location(world,16,64,2);
+        try{
+            service.addUpgrader(a);service.addUpgrader(b);service.setUpgrader(old);service.reload();
+            assertTrue(service.registeredUpgrader(a));assertTrue(service.registeredUpgrader(b));assertTrue(service.registeredUpgrader(old));
+            service.removeUpgrader(a);service.reload();assertFalse(service.registeredUpgrader(a));assertTrue(service.registeredUpgrader(b));assertTrue(service.registeredUpgrader(old));
+            var player=mock(org.bukkit.entity.Player.class);when(player.getWorld()).thenReturn(world);when(player.getEyeLocation()).thenReturn(b.clone().add(0,1.6,0));
+            assertTrue(service.validUpgrader(player,new FarmService.Spot("world",8,64,2)));
+            when(player.getEyeLocation()).thenReturn(b.clone().add(20,0,0));assertFalse(service.validUpgrader(player,new FarmService.Spot("world",8,64,2)));
+        }finally{service.shutdown();}
+    }
 }

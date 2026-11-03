@@ -12,10 +12,10 @@ import java.util.*;
 
 /** Purchases are derived from the authoritative player ledger, never from a lore string or client item. */
 public final class FarmMenu implements LockedMenu {
-    private final CQuestsPlugin plugin;private final Player player;private final Inventory inventory;
+    private final CQuestsPlugin plugin;private final Player player;private final Inventory inventory;private final FarmService.Spot station;
     private final Map<Integer,Integer> choices=new HashMap<>();private Integer confirm;
-    private FarmMenu(CQuestsPlugin p,Player player){plugin=p;this.player=player;inventory=Bukkit.createInventory(this,45,Text.mm("<dark_gray>Fieldsmith • Hoe upgrades"));}
-    public static void open(CQuestsPlugin p,Player player){var m=new FarmMenu(p,player);m.fill();player.openInventory(m.inventory);}
+    private FarmMenu(CQuestsPlugin p,Player player,FarmService.Spot station){plugin=p;this.player=player;this.station=station;inventory=Bukkit.createInventory(this,45,Text.mm("<dark_gray>Fieldsmith • Hoe upgrades"));}
+    public static void open(CQuestsPlugin p,Player player){var station=p.farm().nearbyUpgrader(player);if(station==null){p.send(player,"<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe.");return;}var m=new FarmMenu(p,player,station);m.fill();player.openInventory(m.inventory);}
     public UUID viewer(){return player.getUniqueId();}
     public Inventory getInventory(){return inventory;}
     private void fill(){
@@ -56,11 +56,10 @@ public final class FarmMenu implements LockedMenu {
                 "<gray>Your hoe is stored when you leave.","<gray>Enter the fields to collect it.",
                 "<yellow>Click to collect your hoe.")));
         inventory.setItem(40,QuestMenu.item(Material.BARRIER,"<red>Close",List.of()));
-        inventory.setItem(36,QuestMenu.item(Material.ARROW,"<white>Back to quest home",List.of()));
     }
     public void click(int slot,ClickType type){
-        if(slot==36){com.cquests.gui.QuestJournal.open(plugin,player);return;}
         if(slot==40){player.closeInventory();return;}
+        if(!plugin.farm().validUpgrader(player,station)){player.closeInventory();plugin.send(player,"<yellow>Stand next to the Fieldsmith Anvil to use it.");return;}
         if(slot==31){if(plugin.farm().inFarm(player))plugin.farm().equip(player);else plugin.send(player,"<yellow>Step into the fields to collect your hoe.");return;}
         if(slot==34&&confirm!=null){
             int id=confirm;confirm=null;

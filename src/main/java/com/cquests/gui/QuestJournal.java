@@ -43,7 +43,6 @@ public final class QuestJournal {
             case "settings"->settings(plugin,player);
             case "tracker"->{plugin.tracker().toggle(player);settings(plugin,player);}
             case "directions"->{plugin.directions().toggle(player);settings(plugin,player);}
-            case "farm"->farm(plugin,player);
             default->home(plugin,player);
         }
     }
@@ -56,8 +55,7 @@ public final class QuestJournal {
         var buttons=new ArrayList<MailDialog.Button>();
         if(next!=null)buttons.add(button("What should I do?",HOME+" story"));
         buttons.add(button("My quests ("+active.size()+")",HOME+" quests"));
-        buttons.add(button("Mail","/quest mail"));buttons.add(button("Farming & tools",HOME+" farm"));
-        buttons.add(button("Settings",HOME+" settings"));buttons.add(button("Close",HOME+" close"));
+        buttons.add(button("Quest settings",HOME+" settings"));buttons.add(button("Close",HOME+" close"));
         screen(plugin,player,"Quest home",lines,buttons);
     }
     private static void list(CQuestsPlugin plugin,Player player,int requested){
@@ -103,9 +101,6 @@ public final class QuestJournal {
         screen(plugin,player,"Quest settings",List.of("<white>Choose what appears while you play.","<gray>Quest tracker: a bar showing your current task.\nDirections: an arrow and distance to the villager."),List.of(
                 button("Quest tracker: "+(plugin.tracker().enabled(player)?"ON":"OFF"),HOME+" tracker"),
                 button("Directions: "+(plugin.directions().enabled(player)?"ON":"OFF"),HOME+" directions"),back()));
-    }
-    private static void farm(CQuestsPlugin plugin,Player player){
-        screen(plugin,player,"Farming & tools",List.of("<white>Harvest fully grown wheat in the marked fields to earn Wayfarer XP.","<gray>Enter the fields to collect your personal hoe. It returns to your locker when you leave.","<gray>Use the anvil to review and buy the next hoe upgrade."),List.of(button("Open hoe upgrades","/quests farm"),back()));
     }
     private static void screen(CQuestsPlugin plugin,Player player,String title,List<String> lines,List<MailDialog.Button> buttons){
         player.closeInventory();if(!MailDialog.open(plugin,player,title,lines,buttons,false))new Fallback(plugin,player,title,lines,buttons).open();
