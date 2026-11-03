@@ -7,6 +7,7 @@ import com.cquests.util.Text;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Display;
@@ -24,7 +25,7 @@ public final class SpeechController implements Listener {
         final String npc; final Location anchor; final List<String> sentences; final Runnable open;
         final SpeechChatBuffer chat=new SpeechChatBuffer();final UUID token=UUID.randomUUID();final SpeechTiming timing;
         final SpeechPlayback playback;
-        volatile TextDisplay display; ScheduledTask task; int letters,characterWait,rows=1; volatile boolean ready; long readyUntil;
+        volatile TextDisplay display; ScheduledTask task; int letters,characterWait,rows=1; volatile boolean ready; boolean idle; long readyUntil;
         Session(String npc,Location anchor,List<String> sentences,Runnable open,SpeechTiming timing) {
             this.timing=timing;this.npc=npc;this.anchor=anchor;this.sentences=sentences;this.open=open;
             this.playback=new SpeechPlayback(sentences,timing);
@@ -67,10 +68,14 @@ public final class SpeechController implements Listener {
             var scheduled=player.getScheduler().run(plugin,ignored->{
                 if(sessions.get(player.getUniqueId())!=s){Sched.entity(display,display::remove);return;}
                 player.showEntity(plugin,display);
-                s.task=player.getScheduler().runAtFixedRate(plugin,t->tick(player,npc,s),()->{sessions.remove(player.getUniqueId(),s);retire(s);},1,1);
+                schedule(player,npc,s,1);
             },()->{sessions.remove(player.getUniqueId(),s);retire(s);});
             if(scheduled==null){sessions.remove(player.getUniqueId(),s);retire(s);}
         });
+    }
+    private void schedule(Player player,NpcDef npc,Session s,long period){
+        s.task=player.getScheduler().runAtFixedRate(plugin,t->tick(player,npc,s),()->{sessions.remove(player.getUniqueId(),s);retire(s);},period,period);
+        if(s.task==null){sessions.remove(player.getUniqueId(),s);retire(s);}
     }
     private void tick(Player player,NpcDef npc,Session s) {
         if(sessions.get(player.getUniqueId())!=s)return;
@@ -78,10 +83,14 @@ public final class SpeechController implements Listener {
         if(s.ready){
             if(System.currentTimeMillis()>s.readyUntil){stop(player);return;}
             String prompt="Click to continue";
-            if(s.letters>=prompt.length()||s.characterWait-->0)return;
+            if(s.letters>=prompt.length()){
+                if(!s.idle){s.idle=true;s.task.cancel();schedule(player,npc,s,10);}
+                return;
+            }
+            if(s.characterWait-->0)return;
             s.characterWait=s.timing.characterTicks()-1;s.letters++;
             String visible=prompt.substring(0,s.letters);
-            Sched.entity(s.display,()->s.display.text(Text.mm("<yellow>"+visible)));
+            Sched.entity(s.display,()->s.display.text(Component.text(visible,NamedTextColor.YELLOW)));
             if(!Character.isWhitespace(visible.charAt(visible.length()-1)))player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);
             return;
         }
@@ -95,7 +104,7 @@ public final class SpeechController implements Listener {
         String visible=frame.visible();
         int rows=Math.max(1,(visible.codePointCount(0,visible.length())+35)/36);
         if(rows!=s.rows){s.rows=rows;plugin.nameplates().lines(s.npc,s.token,rows);}
-        Sched.entity(s.display,()->s.display.text(Text.mm("<white>"+Text.escape(visible))));
+        Sched.entity(s.display,()->s.display.text(Component.text(visible,NamedTextColor.WHITE)));
         if(!visible.isEmpty()&&!Character.isWhitespace(visible.charAt(visible.length()-1)))
             player.playSound(player.getLocation(),Sound.UI_BUTTON_CLICK,.12f,1.8f);
         if(frame.completed()!=null)

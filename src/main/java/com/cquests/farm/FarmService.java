@@ -31,6 +31,8 @@ public final class FarmService {
     private final Map<UUID,Long> cooldowns=new ConcurrentHashMap<>();
     private final Set<UUID> inside=ConcurrentHashMap.newKeySet();
     private final Set<Spot> pending=ConcurrentHashMap.newKeySet();
+    // Accessed only by the single writer after a successful atomic replacement.
+    private Set<Spot> savedPending;
     private volatile List<FarmArea> areas=List.of();
     private volatile Map<Integer,Tier> tiers=Map.of();
     private final EconomyBridge economy=new EconomyBridge();
@@ -113,7 +115,13 @@ public final class FarmService {
         update(player,true);
     }
     public void update(Player player,boolean auditInventory){
-        boolean isInside=inFarm(player);
+        applyUpdate(player,auditInventory,inFarm(player));
+    }
+    /** The display loop reuses this exact check instead of querying WorldGuard a second time. */
+    public boolean updateAndCheck(Player player){
+        boolean isInside=inFarm(player);applyUpdate(player,true,isInside);return isInside;
+    }
+    private void applyUpdate(Player player,boolean auditInventory,boolean isInside){
         if(isInside){
             boolean entered=inside.add(player.getUniqueId());
             if(entered){plugin.send(player,"<gold>Harvest grounds <gray>• commands are paused; your tool is bound to this area.");equip(player);}
@@ -197,12 +205,14 @@ public final class FarmService {
     public void restoreLoaded(){for(Spot s:pending){Location l=s.location();if(l!=null&&l.getWorld().isChunkLoaded(s.x()>>4,s.z()>>4))Sched.at(l,()->regrow(s));}}
     public void restoreChunk(World world,int x,int z){for(Spot s:pending)if(s.world().equals(world.getName())&&(s.x()>>4)==x&&(s.z()>>4)==z)Sched.at(new Location(world,s.x(),s.y(),s.z()),()->regrow(s));}
     public synchronized void savePending(){
-        List<String> points=pending.stream().map(Spot::encode).toList();
+        Set<Spot> snapshot=Set.copyOf(pending);
         if(!writer.isShutdown())writer.execute(()->{
-            var yaml=new YamlConfiguration();yaml.set("pending",points);
+            if(snapshot.equals(savedPending))return;
+            var yaml=new YamlConfiguration();yaml.set("pending",snapshot.stream().map(Spot::encode).toList());
             try{Path tmp=pendingFile.toPath().resolveSibling("farm-regrowth.yml.tmp");Files.writeString(tmp,yaml.saveToString());
                 try{Files.move(tmp,pendingFile.toPath(),StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}
                 catch(AtomicMoveNotSupportedException e){Files.move(tmp,pendingFile.toPath(),StandardCopyOption.REPLACE_EXISTING);}
+                savedPending=snapshot;
             }catch(Exception e){plugin.getLogger().warning("Farm regrowth save failed: "+e.getMessage());}
         });
     }

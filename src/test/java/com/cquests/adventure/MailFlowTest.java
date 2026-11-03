@@ -47,12 +47,12 @@ class MailFlowTest {
             dialog.when(()->MailDialog.open(any(),any(),anyString(),anyList(),anyList(),anyBoolean())).thenAnswer(i->{screens.add(new Screen(i.getArgument(2),List.copyOf(i.getArgument(3)),List.copyOf(i.getArgument(4)),i.getArgument(5)));return true;});
             var mail=new QuestMail(plugin);
             // The callback uses this same player and ledger through command helpers below.
-            currentPlayer=player;currentData=data;
+            currentPlayer=player;currentData=data;currentStore=store;
             check.accept(mail,screens);
             verify(player,never()).openBook(any(Book.class));
         }
     }
-    private Player currentPlayer;private PlayerData currentData;
+    private Player currentPlayer;private PlayerData currentData;private PlayerStore currentStore;
     private void command(QuestMail mail,String... args){mail.command(currentPlayer,args);}
 
     @Test void inboxStartsInDialogueAndDoesNotExposeUnavailableLetters() throws Exception {
@@ -86,6 +86,17 @@ class MailFlowTest {
             command(mail,"mail","open","bob");assertTrue(screens.getLast().buttons().stream().noneMatch(b->b.command().contains("compose")));
             command(mail,"mail","compose","bob");assertFalse(screens.getLast().input());
             assertTrue(currentData.mailThread().isEmpty());
+        });
+    }
+    @Test void rereadingDoesNotResaveButNewCorrespondenceStillDoes() throws Exception {
+        flow((mail,screens)->{
+            command(mail,"mail","open","welcome");
+            verify(currentStore,times(2)).saveNow(currentData); // Delivery plus the first read.
+            for(int i=0;i<20;i++){mail.open(currentPlayer);command(mail,"mail","open","welcome");}
+            verify(currentStore,times(2)).saveNow(currentData);
+            command(mail,"mail","send","welcome","Thanks for the letter.");
+            verify(currentStore,times(3)).saveNow(currentData);
+            assertEquals(2,currentData.mailThread().size());
         });
     }
 }

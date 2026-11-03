@@ -141,8 +141,8 @@ public final class CQuestsPlugin extends JavaPlugin {
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) new com.cquests.progression.SkillPlaceholders(this).register();
         displayTicker = Sched.globalTimer(t -> {
             for (var player : getServer().getOnlinePlayers()) Sched.entity(player, () -> {
-                tracker.update(player); farm.update(player); adventures.update(player);
-                if (!farm.inFarm(player) && !speech.busy(player)) directions.update(player);
+                tracker.update(player); boolean inFarm=farm.updateAndCheck(player); adventures.update(player);
+                if (!inFarm && !speech.busy(player)) directions.update(player);
             });
         }, 20, 10);
     }

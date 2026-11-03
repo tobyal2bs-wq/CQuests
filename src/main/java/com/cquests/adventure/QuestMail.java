@@ -64,7 +64,7 @@ public final class QuestMail {
         player.closeInventory();
         if(!MailDialog.open(plugin,player,"Your mail",lines,buttons,false))new Mailbox(player,page/9).open();
     }
-    private void receive(Player player){var data=plugin.questManager().data(player);for(var l:letters)if(l.eligible(data))data.receiveMail(l.id(),System.currentTimeMillis());if(data.dirty())plugin.store().saveNow(data);}
+    private void receive(Player player){var data=plugin.questManager().data(player);boolean changed=false;long now=System.currentTimeMillis();for(var l:letters)if(l.eligible(data)&&data.mailReceived(l.id())==0)changed|=data.receiveMail(l.id(),now)>0;if(changed)plugin.store().saveNow(data);}
     public static String time(long epoch){return epoch<=0?"Delivery time unavailable":java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm 'UTC'",Locale.ENGLISH).withZone(java.time.ZoneOffset.UTC).format(java.time.Instant.ofEpochMilli(epoch));}
     private Letter find(Player p,String id){return letters.stream().filter(l->l.id().equals(id)&&l.eligible(plugin.questManager().data(p))).findFirst().orElse(null);}
     public void command(Player player,String[] args){
@@ -99,7 +99,7 @@ public final class QuestMail {
         if(plugin.questManager().data(player).mailThread().stream().anyMatch(e->e.source().equals(l.id())))buttons.add(new MailDialog.Button("Sent letters & replies","/quest mail replies"));
         buttons.add(new MailDialog.Button("Back to inbox","/quest mail"));
         if(!MailDialog.open(plugin,player,l.subject(),lines,buttons,false))new ReadingMenu(player,l.subject(),lines,buttons).open();
-        var data=plugin.questManager().data(player);data.readLetter(l.id());plugin.store().saveNow(data);notified.remove(player.getUniqueId());
+        var data=plugin.questManager().data(player);if(data.readLetter(l.id()))plugin.store().saveNow(data);notified.remove(player.getUniqueId());
     }
     private void compose(Player player,Letter letter){
         if(isBob(letter)&&plugin.gemini().unavailable()!=null){show(player,letter,letter.body(),letter.sender(),plugin.questManager().data(player).mailReceived(letter.id()),"/quest mail open "+letter.id(),0);return;}
@@ -143,7 +143,7 @@ public final class QuestMail {
         for(String paragraph:body)for(var lines:com.cquests.dialogue.DialogueView.paginate(List.of(Text.escape(paragraph.replace("{player}",player.getName()))),18,8))pages.add(Text.mm("<black>"+Text.escape(String.join("\n",lines))));
         pages.add(net.kyori.adventure.text.Component.text("Write a reply",net.kyori.adventure.text.format.NamedTextColor.DARK_GREEN).clickEvent(net.kyori.adventure.text.event.ClickEvent.runCommand("/quest mail compose "+letter.id())));
         player.closeInventory();player.openBook(net.kyori.adventure.inventory.Book.book(net.kyori.adventure.text.Component.text(letter.subject()),net.kyori.adventure.text.Component.text(sender),pages.subList(0,Math.min(100,pages.size()))));
-        if(markRead){var data=plugin.questManager().data(player);data.readLetter(letter.id());plugin.store().saveNow(data);notified.remove(player.getUniqueId());}
+        if(markRead){var data=plugin.questManager().data(player);if(data.readLetter(letter.id()))plugin.store().saveNow(data);notified.remove(player.getUniqueId());}
     }
     private final class ThreadMenu implements LockedMenu {
         final Player player;final Inventory inventory;final List<com.cquests.data.MailEntry> entries;
