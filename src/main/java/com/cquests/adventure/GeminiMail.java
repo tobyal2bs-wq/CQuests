@@ -22,7 +22,7 @@ public final class GeminiMail {
     private final HttpClient http=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).followRedirects(HttpClient.Redirect.NEVER).build();
     private final Set<UUID> pending=ConcurrentHashMap.newKeySet();
     /** B.O.B's current name, so a rename with /cq npc rename shows up in mail too. */
-    private String bob(){return plugin.npcs().name("bob");}
+    private String bob(){return plugin.npcs()==null?"B.O.B":plugin.npcs().name("bob");}
     private volatile boolean running=true,enabled;private volatile String model="",character="",key="";private volatile int perPlayer=12,globalLimit=100;
     private long budgetDay;private int budgetCount;
     public GeminiMail(CQuestsPlugin plugin){this.plugin=plugin;reload();}

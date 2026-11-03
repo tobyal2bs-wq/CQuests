@@ -56,7 +56,7 @@ public final class NpcCustomization {
         if(value.length()>1600||(field.equals("name")&&Text.plain(Text.mm(value)).isBlank())){plugin.send(sender,"<red>Use a visible name and at most 1600 characters.");return;}
         Object replacement=Set.of("intro","idle").contains(field)?(value.equalsIgnoreCase("none")?List.of():Arrays.stream(value.split("\\|",-1)).map(String::trim).filter(s->!s.isEmpty()).limit(20).toList()):field.equals("prefix")&&value.equalsIgnoreCase("none")?"":value;
         if(!save(id,field,replacement)){plugin.send(sender,"<red>Character editor is shutting down.");return;}
-        plugin.npcs().refresh();plugin.nameplates().refresh();plugin.merchants().refreshLabels();plugin.tracker().invalidate();
+        if(plugin.npcs()!=null)plugin.npcs().refresh();plugin.nameplates().refresh();plugin.merchants().refreshLabels();if(plugin.tracker()!=null)plugin.tracker().invalidate();
         plugin.send(sender,"<green>Updated "+Text.escape(id)+" • "+field+". Existing quest progress is unchanged.");
     }
     private void help(CommandSender sender){plugin.send(sender,"<white>/cq character <id> name|title|prefix|format|speech-prefix <MiniMessage text>\n<white>/cq character <id> intro|idle <sentence | another sentence>\n<white>/cq character <id> reset\n<gray>Use none to clear a prefix. Format placeholders: <name>, <level>, <title>, <prefix>. Quest NPCs, merchants and pip are supported. A new name shows everywhere: name tags, chat, quest text, the tracker, directions, mail and menus. Changes affect the next conversation.\n<white>/cq npc rename <id> <name> <gray>is a shortcut for the name.");}

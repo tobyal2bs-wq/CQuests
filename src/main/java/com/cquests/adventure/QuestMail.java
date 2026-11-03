@@ -109,15 +109,20 @@ public final class QuestMail {
             player.sendMessage(net.kyori.adventure.text.Component.text("Write your reply in chat: /quest mail send "+letter.id()+" <message>").clickEvent(net.kyori.adventure.text.event.ClickEvent.suggestCommand("/quest mail send "+letter.id()+" ")));
     }
     private String floraName(){return Text.escape(who("flora"));}
-    private boolean isBob(Letter l){return "bob".equals(plugin.npcs().idForOriginalName(l.sender()));}
+    private boolean isBob(Letter l){
+        var npcs=plugin.npcs();
+        return npcs==null?l.sender().replaceAll("[^A-Za-z]","").equalsIgnoreCase("bob"):"bob".equals(npcs.idForOriginalName(l.sender()));
+    }
     /** The sender's current name, so renaming an NPC or merchant (/cq npc rename) also renames their letters. */
     private String who(String sender){
-        String id=plugin.npcs().idForOriginalName(sender);
-        if(id!=null)return plugin.npcs().name(id);
+        var npcs=plugin.npcs();var characters=plugin.characters();
+        String id=npcs==null?null:npcs.idForOriginalName(sender);
+        if(id!=null)return npcs.name(id);
+        if(characters==null)return sender;
         String key=sender.toLowerCase(java.util.Locale.ROOT);
-        var merchant=plugin.merchants().get(key);
-        if(merchant!=null)return Text.plain(Text.mm(plugin.characters().text(key,"name",merchant.name())));
-        if(key.equals("pip"))return Text.plain(Text.mm(plugin.characters().text("pip","name",sender)));
+        var merchant=plugin.merchants()==null?null:plugin.merchants().get(key);
+        if(merchant!=null)return Text.plain(Text.mm(characters.text(key,"name",merchant.name())));
+        if(key.equals("pip"))return Text.plain(Text.mm(characters.text("pip","name",sender)));
         return sender;
     }
     private void reply(Player player,Letter letter,String text){
