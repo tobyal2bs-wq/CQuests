@@ -142,8 +142,29 @@ public final class FarmService {
         for(int i=0;i<player.getInventory().getSize();i++)if(marked(player.getInventory().getItem(i)))player.getInventory().setItem(i,null);
         if(marked(player.getItemOnCursor()))player.setItemOnCursor(null);
     }
+    /** Wheat and its farmland inside a saved farm: only the farm hoe may take them. */
+    public boolean protectedCrop(Block block){
+        Material type=block.getType();
+        if(type!=Material.WHEAT&&type!=Material.FARMLAND&&!(type==Material.AIR&&block.getRelative(0,-1,0).getType()==Material.FARMLAND))return false;
+        return area(block.getLocation())!=null;
+    }
+    /** Explains why a crop did not break, at most once every 3 seconds. */
+    public void hint(Player player){
+        long now=System.currentTimeMillis();Long last=hints.get(player.getUniqueId());
+        if(last!=null&&now-last<3000)return;hints.put(player.getUniqueId(),now);
+        if(player.getGameMode()==GameMode.CREATIVE){player.sendActionBar(Text.mm("<yellow>Switch to survival mode to harvest with the farm hoe."));return;}
+        if(!hasTool(player)&&inFarm(player))equip(player);
+        player.sendActionBar(Text.mm(hasTool(player)?"<yellow>Hold your farm hoe and left-click mature wheat.":"<yellow>Stand inside the field to get your farm hoe."));
+    }
+    private final Map<UUID,Long> hints=new java.util.concurrent.ConcurrentHashMap<>();
     public boolean equip(Player player){
-        var data=plugin.questManager().data(player);Tier tier=tiers.get(data.hoeTier());
+        var data=plugin.questManager().data(player);
+        // The first tool is free: hand it out on the way in instead of making players find the anvil first.
+        Tier first=tiers.get(1);
+        if(data.hoeTier()==0&&first!=null&&first.cost()<=0&&plugin.progression().level(data)>=first.level()&&inFarm(player)){
+            data.setHoeTier(1);plugin.send(player,"<green>You got a free "+Text.escape(first.name())+"<gray>. Left-click mature wheat to harvest it; it regrows in a second.");
+        }
+        Tier tier=tiers.get(data.hoeTier());
         if(tier==null||!inFarm(player))return false;
         strip(player);
         int slot=-1;
@@ -170,6 +191,7 @@ public final class FarmService {
     }
     /** Triggered only for one block; even high-tier tools never harvest neighbors. */
     public void harvest(Player player,Block block){
+        if(player.getGameMode()==GameMode.CREATIVE&&area(block.getLocation())!=null){hint(player);return;}
         if(!player.isOnline()||player.getGameMode()==GameMode.SPECTATOR||player.getGameMode()==GameMode.CREATIVE
                 ||!player.getWorld().equals(block.getWorld())||player.getEyeLocation().distanceSquared(block.getLocation().add(.5,.5,.5))>36)return;
         ItemStack held=player.getInventory().getItemInMainHand();
@@ -240,5 +262,5 @@ public final class FarmService {
     public String role(String npc){for(String role:List.of("shop","upgrader","locker"))if(npc.equalsIgnoreCase(config.getString("npcs."+role,"")))return role;return null;}
     private void saveConfig(){try{config.save(file);}catch(Exception e){throw new IllegalStateException("Farm configuration could not be saved",e);}}
     public synchronized void shutdown(){running=false;savePending();writer.shutdown();try{if(!writer.awaitTermination(10,TimeUnit.SECONDS))plugin.getLogger().warning("Farm writer did not drain within 10 seconds");}catch(InterruptedException e){Thread.currentThread().interrupt();}}
-    public void forget(Player p){strip(p);inside.remove(p.getUniqueId());cooldowns.remove(p.getUniqueId());}
+    public void forget(Player p){strip(p);inside.remove(p.getUniqueId());hints.remove(p.getUniqueId());cooldowns.remove(p.getUniqueId());}
 }

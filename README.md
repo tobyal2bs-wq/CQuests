@@ -1,3 +1,5 @@
+CQuests **1.7.2** fixes the wheat farm: inside a saved field only the farm hoe harvests, new players get the free hoe automatically, and the action bar explains what to do. See [RELEASE-1.7.2.md](RELEASE-1.7.2.md).
+
 CQuests **1.7.1** gives the Discord posts a proper embed: player face and skin, title, fields, a story progress bar and a footer. See [RELEASE-1.7.1.md](RELEASE-1.7.1.md).
 
 CQuests **1.7.0** adds chapters 6 to 10 (50 new villagers, each chapter ending in a private boss fight), switched off until you run `/cq chapter 6 on`. It also adds Discord webhook announcements, daily quest streaks, `/cq scatterworld` across the whole world, a PlaceholderAPI placeholder for every number and name, and removes wheat from every quest. See [RELEASE-1.7.0.md](RELEASE-1.7.0.md).

@@ -64,7 +64,7 @@ public final class FarmCommand {
             try{
                 Polygon polygon=new Polygon(s.vertices);
                 plugin.farm().saveArea(s.id,s.world,args[3],polygon,s.outside,bounds);
-                selections.remove(p.getUniqueId());plugin.send(p,"<green>Saved "+Text.escape(s.id)+" in WG region "+Text.escape(args[3])+". Only mature wheat can be harvested.");
+                selections.remove(p.getUniqueId());plugin.send(p,"<green>Saved "+Text.escape(s.id)+" in WG region "+Text.escape(args[3])+". Players get a free farm hoe when they walk in and harvest mature wheat by left-clicking it in survival mode; normal breaking is blocked there.");
             }catch(RuntimeException e){plugin.send(p,"<red>"+Text.escape(e.getMessage()));}
             return;
         }

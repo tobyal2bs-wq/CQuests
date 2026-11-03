@@ -34,8 +34,13 @@ public final class FarmListener implements Listener {
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void breakBlock(BlockBreakEvent e){
-        if(plugin.farm().marked(e.getPlayer().getInventory().getItemInMainHand())){
-            e.setCancelled(true);plugin.farm().harvest(e.getPlayer(),e.getBlock());
+        Player p=e.getPlayer();
+        if(plugin.farm().marked(p.getInventory().getItemInMainHand())){
+            e.setCancelled(true);plugin.farm().harvest(p,e.getBlock());
+        }else if(plugin.farm().protectedCrop(e.getBlock())){
+            // Creative admins can still edit the field; everyone else harvests with the farm hoe only.
+            if(p.getGameMode()==org.bukkit.GameMode.CREATIVE&&p.hasPermission("cquests.admin"))return;
+            e.setCancelled(true);plugin.farm().hint(p);
         }
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
