@@ -120,8 +120,9 @@ public final class FarmService {
         applyUpdate(player,auditInventory,inFarm(player));
     }
     /** The display loop reuses this exact check instead of querying WorldGuard a second time. */
-    public boolean updateAndCheck(Player player){
-        boolean isInside=inFarm(player);applyUpdate(player,true,isInside);return isInside;
+    /** {@code audit} scans the inventory for stray farm tools; the display timer asks for it every 2 seconds, not every refresh. */
+    public boolean updateAndCheck(Player player,boolean audit){
+        boolean isInside=inFarm(player);applyUpdate(player,audit,isInside);return isInside;
     }
     private void applyUpdate(Player player,boolean auditInventory,boolean isInside){
         if(isInside){

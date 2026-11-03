@@ -4,7 +4,6 @@ import com.cquests.CQuestsPlugin;
 import com.cquests.model.NpcDef;
 import com.cquests.npc.NpcTag;
 import com.cquests.util.Sched;
-import io.papermc.paper.event.entity.EntityMoveEvent;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -119,13 +118,8 @@ public final class NpcListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onMove(EntityMoveEvent event) {
-        // AI is off, but pistons, water or explosions could still shove them.
-        if (event.hasChangedBlock() && NpcTag.isNpc(event.getEntity())) {
-            event.setCancelled(true);
-        }
-    }
+    // No EntityMoveEvent listener on purpose: having one makes Paper fire that event for every moving
+    // mob on the server. The spawn check puts a shoved NPC back on its spot instead.
 
     /** Removes leftover NPC entities, e.g. from a crash, that are not the tracked live copy. */
     @EventHandler

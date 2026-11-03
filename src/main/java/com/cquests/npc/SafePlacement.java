@@ -18,9 +18,10 @@ public final class SafePlacement {
         return inspect(world, x, z, minFeet, maxFeet, yaw, null,true);
     }
 
+    /** An exact spot an admin chose (or one already in use): a roof, tree or building above it is fine. */
     public static CompletableFuture<Boolean> validate(Location location) {
         return inspect(location.getWorld(), location.getX(), location.getZ(), null, null,
-                location.getYaw(), location.getBlockY(),true).thenApply(result -> result != null);
+                location.getYaw(), location.getBlockY(),false).thenApply(result -> result != null);
     }
     /** Stores may have roofs; retain floor, headroom, End support and Nether lava checks. */
     public static CompletableFuture<Boolean> validateWalkStop(Location location){

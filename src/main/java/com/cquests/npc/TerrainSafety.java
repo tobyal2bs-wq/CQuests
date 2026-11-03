@@ -19,8 +19,15 @@ public final class TerrainSafety {
 
     public static boolean clear(Material material) {
         return switch (material) {
-            case AIR, CAVE_AIR, VOID_AIR, SHORT_GRASS, TALL_GRASS, FERN, LARGE_FERN, DEAD_BUSH, SNOW -> true;
-            default -> false;
+            case AIR, CAVE_AIR, VOID_AIR, SHORT_GRASS, TALL_GRASS, FERN, LARGE_FERN, DEAD_BUSH, SNOW,
+                 // Small decorations an admin often stands on: never a reason to refuse a spot.
+                 DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP,
+                 OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY, SUNFLOWER, LILAC, ROSE_BUSH, PEONY, PINK_PETALS,
+                 TORCH, WALL_TORCH, SOUL_TORCH, SOUL_WALL_TORCH, REDSTONE_TORCH, REDSTONE_WALL_TORCH, LIGHT,
+                 NETHER_SPROUTS, CRIMSON_ROOTS, WARPED_ROOTS, MOSS_CARPET, RAIL, POWERED_RAIL, DETECTOR_RAIL,
+                 ACTIVATOR_RAIL, REDSTONE_WIRE, TRIPWIRE, LEVER, STONE_BUTTON, OAK_BUTTON -> true;
+            default -> material.name().endsWith("_CARPET") || material.name().endsWith("_PRESSURE_PLATE")
+                    || material.name().endsWith("_SIGN") || material.name().endsWith("_BANNER");
         };
     }
 

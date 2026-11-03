@@ -25,6 +25,8 @@ public final class Tracker {
     private final CQuestsPlugin plugin;
     private final Map<UUID, String> tracked = new ConcurrentHashMap<>();
     private final Map<UUID, BossBar> bars = new ConcurrentHashMap<>();
+    /** What the bar shows now, so the twice-a-second refresh skips rebuilding text that didn't change. */
+    private final Map<UUID, String> shown = new ConcurrentHashMap<>();
 
     public Tracker(CQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -58,7 +60,7 @@ public final class Tracker {
         PlayerData data = plugin.store().cached(player.getUniqueId());
         Quest quest = enabled(player) && data != null ? pick(player, data) : null;
         if (quest == null) {
-            if (bar != null) {
+            if (bar != null && shown.remove(player.getUniqueId()) != null) {
                 player.hideBossBar(bar);
             }
             return;
@@ -66,6 +68,14 @@ public final class Tracker {
         QuestManager qm = plugin.questManager();
         ActiveQuest active = data.active(quest.id());
         if (active == null) {
+            return;
+        }
+        StringBuilder state = new StringBuilder(quest.id());
+        for (int i = 0; i < quest.objectives().size(); i++) {
+            state.append(':').append(active.get(i));
+        }
+        String key = state.toString();
+        if (bar != null && key.equals(shown.get(player.getUniqueId()))) {
             return;
         }
         int done = 0;
@@ -95,6 +105,7 @@ public final class Tracker {
             bar.color(color);
         }
         player.showBossBar(bar);
+        shown.put(player.getUniqueId(), key);
     }
 
     /** The chosen quest if it is still active, otherwise the story quest, otherwise any active quest. */
@@ -117,12 +128,18 @@ public final class Tracker {
         return active.get(0);
     }
 
+    /** After /cq reload: quest names or settings may have changed, so rebuild every bar once. */
+    public void invalidate() {
+        shown.clear();
+    }
+
     public void forget(Player player) {
         BossBar bar = bars.remove(player.getUniqueId());
         if (bar != null) {
             player.hideBossBar(bar);
         }
         tracked.remove(player.getUniqueId());
+        shown.remove(player.getUniqueId());
     }
 
     private static String plain(String value) {

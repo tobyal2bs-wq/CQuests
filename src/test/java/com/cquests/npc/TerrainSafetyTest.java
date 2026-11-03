@@ -12,6 +12,14 @@ class TerrainSafetyTest {
         assertFalse(TerrainSafety.exposed(cave,World.Environment.NORMAL,0,64,0,320));
         assertTrue(TerrainSafety.exposed(cave,World.Environment.NORMAL,0,91,0,320));
     }
+    @Test void smallDecorationsAtFeetDoNotBlockASpot(){
+        assertTrue(TerrainSafety.clear(Material.TORCH));
+        assertTrue(TerrainSafety.clear(Material.RED_CARPET));
+        assertTrue(TerrainSafety.clear(Material.POPPY));
+        assertFalse(TerrainSafety.clear(Material.LAVA));
+        assertFalse(TerrainSafety.clear(Material.WATER));
+        assertFalse(TerrainSafety.clear(Material.COBWEB));
+    }
     @org.junit.jupiter.api.BeforeAll static void registryFixture() {
         TerrainSafety.occluding = m -> java.util.Set.of(Material.STONE, Material.END_STONE, Material.NETHERRACK, Material.BEDROCK, Material.MAGMA_BLOCK).contains(m);
     }

@@ -87,7 +87,10 @@ public final class SpawnManager {
     private EntityType mannequinType;
     private final Set<Point> validated = ConcurrentHashMap.newKeySet();
     private final Set<Point> checking = ConcurrentHashMap.newKeySet();
-    private final Set<Point> rejected = ConcurrentHashMap.newKeySet();
+    /** Unsafe spots and when to look at them again, so a fixed spot recovers without a reload. */
+    private final Map<Point, Long> rejected = new ConcurrentHashMap<>();
+    private final Set<String> warnedUnsafe = ConcurrentHashMap.newKeySet();
+    private static final long RECHECK_UNSAFE_MILLIS = 5 * 60_000L;
     private final Set<String> disabled = ConcurrentHashMap.newKeySet();
     private final Map<String, Long> revisions = new ConcurrentHashMap<>();
     private final AtomicLong revision = new AtomicLong();
@@ -121,7 +124,7 @@ public final class SpawnManager {
     public void load() {
         points.clear();
         disabled.clear();
-        validated.clear(); checking.clear(); rejected.clear(); nextRoam.clear();
+        validated.clear(); checking.clear(); rejected.clear(); warnedUnsafe.clear(); nextRoam.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         disabled.addAll(yaml.getStringList("disabled"));
         ConfigurationSection root = yaml.getConfigurationSection("points");
@@ -267,22 +270,41 @@ public final class SpawnManager {
             current.remove();
             return;
         }
-        if (alive || !playerNear) {
+        if (alive) {
+            // AI and gravity are off, but water, pistons or explosions can still shove an NPC.
+            // Putting it back here every few seconds replaces a server-wide entity move listener.
+            Location at = current.getLocation();
+            if (at.getWorld() == world && at.distanceSquared(loc) > 0.25) {
+                current.teleportAsync(loc);
+            }
             return;
         }
-        if (rejected.contains(point)) return;
-        if (!validated.remove(point)) {
+        if (!playerNear) {
+            return;
+        }
+        Long retryAt = rejected.get(point);
+        if (retryAt != null) {
+            if (System.currentTimeMillis() < retryAt) return;
+            rejected.remove(point, retryAt);
+        }
+        // A spot stays validated until it moves; the live floor check below catches later changes
+        // without taking chunk snapshots every time a player walks back into range.
+        if (!validated.contains(point)) {
             if (checking.add(point)) {
                 long expectedEpoch = epoch;
                 SafePlacement.validate(loc).whenComplete((safe, error) -> {
                     checking.remove(point);
                     if (!running || epoch != expectedEpoch || points.get(npc.id()) != point) return;
-                    if (error == null && Boolean.TRUE.equals(safe)) {
+                    if (error != null) {
+                        return; // chunk could not be read right now; the next check tries again
+                    }
+                    if (Boolean.TRUE.equals(safe)) {
                         validated.add(point);
+                        warnedUnsafe.remove(npc.id());
                         Sched.at(loc, () -> ensure(npc, point, loc));
                     } else {
-                        rejected.add(point);
-                        plugin.getLogger().warning("Unsafe spawn for " + npc.id() + " at " + point.world() + " " + point.x() + "," + point.y() + "," + point.z()
+                        rejected.put(point, System.currentTimeMillis() + RECHECK_UNSAFE_MILLIS);
+                        if (warnedUnsafe.add(npc.id())) plugin.getLogger().warning("Unsafe spawn for " + npc.id() + " at " + point.world() + " " + point.x() + "," + point.y() + "," + point.z()
                                 + "; use /cq npc repair " + npc.id() + " or /cq npc place " + npc.id());
                     }
                 });
@@ -421,6 +443,7 @@ public final class SpawnManager {
         Point previous = points.put(npc.id(), point);
         disabled.remove(npc.id());
         if (previous != null) { validated.remove(previous); rejected.remove(previous); checking.remove(previous); }
+        warnedUnsafe.remove(npc.id());
         validated.add(point);
         despawn(npc.id());
         if (save) {
@@ -432,7 +455,9 @@ public final class SpawnManager {
     public synchronized boolean remove(String npcId) {
         edit(npcId);
         disabled.add(npcId);
-        boolean existed = points.remove(npcId) != null;
+        Point old = points.remove(npcId);
+        boolean existed = old != null;
+        if (old != null) { validated.remove(old); rejected.remove(old); checking.remove(old); }
         despawn(npcId);
         nextRoam.remove(npcId);
         save();

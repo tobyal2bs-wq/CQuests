@@ -87,6 +87,19 @@ public final class PlayerStore {
         });
     }
 
+    /**
+     * Drops players who are not online from memory (after saving them). Catches data loaded for
+     * admin commands on offline players and quit saves that raced with a late change, which would
+     * otherwise stay cached until restart.
+     */
+    public void evictOffline(java.util.function.Predicate<UUID> online) {
+        for (UUID uuid : cache.keySet()) {
+            if (!online.test(uuid)) {
+                unload(uuid);
+            }
+        }
+    }
+
     public void saveDirtyAsync() {
         for (PlayerData data : cache.values()) {
             if (data.dirty()) {

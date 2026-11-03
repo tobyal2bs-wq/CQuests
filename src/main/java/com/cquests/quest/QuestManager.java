@@ -310,6 +310,29 @@ public final class QuestManager {
     }
 
     /** Counts a game event (kill, mine, craft...) towards every matching active objective. */
+    /** True if one of the player's active quests still needs this kind of progress. Cheap; no changes. */
+    public boolean wants(Player player, ObjectiveType type, String key) {
+        PlayerData data = plugin.store().cached(player.getUniqueId());
+        if (data == null) {
+            return false;
+        }
+        synchronized (data) {
+            for (ActiveQuest active : data.active().values()) {
+                Quest quest = resolve(active);
+                if (quest == null) {
+                    continue;
+                }
+                for (int i = 0; i < quest.objectives().size(); i++) {
+                    Objective objective = quest.objectives().get(i);
+                    if (objective.type() == type && !objectiveDone(quest, active, i) && objective.target().matches(key)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public void progress(Player player, ObjectiveType type, String key, int amount) {
         if (amount <= 0) {
             return;

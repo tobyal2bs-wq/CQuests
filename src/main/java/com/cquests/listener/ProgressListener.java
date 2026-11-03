@@ -70,8 +70,12 @@ public final class ProgressListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
         placed.add(event.getBlockPlaced());
-        if (placed.firstPlacementAt(event.getBlockPlaced())) {
-            count(event.getPlayer(), ObjectiveType.PLACE, event.getBlockPlaced().getType().name(), 1);
+        String key = event.getBlockPlaced().getType().name();
+        // Only remember "already counted here" while a PLACE quest needs this block; building a
+        // base without such a quest no longer writes a second mark into the chunk for every block.
+        if (plugin.questManager().wants(event.getPlayer(), ObjectiveType.PLACE, key)
+                && placed.firstPlacementAt(event.getBlockPlaced())) {
+            count(event.getPlayer(), ObjectiveType.PLACE, key, 1);
         }
     }
 

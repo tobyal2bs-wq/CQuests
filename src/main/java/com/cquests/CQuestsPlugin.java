@@ -135,18 +135,24 @@ public final class CQuestsPlugin extends JavaPlugin {
         spawns.load();
         spawns.start();
         merchants.start();
-        autosave = Sched.asyncTimer(store::saveDirtyAsync, 60);
+        autosave = Sched.asyncTimer(() -> {
+            store.saveDirtyAsync();
+            store.evictOffline(id -> getServer().getPlayer(id) != null);
+        }, 60);
         backups = new BackupManager(this);
         backups.start();
         farmSave = Sched.asyncTimer(farm::savePending, 5);
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) new com.cquests.progression.SkillPlaceholders(this).register();
         displayTicker = Sched.globalTimer(t -> {
+            boolean audit = (++displayRuns & 3) == 0;
             for (var player : getServer().getOnlinePlayers()) Sched.entity(player, () -> {
-                tracker.update(player); boolean inFarm=farm.updateAndCheck(player); adventures.update(player);
+                tracker.update(player); boolean inFarm=farm.updateAndCheck(player, audit); adventures.update(player);
                 if (!inFarm && !speech.busy(player)) directions.update(player);
             });
         }, 20, 10);
     }
+
+    private long displayRuns;
 
     @Override
     public void onDisable() {
@@ -204,6 +210,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         spawns.start();
         backups.start();
         finale.achievements().register();
+        tracker.invalidate();
         visibility.refreshAll();
     }
 

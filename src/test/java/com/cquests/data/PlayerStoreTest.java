@@ -26,6 +26,17 @@ class PlayerStoreTest {
         assertEquals("kind",read.decision("story_martha"));assertEquals(1234,read.skillXp());assertEquals(3,read.hoeTier());assertTrue(read.isCompleted("story_martha"));
         org.junit.jupiter.api.Assertions.assertFalse(read.decide("story_martha","selfish"));
     }
+    @Test void offlinePlayersAreSavedAndLeaveMemory(@TempDir File folder) {
+        java.util.List<Runnable> tasks=new java.util.ArrayList<>();
+        PlayerStore store=new PlayerStore(folder,Logger.getLogger("test"),tasks::add);
+        UUID online=UUID.randomUUID(),offline=UUID.randomUUID();
+        store.get(online);store.get(offline).setHoeTier(2);
+        store.evictOffline(online::equals);
+        while(!tasks.isEmpty())tasks.removeFirst().run();
+        org.junit.jupiter.api.Assertions.assertNotNull(store.cached(online));
+        org.junit.jupiter.api.Assertions.assertNull(store.cached(offline));
+        assertEquals(2,new PlayerStore(folder,Logger.getLogger("test")).get(offline).hoeTier());
+    }
     @Test void reconnectBeforeQuitSaveKeepsLatestLedger(@TempDir File folder) {
         java.util.List<Runnable> tasks=new java.util.ArrayList<>();
         PlayerStore store=new PlayerStore(folder,Logger.getLogger("test"),tasks::add);
