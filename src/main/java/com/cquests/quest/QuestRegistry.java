@@ -87,6 +87,11 @@ public final class QuestRegistry {
                 if (s == null) {
                     continue;
                 }
+                if (s.getString("category", "STORY").equalsIgnoreCase("STORY")
+                        && settings.lockedChapters.contains(Math.max(1, s.getInt("chapter", 1)))) {
+                    order++;
+                    continue; // chapter switched off with /cq chapter
+                }
                 try {
                     Quest quest = parse(id.toLowerCase(Locale.ROOT), s, order++, previousStory, settings, npcs, log);
                     add(quest);
@@ -407,6 +412,11 @@ public final class QuestRegistry {
 
     public List<Quest> dailyPool() {
         return dailyPool;
+    }
+
+    /** Every chapter named in quests.yml, including chapters that are switched off. */
+    public java.util.SortedMap<Integer, String> chapterNames() {
+        return new java.util.TreeMap<>(chapterNames);
     }
 
     public String chapterName(int chapter) {

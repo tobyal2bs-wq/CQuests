@@ -94,6 +94,12 @@ daily:
   npc: marigold
   cooldown-hours: 24
   money: 10000
+  # Daily streaks: finishing a daily on the day after the last one adds a day to the streak.
+  # Every streak day adds streak-bonus-percent of the daily's money, up to streak-max-days.
+  # Missing a whole day starts again at 1. Shown with %cquests_daily_streak%.
+  streaks: true
+  streak-max-days: 7
+  streak-bonus-percent: 10
 
 # ----------------------------------------------------------- VILLAGER SPAWNING
 spawning:
@@ -154,11 +160,43 @@ groups:
   FLOWERS: [DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY]
   SAPLINGS: ["*_SAPLING", MANGROVE_PROPAGULE]
 
+# ----------------------------------------------------------- CHAPTERS
+chapters:
+  # Chapters that are switched off. Their villagers do not spawn and their story quests do not
+  # exist, so for players the story ends with the last chapter that is on.
+  # Chapters 6 to 10 (Iron Tusk, Tides of the Drowned, Ember Court, Bone Choir, Listener Below)
+  # start off. Turn one on in game with /cq chapter 6 on, or edit this list and /cq reload.
+  # Chapter 1 can never be switched off.
+  locked: [6, 7, 8, 9, 10]
+
+# ----------------------------------------------------------- DISCORD
+discord:
+  # A Discord webhook link (Server Settings > Integrations > Webhooks > Copy Webhook URL).
+  # Empty turns Discord off. Posts are sent in the background, never more than one every 2 seconds,
+  # and never ping @everyone, roles or users.
+  webhook-url: ""
+  username: "CQuests"
+  avatar-url: ""
+  events:
+    chapter-complete: true
+    journey-finished: true
+    boss-defeated: true
+    # Posted at 7, 30 and 100 days and every full year.
+    daily-streak: true
+  # Optional custom text. Placeholders: <player>, <chapter>, <name>, <boss>, <days>, <server>.
+  messages:
+    chapter-complete: "📖 **<player>** finished Chapter <chapter>: <name>"
+    journey-finished: "🏆 **<player>** finished the whole journey on <server>!"
+    boss-defeated: "⚔️ **<player>** defeated **<boss>**!"
+    daily-streak: "🔥 **<player>** is on a <days>-day daily quest streak!"
+
 # Uppercase NPC display names; quest IDs and stored names are unchanged.
 npc:
   uppercase-names: true
 
 # NPC story choices are configured in memories.yml. These toggles control temporary quest actors.
+# Boss fights are set up in bosses.yml: each boss is private to the player who summoned it,
+# invisible to everyone else, only hurts its owner and never breaks or burns blocks.
 adventures:
   enabled: true
   companions: true
@@ -172,3 +210,8 @@ progression:
     3: 200
     4: 300
     5: 400
+    6: 420
+    7: 440
+    8: 460
+    9: 480
+    10: 500

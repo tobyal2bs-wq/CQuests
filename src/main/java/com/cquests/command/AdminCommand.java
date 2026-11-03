@@ -57,7 +57,8 @@ public final class AdminCommand implements TabExecutor {
             case "npc" -> npc(sender, args);
             case "pos1", "pos2" -> pos(sender, args[0].equalsIgnoreCase("pos1") ? 0 : 1);
             case "scatter" -> scatter(sender, args);
-            case "scatterworld" -> scatterWorld(sender, args);
+            case "scatterworld", "worldscatter" -> scatterWorld(sender, args);
+            case "chapter", "chapters" -> chapter(sender, args);
             case "farm" -> plugin.farmCommand().run(sender,args);
             case "merchant" -> new com.cquests.merchant.MerchantCommand(plugin).run(sender,args);
             case "camp" -> plugin.spawns().arrangeCamp(sender);
@@ -83,7 +84,8 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq npc tp <id></yellow> <gray>teleport to an NPC
                 <yellow>/cq pos1</yellow>, <yellow>/cq pos2</yellow> <gray>select a box for scattering
                 <yellow>/cq scatter <ids|act1|act2|all> [wg-region]</yellow> <gray>spread NPCs in a region or your box
-                <yellow>/cq scatterworld chapter1 10000 10000 [world] [centerX centerZ]</yellow> <gray>safe world scatter; keeps progress
+                <yellow>/cq scatterworld chapter6 10000 [depth] [world] [centerX centerZ]</yellow> <gray>spread over the world (or <yellow>border</yellow>); keeps progress
+                <yellow>/cq chapter [number] [on|off]</yellow> <gray>list chapters or switch one on or off
                 <yellow>/cq camp</yellow> <gray>arrange five residents plus the daily NPC
                 <yellow>/cq farm wand|outside <id></yellow> <gray>select a farm outline
                 <yellow>/cq farm save <id> <wg-region></yellow> <gray>bind the outline to WorldGuard
@@ -254,27 +256,80 @@ public final class AdminCommand implements TabExecutor {
         return out;
     }
 
+    /**
+     * /cq scatterworld <selector> <size|border> [depth] [world] [centerX centerZ]
+     * Spreads villagers over the world itself: a square centred on the world's centre (the world
+     * border's centre, normally 0 0), not around the admin or spawn. "border" uses the whole world
+     * border, capped at 100,000. Positions change; quest progress never does.
+     */
     private void scatterWorld(CommandSender sender, String[] args) {
-        if (args.length < 4 || args.length == 6 || args.length > 7) {
-            plugin.send(sender, "<red>/cq scatterworld <chapter1|chapter2|all|id,id> <width> <depth> [world] [centerX centerZ]"); return;
+        if (args.length < 3) {
+            plugin.send(sender, "<red>/cq scatterworld <chapter6|all|id,id> <size|border> [depth] [world] [centerX centerZ]");
+            plugin.send(sender, "<gray>Example: <yellow>/cq scatterworld chapter6 10000</yellow> spreads chapter 6 over 10,000 × 10,000 blocks of the world.");
+            return;
         }
         try {
-            int width = Integer.parseInt(args[2]), depth = Integer.parseInt(args[3]);
+            List<String> rest = new ArrayList<>(java.util.Arrays.asList(args).subList(2, args.length));
+            String first = rest.remove(0);
+            Integer depthArg = null;
+            if (!rest.isEmpty() && rest.get(0).replace(",", "").matches("\\d+")) depthArg = Integer.parseInt(rest.remove(0).replace(",", ""));
+            World world = sender instanceof Player p ? p.getWorld() : Bukkit.getWorlds().get(0);
+            if (!rest.isEmpty() && !rest.get(0).matches("-?\\d+")) {
+                world = Bukkit.getWorld(rest.remove(0));
+                if (world == null) { plugin.send(sender, "<red>Unknown world."); return; }
+            }
+            var border = world.getWorldBorder();
+            int centerX = border.getCenter().getBlockX(), centerZ = border.getCenter().getBlockZ();
+            if (rest.size() == 2) { centerX = Integer.parseInt(rest.get(0)); centerZ = Integer.parseInt(rest.get(1)); }
+            else if (!rest.isEmpty()) throw new IllegalArgumentException();
+            int width = first.equalsIgnoreCase("border") ? (int) Math.min(100_000, Math.max(16, border.getSize() - 32))
+                    : Integer.parseInt(first.replace(",", ""));
+            int depth = depthArg != null ? depthArg : width;
             if (width < 16 || depth < 16 || width > 100000 || depth > 100000) throw new IllegalArgumentException();
-            World world = args.length >= 5 ? Bukkit.getWorld(args[4]) : sender instanceof Player p ? p.getWorld() : Bukkit.getWorlds().get(0);
-            if (world == null) { plugin.send(sender, "<red>Unknown world."); return; }
-            int centerX = args.length == 7 ? Integer.parseInt(args[5]) : world.getSpawnLocation().getBlockX();
-            int centerZ = args.length == 7 ? Integer.parseInt(args[6]) : world.getSpawnLocation().getBlockZ();
             if (Math.abs((long) centerX) + width / 2L > 29_999_000 || Math.abs((long) centerZ) + depth / 2L > 29_999_000) throw new IllegalArgumentException();
             List<NpcDef> npcs = selectNpcs(args[1]);
             if (npcs.isEmpty()) { plugin.send(sender, "<red>No NPCs matched that selector."); return; }
             int minX = centerX - width / 2, minZ = centerZ - depth / 2;
             int[] box = {minX, world.getMinHeight() + 1, minZ, minX + width - 1, world.getMaxHeight() - 2, minZ + depth - 1};
-            plugin.send(sender, "<white>Searching safe terrain for " + npcs.size() + " villagers in " + width + " × " + depth + ". This may generate chunks; progress is preserved.");
+            plugin.send(sender, "<white>Spreading " + npcs.size() + " villagers over " + String.format(Locale.ROOT, "%,d × %,d", width, depth)
+                    + " blocks of " + Text.escape(world.getName()) + " (centre " + centerX + ", " + centerZ + "). Only safe ground is used; progress is preserved.");
             plugin.spawns().scatter(npcs, world, box, sender);
         } catch (IllegalArgumentException e) {
-            plugin.send(sender, "<red>Width/depth must be whole numbers from 16 to 100000; centers must be valid world coordinates.");
+            plugin.send(sender, "<red>Size must be a whole number from 16 to 100000 (or border); centers must be valid world coordinates.");
         }
+    }
+
+    /** /cq chapter [number] [on|off]: lists chapters, or switches one on or off for everyone. */
+    private void chapter(CommandSender sender, String[] args) {
+        var names = plugin.quests().chapterNames();
+        var locked = plugin.settings().lockedChapters;
+        if (args.length < 3) {
+            StringBuilder out = new StringBuilder("<gold>Chapters</gold> <gray>(switch with /cq chapter <number> on|off)");
+            names.forEach((number, name) -> {
+                boolean off = locked.contains(number);
+                long quests = plugin.quests().story().stream().filter(q -> q.chapter() == number).count();
+                out.append("\n").append(off ? "<red>✖ off " : "<green>✔ on  ").append("<white>").append(number).append(". ")
+                        .append(Text.escape(name)).append(off ? "" : " <dark_gray>(" + quests + " story quests)");
+            });
+            plugin.send(sender, out.toString());
+            return;
+        }
+        int number;
+        try { number = Integer.parseInt(args[1]); } catch (NumberFormatException e) { plugin.send(sender, "<red>Usage: /cq chapter <number> on|off"); return; }
+        String mode = args[2].toLowerCase(Locale.ROOT);
+        if (!List.of("on", "enable", "true", "off", "disable", "false").contains(mode)) { plugin.send(sender, "<red>Usage: /cq chapter <number> on|off"); return; }
+        boolean on = List.of("on", "enable", "true").contains(mode);
+        if (!names.containsKey(number)) { plugin.send(sender, "<red>quests.yml has no chapter " + number + "."); return; }
+        if (number == 1 && !on) { plugin.send(sender, "<red>Chapter 1 is where everyone starts and can't be switched off."); return; }
+        if (on != locked.contains(number)) { plugin.send(sender, "<gray>Chapter " + number + " is already " + (on ? "on" : "off") + "."); return; }
+        var next = new java.util.TreeSet<>(locked);
+        if (on) next.remove(number); else next.add(number);
+        plugin.getConfig().set("chapters.locked", new ArrayList<>(next));
+        plugin.saveConfig();
+        plugin.reload();
+        plugin.send(sender, on
+                ? "<green>Chapter " + number + " (" + Text.escape(names.get(number)) + ") is on. Its villagers appear for players who reach it; place them with <yellow>/cq scatterworld chapter" + number + " 10000</yellow> or let auto placement do it."
+                : "<yellow>Chapter " + number + " is off. Its villagers are gone for now; nobody's progress was changed.");
     }
 
     private void backup(CommandSender sender) {
@@ -441,7 +496,7 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         if(first.equals("merchant")){
@@ -482,6 +537,10 @@ public final class AdminCommand implements TabExecutor {
                 }
             }
         }
+        if (first.equals("chapter") || first.equals("chapters")) {
+            if (args.length == 2) return QuestsCommand.filter(plugin.quests().chapterNames().keySet().stream().map(String::valueOf).toList(), args[1]);
+            if (args.length == 3) return QuestsCommand.filter(List.of("on", "off"), args[2]);
+        }
         if (first.equals("restore")) {
             if (args.length == 2) {
                 List<String> names = new ArrayList<>(List.of("latest"));
@@ -494,7 +553,7 @@ public final class AdminCommand implements TabExecutor {
                 return QuestsCommand.filter(names, args[2]);
             }
         }
-        if ((first.equals("scatter") || first.equals("scatterworld")) && args.length == 2) {
+        if ((first.equals("scatter") || first.equals("scatterworld") || first.equals("worldscatter")) && args.length == 2) {
             List<String> options = new ArrayList<>(List.of("act1", "act2", "all", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5"));
             options.addAll(npcIds);
             return QuestsCommand.filter(options, args[1]);

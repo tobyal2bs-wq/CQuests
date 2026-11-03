@@ -31,6 +31,9 @@ public final class PlayerData {
     long startedAt;
     long lastDailyAt;
     int dailiesDone;
+    /** Daily quests finished on consecutive days, and the day (days since 1970) of the last one. */
+    int dailyStreak;
+    long dailyStreakDay = Long.MIN_VALUE;
     /** Where to put the player back if they log out during the ending cinematic: "world;x;y;z;yaw;pitch;GAMEMODE". */
     String finaleReturn;
     boolean storyBookGiven;
@@ -192,6 +195,23 @@ public final class PlayerData {
         return dailiesDone;
     }
 
+    /**
+     * Records a finished daily on {@code today} (days since 1970) and returns the new streak:
+     * +1 for the day after the last one, unchanged on the same day, back to 1 after a missed day.
+     */
+    public synchronized int recordDailyStreak(long today) {
+        if (dailyStreakDay == today) return Math.max(1, dailyStreak);
+        dailyStreak = dailyStreakDay == today - 1 ? dailyStreak + 1 : 1;
+        dailyStreakDay = today;
+        dirty = true;
+        return dailyStreak;
+    }
+
+    /** The streak as it stands today: 0 once a whole day was missed. */
+    public synchronized int dailyStreak(long today) {
+        return dailyStreakDay >= today - 1 ? dailyStreak : 0;
+    }
+
     public synchronized void addDailyDone() {
         dailiesDone++;
         dirty = true;
@@ -270,6 +290,8 @@ public final class PlayerData {
         storyBookGiven = false;
         lastDailyAt = 0;
         dailiesDone = 0;
+        dailyStreak = 0;
+        dailyStreakDay = Long.MIN_VALUE;
         dirty = true;
     }
 

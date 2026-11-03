@@ -163,7 +163,7 @@ types:
       - "The {plural} are ripe. Harvest {amount} for {npc}."
       - "{npc} says the {plural} won't pick themselves."
     targets:
-      - "WHEAT | 0 | 8 | 64 | wheat | wheat"
+      - "CARROTS | 0 | 8 | 64 | carrot | carrots"
       - "CARROTS | 0 | 8 | 64 | carrot | carrots"
       - "POTATOES | 0 | 8 | 64 | potato | potatoes"
       - "BEETROOTS | 5 | 8 | 48 | beetroot | beetroots"
@@ -274,7 +274,7 @@ types:
       - "Could you fetch {amount} {plural} for {npc}?"
       - "{npc} has a use for {amount} {plural}. Don't ask what."
     targets:
-      - "WHEAT | 0 | 16 | 64 | wheat | wheat"
+      - "CARROT | 0 | 16 | 64 | carrot | carrots"
       - "COBBLESTONE | 0 | 32 | 256 | cobblestone | cobblestone"
       - "@LOGS | 0 | 16 | 64 | log | logs"
       - "FEATHER | 0 | 8 | 32 | feather | feathers"

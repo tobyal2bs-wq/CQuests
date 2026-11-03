@@ -34,6 +34,8 @@ public final class Settings {
     public final String dailyNpc;
     public final int dailyMinLevel;
     public final Map<Integer,Integer> chapterLevels;
+    /** Chapters switched off with /cq chapter: their villagers and story quests are not loaded at all. */
+    public final Set<Integer> lockedChapters;
     public final Set<String> spawnNpcIds;
     public final long dailyCooldownMillis;
     public final long dailyMoney;
@@ -91,7 +93,15 @@ public final class Settings {
         dailyMinLevel=Math.max(1,c.getInt("progression.daily-min-level",10));
         var levels=new HashMap<Integer,Integer>();
         for(int chapter=1;chapter<=5;chapter++)levels.put(chapter,Math.max(0,c.getInt("progression.chapter-levels."+chapter,chapter==1?0:(chapter-1)*100)));
+        // Chapters 6 to 10 sit between level 420 and the 500 cap unless config.yml says otherwise.
+        for(int chapter=6;chapter<=10;chapter++)levels.put(chapter,Math.max(0,c.getInt("progression.chapter-levels."+chapter,Math.min(500,400+(chapter-5)*20))));
+        var extra=c.getConfigurationSection("progression.chapter-levels");
+        if(extra!=null)for(String key:extra.getKeys(false))try{levels.put(Integer.parseInt(key),Math.max(0,extra.getInt(key)));}catch(NumberFormatException ignored){}
         chapterLevels=Map.copyOf(levels);
+        var locked=new HashSet<Integer>();
+        for(Object value:c.getList("chapters.locked",List.of(6,7,8,9,10)))try{locked.add(Integer.parseInt(String.valueOf(value).trim()));}catch(NumberFormatException ignored){}
+        locked.remove(1);
+        lockedChapters=Set.copyOf(locked);
         var spawn=new HashSet<>(c.getStringList("spawning.camp-npcs"));
         if(spawn.isEmpty())spawn.addAll(List.of("stephan","jerry","rosie","copper_jack","luma"));
         spawn.add("bob");spawnNpcIds=Set.copyOf(spawn);

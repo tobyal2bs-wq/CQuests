@@ -83,7 +83,7 @@ public final class CQuestsPlugin extends JavaPlugin {
                 getConfig().set("money-command","economy give %player% %amount%");saveConfig();
             } catch(java.io.IOException e){getLogger().warning("Reward command migration deferred: "+e.getMessage());}
         }
-        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml", "letters.yml", "characters.yml", "ai-mail.yml", "bob-character.txt"}) {
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml", "letters.yml", "characters.yml", "ai-mail.yml", "bob-character.txt", "bosses.yml"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
@@ -94,6 +94,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         characters = new com.cquests.npc.NpcCustomization(this);
         npcs.customization(characters);
         gemini = new com.cquests.adventure.GeminiMail(this);
+        discord = new com.cquests.integration.DiscordWebhook(this);
         market = new com.cquests.merchant.NativeMarket(this);
         mail = new com.cquests.adventure.QuestMail(this);
         store = new PlayerStore(getDataFolder(), getLogger());
@@ -157,6 +158,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if(gemini!=null)gemini.shutdown();
+        if(discord!=null)discord.shutdown();
         if(characters!=null)characters.shutdown();
         if(adventures!=null)adventures.shutdown();
         if(merchants!=null)merchants.shutdown();
@@ -197,7 +199,7 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     public void reload() {
         market.clear();gemini.reload();
-        adventures.clear(); memories.reload(); mail.reload(); characters.reload();
+        adventures.clear(); adventures.reloadBosses(); memories.reload(); mail.reload(); characters.reload();
         speech.stopAll();
         dialogue.invalidateAll();
         spawns.stop();
@@ -210,6 +212,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         spawns.start();
         backups.start();
         finale.achievements().register();
+        if (discord != null) discord.reload();
         tracker.invalidate();
         visibility.refreshAll();
     }
@@ -276,6 +279,9 @@ public final class CQuestsPlugin extends JavaPlugin {
     public com.cquests.npc.NpcCustomization characters(){return characters;}
     public com.cquests.adventure.NpcMemory memories(){return memories;}
     public com.cquests.adventure.QuestAdventures adventures(){return adventures;}
+    private com.cquests.integration.DiscordWebhook discord;
+    /** Discord announcements; null only in unit tests. */
+    public com.cquests.integration.DiscordWebhook discord(){return discord;}
 
     public Finale finale() {
         return finale;

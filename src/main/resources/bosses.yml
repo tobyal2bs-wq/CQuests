@@ -1,0 +1,80 @@
+# ===================================================================
+#  CQuests bosses
+# ===================================================================
+#  The last quest of chapters 5 to 10 is a private boss fight. The quest giver offers a
+#  "Face it" button (or the player types /quests encounter near them).
+#
+#  Every boss and its minions:
+#   - is seen only by the player who called it and only hurts that player
+#   - can only be hurt by that player
+#   - never breaks or burns blocks (explosions, fireballs and trampling are blocked)
+#   - drops nothing, is never saved to the world and leaves if the player dies, logs out,
+#     walks more than 48 blocks away or takes longer than 10 minutes
+#
+#  Chapters 6 to 10 are switched off until you run /cq chapter <number> on, so their
+#  bosses can't appear before then.
+#
+#  entity:        any Minecraft mob, e.g. WITHER, RAVAGER, DROWNED, BLAZE, WITHER_SKELETON, WARDEN
+#  health:        max health (0 = the mob's normal health)
+#  weapon:        item in its hand (optional)
+#  minions:       mob type that joins at half health (NONE for none)
+#  minion-count:  how many (at most 6)
+#  events:        what happens at half health and every 20 seconds after:
+#                 lightning (harmless strikes around you), darkness, slowness, levitate, roar
+# ===================================================================
+
+enabled: true
+# Boss fights that can run at the same time on the whole server.
+max-active: 6
+
+bosses:
+  story_aldis:
+    giver: aldis
+    entity: WITHER
+    name: "<gold>The Hollow King's vessel"
+    health: 0
+    minions: NONE
+    minion-count: 0
+    events: [lightning]
+  story_garrick:
+    giver: garrick
+    entity: RAVAGER
+    name: "<red><bold>Gorehorn, the Iron Tusk"
+    health: 400
+    minions: VINDICATOR
+    minion-count: 3
+    events: [roar, lightning]
+  story_brine:
+    giver: brine
+    entity: DROWNED
+    name: "<aqua><bold>Queen Brinewyn"
+    health: 350
+    weapon: TRIDENT
+    minions: DROWNED
+    minion-count: 4
+    events: [slowness, lightning]
+  story_emberly:
+    giver: emberly
+    entity: BLAZE
+    name: "<gold><bold>Pyra, the Ember Matriarch"
+    health: 350
+    minions: BLAZE
+    minion-count: 2
+    events: [levitate, lightning]
+  story_mortimer:
+    giver: mortimer
+    entity: WITHER_SKELETON
+    name: "<gray><bold>Sir Mortis of the Bone Choir"
+    health: 450
+    weapon: NETHERITE_SWORD
+    minions: SKELETON
+    minion-count: 4
+    events: [darkness, roar]
+  story_aldis_elder:
+    giver: aldis_elder
+    entity: WARDEN
+    name: "<dark_aqua><bold>The Listener Below"
+    health: 0
+    minions: NONE
+    minion-count: 0
+    events: [darkness, lightning, roar]

@@ -35,6 +35,8 @@ quest:
   more-work: "<yellow><npc> has more work for you. Click them again."
   abandoned: "<gray>Abandoned <white><quest></white>."
   no-offer: "<red>There is no quest offer waiting. Click a villager first."
+  # After a daily quest. <streak> days in a row, <bonus> extra money (daily.streak-* in config.yml).
+  daily-streak: "<gold>🔥 Daily streak: <white><streak> day(s)</white>. <gray>Streak bonus: <green>+<bonus></green>. Come back tomorrow to keep it going!"
 
 # Shown once to brand new players, without the prefix. "" turns it off.
 welcome:

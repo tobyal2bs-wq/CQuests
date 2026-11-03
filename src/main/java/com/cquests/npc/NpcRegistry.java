@@ -66,12 +66,17 @@ public final class NpcRegistry {
             log.warning("npcs.yml has no 'npcs' section");
             return;
         }
+        int locked = 0;
         for (String id : root.getKeys(false)) {
             ConfigurationSection s = root.getConfigurationSection(id);
             if (s == null) {
                 continue;
             }
             String key = id.toLowerCase(Locale.ROOT);
+            if (s.contains("chapter") && settings.lockedChapters.contains(s.getInt("chapter"))) {
+                locked++;
+                continue; // chapter switched off with /cq chapter: not spawned, not shown, not counted
+            }
             if (s.contains("chapter")) chapters.put(key, Math.max(1, s.getInt("chapter")));
             npcs.put(key, new NpcDef(
                     key,
@@ -89,7 +94,7 @@ public final class NpcRegistry {
                     s.getStringList("idle")));
         }
         refresh();
-        log.info("Loaded " + npcs.size() + " NPCs");
+        log.info("Loaded " + npcs.size() + " NPCs" + (locked > 0 ? " (" + locked + " more wait in chapters that are switched off)" : ""));
     }
 
     public NpcDef get(String id) {

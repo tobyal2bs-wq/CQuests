@@ -334,6 +334,14 @@ public final class QuestManager {
     }
 
     public void progress(Player player, ObjectiveType type, String key, int amount) {
+        progress(player, type, key, amount, false);
+    }
+
+    /**
+     * @param fromBoss true only when a private boss fight ended; boss quests ignore ordinary kills of
+     *                 the same mob type, so a stray Ravager or Warden can't stand in for the boss
+     */
+    public void progress(Player player, ObjectiveType type, String key, int amount, boolean fromBoss) {
         if (amount <= 0) {
             return;
         }
@@ -350,6 +358,9 @@ public final class QuestManager {
             for (ActiveQuest active : data.active().values()) {
                 Quest quest = resolve(active);
                 if (quest == null) {
+                    continue;
+                }
+                if (!fromBoss && type == ObjectiveType.KILL && plugin.adventures() != null && plugin.adventures().isBossQuest(quest.id())) {
                     continue;
                 }
                 boolean wasReady = ready(quest, active);
@@ -537,6 +548,7 @@ public final class QuestManager {
     /** Hands out rewards and marks the quest done. Must run on the player's thread. */
     public void complete(Player player, Quest quest) {
         PlayerData data = data(player);
+        int streak = 0;
         synchronized (data) {
             ActiveQuest active = data.active(quest.id());
             if (active == null || !ready(quest, active)) {
@@ -546,6 +558,7 @@ public final class QuestManager {
                 case DAILY -> {
                     data.complete(quest.id(), false);
                     data.addDailyDone();
+                    streak = data.recordDailyStreak(java.time.LocalDate.now().toEpochDay());
                 }
                 case SIDE -> {
                     data.complete(quest.id(), false);
@@ -570,9 +583,12 @@ public final class QuestManager {
                 .replace("<quest>", Text.escape(quest.name())));
         if(plugin.mail()!=null)plugin.mail().notifyNew(player);
         giveRewards(player, quest.reward());
+        if (streak > 0) dailyStreakBonus(player, quest, streak);
         if(quest.category()==QuestCategory.STORY&&(quests().endsChapter(quest)||isFinalQuest(quest)))
             Sched.global(()->Bukkit.broadcast(Text.mm("<gold><bold>CHAPTER COMPLETE</bold></gold> <white>"+Text.escape(player.getName())
                     +"</white> <gray>completed Chapter "+quest.chapter()+": <aqua>"+Text.escape(quests().chapterName(quest.chapter())))));
+        if(quest.category()==QuestCategory.STORY&&(quests().endsChapter(quest)||isFinalQuest(quest))&&plugin.discord()!=null)
+            plugin.discord().chapterComplete(player,quest.chapter(),quests().chapterName(quest.chapter()));
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
         plugin.visibility().refresh(player);
         plugin.tracker().update(player);
@@ -596,6 +612,24 @@ public final class QuestManager {
         SpawnManager.Point point = plugin.spawns().points().get(quest.turnIn().isEmpty() ? quest.giver() : quest.turnIn());
         Location loc = point == null ? null : point.location();
         return loc != null ? loc : player.getLocation();
+    }
+
+    /**
+     * Daily streaks: every day in a row adds daily.streak-bonus-percent of the daily's money, up to
+     * daily.streak-max-days. Missing a day starts the streak again at 1.
+     */
+    private void dailyStreakBonus(Player player, Quest quest, int streak) {
+        var config = plugin.getConfig();
+        if (!config.getBoolean("daily.streaks", true)) return;
+        int days = Math.min(streak, Math.max(1, config.getInt("daily.streak-max-days", 7))) - 1;
+        long bonus = Math.round(quest.reward().money() * days * Math.max(0, config.getDouble("daily.streak-bonus-percent", 10)) / 100.0);
+        if (bonus > 0 && !settings().moneyCommand.isBlank()) {
+            String command = settings().moneyCommand.replace("%player%", player.getName()).replace("%amount%", Long.toString(bonus));
+            Sched.global(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), stripSlash(command)));
+        }
+        plugin.send(player, settings().msg("daily-streak", "<gold>🔥 Daily streak: <white><streak> day(s)</white>. <gray>Streak bonus: <green>+<bonus></green>. Come back tomorrow to keep it going!")
+                .replace("<streak>", Integer.toString(streak)).replace("<bonus>", String.format(java.util.Locale.ROOT, "%,d", bonus)));
+        if (plugin.discord() != null && (streak == 7 || streak == 30 || streak == 100 || streak % 365 == 0)) plugin.discord().dailyStreak(player, streak);
     }
 
     public void giveRewards(Player player, Reward reward) {

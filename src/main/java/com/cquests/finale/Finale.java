@@ -249,6 +249,7 @@ public final class Finale {
         Bukkit.broadcast(Text.mm(plugin.settings().msg("journey-finished",
                 "<gold>★ <white><player></white> finished the journey and freed the Hollow King!")
                 .replace("<player>", Text.escape(player.getName()))));
+        if (plugin.discord() != null) plugin.discord().journeyFinished(player);
     }
 
     // ------------------------------------------------------------------ scenes & camera

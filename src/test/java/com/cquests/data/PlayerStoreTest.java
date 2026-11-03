@@ -122,4 +122,20 @@ class PlayerStoreTest {
         assertTrue(restored.isCompleted("welcome"));
         assertEquals(GOOD, Files.readString(new File(store.dir(), uuid + ".yml").toPath()));
     }
+    @Test void dailyStreakCountsDaysInARowAndSurvivesRestart(@TempDir File folder){
+        var store=new PlayerStore(folder,Logger.getLogger("streak-test"));UUID id=UUID.randomUUID();var data=store.get(id);
+        assertEquals(0,data.dailyStreak(100));
+        assertEquals(1,data.recordDailyStreak(100));
+        assertEquals(1,data.recordDailyStreak(100),"a second daily on the same day keeps the streak");
+        assertEquals(2,data.recordDailyStreak(101));
+        assertEquals(3,data.recordDailyStreak(102));
+        assertEquals(3,data.dailyStreak(103),"still alive the day after");
+        assertEquals(0,data.dailyStreak(104),"gone after a missed day");
+        store.saveAllNow();
+        var read=new PlayerStore(folder,Logger.getLogger("streak-test")).get(id);
+        assertEquals(3,read.dailyStreak(102));
+        assertEquals(4,read.recordDailyStreak(103));
+        assertEquals(1,read.recordDailyStreak(110),"a missed day starts again at 1");
+        read.reset();assertEquals(0,read.dailyStreak(110));
+    }
 }

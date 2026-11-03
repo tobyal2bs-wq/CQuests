@@ -1,3 +1,5 @@
+CQuests **1.7.0** adds chapters 6 to 10 (50 new villagers, each chapter ending in a private boss fight), switched off until you run `/cq chapter 6 on`. It also adds Discord webhook announcements, daily quest streaks, `/cq scatterworld` across the whole world, a PlaceholderAPI placeholder for every number and name, and removes wheat from every quest. See [RELEASE-1.7.0.md](RELEASE-1.7.0.md).
+
 CQuests **1.6.6** is a stability and performance release: NPCs under roofs or trees spawn again, a server-wide mob movement listener is gone, offline players leave memory, and renaming an NPC now changes its name everywhere (quest text, tracker, directions, mail, menus) and works from the console. See [RELEASE-1.6.6.md](RELEASE-1.6.6.md).
 
 CQuests **1.3.3** separates and lifts NPC nameplates above private speech, improves name/level contrast and adds slower typing with a reading pause for every sentence. See [validation](AUDIT-1.3.3.md) and [farm testing](FARM-TESTING.md).
@@ -26,7 +28,7 @@ Version 1.2 adds private letter-by-letter NPC speech, native Minecraft dialog ch
 4. Give players the quest command: `/lp group default permission set quests.use true`
 5. Optional: move the villagers to your own spots (see "Placing villagers").
 
-WorldGuard is required for farming, alongside its matching WorldEdit dependency. PlaceholderAPI enables `%cquests_level%` and related skill placeholders. These integrations are optional for ordinary quests. NPCs can spawn inside regions with `mob-spawning deny`.
+WorldGuard is required for farming, alongside its matching WorldEdit dependency. PlaceholderAPI enables `%cquests_level%` and every other number and name (see "Placeholders"). These integrations are optional for ordinary quests. NPCs can spawn inside regions with `mob-spawning deny`.
 
 ## Commands
 
@@ -52,6 +54,8 @@ WorldGuard is required for farming, alongside its matching WorldEdit dependency.
 | `/cq character <id> reset` | op or console | Undo every change for that character |
 | `/cq pos1`, `/cq pos2` | op | Select a box to scatter NPCs in |
 | `/cq scatter <ids, act1, act2 or all> [region] [world]` | op | Spread NPCs in a WorldGuard region or your box. They keep wandering inside it |
+| `/cq scatterworld <chapter6, act1, all or ids> <size or border> [depth] [world] [centerX centerZ]` | op | Spread NPCs over the whole world (a square of that size around the world border centre), not around you |
+| `/cq chapter [number] [on\|off]` | op or console | List chapters, or switch one on or off for everyone. Chapters 6 to 10 start off |
 | `/cq player <name> reset` | op | Wipe a player's quest progress |
 | `/cq player <name> complete <quest>` | op | Mark a quest done |
 | `/cq player <name> give <quest>` | op | Give a quest |
@@ -174,14 +178,53 @@ Every quest NPC, every merchant and Pip the companion can be renamed in game or 
 * `/cq npc list` shows each id with its current name next to it.
 * Lines written inside `quests.yml` (offers and completion lines) are your own text, so a villager's old name there stays until you edit it.
 
-### Adding chapter 6 and beyond
+### Chapters 6 to 10 and bosses
+
+1.7.0 ships five more chapters with 10 villagers each: 6 The Iron Tusk, 7 Tides of the Drowned, 8 The Ember Court, 9 The Bone Choir and 10 The Listener Below. They are **off** until you switch them on, so you can try them first:
+
+* `/cq chapter` lists every chapter and whether it is on. `/cq chapter 6 on` switches chapter 6 on for everyone, `/cq chapter 6 off` hides it again. This writes `chapters.locked` in `config.yml` and reloads.
+* While a chapter is off its villagers do not spawn and its quests do not exist. Players who already finished chapter 5 continue into chapter 6 as soon as it is on. Progress in a chapter you switch off is kept.
+* `/cq scatterworld chapter6 10000` spreads the chapter's villagers over 10,000 × 10,000 blocks around the world border centre (`border` uses the whole border).
+* Level gates for chapters 6 to 10 are 420 to 500 (`progression.chapter-levels`).
+
+The last quest of chapters 5 to 10 is a boss fight, set up in `bosses.yml`: the Wither, a Ravager, a Drowned captain, a Blaze, a Wither Skeleton and a Warden. Every boss and its minions:
+
+* are seen only by the player who called them, and only hurt and are only hurt by that player
+* never break, burn or blow up blocks, drop nothing and are never saved to the world
+* leave when the player dies, logs out, walks 48 blocks away or takes more than 10 minutes
+* use events at half health and every 20 seconds after (harmless lightning, darkness, slowness, levitation, a roar), and call minions at half health
+* are capped at `max-active` fights on the whole server (6 by default) and run on the boss's own region thread on Folia
+
+### Daily streaks
+
+Finishing the daily on the day after the last one adds a day to the streak. Each day adds `daily.streak-bonus-percent` (10%) of the daily's money, up to `daily.streak-max-days` (7). A missed day starts again at 1. Turn it off with `daily.streaks: false`.
+
+### Discord
+
+Paste a webhook link into `discord.webhook-url` and `/cq reload`. CQuests posts when someone finishes a chapter, finishes the journey, beats a boss or reaches a 7, 30 or 100 day streak. Each event can be turned off or reworded under `discord.events` and `discord.messages`. Posts are sent in the background (never on the server thread), at most one every 2 seconds, and can never ping `@everyone`, roles or users.
+
+### Placeholders
+
+With PlaceholderAPI installed every value is `%cquests_<name>%`. Add `_formatted` to any number for `1,234,567` or `_short` for `1.2M`, e.g. `%cquests_xp_formatted%`. Placeholders only read what is already in memory, so they are safe for scoreboards and tab lists on Folia.
+
+| Numbers | Text |
+|---|---|
+| `level`, `xp`, `xp_required`, `xp_progress` (%) | `xp_bar`, `story_bar` (■■■■□□□□□□) |
+| `story_done`, `story_total`, `story_percent` | `chapter_name`, `next_story`, `next_story_npc` |
+| `chapter`, `chapters` | `story_finished` (yes/no) |
+| `quests_completed`, `side_done`, `npcs_met` | `active_name`, `active_npc`, `active_category` |
+| `dailies_done`, `daily_streak` | `active_progress` (3/10), `active_objective` |
+| `active`, `active_story`, `active_side`, `active_daily`, `active_progress_percent` | `daily_ready` (yes/no), `daily_cooldown` (3h 20m) |
+| `sunflowers`, `wheat`, `hoe_tier` | `bosses_enabled` (yes/no) |
+
+### Adding chapter 11 and beyond
 
 The story keeps going as long as there are quests. To add a chapter:
 
-1. Add villagers to `npcs.yml` (give them `act: 2` and `personal: true` to only show them to players who need them).
-2. Name the chapter in `quests.yml` under `chapters:`, for example `6: "The Long Winter"`.
-3. Add story quests at the bottom of `quests:` with `chapter: 6`. Each one automatically follows the quest above it; add `side-required: 15` to set how many side quests it needs.
-4. `/cq reload`. Players who finished chapter 5 continue straight into chapter 6. The ending plays after whatever quest is last.
+1. Add villagers to `npcs.yml` (give them `act: 2` and `personal: true` to only show them to players who need them, and `chapter: 11` so `/cq chapter 11 off` hides them).
+2. Name the chapter in `quests.yml` under `chapters:`, for example `11: "The Long Winter"`.
+3. Add story quests at the bottom of `quests:` with `chapter: 11`. Each one automatically follows the quest above it; add `side-required: 15` to set how many side quests it needs.
+4. `/cq reload`. Players who finished the last chapter continue straight into the new one. The ending plays after whatever quest is last.
 
 Quest format:
 
@@ -190,7 +233,7 @@ Quest format:
     name: "Into the Snow"
     level: 101
     giver: rowan
-    chapter: 6
+    chapter: 11
     side-required: 15
     big: true
     objectives:

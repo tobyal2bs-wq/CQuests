@@ -208,6 +208,10 @@ class QuestDataTest {
 
     @Test
     void everyTargetNamesRealThings() {
+        checkTargets(npcs, quests);
+    }
+
+    private static List<Quest> sample(NpcRegistry npcs, QuestRegistry quests) {
         List<Quest> sample = new ArrayList<>(quests.story());
         sample.addAll(quests.dailyPool());
         for (NpcDef npc : npcs.all()) {
@@ -218,7 +222,11 @@ class QuestDataTest {
                 }
             }
         }
-        for (Quest quest : sample) {
+        return sample;
+    }
+
+    private static void checkTargets(NpcRegistry npcs, QuestRegistry quests) {
+        for (Quest quest : sample(npcs, quests)) {
             for (Objective objective : quest.objectives()) {
                 TargetMatcher target = objective.target();
                 if (target.any() || objective.type() == ObjectiveType.TALK) {
@@ -240,6 +248,91 @@ class QuestDataTest {
                 }
                 assertTrue(found, quest.id() + ": '" + target.spec() + "' matches no " + (entity ? "entity" : "material"));
             }
+        }
+    }
+
+    /** Loads the bundled files with every chapter switched on, the way /cq chapter N on does. */
+    private static QuestRegistry unlocked(NpcRegistry into, List<String> warnings) {
+        Logger log = Logger.getLogger("CQuestsUnlocked");
+        log.setUseParentHandlers(false);
+        for (Handler h : log.getHandlers()) log.removeHandler(h);
+        log.addHandler(new Handler() {
+            @Override public void publish(LogRecord record) { if (record.getLevel().intValue() >= Level.WARNING.intValue()) warnings.add(record.getMessage()); }
+            @Override public void flush() { }
+            @Override public void close() { }
+        });
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(RESOURCES, "config.yml"));
+        config.set("chapters.locked", List.of());
+        Settings open = new Settings(config, YamlConfiguration.loadConfiguration(new File(RESOURCES, "messages.yml")));
+        assertTrue(open.lockedChapters.isEmpty());
+        into.load(new File(RESOURCES, "npcs.yml"), open, log);
+        QuestRegistry registry = new QuestRegistry();
+        registry.load(new File(RESOURCES, "quests.yml"), new File(RESOURCES, "generator.yml"), open, into, log);
+        return registry;
+    }
+
+    @Test
+    void chaptersSixToTenStartLocked() {
+        assertEquals(Set.of(6, 7, 8, 9, 10), settings.lockedChapters);
+        assertTrue(quests.story().stream().noneMatch(q -> q.chapter() > 5));
+        assertEquals(null, npcs.get("garrick"), "chapter 6 villagers do not exist while locked");
+        assertEquals("The Iron Tusk", quests.chapterName(6), "names stay known for /cq chapter");
+    }
+
+    @Test
+    void chaptersSixToTenLoadCleanlyWhenSwitchedOn() {
+        List<String> warnings = new ArrayList<>();
+        NpcRegistry all = new NpcRegistry();
+        QuestRegistry open = unlocked(all, warnings);
+        assertEquals(List.of(), warnings);
+        List<Quest> story = open.story();
+        assertEquals(151, story.size());
+        Set<Integer> chapters = new HashSet<>();
+        for (int i = 1; i < story.size(); i++) {
+            Quest quest = story.get(i);
+            chapters.add(quest.chapter());
+            assertEquals(List.of(story.get(i - 1).id()), quest.requires(), quest.id() + " should follow the previous quest");
+            assertTrue(quest.chapter() >= story.get(i - 1).chapter());
+        }
+        assertEquals(Set.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), chapters);
+        for (String boss : List.of("story_garrick", "story_brine", "story_emberly", "story_mortimer", "story_aldis_elder")) {
+            Quest quest = open.get(boss);
+            assertNotNull(quest, boss);
+            assertTrue(open.endsChapter(quest) || open.nextStory(quest) == null, boss + " ends its chapter");
+            assertEquals(ObjectiveType.KILL, quest.objectives().get(0).type());
+            assertNotNull(all.get(quest.giver()), boss + " giver exists");
+        }
+        checkTargets(all, open);
+    }
+
+    @Test
+    void noQuestAsksForWheat() {
+        List<String> warnings = new ArrayList<>();
+        NpcRegistry all = new NpcRegistry();
+        QuestRegistry open = unlocked(all, warnings);
+        for (Quest quest : sample(all, open)) {
+            for (Objective objective : quest.objectives()) {
+                if (objective.target().any()) continue;
+                assertFalse(objective.target().matches("WHEAT") || objective.target().matches("HAY_BLOCK"),
+                        quest.id() + " asks for wheat: " + objective.target().spec());
+            }
+        }
+    }
+
+    @Test
+    void everyBossBelongsToARealQuest() {
+        List<String> warnings = new ArrayList<>();
+        NpcRegistry all = new NpcRegistry();
+        QuestRegistry open = unlocked(all, warnings);
+        YamlConfiguration bosses = YamlConfiguration.loadConfiguration(new File(RESOURCES, "bosses.yml"));
+        var section = bosses.getConfigurationSection("bosses");
+        assertNotNull(section);
+        for (String id : section.getKeys(false)) {
+            Quest quest = open.get(id);
+            assertNotNull(quest, "bosses.yml: " + id + " is not a quest");
+            assertEquals(quest.giver(), section.getString(id + ".giver"), id + " giver");
+            EntityType type = EntityType.valueOf(section.getString(id + ".entity"));
+            assertTrue(type.isAlive(), id);
         }
     }
 }

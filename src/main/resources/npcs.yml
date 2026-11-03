@@ -323,7 +323,7 @@ npcs:
     personal: true
     intro:
       - "Mabel. Greta's sister."
-      - "She shears them. I make more of them."
+      - "Greta usually shears them. Today, so do you."
     idle:
       - "One sheep, two sheep, three sheep... where was I?"
   dave:
@@ -1406,3 +1406,713 @@ npcs:
       - "You did what I could not."
     idle:
       - "Long live... well. Long live us."
+# >>> chapters 6-10 (tools/story/chapters_6_10.py)
+  pip_scout:
+    name: "Pip Tallow"
+    title: "the Road Scout"
+    profession: CARTOGRAPHER
+    skin: PLAINS
+    level: 100
+    act: 2
+    chapter: 6
+    personal: true
+    baby: true
+    intro:
+      - "Pip Tallow! Scout, runner, professional optimist."
+      - "The Wanderers are walking home to Aldmere, but raiders block the old road."
+    idle:
+      - "Left, right, left, right. The road always wins."
+  jd:
+    name: "J.D."
+    title: "the Gatewright"
+    profession: MASON
+    skin: PLAINS
+    level: 101
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "Name's J.D. Just the letters. Long story."
+      - "I'm rebuilding the gate of Aldmere, stone by stone."
+    idle:
+      - "J.D. stands for Just Done. Ask me when the gate's finished."
+  lampwright:
+    name: "Dr. Ember"
+    title: "Doctor of Lamps"
+    profession: CLERIC
+    skin: DESERT
+    level: 102
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "Dr. Ember. Doctor of lamps. It's a real degree, I promise."
+      - "The old streets are pitch dark, and the raiders love that."
+    idle:
+      - "A lamp is a small sun you can carry."
+  rook:
+    name: "Rook"
+    title: "Captain of the Guard"
+    profession: WEAPONSMITH
+    skin: TAIGA
+    level: 103
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "Rook. Captain of the new city guard."
+      - "Which is me. I am the guard."
+    idle:
+      - "Halt! Oh, it's you. Carry on."
+  wilma:
+    name: "Wilma"
+    title: "the Tanner"
+    profession: LEATHERWORKER
+    skin: SAVANNA
+    level: 104
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "Wilma. Saddles, boots and very good bags."
+      - "Families moving home need all three."
+    idle:
+      - "Good boots, good day. Simple as that."
+  clover:
+    name: "Clover"
+    title: "the Stablehand"
+    profession: FARMER
+    skin: PLAINS
+    level: 105
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "Clover. I run the new stables."
+      - "Every courier in Aldmere needs a horse. I have zero horses."
+    idle:
+      - "A horse knows when you're scared. So be brave."
+  max:
+    name: "M.A.X"
+    title: "B.O.B's Little Brother"
+    profession: TOOLSMITH
+    skin: PLAINS
+    level: 106
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "BEEP. I AM M.A.X. MECHANICAL ASSISTANT, EXPERIMENTAL."
+      - "MY BROTHER B.O.B SAYS YOU ARE TRUSTWORTHY."
+      - "I NEED POWER."
+    idle:
+      - "BEEP. I HAVE TOUCHED GRASS. IT WAS AS DESCRIBED."
+  sully:
+    name: "Sully"
+    title: "the Swineherd"
+    profession: BUTCHER
+    skin: SWAMP
+    level: 107
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "Sully. Pigs. Mostly pigs."
+      - "A city without bacon is just a very large camp."
+    idle:
+      - "I named every pig. Don't ask about the names."
+  pemberly:
+    name: "Lord Pemberly"
+    title: "the Mayor"
+    profession: ARMORER
+    skin: PLAINS
+    level: 108
+    act: 2
+    chapter: 6
+    personal: true
+    player-skin: "default"
+    intro:
+      - "I am Lord Pemberly, mayor of Aldmere. Elected yesterday. By myself."
+      - "The raiders who block the road answer to a beast. A Ravager in iron."
+    idle:
+      - "A mayor's work is never done. Mostly it's signing things."
+  garrick:
+    name: "Old Garrick"
+    title: "the Beast Hunter"
+    profession: WEAPONSMITH
+    skin: TAIGA
+    level: 109
+    act: 2
+    chapter: 6
+    personal: true
+    intro:
+      - "Garrick. I've hunted beasts for sixty years."
+      - "Gorehorn, the Iron Tusk, wrecked my village when I was a boy."
+      - "It will only come for one hunter at a time. Make it you."
+    idle:
+      - "Every scar has a story. Most of mine are about that beast."
+  marisol:
+    name: "Marisol"
+    title: "the Harbourmaster"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 110
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "Marisol. I keep Aldmere's new harbour."
+      - "Ships have stopped coming. The sea has turned against us."
+    idle:
+      - "The tide always comes back. Usually."
+  hugh:
+    name: "Hugh"
+    title: "the Ferryman"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 111
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "Hugh. I run the ferry across the Aldwater."
+      - "No boat, no ferry. No ferry, no Hugh."
+    idle:
+      - "The river doesn't care who you are. That's why I like it."
+  coral:
+    name: "Coral"
+    title: "the Reef Keeper"
+    profession: CLERIC
+    skin: JUNGLE
+    level: 112
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "Coral. I tend the reef."
+      - "Prismarine keeps the deep calm. We've run out."
+    idle:
+      - "Coral grows a hand's width in a hundred years. Be patient with it."
+  kelpie:
+    name: "Kelpie"
+    title: "the Kelp Collector"
+    profession: NITWIT
+    skin: PLAINS
+    level: 113
+    act: 2
+    chapter: 7
+    personal: true
+    baby: true
+    intro:
+      - "Kelpie! I collect kelp. Do you collect anything?"
+      - "The drowned keep eating my kelp."
+    idle:
+      - "Kelp is just a tree that went swimming."
+  tobias_net:
+    name: "Tobias"
+    title: "the Netmaker"
+    profession: FISHERMAN
+    skin: PLAINS
+    level: 114
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "Tobias. I mend nets."
+      - "Something cuts them every night. Something with a trident."
+    idle:
+      - "A net is mostly holes held together by hope."
+  dex_diver:
+    name: "Dex"
+    title: "the Diver"
+    profession: LEATHERWORKER
+    skin: PLAINS
+    level: 115
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "Dex. I dive."
+      - "Down there I saw a palace. Drowned guards. A crown."
+    idle:
+      - "Hold your breath. Longer. Longer."
+  seraphine:
+    name: "Seraphine"
+    title: "the Tide Reader"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 116
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "Seraphine. I read the tides like books."
+      - "The tides speak of a queen who drowned with her fleet."
+    idle:
+      - "High tide, low tide, story tide."
+  conch:
+    name: "Admiral Conch"
+    title: "of the Lost Fleet"
+    profession: ARMORER
+    skin: PLAINS
+    level: 117
+    act: 2
+    chapter: 7
+    personal: true
+    player-skin: "default"
+    intro:
+      - "Admiral Conch. Of a fleet that no longer exists."
+      - "Brinewyn was my queen. The sea took her, and kept her."
+    idle:
+      - "Sailors never die. They just smell like it."
+  nerissa:
+    name: "Nerissa"
+    title: "the Sea Witch"
+    profession: CLERIC
+    skin: PLAINS
+    level: 118
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "Nerissa. Don't call me a witch. Fine, call me a witch."
+      - "To breathe at the palace you'll need my brews."
+    idle:
+      - "Bubbles are just the ocean laughing."
+  brine:
+    name: "Brine"
+    title: "the Queen's Herald"
+    profession: FISHERMAN
+    skin: JUNGLE
+    level: 119
+    act: 2
+    chapter: 7
+    personal: true
+    intro:
+      - "I am Brine, herald of Queen Brinewyn."
+      - "Her Majesty will receive you. One challenger. Only one."
+    idle:
+      - "The Queen will see you now. Probably."
+  cinder:
+    name: "Cinder"
+    title: "the Gatekeeper"
+    profession: ARMORER
+    skin: SAVANNA
+    level: 120
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Cinder. I guard the gate to the Ember Court."
+      - "The court burns hotter every day. Soon it'll spill into the overworld."
+    idle:
+      - "Mind your eyebrows."
+  magmus:
+    name: "Magmus"
+    title: "the Basalt Breaker"
+    profession: TOOLSMITH
+    skin: SAVANNA
+    level: 121
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Magmus. I break rocks that don't want to be broken."
+      - "The court walls are basalt. Thick, thick basalt."
+    idle:
+      - "Rocks are just very slow lava."
+  ash:
+    name: "Ash"
+    title: "the Soul Scribe"
+    profession: LIBRARIAN
+    skin: SAVANNA
+    level: 122
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Ash. I write down what the souls whisper."
+      - "They whisper about a matriarch made of fire."
+    idle:
+      - "Shh. They're talking about you."
+  brimstone:
+    name: "Brimstone"
+    title: "the Hoglin Tamer"
+    profession: WEAPONSMITH
+    skin: SAVANNA
+    level: 123
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Brimstone. Hoglins respect me. Mostly."
+      - "Their herds block the court road."
+    idle:
+      - "Never look a hoglin in the eye. It's rude."
+  quartzine:
+    name: "Quartzine"
+    title: "the Quartz Carver"
+    profession: MASON
+    skin: SAVANNA
+    level: 124
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Quartzine. I carve."
+      - "The court's doors are sealed with quartz runes."
+    idle:
+      - "Every rune is a word. Every word is a door."
+  goldtooth:
+    name: "Goldtooth"
+    title: "the Piglin Trader"
+    profession: NITWIT
+    skin: SAVANNA
+    level: 125
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Goldtooth. I trade with piglins. They trade with my teeth."
+      - "The court's guards love gold. Let's bribe them."
+    idle:
+      - "Gold makes friends. Bad friends, but friends."
+  warpwick:
+    name: "Warpwick"
+    title: "the Warped Wanderer"
+    profession: CARTOGRAPHER
+    skin: SWAMP
+    level: 126
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Warpwick. I map the warped woods. Nobody else will."
+      - "Endermen guard the shortcut to the court."
+    idle:
+      - "Left at the blue tree. Every tree is blue."
+  fennel:
+    name: "Fennel"
+    title: "the Fire Brewer"
+    profession: CLERIC
+    skin: SAVANNA
+    level: 127
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "Fennel. I brew things that don't burn."
+      - "You'll want fire resistance in the court."
+    idle:
+      - "Bubble, bubble, nether trouble."
+  ignatius:
+    name: "Sir Ignatius"
+    title: "the Court Knight"
+    profession: ARMORER
+    skin: SAVANNA
+    level: 128
+    act: 2
+    chapter: 8
+    personal: true
+    player-skin: "default"
+    intro:
+      - "Sir Ignatius. Knight of the Ember Court, once."
+      - "The court's blazes must fall before the Matriarch shows herself."
+    idle:
+      - "Honour burns brightest in the dark."
+  emberly:
+    name: "Emberly"
+    title: "the Court Herald"
+    profession: NITWIT
+    skin: SAVANNA
+    level: 129
+    act: 2
+    chapter: 8
+    personal: true
+    intro:
+      - "I am Emberly, herald of the Matriarch."
+      - "Pyra will duel one challenger. You."
+    idle:
+      - "Hot, isn't it? It's always hot."
+  hollis:
+    name: "Hollis"
+    title: "the Gravekeeper"
+    profession: CLERIC
+    skin: TAIGA
+    level: 130
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Hollis. I keep the graves quiet."
+      - "Lately they sing. Every night. A choir of bones."
+    idle:
+      - "The dead should rest. That's the rule."
+  bonnie:
+    name: "Bonnie"
+    title: "the Bonemeal Baker"
+    profession: BUTCHER
+    skin: PLAINS
+    level: 131
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Bonnie! I make bonemeal. For flowers!"
+      - "With all these skeletons, I've never had so much."
+    idle:
+      - "Every bone wants to be a flower, deep down."
+  requiem:
+    name: "Requiem"
+    title: "the Choir Scholar"
+    profession: LIBRARIAN
+    skin: TAIGA
+    level: 132
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Requiem. I study music. Even the bad kind."
+      - "The choir sings a hymn from the old kingdom."
+    idle:
+      - "Every song ends. Except that one."
+  tallow:
+    name: "Tallow"
+    title: "the Candlemaker"
+    profession: NITWIT
+    skin: SWAMP
+    level: 133
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Tallow. Candles."
+      - "The dead hate light. Let's give them a lot."
+    idle:
+      - "A candle is a promise to the dark."
+  grimsby:
+    name: "Grimsby"
+    title: "the Crypt Digger"
+    profession: TOOLSMITH
+    skin: TAIGA
+    level: 134
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Grimsby. I dig crypts. Badly."
+      - "The choir sings from a crypt below the old chapel."
+    idle:
+      - "Dig twice, cry once."
+  wren_bone:
+    name: "Wren"
+    title: "the Wolf Whisperer"
+    profession: SHEPHERD
+    skin: PLAINS
+    level: 135
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Wren. My wolves can smell the dead."
+      - "They'll guide you through the crypt."
+    idle:
+      - "Who's a good wolf? All of them."
+  morrow:
+    name: "Morrow"
+    title: "the Crypt Smith"
+    profession: ARMORER
+    skin: TAIGA
+    level: 136
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Morrow. I forge for the dead's enemies."
+      - "Smite. You'll want smite."
+    idle:
+      - "Steel remembers every swing."
+  vesper:
+    name: "Vesper"
+    title: "the Night Nun"
+    profession: CLERIC
+    skin: TAIGA
+    level: 137
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Vesper. I pray at night, when it matters."
+      - "The choir's soldiers are wither skeletons, from the old fortress guard."
+    idle:
+      - "Pray, then swing. In that order."
+  sexton:
+    name: "Sexton"
+    title: "the Bell Ringer"
+    profession: NITWIT
+    skin: TAIGA
+    level: 138
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "Sexton. I ring the funeral bell."
+      - "Mortis will wake when he hears it. Then he'll want you."
+    idle:
+      - "Dong. Sorry, habit."
+  mortimer:
+    name: "Mortimer"
+    title: "the Choir Herald"
+    profession: LIBRARIAN
+    skin: TAIGA
+    level: 139
+    act: 2
+    chapter: 9
+    personal: true
+    intro:
+      - "I am Mortimer, herald of the Bone Choir."
+      - "Sir Mortis conducts. He will duel you alone."
+    idle:
+      - "Shh. The choir is resting."
+  echo:
+    name: "Echo"
+    title: "the Sculk Scholar"
+    profession: LIBRARIAN
+    skin: TAIGA
+    level: 140
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "Echo. ...Echo. Sorry, joke."
+      - "Something listens under Aldmere. It heard the bell."
+    idle:
+      - "Don't make a sound. ...Too late."
+  whisper:
+    name: "Whisper"
+    title: "the Quiet One"
+    profession: NITWIT
+    skin: TAIGA
+    level: 141
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "..."
+      - "(Whisper writes on a scrap of paper: wool muffles footsteps.)"
+    idle:
+      - "..."
+  gloam:
+    name: "Gloam"
+    title: "the Deepwright"
+    profession: TOOLSMITH
+    skin: TAIGA
+    level: 142
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "Gloam. I build in the deep."
+      - "We need light the Listener can't hear."
+    idle:
+      - "Light is loud, if you listen."
+  anvara:
+    name: "Anvara"
+    title: "the Deep Warden"
+    profession: WEAPONSMITH
+    skin: TAIGA
+    level: 143
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "Anvara. I guard the way down."
+      - "Ancient cities lie below. Full of things that hear you breathe."
+    idle:
+      - "Breathe slowly. It's listening."
+  oriel:
+    name: "Oriel"
+    title: "the Cave Gardener"
+    profession: CLERIC
+    skin: JUNGLE
+    level: 144
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "Oriel. I grow things where the sun never shines."
+      - "Glow berries calm the Listener. Mostly."
+    idle:
+      - "Even the dark needs a garden."
+  flint_deep:
+    name: "Flint"
+    title: "the Echo Miner"
+    profession: MASON
+    skin: TAIGA
+    level: 145
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "Flint. I mine echo shards."
+      - "With enough shards, we can talk back to it."
+    idle:
+      - "Every echo is a question."
+  tamsin:
+    name: "Tamsin"
+    title: "the Last Mapmaker"
+    profession: CARTOGRAPHER
+    skin: TAIGA
+    level: 146
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "Tamsin. Gwen's apprentice. And Penny's. And everyone's."
+      - "I'm mapping the way to the Listener's hall."
+    idle:
+      - "A map is a promise that someone came back."
+  hush:
+    name: "Brother Hush"
+    title: "the Silent Monk"
+    profession: CLERIC
+    skin: TAIGA
+    level: 147
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "(Brother Hush bows and points at a sign: wool for the walls.)"
+      - "(The sign continues: the Listener cannot hear through wool.)"
+    idle:
+      - "(Brother Hush nods.)"
+  stephan_elder:
+    name: "Elder Stephan"
+    title: "Keeper of the Road"
+    profession: LIBRARIAN
+    skin: PLAINS
+    level: 148
+    act: 2
+    chapter: 10
+    personal: true
+    player-skin: "default"
+    intro:
+      - "Remember me? Stephan. A bit older. A bit wiser."
+      - "You began this road with me. It ends below Aldmere."
+    idle:
+      - "Every road ends somewhere. Ours ends with you."
+  aldis_elder:
+    name: "Mother Aldis"
+    title: "the Oracle"
+    profession: NITWIT
+    skin: TAIGA
+    level: 149
+    act: 2
+    chapter: 10
+    personal: true
+    intro:
+      - "Child. You came back."
+      - "The Listener is the last piece of the Hollow. It cannot be killed by many. Only by one."
+    idle:
+      - "Shhh. Listen. Nothing at all. Beautiful."
+# <<< chapters 6-10
