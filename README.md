@@ -1,3 +1,5 @@
+CQuests **1.6.6** is a stability and performance release: NPCs under roofs or trees spawn again, a server-wide mob movement listener is gone, offline players leave memory, and renaming an NPC now changes its name everywhere (quest text, tracker, directions, mail, menus) and works from the console. See [RELEASE-1.6.6.md](RELEASE-1.6.6.md).
+
 CQuests **1.3.3** separates and lifts NPC nameplates above private speech, improves name/level contrast and adds slower typing with a reading pause for every sentence. See [validation](AUDIT-1.3.3.md) and [farm testing](FARM-TESTING.md).
 
 CQuests **1.3.2** adds `/cq merchant test [id|stop]`: a private temporary walk and trade preview that does not spend items or money or alter saved merchants. See [setup](MERCHANTS-1.3.md) and [validation](AUDIT-1.3.2.md).
@@ -45,6 +47,9 @@ WorldGuard is required for farming, alongside its matching WorldEdit dependency.
 | `/cq npc place <id>` | op | Put an NPC where you stand |
 | `/cq npc remove <id>` | op | Take an NPC off the map |
 | `/cq npc tp <id>` | op | Teleport to an NPC |
+| `/cq npc rename <id> <name>` | op or console | Rename an NPC everywhere. Colours work (`<gold>Jerry`). Progress is unchanged |
+| `/cq character <id> name\|title\|prefix\|intro\|idle <text>` | op or console | Change any quest NPC, merchant or Pip: name, title, name tag prefix, first-meeting lines, idle lines |
+| `/cq character <id> reset` | op or console | Undo every change for that character |
 | `/cq pos1`, `/cq pos2` | op | Select a box to scatter NPCs in |
 | `/cq scatter <ids, act1, act2 or all> [region] [world]` | op | Spread NPCs in a WorldGuard region or your box. They keep wandering inside it |
 | `/cq player <name> reset` | op | Wipe a player's quest progress |
@@ -149,6 +154,25 @@ In `npcs.yml` each villager has a `profession` (FARMER, LIBRARIAN, ...), a `skin
 ```
 
 On servers older than 1.21.9 player skin NPCs show as villagers.
+
+### Renaming NPCs and merchants
+
+Every quest NPC, every merchant and Pip the companion can be renamed in game or from the console, without touching the YAML files or anyone's progress:
+
+```
+/cq npc rename jerry Farmer Jerold
+/cq npc rename bob <aqua>B.O.B 2.0
+/cq character flora name Flora the Seed Seller
+/cq character stephan title Keeper of Dawn
+/cq character stephan intro Hello there, {player}! | Welcome to the camp.
+/cq character jerry reset
+```
+
+* The new name shows everywhere: name tags, speech, `{npc:id}` mentions in quest text, the boss bar, directions, the journal, mail and letters, menus and admin messages.
+* Commands still accept the id (`jerry`) or the shown name with dots and spaces ignored (`b.o.b`, `farmerjerold`).
+* Changes are saved in `plugins/CQuests/characters.yml` and survive restarts and `/cq reload`. Ids, quests and player progress are never rewritten.
+* `/cq npc list` shows each id with its current name next to it.
+* Lines written inside `quests.yml` (offers and completion lines) are your own text, so a villager's old name there stays until you edit it.
 
 ### Adding chapter 6 and beyond
 

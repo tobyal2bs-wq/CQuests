@@ -88,7 +88,7 @@ PY
   grep -q "\[Chapter 3: " server.log || { echo "/cq test achievement did not give chapter 3"; exit 1; }
   grep -q "\[Finished the Journey\]" server.log || { echo "Ending achievement was not given"; exit 1; }
 fi
-for cmd in "cq npc list" "cq quest story_bob" "cq quest side_stephan_1" "cq reload" "cq npc list" \
+for cmd in "cq npc rename jerry Farmer Jerold" "cq npc list" "cq character jerry reset" "cq quest story_bob" "cq quest side_stephan_1" "cq reload" "cq npc list" \
            "cq backup" "cq backups" "cq restore latest 00000000-0000-0000-0000-000000000001"; do
   echo "$cmd" >> console
   sleep 4
@@ -103,6 +103,8 @@ echo "-------------------------"
 
 grep -q "Enabling CQuests" server.log || { echo "CQuests did not enable"; exit 1; }
 grep -q "Auto-placed" server.log || { echo "NPCs were not placed"; exit 1; }
+grep -q "Updated jerry • name" server.log || { echo "Renaming an NPC from the console failed"; exit 1; }
+grep -q "Farmer Jerold" server.log || { echo "The renamed NPC did not show in /cq npc list"; exit 1; }
 grep -qE "Registered [0-9]+ achievements" server.log || { echo "Achievements were not registered"; exit 1; }
 grep -qE "Backed up [0-9]+ players? to" server.log || { echo "Backup did not run"; exit 1; }
 grep -q "Restored 1 player" server.log || { echo "Restore did not run"; exit 1; }

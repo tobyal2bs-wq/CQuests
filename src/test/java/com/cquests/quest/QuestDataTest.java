@@ -70,6 +70,16 @@ class QuestDataTest {
     }
 
     @Test
+    void npcsAreFoundByIdNameAndOriginalName() {
+        assertEquals("bob", npcs.get("B.O.B").id());
+        assertEquals("bob", npcs.get("bob").id());
+        assertEquals("bob", npcs.idForOriginalName("B.O.B"));
+        assertEquals("stephan", npcs.idForOriginalName("Stephan"));
+        assertEquals(null, npcs.idForOriginalName("Nobody At All"));
+        assertTrue(npcs.all() == npcs.all(), "the NPC list is cached, not rebuilt on every call");
+    }
+
+    @Test
     void loadsWithoutWarnings() {
         assertTrue(WARNINGS.isEmpty(), "warnings while loading: " + WARNINGS);
     }

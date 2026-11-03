@@ -18,8 +18,42 @@ public final class NpcRegistry {
     private final Map<String, NpcDef> npcs = new LinkedHashMap<>();
     private Settings settings;
     private NpcCustomization customization;
-    public void customization(NpcCustomization customization){this.customization=customization;}
-    private NpcDef decorated(NpcDef npc){return customization==null?npc:customization.apply(npc);}
+    public void customization(NpcCustomization customization){this.customization=customization;refresh();}
+    /**
+     * NPCs with renames from characters.yml applied, plus a lookup by visible name. Rebuilt only when
+     * npcs.yml or a rename changes, instead of on every lookup (lookups run many times a second).
+     */
+    private volatile Map<String, NpcDef> view = Map.of();
+    private volatile Map<String, NpcDef> byName = Map.of();
+    private volatile Map<String, String> originalNames = Map.of();
+    private static String simple(String text){return Text.plain(Text.mm(text)).replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT);}
+
+    /** Call after npcs.yml is loaded or any NPC is renamed. */
+    public synchronized void refresh() {
+        Map<String, NpcDef> next = new LinkedHashMap<>();
+        Map<String, NpcDef> names = new java.util.HashMap<>();
+        Map<String, String> originals = new java.util.HashMap<>();
+        java.util.Set<String> clashes = new java.util.HashSet<>();
+        for (NpcDef raw : npcs.values()) {
+            NpcDef npc = customization == null ? raw : customization.apply(raw);
+            next.put(raw.id(), npc);
+            String key = simple(npc.name());
+            if (names.putIfAbsent(key, npc) != null) clashes.add(key);
+            originals.putIfAbsent(simple(raw.name()), raw.id());
+        }
+        clashes.forEach(names::remove); // two NPCs with the same visible name: only the id finds them
+        view = java.util.Collections.unmodifiableMap(next);
+        byName = Map.copyOf(names);
+        originalNames = Map.copyOf(originals);
+    }
+
+    /** The NPC id for a name as written in npcs.yml or letters.yml, even after it was renamed; else null. */
+    public String idForOriginalName(String name) {
+        if (name == null) return null;
+        String id = name.toLowerCase(Locale.ROOT);
+        if (npcs.containsKey(id)) return id;
+        return originalNames.get(simple(name));
+    }
     private final Map<String, Integer> chapters = new LinkedHashMap<>();
 
     public void load(File file, Settings settings, Logger log) {
@@ -54,29 +88,22 @@ public final class NpcRegistry {
                     s.getStringList("intro"),
                     s.getStringList("idle")));
         }
+        refresh();
         log.info("Loaded " + npcs.size() + " NPCs");
     }
 
     public NpcDef get(String id) {
         if (id == null) return null;
-        NpcDef exact = npcs.get(id.toLowerCase(Locale.ROOT));
-        if (exact != null) return decorated(exact);
-        String lookup = id.replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT);
-        NpcDef match = null;
-        for (NpcDef raw : npcs.values()) {
-            NpcDef npc=decorated(raw);
-            if (Text.plain(Text.mm(npc.name())).replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT).equals(lookup)) {
-                if (match != null) return null;
-                match = npc;
-            }
-        }
-        return match;
+        Map<String, NpcDef> current = view;
+        NpcDef exact = current.get(id.toLowerCase(Locale.ROOT));
+        if (exact != null) return exact;
+        return byName.get(id.replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.ROOT));
     }
 
     public int chapter(String id) { return chapters.getOrDefault(id, 0); }
 
     public Collection<NpcDef> all() {
-        return npcs.values().stream().map(this::decorated).toList();
+        return view.values();
     }
 
     /** "<blue>Villager Stephan</blue>" style mention used inside quest text. */

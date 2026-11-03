@@ -75,7 +75,7 @@ public final class SpawnManager {
         }).toList();
         Map<String,Long> tokens=new java.util.HashMap<>();for(NpcDef n:selected)tokens.put(n.id(),edit(n.id()));
         autoNext(world,center,selected,0,tokens,epoch,new int[2]);
-        tell(feedback,"<gold>Arranging the spawn residents, including B.O.B and daily work, in "+world.getName()+". Other nearby residents move to the surrounding world. Progress is preserved.");
+        tell(feedback,"<gold>Arranging the spawn residents, including "+Text.escape(plugin.npcs().name("bob"))+" and daily work, in "+world.getName()+". Other nearby residents move to the surrounding world. Progress is preserved.");
     }
 
     private final CQuestsPlugin plugin;

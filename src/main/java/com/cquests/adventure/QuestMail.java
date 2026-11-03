@@ -56,7 +56,7 @@ public final class QuestMail {
         if(available.size()>5)lines.add("<gray>Page "+(page+1)+" of "+((available.size()+4)/5));
         var buttons=new ArrayList<MailDialog.Button>();
         for(var l:available.subList(page*5,Math.min(available.size(),page*5+5)))
-            buttons.add(new MailDialog.Button((data.letterRead(l.id())?"":"NEW • ")+l.sender()+" — "+l.subject(),"/quest mail open "+l.id()));
+            buttons.add(new MailDialog.Button((data.letterRead(l.id())?"":"NEW • ")+who(l.sender())+" — "+l.subject(),"/quest mail open "+l.id()));
         if(page>0)buttons.add(new MailDialog.Button("Previous letters","/quest mail inbox "+(page-1)));
         if((page+1)*5<available.size())buttons.add(new MailDialog.Button("More letters","/quest mail inbox "+(page+1)));
         if(!data.mailThread().isEmpty())buttons.add(new MailDialog.Button("Sent letters & replies","/quest mail replies"));
@@ -74,12 +74,12 @@ public final class QuestMail {
         if(args[1].equalsIgnoreCase("replies")){history(player,number(args,2));return;}
         if(args[1].equalsIgnoreCase("thread")){thread(player,number(args,2),number(args,3));return;}
         if(args.length<3){open(player);return;}var letter=find(player,args[2]);
-        if(args[1].equalsIgnoreCase("bookthread")){try{var entry=plugin.questManager().data(player).mailThread().get(Integer.parseInt(args[2]));letter=find(player,entry.source());if(letter!=null)book(player,letter,List.of(entry.text()),entry.sender(),entry.time(),false);}catch(RuntimeException ignored){}return;}
+        if(args[1].equalsIgnoreCase("bookthread")){try{var entry=plugin.questManager().data(player).mailThread().get(Integer.parseInt(args[2]));letter=find(player,entry.source());if(letter!=null)book(player,letter,List.of(entry.text()),who(entry.sender()),entry.time(),false);}catch(RuntimeException ignored){}return;}
         if(letter==null){plugin.send(player,"<gray>This letter is not available in your journey.");return;}
         receive(player);
         switch(args[1].toLowerCase(Locale.ROOT)){
-            case "open"->show(player,letter,letter.body(),letter.sender(),plugin.questManager().data(player).mailReceived(letter.id()),"/quest mail open "+letter.id(),number(args,3));
-            case "book"->book(player,letter,letter.body(),letter.sender(),plugin.questManager().data(player).mailReceived(letter.id()),true);
+            case "open"->show(player,letter,letter.body(),who(letter.sender()),plugin.questManager().data(player).mailReceived(letter.id()),"/quest mail open "+letter.id(),number(args,3));
+            case "book"->book(player,letter,letter.body(),who(letter.sender()),plugin.questManager().data(player).mailReceived(letter.id()),true);
             case "compose"->compose(player,letter);
             case "send"->{if(args.length>=4)reply(player,letter,String.join(" ",Arrays.copyOfRange(args,3,args.length)));}
             default->open(player);
@@ -94,21 +94,32 @@ public final class QuestMail {
         var buttons=new ArrayList<MailDialog.Button>();
         if(page>0)buttons.add(new MailDialog.Button("Previous page",route+" "+(page-1)));
         if(page+1<pages.size())buttons.add(new MailDialog.Button("Next page",route+" "+(page+1)));
-        if(!isBob(l)||plugin.gemini().unavailable()==null)buttons.add(new MailDialog.Button("Reply to "+l.sender(),"/quest mail compose "+l.id()));
-        else lines.add("<gray>B.O.B isn't receiving replies yet. You can still read his letters.");
+        if(!isBob(l)||plugin.gemini().unavailable()==null)buttons.add(new MailDialog.Button("Reply to "+who(l.sender()),"/quest mail compose "+l.id()));
+        else lines.add("<gray>"+Text.escape(who("bob"))+" isn't receiving replies yet. You can still read his letters.");
         if(plugin.questManager().data(player).mailThread().stream().anyMatch(e->e.source().equals(l.id())))buttons.add(new MailDialog.Button("Sent letters & replies","/quest mail replies"));
         buttons.add(new MailDialog.Button("Back to inbox","/quest mail"));
         if(!MailDialog.open(plugin,player,l.subject(),lines,buttons,false))new ReadingMenu(player,l.subject(),lines,buttons).open();
         var data=plugin.questManager().data(player);if(data.readLetter(l.id()))plugin.store().saveNow(data);notified.remove(player.getUniqueId());
     }
     private void compose(Player player,Letter letter){
-        if(isBob(letter)&&plugin.gemini().unavailable()!=null){show(player,letter,letter.body(),letter.sender(),plugin.questManager().data(player).mailReceived(letter.id()),"/quest mail open "+letter.id(),0);return;}
-        var body=new ArrayList<String>();body.add("<gold>To <white>"+Text.escape(letter.sender()));body.add("<gray>"+Text.escape(letter.subject()));body.add("<white>Type your message below, then press Send.");
-        if(isBob(letter))body.add("<gray>B.O.B uses AI. Your message, this conversation and quest memories will be sent to Google.");
-        player.closeInventory();if(!MailDialog.open(plugin,player,"Reply to "+letter.sender(),body,List.of(new MailDialog.Button("Send","/quest mail send "+letter.id()+" $(message)"),new MailDialog.Button("Back to letter","/quest mail open "+letter.id())),true))
+        if(isBob(letter)&&plugin.gemini().unavailable()!=null){show(player,letter,letter.body(),who(letter.sender()),plugin.questManager().data(player).mailReceived(letter.id()),"/quest mail open "+letter.id(),0);return;}
+        var body=new ArrayList<String>();body.add("<gold>To <white>"+Text.escape(who(letter.sender())));body.add("<gray>"+Text.escape(letter.subject()));body.add("<white>Type your message below, then press Send.");
+        if(isBob(letter))body.add("<gray>"+Text.escape(who("bob"))+" uses AI. Your message, this conversation and quest memories will be sent to Google.");
+        player.closeInventory();if(!MailDialog.open(plugin,player,"Reply to "+who(letter.sender()),body,List.of(new MailDialog.Button("Send","/quest mail send "+letter.id()+" $(message)"),new MailDialog.Button("Back to letter","/quest mail open "+letter.id())),true))
             player.sendMessage(net.kyori.adventure.text.Component.text("Write your reply in chat: /quest mail send "+letter.id()+" <message>").clickEvent(net.kyori.adventure.text.event.ClickEvent.suggestCommand("/quest mail send "+letter.id()+" ")));
     }
-    private static boolean isBob(Letter l){return l.sender().replaceAll("[^A-Za-z]","").equalsIgnoreCase("bob");}
+    private String floraName(){return Text.escape(who("flora"));}
+    private boolean isBob(Letter l){return "bob".equals(plugin.npcs().idForOriginalName(l.sender()));}
+    /** The sender's current name, so renaming an NPC or merchant (/cq npc rename) also renames their letters. */
+    private String who(String sender){
+        String id=plugin.npcs().idForOriginalName(sender);
+        if(id!=null)return plugin.npcs().name(id);
+        String key=sender.toLowerCase(java.util.Locale.ROOT);
+        var merchant=plugin.merchants().get(key);
+        if(merchant!=null)return Text.plain(Text.mm(plugin.characters().text(key,"name",merchant.name())));
+        if(key.equals("pip"))return Text.plain(Text.mm(plugin.characters().text("pip","name",sender)));
+        return sender;
+    }
     private void reply(Player player,Letter letter,String text){
         String clean=text.replaceAll("[\\p{Cntrl}]","").strip();
         if(clean.isBlank()||clean.length()>800){plugin.send(player,"<gray>Write a letter of 1–800 characters.");return;}
@@ -116,8 +127,8 @@ public final class QuestMail {
         var data=plugin.questManager().data(player);long now=System.currentTimeMillis();
         if(!data.reserveCorrespondence(now)){plugin.send(player,"<gray>Give the courier a moment before sending another letter.");return;}
         data.addMail(new com.cquests.data.MailEntry(letter.id(),player.getName(),clean,now,true));
-        String answer=acknowledgements.getOrDefault(letter.id(),"Your letter made it safely, {player}. — {sender}").replace("{player}",player.getName()).replace("{sender}",letter.sender());
-        data.addMail(new com.cquests.data.MailEntry(letter.id(),letter.sender(),answer,now,false));plugin.store().saveNow(data);plugin.send(player,"<gold>"+Text.escape(letter.sender())+" has answered. <white>/quest mail replies");
+        String answer=acknowledgements.getOrDefault(letter.id(),"Your letter made it safely, {player}. — {sender}").replace("{player}",player.getName()).replace("{sender}",who(letter.sender()));
+        data.addMail(new com.cquests.data.MailEntry(letter.id(),letter.sender(),answer,now,false));plugin.store().saveNow(data);plugin.send(player,"<gold>"+Text.escape(who(letter.sender()))+" has answered. <white>/quest mail replies");
         thread(player,data.mailThread().size()-1,0);
     }
     private void history(Player player,int requested){
@@ -125,7 +136,7 @@ public final class QuestMail {
         var lines=new ArrayList<String>();lines.add(entries.isEmpty()?"<gray>No replies yet. Open a letter in your inbox and choose Reply.":"<white>Your sent letters and the villagers' answers.");
         if(entries.size()>5)lines.add("<gray>Page "+(page+1)+" of "+((entries.size()+4)/5));
         var buttons=new ArrayList<MailDialog.Button>();
-        for(int i=entries.size()-1-page*5;i>=Math.max(0,entries.size()-5-page*5);i--){var e=entries.get(i);var l=find(player,e.source());if(l!=null)buttons.add(new MailDialog.Button((e.fromPlayer()?"To "+l.sender():"From "+e.sender())+" • "+time(e.time()),"/quest mail thread "+i));}
+        for(int i=entries.size()-1-page*5;i>=Math.max(0,entries.size()-5-page*5);i--){var e=entries.get(i);var l=find(player,e.source());if(l!=null)buttons.add(new MailDialog.Button((e.fromPlayer()?"To "+who(l.sender()):"From "+who(e.sender()))+" • "+time(e.time()),"/quest mail thread "+i));}
         if(page>0)buttons.add(new MailDialog.Button("Newer messages","/quest mail replies "+(page-1)));
         if((page+1)*5<entries.size())buttons.add(new MailDialog.Button("Older messages","/quest mail replies "+(page+1)));
         buttons.add(new MailDialog.Button("Back to inbox","/quest mail"));player.closeInventory();
@@ -135,7 +146,7 @@ public final class QuestMail {
         var entries=plugin.questManager().data(player).mailThread();if(index>=entries.size()){history(player,0);return;}
         var entry=entries.get(index);var letter=find(player,entry.source());
         if(letter==null){history(player,0);return;}
-        show(player,letter,List.of(entry.text()),entry.fromPlayer()?"You → "+letter.sender():entry.sender(),entry.time(),"/quest mail thread "+index,page);
+        show(player,letter,List.of(entry.text()),entry.fromPlayer()?"You → "+who(letter.sender()):who(entry.sender()),entry.time(),"/quest mail thread "+index,page);
     }
     private void book(Player player,Letter letter,List<String> body,String sender,long sent,boolean markRead){
         var pages=new ArrayList<net.kyori.adventure.text.Component>();
@@ -148,7 +159,7 @@ public final class QuestMail {
     private final class ThreadMenu implements LockedMenu {
         final Player player;final Inventory inventory;final List<com.cquests.data.MailEntry> entries;
         ThreadMenu(Player p){player=p;var copy=new ArrayList<>(plugin.questManager().data(p).mailThread());Collections.reverse(copy);entries=List.copyOf(copy);inventory=Bukkit.createInventory(this,45,Text.mm("<dark_gray>Your correspondence"));
-            for(int i=0;i<entries.size();i++){var e=entries.get(i);inventory.setItem(i,QuestMenu.item(Material.WRITABLE_BOOK,"<gold>"+Text.escape(e.sender()),List.of("<gray>"+time(e.time()),"<gray>"+Text.escape(e.text().substring(0,Math.min(80,e.text().length()))),"<yellow>Click to read and reply.")));}
+            for(int i=0;i<entries.size();i++){var e=entries.get(i);inventory.setItem(i,QuestMenu.item(Material.WRITABLE_BOOK,"<gold>"+Text.escape(who(e.sender())),List.of("<gray>"+time(e.time()),"<gray>"+Text.escape(e.text().substring(0,Math.min(80,e.text().length()))),"<yellow>Click to read and reply.")));}
             inventory.setItem(44,QuestMenu.item(Material.ARROW,"<yellow>Mailbox",List.of()));
         }
         void open(){player.openInventory(inventory);}public UUID viewer(){return player.getUniqueId();}public Inventory getInventory(){return inventory;}
@@ -170,14 +181,14 @@ public final class QuestMail {
         var data=plugin.questManager().data(player);
         if(data.wheatHarvested()%750!=0)return;
         plugin.store().saveNow(data);
-        plugin.send(player,"<gold>You found a Sunflower Token in the wheat! <gray>It is safe in your discovery pouch. Spend it with Flora. <yellow>/quest discoveries");
+        plugin.send(player,"<gold>You found a Sunflower Token in the wheat! <gray>It is safe in your discovery pouch. Spend it with "+floraName()+". <yellow>/quest discoveries");
         player.playSound(player.getLocation(),Sound.ENTITY_EXPERIENCE_ORB_PICKUP,.7f,1.3f);
         notifyNew(player);
     }
     public void discoveries(Player player){
         var data=plugin.questManager().data(player);long wheat=data.wheatHarvested();
         plugin.send(player,"<gold><bold>Field discoveries</bold>\n<yellow>Sunflower Tokens: <white>"+data.sunflowers()+
-                "\n<gray>Next token: <white>"+(750-wheat%750)+" <gray>successful wheat harvests away.\n<gray>Flora accepts these tokens. Ordinary sunflowers do not count.");
+                "\n<gray>Next token: <white>"+(750-wheat%750)+" <gray>successful wheat harvests away.\n<gray>"+floraName()+" accepts these tokens. Ordinary sunflowers do not count.");
         for(var entry:Map.of(750L,"The Sun in the Straw",3000L,"A Courier's Lost Button",10000L,"The Old Field Marker").entrySet().stream().sorted(Map.Entry.comparingByKey()).toList())
             plugin.send(player,(wheat>=entry.getKey()?"<green>Discovered: ":"<dark_gray>Unfound: ")+entry.getValue()+" <gray>("+entry.getKey()+" wheat)");
     }
@@ -191,12 +202,12 @@ public final class QuestMail {
             for(int i=0;i<45&&this.page*45+i<visible.size();i++){
                 var l=visible.get(this.page*45+i);boolean read=data.letterRead(l.id());
                 inventory.setItem(i,QuestMenu.item(read?Material.PAPER:Material.WRITABLE_BOOK,"<gold>"+Text.escape(l.subject()),
-                        List.of("<gray>From "+Text.escape(l.sender()),"<gray>Delivered "+time(data.mailReceived(l.id())),read?"<gray>Read • click to reread":"<yellow>Unopened • click to read")));
+                        List.of("<gray>From "+Text.escape(who(l.sender())),"<gray>Delivered "+time(data.mailReceived(l.id())),read?"<gray>Read • click to reread":"<yellow>Unopened • click to read")));
             }
             inventory.setItem(50,QuestMenu.item(Material.WRITABLE_BOOK,"<gold>Replies and conversations",List.of("<gray>Read your correspondence.")));
             if(visible.isEmpty())inventory.setItem(22,QuestMenu.item(Material.FEATHER,"<gray>No letters yet",List.of("<gray>Get to know the villagers and work the fields.")));
             if(this.page>0)inventory.setItem(45,QuestMenu.item(Material.ARROW,"<yellow>Previous",List.of()));
-            inventory.setItem(49,QuestMenu.item(Material.SUNFLOWER,"<gold>Sunflower Tokens: "+data.sunflowers(),List.of("<gray>Safely banked • spend at Flora's store.","<gray>One token per 750 successful wheat harvests.")));
+            inventory.setItem(49,QuestMenu.item(Material.SUNFLOWER,"<gold>Sunflower Tokens: "+data.sunflowers(),List.of("<gray>Safely banked • spend at "+floraName()+"'s store.","<gray>One token per 750 successful wheat harvests.")));
             if((this.page+1)*45<visible.size())inventory.setItem(53,QuestMenu.item(Material.ARROW,"<yellow>Next",List.of()));
         }
         void open(){player.openInventory(inventory);}
@@ -209,7 +220,7 @@ public final class QuestMail {
             if(slot<0||slot>=45||page*45+slot>=visible.size())return;
             var letter=visible.get(page*45+slot);var data=plugin.questManager().data(player);
             if(!letters.contains(letter)||!letter.eligible(data)){player.closeInventory();return;}
-            show(player,letter,letter.body(),letter.sender(),data.mailReceived(letter.id()),"/quest mail open "+letter.id(),0);
+            show(player,letter,letter.body(),who(letter.sender()),data.mailReceived(letter.id()),"/quest mail open "+letter.id(),0);
 
         }
     }

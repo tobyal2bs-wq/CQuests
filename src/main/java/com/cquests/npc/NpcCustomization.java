@@ -44,7 +44,7 @@ public final class NpcCustomization {
     }
     public String speechPrefix(NpcDef npc){return text(npc.id(),"speech-prefix","<gold><bold><name></bold></gold><gray> › </gray>").replace("<name>",label(npc.id(),npc.name()));}
     public void command(CommandSender sender,String[] args){
-        if(!(sender instanceof Player player)||!player.isOp()){plugin.send(sender,"<red>Only an in-game operator can edit characters.");return;}
+        if(sender instanceof Player player?!player.isOp():!(sender instanceof org.bukkit.command.ConsoleCommandSender)){plugin.send(sender,"<red>Only an operator or the console can edit characters.");return;}
         if(args.length<3){help(sender);return;}
         String id=args[1].toLowerCase(Locale.ROOT),field=args[2].toLowerCase(Locale.ROOT);
         var npc=plugin.npcs().get(id);if(npc!=null)id=npc.id();
@@ -56,10 +56,10 @@ public final class NpcCustomization {
         if(value.length()>1600||(field.equals("name")&&Text.plain(Text.mm(value)).isBlank())){plugin.send(sender,"<red>Use a visible name and at most 1600 characters.");return;}
         Object replacement=Set.of("intro","idle").contains(field)?(value.equalsIgnoreCase("none")?List.of():Arrays.stream(value.split("\\|",-1)).map(String::trim).filter(s->!s.isEmpty()).limit(20).toList()):field.equals("prefix")&&value.equalsIgnoreCase("none")?"":value;
         if(!save(id,field,replacement)){plugin.send(sender,"<red>Character editor is shutting down.");return;}
-        plugin.nameplates().refresh();plugin.merchants().refreshLabels();
+        plugin.npcs().refresh();plugin.nameplates().refresh();plugin.merchants().refreshLabels();plugin.tracker().invalidate();
         plugin.send(sender,"<green>Updated "+Text.escape(id)+" • "+field+". Existing quest progress is unchanged.");
     }
-    private void help(CommandSender sender){plugin.send(sender,"<white>/cq character <id> name|title|prefix|format|speech-prefix <MiniMessage text>\n<white>/cq character <id> intro|idle <sentence | another sentence>\n<white>/cq character <id> reset\n<gray>Use none to clear a prefix. Format placeholders: <name>, <level>, <title>, <prefix>. Quest NPCs, merchants and pip are supported. Changes affect the next conversation.");}
+    private void help(CommandSender sender){plugin.send(sender,"<white>/cq character <id> name|title|prefix|format|speech-prefix <MiniMessage text>\n<white>/cq character <id> intro|idle <sentence | another sentence>\n<white>/cq character <id> reset\n<gray>Use none to clear a prefix. Format placeholders: <name>, <level>, <title>, <prefix>. Quest NPCs, merchants and pip are supported. A new name shows everywhere: name tags, chat, quest text, the tracker, directions, mail and menus. Changes affect the next conversation.\n<white>/cq npc rename <id> <name> <gray>is a shortcut for the name.");}
     private synchronized boolean save(String id,String field,Object replacement){
         if(stopped)return false;
         var next=new HashMap<>(values);var character=new HashMap<>(next.getOrDefault(id,Map.of()));

@@ -108,7 +108,10 @@ public final class AdminCommand implements TabExecutor {
             for (NpcDef npc : plugin.npcs().all()) {
                 boolean has = plugin.spawns().points().containsKey(npc.id());
                 placed += has ? 1 : 0;
-                rows.add((has ? "<green>" : "<red>") + npc.id() + "</" + (has ? "green" : "red") + ">");
+                String shown = plugin.npcs().name(npc.id());
+                boolean differs = !shown.replaceAll("[^A-Za-z0-9]", "").equalsIgnoreCase(npc.id().replaceAll("[^A-Za-z0-9]", ""));
+                rows.add((has ? "<green>" : "<red>") + npc.id() + "</" + (has ? "green" : "red") + ">"
+                        + (differs ? " <white>(" + Text.escape(shown) + ")</white>" : ""));
             }
             out.append(placed).append('/').append(rows.size()).append(" placed; ").append(plugin.spawns().live().size())
                     .append(" currently spawned near players)</gray>\n").append(String.join("<gray>, ", rows));
