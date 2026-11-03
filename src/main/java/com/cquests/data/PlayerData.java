@@ -34,6 +34,8 @@ public final class PlayerData {
     /** Daily quests finished on consecutive days, and the day (days since 1970) of the last one. */
     int dailyStreak;
     long dailyStreakDay = Long.MIN_VALUE;
+    /** Boss fights Pip has helped with (adventures.pip-boss-help limits it). */
+    int pipHelped;
     /** Where to put the player back if they log out during the ending cinematic: "world;x;y;z;yaw;pitch;GAMEMODE". */
     String finaleReturn;
     boolean storyBookGiven;
@@ -211,6 +213,9 @@ public final class PlayerData {
     public synchronized int dailyStreak(long today) {
         return dailyStreakDay >= today - 1 ? dailyStreak : 0;
     }
+
+    public synchronized int pipHelped() { return pipHelped; }
+    public synchronized void addPipHelped() { pipHelped++; dirty = true; }
 
     public synchronized void addDailyDone() {
         dailiesDone++;

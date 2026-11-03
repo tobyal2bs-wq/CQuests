@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 final class TestCommand {
 
     static final List<String> ACTIONS = List.of("messages", "welcome", "celebrate", "chapter", "ending", "achievement",
-            "finish", "unfinish", "roam", "book", "boss", "bossphase", "bossstop", "bossevent", "discord", "where", "all");
+            "finish", "unfinish", "roam", "book", "boss", "bossphase", "bossstop", "bossevent", "discord", "where", "pip", "coop", "daily", "cost", "targets", "all");
 
     /** What /cq test finish changed, so /cq test unfinish can put it back exactly. */
     private record Undo(List<String> completed, int sideDone) {
@@ -59,6 +59,11 @@ final class TestCommand {
                 <yellow>/cq test bossevent <lightning|darkness|slowness|levitate|roar></yellow> <gray>feel one boss event
                 <yellow>/cq test discord <chapter|boss|streak|journey></yellow> <gray>send a sample post to your Discord webhook
                 <yellow>/cq test where</yellow> <gray>show how players are pointed to their next villager
+                <yellow>/cq test pip <bow|sword></yellow> <gray>a test boss with Pip fighting next to you
+                <yellow>/cq test coop</yellow> <gray>start a co-op daily (bring friends) and see how it counts
+                <yellow>/cq test daily</yellow> <gray>see today's daily and money roll for you
+                <yellow>/cq test cost <chapter></yellow> <gray>what a chapter costs and what your balance reads
+                <yellow>/cq test targets</yellow> <gray>check every quest asks for real things this server version has
                 <yellow>/cq test all</yellow> <gray>list every boss you can test""");
     }
 
@@ -70,6 +75,10 @@ final class TestCommand {
         String action = args[1].toLowerCase(Locale.ROOT);
         if (action.equals("messages")) {
             messages(sender);
+            return;
+        }
+        if (action.equals("targets")) {
+            targets(sender);
             return;
         }
         if (!(sender instanceof Player player)) {
@@ -99,6 +108,10 @@ final class TestCommand {
                 case "bossstop" -> plugin.send(player, plugin.adventures().testStop(player) ? "<gray>Boss fight ended." : "<gray>No boss fight is running for you.");
                 case "bossevent" -> { if (!plugin.adventures().testEvent(player, arg)) plugin.send(player, "<yellow>Events: " + String.join(", ", com.cquests.adventure.QuestAdventures.EVENTS)); }
                 case "discord" -> discord(player, arg);
+                case "pip" -> { if (!plugin.adventures().testPip(player, arg)) plugin.send(player, "<yellow>The test fight could not start. Stand on open, solid ground, not in Peaceful."); }
+                case "coop" -> coop(player);
+                case "daily" -> daily(player);
+                case "cost" -> cost(player, arg);
                 case "where" -> plugin.directions().explain(player, true);
                 case "all" -> {
                     plugin.send(player, "<gold>Every boss</gold> <gray>(click to start a test fight)");
@@ -112,6 +125,53 @@ final class TestCommand {
                 default -> help(player);
             }
         });
+    }
+
+    private void coop(Player player) {
+        Quest quest = null;
+        for (Quest q : plugin.quests().dailyPool()) if (plugin.quests().together(q.id()) > 1) { quest = q; break; }
+        if (quest == null) { plugin.send(player, "<yellow>No co-op quests in quests.yml (together: 2 or more)."); return; }
+        var data = plugin.questManager().data(player);
+        if (!data.isActive(quest.id())) plugin.questManager().forceAccept(player, quest);
+        plugin.send(player, "<gold>" + Text.escape(quest.name()) + "</gold> <gray>needs <white>" + plugin.quests().together(quest.id())
+                + "</white> players. Friends near you now: <white>" + plugin.questManager().nearbyPlayers(player)
+                + "</white>. Progress only counts while they do the same thing within 5 seconds. Drop it with /quests abandon.");
+    }
+
+    private void daily(Player player) {
+        var pool = plugin.quests().dailyPool();
+        if (pool.isEmpty()) { plugin.send(player, "<yellow>No daily quests."); return; }
+        long day = System.currentTimeMillis() / 86_400_000L;
+        var rnd = new java.util.Random(player.getUniqueId().getLeastSignificantBits() ^ day * 1_000_003L);
+        Quest quest = pool.get(rnd.nextInt(pool.size()));
+        var reward = plugin.questManager().dailyReward(player, quest);
+        plugin.send(player, "<gold>A daily you could get today:</gold> <white>" + Text.escape(quest.name()) + "</white> <gray>• pays <green>$"
+                + Text.formatMoney(reward.money()) + "</green> <gray>(base $" + Text.formatMoney(quest.reward().money()) + "). Each player gets their own daily and money roll.");
+    }
+
+    private void cost(Player player, String arg) {
+        int chapter;
+        try { chapter = Integer.parseInt(arg.isBlank() ? "2" : arg); } catch (NumberFormatException e) { plugin.send(player, "<red>/cq test cost <chapter>"); return; }
+        Quest first = null;
+        for (Quest q : plugin.quests().story()) if (q.chapter() == chapter) { first = q; break; }
+        long cost = first == null ? com.cquests.quest.QuestManager.chapterCostFor(plugin, chapter) : plugin.questManager().chapterCost(first);
+        double balance = new com.cquests.farm.EconomyBridge().balance(player);
+        plugin.send(player, "<gold>Chapter " + chapter + "</gold> <gray>costs <white>" + Text.compact(cost) + "</white>. Your balance reads <white>"
+                + (Double.isFinite(balance) ? Text.compact((long) balance) : "nothing (set economy.balance-placeholder or install Vault)") + "</white>.");
+    }
+
+    private void targets(CommandSender sender) {
+        List<Quest> sample = new ArrayList<>(plugin.quests().story());
+        sample.addAll(plugin.quests().dailyPool());
+        for (NpcDef npc : plugin.npcs().all()) for (int i = 1; i <= 5; i++) { Quest q = plugin.quests().side(npc.id(), i); if (q != null) sample.add(q); }
+        int checked = 0, bad = 0;
+        for (Quest quest : sample) for (var objective : quest.objectives()) {
+            checked++;
+            String problem = com.cquests.quest.HowTo.problem(objective);
+            if (problem != null && bad++ < 20) plugin.send(sender, "<red>" + quest.id() + "</red> <gray>" + Text.escape(objective.target().spec()) + ": " + Text.escape(problem));
+        }
+        plugin.send(sender, (bad == 0 ? "<green>" : "<yellow>") + "Checked " + checked + " objectives against this server's own items, blocks, mobs and recipes: "
+                + (bad == 0 ? "all real." : bad + " problems."));
     }
 
     private void discord(Player player, String what) {

@@ -14,6 +14,16 @@ server-name: "Dawn SMP"
 # ----------------------------------------------------------- ECONOMY
 # Console command that pays money rewards. %player% and %amount% are filled in.
 money-command: "economy give %player% %amount%"
+# How CQuests reads balances and takes money (chapter costs, farm hoes, merchants).
+# Leave all three empty to use Vault. If your economy has no Vault support, set your own:
+#   balance-placeholder: any PlaceholderAPI placeholder that shows the balance, e.g. "%vault_eco_balance%".
+#                        "$5,000,000.00", "5.2M" and "12k" are all understood.
+#   take-command / give-command: console commands; %player% and %amount% are filled in.
+#                        give-command is used for refunds; empty uses money-command.
+economy:
+  balance-placeholder: ""
+  take-command: ""
+  give-command: ""
 
 # ----------------------------------------------------------- TALKING TO VILLAGERS
 dialogue:
@@ -98,6 +108,10 @@ daily:
   # Daily streaks: finishing a daily on the day after the last one adds a day to the streak.
   # Every streak day adds streak-bonus-percent of the daily's money, up to streak-max-days.
   # Missing a whole day starts again at 1. Shown with %cquests_daily_streak%.
+  # Daily money is rolled for each player and day between these percentages of the quest's money,
+  # so some days pay little and some pay a lot.
+  money-min-percent: 25
+  money-max-percent: 300
   streaks: true
   streak-max-days: 7
   streak-bonus-percent: 10
@@ -161,6 +175,12 @@ groups:
   FLOWERS: [DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, RED_TULIP, ORANGE_TULIP, WHITE_TULIP, PINK_TULIP, OXEYE_DAISY, CORNFLOWER, LILY_OF_THE_VALLEY]
   SAPLINGS: ["*_SAPLING", MANGROVE_PROPAGULE]
 
+# ----------------------------------------------------------- JOINING
+welcome:
+  # Chat on join (the how-to-play text from messages.yml, "New quest", unread mail). Off: players
+  # join to a clean chat; the arrow above the hotbar and their compass already point to the first villager.
+  chat-message: false
+
 # ----------------------------------------------------------- CHAPTERS
 chapters:
   # Chapters that are switched off. Their villagers do not spawn and their story quests do not
@@ -169,19 +189,25 @@ chapters:
   # start off. Turn one on in game with /cq chapter 6 on, or edit this list and /cq reload.
   # Chapter 1 can never be switched off.
   locked: [6, 7, 8, 9, 10]
-  # Starting a new chapter (taking its first story quest) costs money, paid through Vault.
-  # Without Vault and an economy plugin chapters stay free. Set costs-enabled: false to turn it off.
+  # Starting a new chapter (taking its first story quest) costs money (see economy: at the top).
+  # Without Vault or economy.take-command chapters stay free. Set costs-enabled: false to turn it off.
   costs-enabled: true
+  # Extra rewards for finishing a chapter. items: "MATERIAL amount"; commands run from the console
+  # with %player% filled in, e.g. "give %player% diamond 5" or a crate key command.
+  rewards:
+    5:
+      items: ["ELYTRA 1"]
+      commands: []
   cost:
-    2: 25000
-    3: 50000
-    4: 100000
-    5: 250000
-    6: 500000
-    7: 750000
-    8: 1000000
-    9: 1500000
-    10: 2500000
+    2: 5000000
+    3: 10000000
+    4: 20000000
+    5: 35000000
+    6: 50000000
+    7: 75000000
+    8: 100000000
+    9: 150000000
+    10: 250000000
 
 # ----------------------------------------------------------- DISCORD
 discord:
@@ -220,6 +246,8 @@ npc:
 # invisible to everyone else, only hurts its owner and never breaks or burns blocks.
 adventures:
   enabled: true
+  # Pip can join a player in this many boss fights (bow or sword, chosen in the boss menu).
+  pip-boss-help: 3
   companions: true
   wither: true
 

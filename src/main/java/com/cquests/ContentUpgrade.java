@@ -14,6 +14,19 @@ final class ContentUpgrade {
         applySideVillagers(plugin);
         applyChapters(plugin);
         applyChapters18(plugin);
+        applyCoop19(plugin);
+    }
+
+    /** 1.9.0: co-op daily quests (coop_*) for groups of 2 to 4 players. */
+    private static void applyCoop19(CQuestsPlugin plugin) {
+        File marker = new File(plugin.getDataFolder(), ".content-1.9.0");
+        if (marker.exists()) return;
+        try {
+            merge(plugin, "quests.yml", "quests", (id, value) -> id.startsWith("coop_"), ".before-1.9.0", List.of());
+            Files.writeString(marker.toPath(), "Co-op daily quests added. Existing IDs and progress preserved.\n");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not add the 1.9.0 co-op quests; existing files kept: " + e.getMessage());
+        }
     }
 
     /**

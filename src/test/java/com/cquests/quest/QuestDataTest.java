@@ -354,4 +354,20 @@ class QuestDataTest {
             last = cost;
         }
     }
+
+    @Test
+    void chapterCostsStartAtFiveMillion() {
+        assertEquals(5_000_000L, QuestManager.defaultChapterCost(2));
+        assertEquals(250_000_000L, QuestManager.defaultChapterCost(10));
+    }
+
+    @Test
+    void coopDailiesNeedFriends() {
+        for (String id : List.of("coop_barn_raising", "coop_monster_sweep", "coop_quarry", "coop_great_wall", "coop_feast")) {
+            assertNotNull(quests.get(id), id);
+            int together = quests.together(id);
+            assertTrue(together >= 2 && together <= 4, id + " together " + together);
+        }
+        assertEquals(1, quests.together(quests.dailyPool().stream().filter(q -> !q.id().startsWith("coop_")).findFirst().orElseThrow().id()));
+    }
 }

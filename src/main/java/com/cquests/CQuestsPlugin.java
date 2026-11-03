@@ -194,6 +194,9 @@ public final class CQuestsPlugin extends JavaPlugin {
     private void loadData() {
         reloadConfig();
         settings = new Settings(getConfig(), YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml")));
+        String give = getConfig().getString("economy.give-command", "");
+        com.cquests.farm.EconomyBridge.configure(getConfig().getString("economy.balance-placeholder", ""),
+                getConfig().getString("economy.take-command", ""), give == null || give.isBlank() ? settings.moneyCommand : give);
         npcs.load(new File(getDataFolder(), "npcs.yml"), settings, getLogger());
         quests.load(new File(getDataFolder(), "quests.yml"), new File(getDataFolder(), "generator.yml"), settings, npcs, getLogger());
     }

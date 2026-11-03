@@ -2164,6 +2164,79 @@ quests:
       money: 10000
       items:
         - "DIAMOND 8"
+  # Co-op dailies (1.9.0): "together: N" needs N players within 16 blocks doing the same kind of
+  # thing within 5 seconds of each other. Only offered when enough friends stand near the villager.
+  coop_barn_raising:
+    name: "Barn Raising"
+    category: DAILY
+    giver: marigold
+    together: 2
+    objectives:
+      - "PLACE OAK_LOG|SPRUCE_LOG|BIRCH_LOG|OAK_PLANKS|SPRUCE_PLANKS|BIRCH_PLANKS 128 wood blocks"
+    description: "Build together with a friend: blocks only count while you both place at the same time."
+    offer:
+      - "Barns don't build themselves. Bring a friend!"
+    complete:
+      - "Now that's teamwork."
+    rewards:
+      money: 40000
+  coop_monster_sweep:
+    name: "Night Sweep"
+    category: DAILY
+    giver: marigold
+    together: 2
+    objectives:
+      - "KILL ZOMBIE|SKELETON|SPIDER|CREEPER 40 monsters"
+    description: "Fight side by side: kills only count while a friend is fighting next to you."
+    offer:
+      - "The fields are crawling. Go in pairs."
+    complete:
+      - "Nobody gets left behind. Good."
+    rewards:
+      money: 45000
+  coop_quarry:
+    name: "The Big Dig"
+    category: DAILY
+    giver: marigold
+    together: 3
+    objectives:
+      - "MINE STONE|COBBLESTONE|DEEPSLATE|ANDESITE|DIORITE|GRANITE 512 stone"
+    description: "Three of you, mining at the same time."
+    offer:
+      - "Three picks are faster than one. Much faster."
+    complete:
+      - "That's a whole quarry!"
+    rewards:
+      money: 75000
+  coop_great_wall:
+    name: "The Great Wall"
+    category: DAILY
+    giver: marigold
+    together: 4
+    objectives:
+      - "PLACE COBBLESTONE|STONE_BRICKS|DEEPSLATE_BRICKS|BRICKS 256 wall blocks"
+    description: "Four builders placing blocks at the same time."
+    offer:
+      - "Four of you, one wall. Go!"
+    complete:
+      - "Look at it. It goes on forever."
+    rewards:
+      money: 120000
+  coop_feast:
+    name: "Village Feast"
+    category: DAILY
+    giver: marigold
+    together: 3
+    objectives:
+      - "DELIVER COOKED_BEEF|COOKED_PORKCHOP|COOKED_CHICKEN|BAKED_POTATO 48 cooked food"
+      - "FISH COD|SALMON 16 fish"
+    description: "Three of you cook and fish at the same time for the feast."
+    offer:
+      - "A feast for the whole camp! Bring two friends."
+    complete:
+      - "Everybody eats tonight."
+    rewards:
+      money: 70000
 # >>> chapters 6-10 (tools/story/chapters_6_10.py)
   story_pip_scout:
     name: "The Road Home"

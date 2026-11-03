@@ -529,6 +529,7 @@ public final class AdminCommand implements TabExecutor {
                 }
                 if (action.equals("boss")) return QuestsCommand.filter(new ArrayList<>(plugin.adventures().bossIds()), args[2]);
                 if (action.equals("bossevent")) return QuestsCommand.filter(com.cquests.adventure.QuestAdventures.EVENTS, args[2]);
+                if (action.equals("pip")) return QuestsCommand.filter(List.of("bow", "sword"), args[2]);
                 if (action.equals("discord")) return QuestsCommand.filter(List.of("chapter", "boss", "streak", "journey"), args[2]);
                 if (action.equals("achievement")) {
                     List<String> options = new ArrayList<>(List.of("end", "reset"));

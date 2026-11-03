@@ -250,7 +250,14 @@ public final class QuestManager {
         }
         long day = System.currentTimeMillis() / 86_400_000L;
         Random rnd = new Random(player.getUniqueId().getLeastSignificantBits() ^ day * 1_000_003L);
-        return Offer.of(pool.get(rnd.nextInt(pool.size())));
+        // Every player gets their own daily. Co-op dailies are only offered when enough friends stand nearby.
+        int friends = nearbyPlayers(player);
+        List<Quest> fitting = new ArrayList<>();
+        for (Quest quest : pool) if (quests().together(quest.id()) - 1 <= friends) fitting.add(quest);
+        if (fitting.isEmpty()) fitting = pool;
+        List<Quest> coop = fitting.stream().filter(q -> quests().together(q.id()) > 1).toList();
+        if (!coop.isEmpty() && rnd.nextInt(3) == 0) return Offer.of(coop.get(rnd.nextInt(coop.size())));
+        return Offer.of(fitting.get(rnd.nextInt(fitting.size())));
     }
 
     // ------------------------------------------------------------------ actions
@@ -259,7 +266,8 @@ public final class QuestManager {
         return accept(player,quest,false);
     }
     public boolean forceAccept(Player player,Quest quest){return accept(player,quest,true);}
-    private boolean accept(Player player,Quest quest,boolean force) {
+    private boolean accept(Player player,Quest quest,boolean force) {return accept(player,quest,force,false);}
+    private boolean accept(Player player,Quest quest,boolean force,boolean quiet) {
         PlayerData data = data(player);
         if(!force&&!requirementsMet(data,quest)){
             plugin.send(player,"<yellow>Finish the previous tasks and reach Wayfarer level "+Math.max(1,quest.level())+" before taking this quest.");
@@ -279,8 +287,16 @@ public final class QuestManager {
                 data.setLastDailyAt(System.currentTimeMillis());
             }
         }
-        plugin.send(player, settings().msg("quest-accepted", "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to read your journal.")
+        if (!quiet) plugin.send(player, settings().msg("quest-accepted", "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to read your journal.")
                 .replace("<quest>", Text.escape(quest.name())));
+        if (!quiet && (plugin.getConfig() == null || plugin.getConfig().getBoolean("dialogue.how-to-tips", true))) {
+            int needed = quests().together(quest.id());
+            if (needed > 1) plugin.send(player, "<aqua>Co-op: <white>needs " + needed + " players within 16 blocks doing it at the same time.");
+            for (Objective objective : quest.objectives()) {
+                String tip = HowTo.describe(objective);
+                if (tip != null) plugin.send(player, "<dark_gray>  Tip: <gray>" + Text.escape(tip));
+            }
+        }
         player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1f);
         plugin.visibility().refresh(player);
         plugin.tracker().track(player, quest.id());
@@ -301,9 +317,16 @@ public final class QuestManager {
         return Math.max(0, config.getLong("chapters.cost." + quest.chapter(), defaultChapterCost(quest.chapter())));
     }
 
+    /** The configured cost of a chapter number, for /cq test cost when the chapter is switched off. */
+    public static long chapterCostFor(CQuestsPlugin plugin, int chapter) {
+        var config = plugin.getConfig();
+        if (chapter <= 1 || config == null || !config.getBoolean("chapters.costs-enabled", true)) return 0;
+        return Math.max(0, config.getLong("chapters.cost." + chapter, defaultChapterCost(chapter)));
+    }
+
     static long defaultChapterCost(int chapter) {
-        long[] costs = {0, 0, 25_000, 50_000, 100_000, 250_000, 500_000, 750_000, 1_000_000, 1_500_000, 2_500_000};
-        return chapter < costs.length ? costs[chapter] : 2_500_000L + (chapter - 10) * 1_000_000L;
+        long[] costs = {0, 0, 5_000_000, 10_000_000, 20_000_000, 35_000_000, 50_000_000, 75_000_000, 100_000_000, 150_000_000, 250_000_000};
+        return chapter < costs.length ? costs[chapter] : 250_000_000L + (chapter - 10) * 100_000_000L;
     }
 
     /** Charges the chapter cost; a payment that does nothing when there is no cost. Null when the player can't pay. */
@@ -312,17 +335,19 @@ public final class QuestManager {
         com.cquests.farm.EconomyBridge.Payment none = economy.charge(player, 0);
         if (cost <= 0) return none;
         if (!economy.available()) {
-            if (!warnedNoEconomy) { warnedNoEconomy = true; plugin.getLogger().info("Chapter costs need Vault and an economy plugin; chapters are free until one is installed."); }
+            if (!warnedNoEconomy) { warnedNoEconomy = true; plugin.getLogger().info("Chapter costs need Vault or economy.take-command in config.yml; chapters are free until then."); }
             return none;
         }
         var payment = economy.charge(player, cost);
         if (payment == null) {
-            plugin.send(player, settings().msg("chapter-cost-missing", "<red>Chapter <chapter> costs <gold><cost></gold> to start. Come back when you have it.")
-                    .replace("<chapter>", Integer.toString(quest.chapter())).replace("<cost>", Text.formatMoney(cost)));
+            double balance = economy.balance(player);
+            plugin.send(player, settings().msg("chapter-cost-missing", "<red>Chapter <chapter> costs <gold><cost></gold> to start. You have <white><balance></white>.")
+                    .replace("<chapter>", Integer.toString(quest.chapter())).replace("<cost>", Text.compact(cost))
+                    .replace("<balance>", Double.isFinite(balance) ? Text.compact((long) balance) : "?"));
             return null;
         }
         plugin.send(player, settings().msg("chapter-cost-paid", "<gold>You paid <cost> to begin Chapter <chapter>: <name>.")
-                .replace("<chapter>", Integer.toString(quest.chapter())).replace("<cost>", Text.formatMoney(cost))
+                .replace("<chapter>", Integer.toString(quest.chapter())).replace("<cost>", Text.compact(cost))
                 .replace("<name>", Text.escape(quests().chapterName(quest.chapter()))));
         return payment;
     }
@@ -334,12 +359,11 @@ public final class QuestManager {
             return;
         }
         String tip = settings().msg("first-join", "");
-        if (accept(player, welcome) && !tip.isBlank()) {
-            // A short how to play for brand new players.
+        // No chat on join unless welcome.chat-message is turned on; the arrow and compass already point the way.
+        boolean chat = plugin.getConfig() != null && plugin.getConfig().getBoolean("welcome.chat-message", false);
+        if (accept(player, welcome, false, !chat) && !tip.isBlank() && chat) {
             player.sendMessage(Text.mm(fill(tip, player)));
         }
-        // Tell brand new players where the first villager stands, once the welcome text has been read.
-        Sched.entityLater(player, 100, () -> { if (player.isOnline()) plugin.directions().explain(player, true); });
     }
 
     public boolean abandon(Player player, Quest quest) {
@@ -388,9 +412,51 @@ public final class QuestManager {
      *                 the same mob type, so a stray Ravager or Warden can't stand in for the boss
      */
     public void progress(Player player, ObjectiveType type, String key, int amount, boolean fromBoss) {
+        progress(player, type, key, amount, fromBoss, false);
+    }
+
+    /**
+     * Wheat from the farm fields only counts for side and daily quests of the spawn villagers
+     * (act 1). It never moves the story forward; it still gives levels.
+     */
+    public void progressFromFarm(Player player, String key) {
+        progress(player, ObjectiveType.HARVEST, key, 1, false, true);
+    }
+
+    /** When each player last made progress of each kind, for co-op quests. Cleared on logout. */
+    private final java.util.Map<java.util.UUID, long[]> lastAction = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<java.util.UUID, Long> coopHint = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public void forget(Player player) {
+        lastAction.remove(player.getUniqueId());
+        coopHint.remove(player.getUniqueId());
+    }
+
+    /** Co-op partners: other players within 16 blocks who did the same kind of thing in the last 5 seconds. */
+    public int partners(Player player, ObjectiveType type) {
+        long now = System.currentTimeMillis();
+        int count = 0;
+        for (Player other : player.getLocation().getNearbyPlayers(16)) {
+            if (other.equals(player)) continue;
+            long[] times = lastAction.get(other.getUniqueId());
+            if (times != null && now - times[type.ordinal()] <= 5000) count++;
+        }
+        return count;
+    }
+
+    /** Players standing within 16 blocks, for offering co-op dailies only to groups. */
+    public int nearbyPlayers(Player player) {
+        int count = 0;
+        for (Player other : player.getLocation().getNearbyPlayers(16)) if (!other.equals(player)) count++;
+        return count;
+    }
+
+    private void progress(Player player, ObjectiveType type, String key, int amount, boolean fromBoss, boolean farm) {
         if (amount <= 0) {
             return;
         }
+        lastAction.computeIfAbsent(player.getUniqueId(), id -> new long[ObjectiveType.values().length])[type.ordinal()] = System.currentTimeMillis();
+        int partners = -1;
         PlayerData data = plugin.store().cached(player.getUniqueId());
         if (data == null) {
             return;
@@ -408,6 +474,24 @@ public final class QuestManager {
                 }
                 if (!fromBoss && type == ObjectiveType.KILL && plugin.adventures() != null && plugin.adventures().isBossQuest(quest.id())) {
                     continue;
+                }
+                if (farm) {
+                    if (quest.category() == QuestCategory.STORY) continue;
+                    NpcDef giver = npcs().get(quest.giver());
+                    if (quest.category() == QuestCategory.SIDE && (giver == null || giver.act() > 1)) continue;
+                }
+                int needed = quests().together(quest.id());
+                if (needed > 1) {
+                    if (partners < 0) partners = partners(player, type);
+                    if (partners < needed - 1) {
+                        long now = System.currentTimeMillis();
+                        if (now - coopHint.getOrDefault(player.getUniqueId(), 0L) > 3000) {
+                            coopHint.put(player.getUniqueId(), now);
+                            player.sendActionBar(Text.mm("<yellow>" + Text.escape(quest.name()) + " <gray>needs <white>" + needed
+                                    + " players</white> doing it together. <white>" + partners + "</white> nearby right now."));
+                        }
+                        continue;
+                    }
                 }
                 boolean wasReady = ready(quest, active);
                 boolean changed = false;
@@ -628,8 +712,9 @@ public final class QuestManager {
         plugin.send(player, settings().msg("quest-complete", "<gold>★ Quest complete: <white><bold><quest></bold></white>")
                 .replace("<quest>", Text.escape(quest.name())));
         if(plugin.mail()!=null)plugin.mail().notifyNew(player);
-        giveRewards(player, quest.reward());
+        giveRewards(player, quest.category() == QuestCategory.DAILY ? dailyReward(player, quest) : quest.reward());
         if (streak > 0) dailyStreakBonus(player, quest, streak);
+        if (quest.category() == QuestCategory.STORY && (quests().endsChapter(quest) || isFinalQuest(quest))) chapterReward(player, quest.chapter());
         if(quest.category()==QuestCategory.STORY&&(quests().endsChapter(quest)||isFinalQuest(quest)))
             Sched.global(()->Bukkit.broadcast(Text.mm("<gold><bold>CHAPTER COMPLETE</bold></gold> <white>"+Text.escape(player.getName())
                     +"</white> <gray>completed Chapter "+quest.chapter()+": <aqua>"+Text.escape(quests().chapterName(quest.chapter())))));
@@ -645,6 +730,44 @@ public final class QuestManager {
         } else if (quest.big()) {
             plugin.finale().celebrate(player, quest);
         }
+    }
+
+    /**
+     * Daily money is a roll for each player and day: anywhere from daily.money-min-percent to
+     * daily.money-max-percent of the quest's money, so some days pay little and some pay a lot.
+     */
+    public Reward dailyReward(Player player, Quest quest) {
+        var config = plugin.getConfig();
+        Reward base = quest.reward();
+        if (config == null || base.money() <= 0) return base;
+        int min = Math.max(0, config.getInt("daily.money-min-percent", 25));
+        int max = Math.max(min, config.getInt("daily.money-max-percent", 300));
+        long day = System.currentTimeMillis() / 86_400_000L;
+        Random rnd = new Random(player.getUniqueId().getMostSignificantBits() ^ day * 31_337L ^ quest.id().hashCode());
+        int percent = min + rnd.nextInt(max - min + 1);
+        long money = Math.round(base.money() * percent / 100.0);
+        if (percent >= 200) plugin.send(player, "<gold>★ Lucky day! <white>This daily paid " + percent + "%.");
+        else if (percent <= 50) plugin.send(player, "<gray>A quiet day. This daily paid " + percent + "%.");
+        return new Reward(money, base.items(), base.effects(), base.commands(), base.xp());
+    }
+
+    /** Extra rewards for finishing a chapter: chapters.rewards.<n>.items and .commands in config.yml. */
+    private void chapterReward(Player player, int chapter) {
+        var config = plugin.getConfig();
+        if (config == null) return;
+        var section = config.getConfigurationSection("chapters.rewards." + chapter);
+        if (section == null) return;
+        List<RewardItem> items = new ArrayList<>();
+        for (String line : section.getStringList("items")) {
+            String[] parts = line.trim().split("\\s+");
+            Material material = Material.matchMaterial(parts[0]);
+            int amount = parts.length > 1 ? Math.max(1, Math.min(64, Integer.parseInt(parts[1].replaceAll("\\D", "").isEmpty() ? "1" : parts[1].replaceAll("\\D", "")))) : 1;
+            if (material != null && material.isItem()) items.add(new RewardItem(material, amount));
+        }
+        Reward reward = new Reward(0, items, List.of(), section.getStringList("commands"), 0);
+        if (reward.isEmpty()) return;
+        plugin.send(player, "<gold><bold>Chapter " + chapter + " reward!</bold>");
+        giveRewards(player, reward);
     }
 
     /** The last quest of the story chain; finishing it plays the ending. */

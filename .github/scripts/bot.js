@@ -184,6 +184,12 @@ bot.once('spawn', async () => {
     await command('/cq test bossstop')
     await message(/Boss fight ended|No boss fight/, start)
     await command('/cq test bossevent roar')
+    start = chat.length
+    await command('/cq test pip bow')
+    await message(/Pip.*runs in|wakes|could not start/, start)
+    await sleep(2000)
+    await command('/cq test bossstop')
+    console.log('OK Pip joins a test boss fight')
     console.log('OK test boss fight starts, rages and stops')
     await command('/cq test achievement 3')
     await command('/quests achievements')

@@ -33,7 +33,7 @@ public final class QuestAdventures implements Listener {
         volatile Location playerAt;volatile boolean active=true;
         volatile Location helperAt;
         Boss boss;java.util.concurrent.Semaphore slots;final List<Mob> minions=new java.util.concurrent.CopyOnWriteArrayList<>();
-        volatile boolean phased,test;long nextEvent;net.kyori.adventure.bossbar.BossBar bar;
+        volatile boolean phased,test;long nextEvent;Villager pip;String pipMode;long pipNext;net.kyori.adventure.bossbar.BossBar bar;
         final java.util.concurrent.atomic.AtomicBoolean released=new java.util.concurrent.atomic.AtomicBoolean();
         Session(Player player,String quest,Mob mob){this.player=player;this.quest=quest;this.mob=mob;origin=mob.getLocation();helperAt=origin;playerAt=player.getLocation();}
     }
@@ -158,11 +158,16 @@ public final class QuestAdventures implements Listener {
         inv.setItem(13,QuestMenu.item(Material.WITHER_SKELETON_SKULL,"<gold><bold>Face "+b.name(),List.of(
                 "<white>It will hunt you alone.","<gray>Nobody else can fight it or be hurt by it.","<gray>It breaks no blocks and drops nothing.",
                 "<gray>Leave the area, fall, or log out and it withdraws.","<yellow>Click when you are ready.")));
+        int left=pipLeft(player);
+        if(left>0){
+            inv.setItem(15,QuestMenu.item(Material.BOW,"<gold>Face it with Pip <gray>(bow)",List.of("<white>Pip shoots it from a distance.","<gray>Pip can help in "+left+" more boss fight"+(left==1?"":"s")+".")));
+            inv.setItem(16,QuestMenu.item(Material.IRON_SWORD,"<gold>Face it with Pip <gray>(sword)",List.of("<white>Pip fights it up close.","<gray>Pip can help in "+left+" more boss fight"+(left==1?"":"s")+".")));
+        }
         inv.setItem(26,QuestMenu.item(Material.BARRIER,"<gray>Not yet",List.of()));player.openInventory(inv);return true;
     }
     /** /quests encounter: calls the boss of whichever boss quest the player has open. */
     public boolean summon(Player player){Boss b=activeBoss(player,null);return b!=null&&summon(player,b);}
-    public boolean summon(Player player,Boss b){return summon(player,b,false);}
+    public boolean summon(Player player,Boss b){return summon(player,b,false,null);}
     /** Boss quest ids for /cq test boss. */
     public java.util.Collection<String> bossIds(){return new java.util.TreeSet<>(bossDefs.keySet());}
     /**
@@ -173,7 +178,19 @@ public final class QuestAdventures implements Listener {
         Boss b=bossDefs.get(quest.toLowerCase(Locale.ROOT));
         if(b==null){plugin.send(player,"<red>No boss for "+Text.escape(quest)+". Bosses: <white>"+String.join(", ",bossIds()));return false;}
         var old=bosses.get(player.getUniqueId());if(old!=null)stop(bosses,player.getUniqueId(),old);
-        return summon(player,b,true);
+        return summon(player,b,true,null);
+    }
+    /** /cq test pip: a test boss with Pip fighting at your side. */
+    public boolean testPip(Player player,String mode){
+        String quest=bossDefs.containsKey("story_ironjaw_hunter")?"story_ironjaw_hunter":bossIds().stream().findFirst().orElse("");
+        Boss b=bossDefs.get(quest);if(b==null)return false;
+        var old=bosses.get(player.getUniqueId());if(old!=null)stop(bosses,player.getUniqueId(),old);
+        return summon(player,b,true,"sword".equalsIgnoreCase(mode)?"sword":"bow");
+    }
+    /** Boss fights Pip can still help with for this player (adventures.pip-boss-help, 3 by default). */
+    public int pipLeft(Player player){
+        int max=Math.max(0,plugin.getConfig().getInt("adventures.pip-boss-help",3));
+        return Math.max(0,max-plugin.questManager().data(player).pipHelped());
     }
     /** Jumps the test boss to half health so the phase, minions and events play now. */
     public boolean testPhase(Player player){
@@ -190,7 +207,7 @@ public final class QuestAdventures implements Listener {
         return true;
     }
     public static final List<String> EVENTS=List.of("lightning","darkness","slowness","levitate","roar");
-    private boolean summon(Player player,Boss b,boolean test){
+    private boolean summon(Player player,Boss b,boolean test,String pipMode){
         UUID id=player.getUniqueId();
         if(player.getWorld().getDifficulty()==Difficulty.PEACEFUL){plugin.send(player,"<yellow>Bosses cannot wake in a Peaceful world.");return false;}
         boolean allowed=b.quest().equals("story_aldis")?plugin.getConfig().getBoolean("adventures.wither",true):true;
@@ -217,7 +234,22 @@ public final class QuestAdventures implements Listener {
             if(e instanceof Wither w){w.setInvulnerableTicks(0);if(w.getBossBar()!=null)w.getBossBar().setVisible(false);}
         });}catch(RuntimeException error){slots.release();plugin.send(player,"<yellow>It could not enter this area. Try another clear spot.");return false;}
         if(!mob.isValid()){slots.release();return false;}
-        Session session=new Session(player,b.quest(),mob);session.boss=b;session.test=test;session.slots=slots;session.nextEvent=System.nanoTime()+20_000_000_000L;
+        Session session=new Session(player,b.quest(),mob);session.boss=b;session.test=test;
+        if(pipMode!=null&&(test||pipLeft(player)>0)){
+            Location spot=ground(player.getLocation(),-2);
+            if(spot!=null){
+                try{session.pip=spot.getWorld().spawn(spot,Villager.class,v->{
+                    mark(v,player,"pip");v.setVisibleByDefault(false);v.setInvulnerable(true);v.setCollidable(false);v.setSilent(true);
+                    v.setRemoveWhenFarAway(false);v.setCanPickupItems(false);v.setProfession(Villager.Profession.WEAPONSMITH);v.setAdult();v.setBreed(false);
+                    v.customName(Text.mm("<gold>Pip"));v.setCustomNameVisible(true);
+                    if(v.getEquipment()!=null)v.getEquipment().setItemInMainHand(new org.bukkit.inventory.ItemStack("sword".equals(pipMode)?Material.IRON_SWORD:Material.BOW));
+                });
+                session.pipMode=pipMode;player.showEntity(plugin,session.pip);
+                if(!test)plugin.questManager().data(player).addPipHelped();
+                plugin.send(player,"<gold>Pip <white>runs in with "+("sword".equals(pipMode)?"a sword":"a bow")+"! <gray>"+(test?"(test)":pipLeft(player)+" more fights Pip can help with."));
+                }catch(RuntimeException ignored){session.pip=null;}
+            }
+        }session.slots=slots;session.nextEvent=System.nanoTime()+20_000_000_000L;
         session.bar=net.kyori.adventure.bossbar.BossBar.bossBar(Text.mm(b.name()),1f,net.kyori.adventure.bossbar.BossBar.Color.RED,net.kyori.adventure.bossbar.BossBar.Overlay.NOTCHED_10);
         bosses.put(id,session);player.showEntity(plugin,mob);player.showBossBar(session.bar);
         mob.getScheduler().runAtFixedRate(plugin,t->{if(!tick(session,true))t.cancel();},()->retired(bosses,id,session),1,5);
@@ -237,6 +269,7 @@ public final class QuestAdventures implements Listener {
         Mob mob=session.mob;Player player=session.player;Boss b=session.boss;
         if(mob instanceof Wither w)for(var head:Wither.Head.values())w.setTarget(head,player);
         else{mob.setTarget(player);if(mob instanceof Warden warden)warden.setAnger(player,150);}
+        pipTick(session);
         for(Mob minion:session.minions){
             if(!minion.isValid()){session.minions.remove(minion);continue;}
             if(Bukkit.isOwnedByCurrentRegion(minion))minion.setTarget(player);
@@ -258,6 +291,26 @@ public final class QuestAdventures implements Listener {
                 }catch(RuntimeException ignored){}
             }
         }else if(session.phased&&System.nanoTime()>=session.nextEvent){events(session);}
+    }
+    /** Pip follows the fight and hits the boss: an arrow every 1.5 s from range, or a sword swing up close. */
+    private void pipTick(Session session){
+        Villager pip=session.pip;if(pip==null)return;
+        if(!pip.isValid()||!Bukkit.isOwnedByCurrentRegion(pip)){session.pip=null;return;}
+        Mob boss=session.mob;Location from=pip.getLocation(),to=boss.getLocation();
+        if(!from.getWorld().equals(to.getWorld())){return;}
+        double distance=from.distance(to);boolean sword="sword".equals(session.pipMode);
+        double keep=sword?1.8:7;
+        if(distance>keep+1)pip.getPathfinder().moveTo(sword?to:session.playerAt,1.2);else pip.getPathfinder().stopPathfinding();
+        pip.lookAt(to.clone().add(0,1,0));
+        long now=System.nanoTime();if(now<session.pipNext)return;
+        if(sword&&distance<=3.2){session.pipNext=now+1_200_000_000L;pip.swingMainHand();boss.damage(5);
+            from.getWorld().playSound(from,Sound.ENTITY_PLAYER_ATTACK_SWEEP,0.8f,1.2f);}
+        else if(!sword&&distance<=24){session.pipNext=now+1_500_000_000L;
+            var start=from.clone().add(0,1.4,0);var step=to.clone().add(0,1,0).toVector().subtract(start.toVector());
+            int points=(int)Math.min(24,Math.max(2,distance*2));step.multiply(1.0/points);
+            for(int i=0;i<points;i++){var p=start.clone().add(step.clone().multiply(i));session.player.spawnParticle(Particle.CRIT,p,1,0,0,0,0);}
+            session.player.playSound(from,Sound.ENTITY_ARROW_SHOOT,0.8f,1f);boss.damage(4);
+        }
     }
     private static double maxHealthOf(LivingEntity e){
         var attribute=org.bukkit.Registry.ATTRIBUTE.get(NamespacedKey.minecraft("max_health"));
@@ -294,8 +347,9 @@ public final class QuestAdventures implements Listener {
         public Inventory getInventory(){return inventory;}public UUID viewer(){return player.getUniqueId();}
         public void click(int slot,ClickType type){
             if(slot==26){player.closeInventory();return;}
-            if(slot!=13||used||!plugin.memories().near(player,boss.giver()))return;
-            used=true;player.closeInventory();summon(player,boss);
+            if((slot!=13&&slot!=15&&slot!=16)||used||!plugin.memories().near(player,boss.giver()))return;
+            if(slot!=13&&pipLeft(player)<=0)return;
+            used=true;player.closeInventory();summon(player,boss,false,slot==15?"bow":slot==16?"sword":null);
         }
     }
     private void stop(Map<UUID,Session> map,UUID id,Session session){
@@ -309,6 +363,8 @@ public final class QuestAdventures implements Listener {
             if(map==companions)plugin.nameplates().remove("companion_"+id);
             if(session.bar!=null){var bar=session.bar;var p=session.player;if(p.isOnline())Sched.entity(p,()->p.hideBossBar(bar));}
             for(Mob minion:session.minions){if(Bukkit.isOwnedByCurrentRegion(minion))minion.remove();else Sched.entity(minion,minion::remove);}
+            var pip=session.pip;session.pip=null;
+            if(pip!=null){if(Bukkit.isOwnedByCurrentRegion(pip))pip.remove();else Sched.entity(pip,pip::remove);}
             session.minions.clear();
         }
     }

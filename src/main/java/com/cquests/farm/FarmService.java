@@ -214,7 +214,7 @@ public final class FarmService {
                 plugin.mail().discovered(player);
                 int wheat=ThreadLocalRandom.current().nextDouble()<tier.chance()?2:1;
                 player.getInventory().addItem(new ItemStack(Material.WHEAT,wheat)); // full bags don't create farm-item drops
-                plugin.questManager().progress(player,ObjectiveType.HARVEST,"WHEAT",1);
+                plugin.questManager().progressFromFarm(player,"WHEAT");
                 plugin.progression().award(player,Math.max(1,Math.round(xp*tier.multiplier())),true);
             });
             Bukkit.getRegionScheduler().runDelayed(plugin,block.getLocation(),t->regrow(spot),regrow);

@@ -63,6 +63,7 @@ public final class QuestRegistry {
         this.npcs = npcs;
         storyByGiver.clear();
         dailyPool.clear();
+        together.clear();
 
         generation++;
         chapterNames.clear();
@@ -95,6 +96,8 @@ public final class QuestRegistry {
                 try {
                     Quest quest = parse(id.toLowerCase(Locale.ROOT), s, order++, previousStory, settings, npcs, log);
                     add(quest);
+                    int party = Math.max(1, Math.min(4, s.getInt("together", 1)));
+                    if (party > 1) together.put(quest.id(), party);
                     if (quest.category() == QuestCategory.STORY) {
                         previousStory = quest.id();
                     }
@@ -408,6 +411,13 @@ public final class QuestRegistry {
 
     public List<Quest> storyFrom(String npcId) {
         return storyByGiver.getOrDefault(npcId, List.of());
+    }
+
+    private final Map<String, Integer> together = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Players needed at the same time for a co-op quest (quests.yml "together: 2" to 4); 1 for normal quests. */
+    public int together(String questId) {
+        return together.getOrDefault(questId, 1);
     }
 
     public List<Quest> dailyPool() {
