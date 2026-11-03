@@ -185,7 +185,7 @@ public final class QuestAdventures implements Listener {
             if(e instanceof Mob m){m.customName(Text.mm(b.name()));m.setCustomNameVisible(true);m.setRemoveWhenFarAway(false);m.setCanPickupItems(false);
                 if(b.health()>0)maxHealth(m,b.health());
                 if(b.weapon()!=null&&m.getEquipment()!=null){m.getEquipment().setItemInMainHand(new org.bukkit.inventory.ItemStack(b.weapon()));m.getEquipment().setItemInMainHandDropChance(0f);}
-                if(m instanceof Ageable a)a.setAdult();m.setCanTravelThroughPortals(false);}
+                if(m instanceof Ageable a)a.setAdult();}
             if(e instanceof Wither w){w.setInvulnerableTicks(0);if(w.getBossBar()!=null)w.getBossBar().setVisible(false);}
         });}catch(RuntimeException error){slots.release();plugin.send(player,"<yellow>It could not enter this area. Try another clear spot.");return false;}
         if(!mob.isValid()){slots.release();return false;}
@@ -224,7 +224,7 @@ public final class QuestAdventures implements Listener {
                 Location at=mob.getLocation().clone().add(java.util.concurrent.ThreadLocalRandom.current().nextInt(-3,4),0,java.util.concurrent.ThreadLocalRandom.current().nextInt(-3,4));
                 if(!Bukkit.isOwnedByCurrentRegion(at))continue;
                 try{var minion=at.getWorld().spawn(at,b.minion().getEntityClass(),e->{mark(e,player,"minion");e.setVisibleByDefault(false);
-                    if(e instanceof Mob m){m.setRemoveWhenFarAway(false);m.setCanPickupItems(false);m.setCanTravelThroughPortals(false);}});
+                    if(e instanceof Mob m){m.setRemoveWhenFarAway(false);m.setCanPickupItems(false);}});
                     if(minion instanceof Mob m&&m.isValid()){session.minions.add(m);player.showEntity(plugin,m);m.setTarget(player);}else minion.remove();
                 }catch(RuntimeException ignored){}
             }
