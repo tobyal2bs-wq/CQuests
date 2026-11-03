@@ -58,7 +58,7 @@ if [ "$PROJECT" = "paper" ] && [ "$VERSION" = "1.21.4" ]; then
   BOT_DIR=$(mktemp -d)
   cp "$GITHUB_WORKSPACE/.github/scripts/bot.js" "$BOT_DIR/"
   (cd "$BOT_DIR" && npm install --silent --no-audit --no-fund mineflayer@4.39.0 > /dev/null)
-  # The last quest of chapter 1 and of the whole story, read from quests.yml.
+  # The last quest of chapter 1 and of the story as shipped (chapters 1 to 5), read from quests.yml.
   read -r CHAPTER_ONE_END STORY_END < <(python3 - "$GITHUB_WORKSPACE/src/main/resources/quests.yml" <<'PY'
 import re, sys
 current, chapters = None, []
@@ -69,7 +69,8 @@ for line in open(sys.argv[1], encoding="utf-8"):
     m = re.match(r"^    chapter: (\d+)", line)
     if m and current:
         chapters.append((current, int(m.group(1))))
-print([q for q, c in chapters if c == 1][-1], chapters[-1][0])
+# Chapters 6 to 10 ship switched off, so the story ends with chapter 5.
+print([q for q, c in chapters if c == 1][-1], [q for q, c in chapters if c <= 5][-1])
 PY
 )
   echo "Chapter 1 ends with $CHAPTER_ONE_END, the story ends with $STORY_END"
