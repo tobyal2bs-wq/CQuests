@@ -30,6 +30,7 @@ jobs:
       matrix:
         include:
           - { project: paper, version: "1.21.4" }
+          - { project: paper, version: "26.2" }
           - { project: paper, version: latest }
           - { project: folia, version: latest }
     name: server-test (${{ matrix.project }} ${{ matrix.version }})

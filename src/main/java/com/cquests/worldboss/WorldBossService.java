@@ -25,6 +25,8 @@ import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EvokerFangs;
 import org.bukkit.entity.Hoglin;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.PiglinAbstract;
@@ -62,7 +64,10 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,7 +108,8 @@ public final class WorldBossService implements Listener {
         final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
         final long born = System.currentTimeMillis();
         volatile long lastPlayer = System.currentTimeMillis();
-        long nextAbility; long nextTitle; boolean raged; int heals; int ticks;
+        long nextAbility; long nextTitle; boolean raged; int heals; int ticks; long shownHealth = -1;
+        Particle particle = Particle.FLAME; Particle.DustOptions auraDust, ringDust;
         volatile boolean over;
         int chunkX, chunkZ; String chunkWorld;
 
@@ -364,7 +370,7 @@ public final class WorldBossService implements Listener {
         Location at = arena.spawn();
         if (at == null) { if (tester != null) plugin.send(tester, "<yellow>Arena " + arena.id + " has no spawn. /cq worldboss setspawn " + arena.id); return false; }
         if (at.getWorld().getDifficulty() == org.bukkit.Difficulty.PEACEFUL) { if (tester != null) plugin.send(tester, "<yellow>Bosses cannot appear in a Peaceful world."); return false; }
-        Sched.at(at, () -> doSpawn(def, arena, key, at, tester, test));
+        Sched.at(at, () -> ritual(at, def, () -> doSpawn(def, arena, key, at, tester, test)));
         return true;
     }
 
@@ -389,6 +395,49 @@ public final class WorldBossService implements Listener {
         return spawn(def, a, player, true);
     }
 
+    /**
+     * /cq worldboss selftest (console too): every boss appears near the world spawn, runs every attack once
+     * with nobody around, plays its death animation and is removed. Reports how many worked.
+     */
+    public void selfTest(org.bukkit.command.CommandSender to) {
+        var world = Bukkit.getWorlds().get(0);
+        Location base = world.getSpawnLocation();
+        List<WorldBossDef> list = new ArrayList<>(defs.values());
+        java.util.concurrent.atomic.AtomicInteger appeared = new java.util.concurrent.atomic.AtomicInteger(), attacks = new java.util.concurrent.atomic.AtomicInteger(),
+                done = new java.util.concurrent.atomic.AtomicInteger();
+        List<String> broken = new CopyOnWriteArrayList<>();
+        Runnable finish = () -> {
+            if (done.incrementAndGet() < list.size()) return;
+            String report = "World boss self-test: " + appeared.get() + "/" + list.size() + " appeared, " + attacks.get() + " attacks ran"
+                    + (broken.isEmpty() ? "" : ". Problems: " + String.join("; ", broken));
+            if (broken.isEmpty()) plugin.getLogger().info(report); else plugin.getLogger().warning(report);
+            if (to instanceof Player) plugin.send(to, "<gray>" + Text.escape(report));
+        };
+        for (int i = 0; i < list.size(); i++) {
+            WorldBossDef def = list.get(i);
+            Location at = base.clone().add(30 + (i % 6) * 7, 0, 30 + (i / 6) * 7);
+            Sched.at(at, () -> ritual(at, def, () -> {
+                at.setY(at.getWorld().getHighestBlockYAt(at) + 1);
+                Arena arena = new Arena("selftest-" + def.id(), 20);
+                arena.spawn(at);
+                Fight f;
+                try { f = spawnFight(def, arena, "selftest:" + def.id(), at, null, true); }
+                catch (RuntimeException | LinkageError e) { broken.add(def.id() + ": " + e); finish.run(); return; }
+                if (f == null) { broken.add(def.id() + ": did not appear"); finish.run(); return; }
+                appeared.incrementAndGet();
+                Sched.entityLater(f.boss, 20, () -> {
+                    for (String ability : WorldBossDef.ABILITIES) {
+                        try { ability(f, ability, List.of()); attacks.incrementAndGet(); }
+                        catch (RuntimeException | LinkageError e) { broken.add(def.id() + " " + ability + ": " + e); }
+                    }
+                    try { aura(f, f.boss.getLocation()); spinHalo(f); deathAnimation(f.boss.getLocation(), def, f.boss.getHeight()); }
+                    catch (RuntimeException | LinkageError e) { broken.add(def.id() + " effects: " + e); }
+                    Sched.entityLater(f.boss, 40, () -> { end(f, "stopped"); finish.run(); });
+                });
+            }));
+        }
+    }
+
     public boolean testStop(Player player) {
         Fight f = fights.get("test:" + player.getUniqueId());
         if (f == null) return false;
@@ -402,19 +451,54 @@ public final class WorldBossService implements Listener {
         return true;
     }
 
+    /**
+     * Two seconds of summoning before the boss appears: a rune circle closes in, light rises and the
+     * ground rumbles. Runs on the arena's region; only particles and sounds, nothing is placed.
+     */
+    private void ritual(Location at, WorldBossDef def, Runnable then) {
+        Color c = color(def.color());
+        int[] step = {0};
+        Bukkit.getRegionScheduler().runAtFixedRate(plugin, at, t -> {
+            int i = step[0]++;
+            var world = at.getWorld();
+            if (i >= 8) { t.cancel(); then.run(); return; }
+            double r = 6 - i * 0.6;
+            ring(at, r, c, 36);
+            ring(at, r * 0.55, Color.WHITE, 18);
+            world.spawnParticle(Particle.END_ROD, at.clone().add(0, 0.5 + i * 0.4, 0), 6, 0.3, 0.3, 0.3, 0.02);
+            world.spawnParticle(Particle.LARGE_SMOKE, at, 8, r / 2, 0.1, r / 2, 0.01);
+            if (i == 0) world.playSound(at, Sound.BLOCK_BEACON_ACTIVATE, 2f, 0.5f);
+            if (i % 2 == 0) world.playSound(at, Sound.BLOCK_DEEPSLATE_BREAK, 1.5f, 0.5f);
+            if (i == 6) world.playSound(at, Sound.ENTITY_EVOKER_PREPARE_SUMMON, 2f, 0.6f);
+        }, 1, 5);
+    }
+
     private void doSpawn(WorldBossDef def, Arena arena, String key, Location at, Player tester, boolean test) {
+        spawnFight(def, arena, key, at, tester, test);
+    }
+
+    private Fight spawnFight(WorldBossDef def, Arena arena, String key, Location at, Player tester, boolean test) {
         Mob mob;
         try {
             mob = (Mob) at.getWorld().spawn(at, def.entity().getEntityClass(), e -> dress((Mob) e, def, key));
         } catch (RuntimeException e) {
             if (tester != null) plugin.send(tester, "<yellow>" + def.name() + " <yellow>could not appear here: " + Text.escape(String.valueOf(e.getMessage())));
-            return;
+            else plugin.getLogger().warning("World boss " + def.id() + " could not appear: " + e);
+            return null;
         }
-        if (!mob.isValid()) { if (tester != null) plugin.send(tester, "<yellow>Something stopped the boss from appearing (another plugin or a protected area)."); return; }
+        if (!mob.isValid()) {
+            if (tester != null) plugin.send(tester, "<yellow>Something stopped the boss from appearing (another plugin or a protected area).");
+            else plugin.getLogger().warning("World boss " + def.id() + " was removed right after spawning (protected area, Peaceful or another plugin).");
+            return null;
+        }
         double max = maxHealth(mob);
         BossBar bar = BossBar.bossBar(Text.mm(def.name()), 1f, barColor(def.bar()), BossBar.Overlay.NOTCHED_20);
         Fight fight = new Fight(key, def, arena, test, tester == null ? null : tester.getUniqueId(), mob, max, bar);
         fight.nextAbility = System.currentTimeMillis() + 6000;
+        try { fight.particle = Particle.valueOf(def.particle()); } catch (IllegalArgumentException e) { fight.particle = Particle.FLAME; }
+        if (fight.particle.getDataType() == Particle.DustOptions.class) fight.auraDust = new Particle.DustOptions(color(def.color()), 1.6f);
+        else if (fight.particle.getDataType() != Void.class) fight.particle = Particle.FLAME;
+        fight.ringDust = new Particle.DustOptions(color(def.color()), 1.2f);
         fights.put(key, fight);
         byEntity.put(mob.getUniqueId(), fight);
         fight.chunkWorld = at.getWorld().getName(); fight.chunkX = at.getBlockX() >> 4; fight.chunkZ = at.getBlockZ() >> 4;
@@ -427,16 +511,34 @@ public final class WorldBossService implements Listener {
             Entity rider = at.getWorld().spawn(at, def.rider().getEntityClass(), e -> part(e, key));
             mob.addPassenger(rider); fight.parts.add(rider); byEntity.put(rider.getUniqueId(), fight);
         } catch (RuntimeException ignored) { }
+        Material haloItem = def.halo() == null ? null : Material.matchMaterial(def.halo());
+        if (haloItem != null && haloItem.isItem() && def.rider() == null) try {
+            ItemDisplay halo = at.getWorld().spawn(at, ItemDisplay.class, d -> {
+                part(d, key);
+                d.setItemStack(new ItemStack(haloItem));
+                d.setBillboard(Display.Billboard.FIXED);
+                d.setBrightness(new Display.Brightness(15, 15));
+                d.setGlowing(true);
+                d.setGlowColorOverride(color(def.color()));
+                d.setViewRange(1.5f);
+                float size = (float) (0.55 * Math.max(1, def.scale()));
+                d.setTransformation(new Transformation(new Vector3f(0, (float) (0.35 * def.scale()), 0), new Quaternionf(), new Vector3f(size, size, size), new Quaternionf()));
+            });
+            mob.addPassenger(halo); fight.parts.add(halo); byEntity.put(halo.getUniqueId(), fight);
+        } catch (RuntimeException ignored) { }
         at.getWorld().strikeLightningEffect(at);
         at.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, at.clone().add(0, 1, 0), 2);
+        at.getWorld().spawnParticle(Particle.END_ROD, at.clone().add(0, 1, 0), 80, 0.5, 2, 0.5, 0.15);
+        at.getWorld().playSound(at, Sound.ENTITY_WITHER_SPAWN, 1.2f, 0.9f);
         mob.getScheduler().runAtFixedRate(plugin, t -> { if (!tick(fight)) t.cancel(); }, () -> end(fight, "gone"), 2, 10);
         if (test) {
-            plugin.send(tester, "<gray>Test world boss: " + def.name() + " <gray>(" + def.id() + "). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.");
+            if (tester != null) plugin.send(tester, "<gray>Test world boss: " + def.name() + " <gray>(" + def.id() + "). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.");
         } else {
             broadcast("<gold><bold>⚔ WORLD BOSS</bold></gold> " + def.name() + (def.title().isBlank() ? "" : " <gray>" + Text.escape(def.title())) + " <gold>has risen" + where(arena)
                     + " <gray>Everyone who helps gets a reward.");
             Sched.global(() -> { for (Player p : Bukkit.getOnlinePlayers()) Sched.entity(p, () -> p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.5f, 0.8f)); });
         }
+        return fight;
     }
 
     private void dress(Mob m, WorldBossDef def, String key) {
@@ -530,55 +632,69 @@ public final class WorldBossService implements Listener {
         if (!boss.isValid()) { end(f, "gone"); return false; }
         long now = System.currentTimeMillis();
         f.ticks++;
+        Location loc = boss.getLocation();
         // The border: anything past it is pulled straight back to the spawn.
-        Entity root = boss.getVehicle() != null ? boss.getVehicle() : boss;
-        if (!f.arena.contains(boss.getLocation())) {
+        if (!f.arena.contains(loc)) {
             Location home = f.arena.spawn();
             if (home != null) {
                 boss.setTarget(null);
-                root.teleportAsync(home, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS);
-                boss.getWorld().spawnParticle(Particle.REVERSE_PORTAL, boss.getLocation().add(0, 1, 0), 40, 0.5, 1, 0.5, 0.1);
+                root(boss).teleportAsync(home, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS);
+                loc.getWorld().spawnParticle(Particle.REVERSE_PORTAL, loc.add(0, 1, 0), 40, 0.5, 1, 0.5, 0.1);
             }
             return true;
         }
-        // Boss bar for everyone close by.
-        List<Player> close = near(f, 56, false);
-        Set<UUID> seen = new java.util.HashSet<>();
-        for (Player p : close) {
-            seen.add(p.getUniqueId());
-            if (f.viewers.add(p.getUniqueId())) p.showBossBar(f.bar);
+        // One nearby-player query per tick: the bar uses everyone within 56 blocks, the fight only those inside the border.
+        List<Player> close = new ArrayList<>();
+        List<Player> inside = new ArrayList<>();
+        for (Player p : loc.getNearbyPlayers(56)) {
+            if (!p.isOnline() || !Bukkit.isOwnedByCurrentRegion(p)) continue;
+            close.add(p);
+            if (fighter(p) && p.getLocation().distanceSquared(loc) <= 1600 && f.arena.contains(p.getLocation())) inside.add(p);
         }
-        for (UUID id : new ArrayList<>(f.viewers)) if (!seen.contains(id)) {
-            f.viewers.remove(id);
-            Player p = Bukkit.getPlayer(id);
-            if (p != null) p.hideBossBar(f.bar);
-        }
+        if (f.viewers.size() != close.size() || f.ticks % 4 == 0) {
+            Set<UUID> seen = new java.util.HashSet<>();
+            for (Player p : close) { seen.add(p.getUniqueId()); if (f.viewers.add(p.getUniqueId())) p.showBossBar(f.bar); }
+            for (UUID id : new ArrayList<>(f.viewers)) if (!seen.contains(id)) {
+                f.viewers.remove(id);
+                Player p = Bukkit.getPlayer(id);
+                if (p != null) p.hideBossBar(f.bar);
+            }
+        } else for (Player p : close) if (f.viewers.add(p.getUniqueId())) p.showBossBar(f.bar);
         double health = boss.getHealth();
-        f.bar.progress((float) Math.max(0, Math.min(1, health / Math.max(1, f.max))));
-        f.bar.name(Text.mm(f.def.name() + " <gray>❤ <white>" + String.format(Locale.ROOT, "%,d", Math.round(health * f.ratio)) + "<gray>/" + String.format(Locale.ROOT, "%,d", Math.round(f.max * f.ratio))));
-        // Aura.
-        aura(f);
-        // Target the closest player inside the border; walk home when there is nobody.
-        List<Player> inside = near(f, 40, true);
+        long shown = Math.round(health * f.ratio);
+        if (shown != f.shownHealth) {
+            // Only rebuild the bar text when the number changes.
+            f.shownHealth = shown;
+            f.bar.progress((float) Math.max(0, Math.min(1, health / Math.max(1, f.max))));
+            f.bar.name(Text.mm(f.def.name() + " <gray>❤ <white>" + String.format(Locale.ROOT, "%,d", shown) + "<gray>/" + String.format(Locale.ROOT, "%,d", Math.round(f.max * f.ratio))));
+        }
+        // Effects are only drawn when someone can see them.
+        if (!close.isEmpty()) { aura(f, loc); spinHalo(f); }
         if (!inside.isEmpty()) {
             f.lastPlayer = now;
-            Player target = inside.stream().min(Comparator.comparingDouble(p -> p.getLocation().distanceSquared(boss.getLocation()))).orElseThrow();
-            if (boss.getTarget() == null || !(boss.getTarget() instanceof Player current) || !inside.contains(current)) boss.setTarget(target);
-            for (Mob minion : f.minions) {
-                if (!minion.isValid()) { f.minions.remove(minion); byEntity.remove(minion.getUniqueId()); continue; }
-                if (Bukkit.isOwnedByCurrentRegion(minion) && minion.getTarget() == null) minion.setTarget(target);
+            Player target = inside.get(0);
+            double best = Double.MAX_VALUE;
+            for (Player p : inside) { double d = p.getLocation().distanceSquared(loc); if (d < best) { best = d; target = p; } }
+            if (!(boss.getTarget() instanceof Player current) || !inside.contains(current)) boss.setTarget(target);
+            if (f.ticks % 2 == 0) {
+                for (Mob minion : f.minions) {
+                    if (!minion.isValid()) { f.minions.remove(minion); byEntity.remove(minion.getUniqueId()); continue; }
+                    if (Bukkit.isOwnedByCurrentRegion(minion) && minion.getTarget() == null) minion.setTarget(target);
+                }
+                for (Entity part : f.parts) if (part instanceof Mob m && Bukkit.isOwnedByCurrentRegion(m)) m.setTarget(target);
             }
-            for (Entity part : f.parts) if (part instanceof Mob m && Bukkit.isOwnedByCurrentRegion(m)) m.setTarget(target);
         } else {
-            boss.setTarget(null);
+            if (boss.getTarget() != null) boss.setTarget(null);
             Location home = f.arena.spawn();
-            if (home != null && f.ticks % 10 == 0 && home.distanceSquared(boss.getLocation()) > 16) boss.getPathfinder().moveTo(home);
+            if (home != null && f.ticks % 10 == 0 && home.distanceSquared(loc) > 16) boss.getPathfinder().moveTo(home);
         }
         // Rage at half health.
         if (!f.raged && health <= f.max / 2) {
             f.raged = true;
             f.bar.color(BossBar.Color.PURPLE);
             attr(boss, "movement_speed", Math.max(0.25, (f.def.speed() > 0 ? f.def.speed() : 0.25) * 1.25));
+            loc.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc.clone().add(0, 1, 0), 1);
+            ring(loc, Math.max(3, boss.getWidth() * 2), Color.fromRGB(0xaa00ff), 40);
             for (Player p : close) {
                 p.showTitle(Title.title(Text.mm(f.def.name()), Text.mm("<red><bold>is enraged!")));
                 p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.8f, 0.7f);
@@ -591,31 +707,59 @@ public final class WorldBossService implements Listener {
             f.nextAbility = now + (long) (f.def.abilitySeconds() * (f.raged ? 650 : 1000));
         }
         // Leaves when nobody is around, and after the time limit.
-        int idle = Math.max(1, plugin.getConfig().getInt("world-bosses.idle-minutes", 5));
-        int maxMinutes = Math.max(2, plugin.getConfig().getInt("world-bosses.max-minutes", 30));
-        if (now - f.lastPlayer > idle * 60_000L) { end(f, "idle"); return false; }
-        if (now - f.born > maxMinutes * 60_000L) { end(f, "time"); return false; }
+        if (!f.test || f.tester != null) {
+            int idle = Math.max(1, plugin.getConfig().getInt("world-bosses.idle-minutes", 5));
+            int maxMinutes = Math.max(2, plugin.getConfig().getInt("world-bosses.max-minutes", 30));
+            if (now - f.lastPlayer > idle * 60_000L) { end(f, "idle"); return false; }
+            if (now - f.born > maxMinutes * 60_000L) { end(f, "time"); return false; }
+        }
         return true;
     }
 
-    private void aura(Fight f) {
-        Location at = f.boss.getLocation().add(0, f.boss.getHeight() / 2, 0);
+    private static Entity root(Mob boss) {
+        return boss.getVehicle() != null ? boss.getVehicle() : boss;
+    }
+
+    private void aura(Fight f, Location feet) {
+        Location at = feet.clone().add(0, f.boss.getHeight() / 2, 0);
         double w = Math.max(0.4, f.boss.getWidth() / 1.5), h = Math.max(0.5, f.boss.getHeight() / 2);
-        Particle particle;
-        try { particle = Particle.valueOf(f.def.particle()); } catch (IllegalArgumentException e) { particle = Particle.FLAME; }
-        if (particle.getDataType() == Particle.DustOptions.class) at.getWorld().spawnParticle(particle, at, 14, w, h, w, 0, new Particle.DustOptions(color(f.def.color()), 1.6f));
-        else if (particle.getDataType() == Void.class) at.getWorld().spawnParticle(particle, at, 10, w, h, w, 0.02);
-        else at.getWorld().spawnParticle(Particle.FLAME, at, 10, w, h, w, 0.02);
+        if (f.auraDust != null) at.getWorld().spawnParticle(Particle.DUST, at, 10, w, h, w, 0, f.auraDust);
+        else at.getWorld().spawnParticle(f.particle, at, 8, w, h, w, 0.02);
         if (f.ticks % 4 == 0) {
-            // A slow ring on the ground around the boss.
-            Particle.DustOptions dust = new Particle.DustOptions(color(f.def.color()), 1.2f);
-            Location base = f.boss.getLocation().add(0, 0.15, 0);
+            // A slow turning ring on the ground around the boss.
+            Location base = feet.clone().add(0, 0.15, 0);
             double r = Math.max(1.5, f.boss.getWidth() * 1.3);
-            for (int i = 0; i < 24; i++) {
-                double a = Math.PI * 2 * i / 24 + f.ticks * 0.1;
-                base.getWorld().spawnParticle(Particle.DUST, base.clone().add(Math.cos(a) * r, 0, Math.sin(a) * r), 1, dust);
+            for (int i = 0; i < 20; i++) {
+                double a = Math.PI * 2 * i / 20 + f.ticks * 0.1;
+                base.getWorld().spawnParticle(Particle.DUST, base.clone().add(Math.cos(a) * r, 0, Math.sin(a) * r), 1, f.ringDust);
             }
         }
+    }
+
+    /** The floating item above the boss turns a quarter each half second; the client smooths it. */
+    private void spinHalo(Fight f) {
+        for (Entity part : f.parts) if (part instanceof ItemDisplay halo && halo.isValid()) {
+            float angle = (float) (f.ticks * Math.PI / 4);
+            Transformation t = halo.getTransformation();
+            halo.setInterpolationDelay(0);
+            halo.setInterpolationDuration(10);
+            halo.setTransformation(new Transformation(t.getTranslation(), new Quaternionf().rotateY(angle), t.getScale(), t.getRightRotation()));
+        }
+    }
+
+    private static void ring(Location center, double radius, Color color, int points) {
+        Particle.DustOptions dust = new Particle.DustOptions(color, 1.6f);
+        for (int i = 0; i < points; i++) {
+            double a = Math.PI * 2 * i / points;
+            center.getWorld().spawnParticle(Particle.DUST, center.clone().add(Math.cos(a) * radius, 0.2, Math.sin(a) * radius), 1, dust);
+        }
+    }
+
+    /** Push a player away from {@code from}; safe when they stand exactly on it. */
+    private static void knock(Player p, Location from, double power, double up) {
+        Vector v = p.getLocation().toVector().subtract(from.toVector()).setY(0);
+        if (v.lengthSquared() < 0.01) v = new Vector(ThreadLocalRandom.current().nextDouble() - 0.5, 0, ThreadLocalRandom.current().nextDouble() - 0.5);
+        p.setVelocity(v.normalize().multiply(power).setY(up));
     }
 
     private PotionEffectType effect(String name) {
@@ -627,37 +771,77 @@ public final class WorldBossService implements Listener {
         if (type != null) p.addPotionEffect(new PotionEffect(type, ticks, level));
     }
 
-    private void ability(Fight f, String ability, List<Player> targets) {
+    private List<Player> fighters(Fight f) {
+        List<Player> out = new ArrayList<>();
+        Location loc = f.boss.getLocation();
+        for (Player p : loc.getNearbyPlayers(40)) if (fighter(p) && Bukkit.isOwnedByCurrentRegion(p) && f.arena.contains(p.getLocation())) out.add(p);
+        return out;
+    }
+
+    /** Runs the hit part of an attack after its warning, unless the fight ended meanwhile. */
+    private void later(Fight f, long ticks, Runnable hit) {
+        Sched.entityLater(f.boss, ticks, () -> { if (f.boss.isValid() && !f.over) hit.run(); });
+    }
+
+    /**
+     * Every attack is announced first (the boss swings, a red ring or marker shows where it lands) and hits
+     * a moment later, so players can see it coming and dodge. Works with no targets too (the self-test).
+     */
+    void ability(Fight f, String ability, List<Player> targets) {
         Mob boss = f.boss;
         Location at = boss.getLocation();
         var world = at.getWorld();
-        Player main = boss.getTarget() instanceof Player p && targets.contains(p) ? p : targets.get(0);
+        Player main = boss.getTarget() instanceof Player p && targets.contains(p) ? p : targets.isEmpty() ? null : targets.get(0);
+        boss.swingMainHand();
+        Color warn = Color.fromRGB(0xff2020);
         switch (ability) {
             case "lightning" -> {
+                List<Location> marks = new ArrayList<>();
                 for (Player p : targets.subList(0, Math.min(4, targets.size()))) {
-                    world.strikeLightningEffect(p.getLocation());
-                    p.damage(4 + (f.raged ? 2 : 0), boss);
+                    Location spot = p.getLocation();
+                    marks.add(spot);
+                    ring(spot, 1.6, warn, 16);
+                    world.spawnParticle(Particle.ELECTRIC_SPARK, spot.clone().add(0, 1, 0), 30, 0.3, 1.2, 0.3, 0.05);
+                    p.playSound(spot, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.4f, 2f);
                 }
+                world.playSound(at, Sound.ENTITY_EVOKER_PREPARE_ATTACK, 1.2f, 0.7f);
+                later(f, 20, () -> {
+                    for (Location spot : marks) {
+                        world.strikeLightningEffect(spot);
+                        for (Player p : fighters(f)) if (p.getLocation().distanceSquared(spot) <= 6.25) p.damage(5 + (f.raged ? 2 : 0), boss);
+                    }
+                });
             }
             case "shockwave" -> {
-                world.playSound(at, Sound.ENTITY_GENERIC_EXPLODE, 1f, 0.6f);
-                for (int i = 0; i < 48; i++) {
-                    double a = Math.PI * 2 * i / 48;
-                    for (double r = 2; r <= 8; r += 2) world.spawnParticle(Particle.SWEEP_ATTACK, at.clone().add(Math.cos(a) * r, 0.3, Math.sin(a) * r), 1);
-                }
-                for (Player p : targets) if (p.getLocation().distanceSquared(at) <= 64) {
-                    p.damage(3, boss);
-                    p.setVelocity(p.getLocation().toVector().subtract(at.toVector()).setY(0).normalize().multiply(1.4).setY(0.6));
-                }
+                ring(at, 8, warn, 48);
+                world.playSound(at, Sound.ENTITY_RAVAGER_ROAR, 1f, 0.6f);
+                later(f, 16, () -> {
+                    Location here = boss.getLocation();
+                    world.playSound(here, Sound.ENTITY_GENERIC_EXPLODE, 1f, 0.6f);
+                    for (int i = 0; i < 36; i++) {
+                        double a = Math.PI * 2 * i / 36;
+                        for (double r = 2; r <= 8; r += 3) world.spawnParticle(Particle.SWEEP_ATTACK, here.clone().add(Math.cos(a) * r, 0.3, Math.sin(a) * r), 1);
+                    }
+                    for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 64) { p.damage(4, boss); knock(p, here, 1.4, 0.6); }
+                });
             }
-            case "minions" -> summonMinions(f, Math.max(1, f.def.minions() / 2));
+            case "minions" -> {
+                world.playSound(at, Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1f, 0.8f);
+                ring(at, 4, Color.fromRGB(0x444444), 24);
+                later(f, 12, () -> summonMinions(f, Math.max(1, f.def.minions() / 2)));
+            }
             case "fire_ring" -> {
-                world.playSound(at, Sound.ITEM_FIRECHARGE_USE, 1f, 0.7f);
-                for (int i = 0; i < 60; i++) {
-                    double a = Math.PI * 2 * i / 60;
-                    world.spawnParticle(Particle.FLAME, at.clone().add(Math.cos(a) * 6, 0.2, Math.sin(a) * 6), 2, 0.1, 0.3, 0.1, 0.01);
-                }
-                for (Player p : targets) if (p.getLocation().distanceSquared(at) <= 49) { p.setFireTicks(80); p.damage(2, boss); }
+                ring(at, 6, Color.fromRGB(0xff8800), 40);
+                world.playSound(at, Sound.ENTITY_BLAZE_SHOOT, 1f, 0.6f);
+                later(f, 16, () -> {
+                    Location here = boss.getLocation();
+                    world.playSound(here, Sound.ITEM_FIRECHARGE_USE, 1f, 0.7f);
+                    for (int i = 0; i < 48; i++) {
+                        double a = Math.PI * 2 * i / 48;
+                        world.spawnParticle(Particle.FLAME, here.clone().add(Math.cos(a) * 6, 0.2, Math.sin(a) * 6), 2, 0.1, 0.4, 0.1, 0.01);
+                    }
+                    for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 49) { p.setFireTicks(80); p.damage(3, boss); }
+                });
             }
             case "pull" -> {
                 world.playSound(at, Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1f, 0.6f);
@@ -669,58 +853,89 @@ public final class WorldBossService implements Listener {
                 }
             }
             case "leap" -> {
-                Vector v = main.getLocation().toVector().subtract(at.toVector());
-                if (v.lengthSquared() > 1) {
-                    (boss.getVehicle() != null ? boss.getVehicle() : boss).setVelocity(v.normalize().multiply(1.2).setY(0.7));
-                    world.playSound(at, Sound.ENTITY_RAVAGER_ROAR, 1f, 1.2f);
-                    world.spawnParticle(Particle.CLOUD, at, 30, 0.6, 0.2, 0.6, 0.05);
-                }
+                if (main == null) break;
+                Location aim = main.getLocation();
+                ring(aim, 2.5, warn, 20);
+                world.playSound(at, Sound.ENTITY_RAVAGER_ROAR, 1f, 1.2f);
+                later(f, 10, () -> {
+                    Location here = boss.getLocation();
+                    Vector v = aim.toVector().subtract(here.toVector());
+                    if (v.lengthSquared() > 1) root(boss).setVelocity(v.normalize().multiply(Math.min(1.6, 0.4 + v.length() / 8)).setY(0.7));
+                    world.spawnParticle(Particle.CLOUD, here, 30, 0.6, 0.2, 0.6, 0.05);
+                    later(f, 14, () -> {
+                        Location land = boss.getLocation();
+                        world.spawnParticle(Particle.EXPLOSION, land, 3, 1, 0.1, 1, 0);
+                        world.playSound(land, Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.4f);
+                        for (Player p : fighters(f)) if (p.getLocation().distanceSquared(land) <= 9) { p.damage(5, boss); knock(p, land, 0.9, 0.5); }
+                    });
+                });
             }
             case "poison" -> {
                 world.playSound(at, Sound.ENTITY_SPIDER_AMBIENT, 1f, 0.5f);
+                Particle.DustOptions green = new Particle.DustOptions(Color.fromRGB(0x55aa22), 1.4f);
+                world.spawnParticle(Particle.DUST, at.clone().add(0, 1, 0), 60, 3, 1, 3, 0, green);
                 for (Player p : targets) if (p.getLocation().distanceSquared(at) <= 100) {
                     effect(p, "poison", 80, f.raged ? 1 : 0);
-                    world.spawnParticle(Particle.DUST, p.getLocation().add(0, 1, 0), 30, 0.6, 0.6, 0.6, 0, new Particle.DustOptions(Color.fromRGB(0x55aa22), 1.4f));
+                    world.spawnParticle(Particle.DUST, p.getLocation().add(0, 1, 0), 20, 0.6, 0.6, 0.6, 0, green);
                 }
             }
             case "blink" -> {
+                if (main == null) break;
                 Vector facing = main.getLocation().getDirection().setY(0);
                 if (facing.lengthSquared() < 0.01) facing = new Vector(1, 0, 0);
                 Location behind = main.getLocation().clone().subtract(facing.normalize().multiply(2));
                 behind.setY(main.getLocation().getY());
                 if (f.arena.contains(behind) && Bukkit.isOwnedByCurrentRegion(behind) && behind.getBlock().isPassable() && behind.clone().add(0, 1, 0).getBlock().isPassable()) {
                     world.spawnParticle(Particle.REVERSE_PORTAL, at.clone().add(0, 1, 0), 60, 0.5, 1, 0.5, 0.2);
-                    (boss.getVehicle() != null ? boss.getVehicle() : boss).teleportAsync(behind, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS);
+                    root(boss).teleportAsync(behind, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS);
                     world.playSound(behind, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.6f);
+                    world.spawnParticle(Particle.REVERSE_PORTAL, behind.clone().add(0, 1, 0), 60, 0.5, 1, 0.5, 0.2);
                 }
             }
             case "frost" -> {
-                world.playSound(at, Sound.BLOCK_GLASS_BREAK, 1f, 0.5f);
-                for (Player p : targets) if (p.getLocation().distanceSquared(at) <= 144) {
-                    effect(p, "slowness", 80, 2);
-                    p.setFreezeTicks(Math.min(p.getMaxFreezeTicks() + 60, 200));
-                    world.spawnParticle(Particle.SNOWFLAKE, p.getLocation().add(0, 1, 0), 40, 0.5, 0.8, 0.5, 0.02);
-                }
+                ring(at, 12, Color.fromRGB(0x99ddff), 48);
+                world.playSound(at, Sound.BLOCK_POWDER_SNOW_STEP, 1.5f, 0.5f);
+                later(f, 14, () -> {
+                    Location here = boss.getLocation();
+                    world.playSound(here, Sound.BLOCK_GLASS_BREAK, 1f, 0.5f);
+                    for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 144) {
+                        effect(p, "slowness", 80, 2);
+                        p.setFreezeTicks(Math.min(p.getMaxFreezeTicks() + 60, 200));
+                        world.spawnParticle(Particle.SNOWFLAKE, p.getLocation().add(0, 1, 0), 30, 0.5, 0.8, 0.5, 0.02);
+                    }
+                });
             }
             case "volley" -> {
-                world.playSound(at, Sound.ENTITY_SKELETON_SHOOT, 1f, 0.6f);
-                for (Player p : targets.subList(0, Math.min(5, targets.size()))) {
-                    Location eye = boss.getEyeLocation();
-                    Vector dir = p.getEyeLocation().toVector().subtract(eye.toVector()).normalize();
-                    for (int i = 0; i < 3; i++) {
-                        Arrow arrow = boss.launchProjectile(Arrow.class, dir.clone().multiply(1.8).add(new Vector(ThreadLocalRandom.current().nextGaussian() * 0.05, 0.05, ThreadLocalRandom.current().nextGaussian() * 0.05)));
-                        arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-                        arrow.setPersistent(false);
+                world.playSound(at, Sound.ITEM_CROSSBOW_LOADING_END, 1f, 0.6f);
+                List<Player> aimed = new ArrayList<>(targets.subList(0, Math.min(5, targets.size())));
+                for (Player p : aimed) world.spawnParticle(Particle.CRIT, p.getLocation().add(0, 2.2, 0), 10, 0.2, 0.1, 0.2, 0);
+                later(f, 12, () -> {
+                    world.playSound(boss.getLocation(), Sound.ENTITY_SKELETON_SHOOT, 1f, 0.6f);
+                    for (Player p : aimed) {
+                        if (!p.isValid() || !Bukkit.isOwnedByCurrentRegion(p)) continue;
+                        Location eye = boss.getEyeLocation();
+                        Vector dir = p.getEyeLocation().toVector().subtract(eye.toVector());
+                        if (dir.lengthSquared() < 0.01) continue;
+                        dir.normalize();
+                        for (int i = 0; i < 3; i++) {
+                            Arrow arrow = boss.launchProjectile(Arrow.class, dir.clone().multiply(1.8).add(new Vector(ThreadLocalRandom.current().nextGaussian() * 0.05, 0.05, ThreadLocalRandom.current().nextGaussian() * 0.05)));
+                            arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+                            arrow.setPersistent(false);
+                        }
                     }
-                }
+                });
             }
             case "darkness" -> {
                 world.playSound(at, Sound.ENTITY_WARDEN_SONIC_CHARGE, 1f, 0.8f);
+                world.spawnParticle(Particle.LARGE_SMOKE, at.clone().add(0, 1, 0), 60, 2, 1, 2, 0.02);
                 for (Player p : targets) effect(p, "darkness", 120, 0);
             }
             case "levitate" -> {
                 world.playSound(at, Sound.ENTITY_SHULKER_SHOOT, 1f, 0.6f);
-                for (Player p : targets) if (p.getLocation().distanceSquared(at) <= 100) effect(p, "levitation", 40, 0);
+                for (Player p : targets) if (p.getLocation().distanceSquared(at) <= 100) {
+                    effect(p, "levitation", 40, 0);
+                    world.spawnParticle(Particle.END_ROD, p.getLocation(), 15, 0.3, 0.1, 0.3, 0.05);
+                }
             }
             case "heal" -> {
                 if (f.heals < 2 && boss.getHealth() < f.max * 0.35) {
@@ -732,28 +947,31 @@ public final class WorldBossService implements Listener {
                 } else ability(f, "shockwave", targets);
             }
             case "quake" -> {
-                world.playSound(at, Sound.ENTITY_IRON_GOLEM_HURT, 1f, 0.4f);
-                world.spawnParticle(Particle.EXPLOSION, at, 6, 3, 0.2, 3, 0);
-                for (Player p : targets) if (p.getLocation().distanceSquared(at) <= 100 && p.isOnGround()) {
-                    p.damage(4, boss); effect(p, "slowness", 40, 1);
-                    p.setVelocity(new Vector(0, 0.6, 0));
-                }
+                ring(at, 10, Color.fromRGB(0x8d6e63), 40);
+                world.playSound(at, Sound.ENTITY_IRON_GOLEM_ATTACK, 1f, 0.4f);
+                later(f, 16, () -> {
+                    Location here = boss.getLocation();
+                    world.playSound(here, Sound.ENTITY_IRON_GOLEM_HURT, 1f, 0.4f);
+                    world.spawnParticle(Particle.EXPLOSION, here, 6, 3, 0.2, 3, 0);
+                    for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 100 && p.isOnGround()) {
+                        p.damage(4, boss); effect(p, "slowness", 40, 1);
+                        p.setVelocity(new Vector(0, 0.6, 0));
+                    }
+                });
             }
             case "detonate" -> {
                 world.playSound(at, Sound.ENTITY_CREEPER_PRIMED, 1.5f, 0.5f);
-                Sched.entityLater(boss, 30, () -> {
-                    if (!boss.isValid() || f.over) return;
+                ring(at, 7, warn, 40);
+                later(f, 30, () -> {
                     Location here = boss.getLocation();
-                    here.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, here, 1);
-                    here.getWorld().playSound(here, Sound.ENTITY_GENERIC_EXPLODE, 1.5f, 0.8f);
-                    for (Player p : here.getNearbyPlayers(7)) if (fighter(p) && Bukkit.isOwnedByCurrentRegion(p)) {
-                        p.damage(7, boss);
-                        p.setVelocity(p.getLocation().toVector().subtract(here.toVector()).setY(0).normalize().multiply(1.6).setY(0.8));
-                    }
+                    world.spawnParticle(Particle.EXPLOSION_EMITTER, here, 1);
+                    world.playSound(here, Sound.ENTITY_GENERIC_EXPLODE, 1.5f, 0.8f);
+                    for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 49) { p.damage(7, boss); knock(p, here, 1.6, 0.8); }
                 });
             }
             default -> { // roar
                 world.playSound(at, Sound.ENTITY_WARDEN_ROAR, 1.2f, 0.8f);
+                world.spawnParticle(Particle.SONIC_BOOM, at.clone().add(0, boss.getHeight() * 0.7, 0), 1);
                 for (Player p : targets) effect(p, "weakness", 100, 0);
             }
         }
@@ -825,9 +1043,7 @@ public final class WorldBossService implements Listener {
         List<Map.Entry<UUID, Double>> ranked = new ArrayList<>(f.damage.entrySet());
         ranked.sort(Map.Entry.<UUID, Double>comparingByValue().reversed());
         end(f, "defeated");
-        Location at = f.boss.getLocation();
-        at.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, at.clone().add(0, 1, 0), 150, 1.5, 1.5, 1.5, 0.4);
-        at.getWorld().playSound(at, Sound.UI_TOAST_CHALLENGE_COMPLETE, 2f, 1f);
+        deathAnimation(f.boss.getLocation(), f.def, f.boss.getHeight());
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
             if (tester != null) plugin.send(tester, "<green>Test boss beaten. <gray>Top damage: " + top(f, ranked));
@@ -875,6 +1091,40 @@ public final class WorldBossService implements Listener {
             Player best = Bukkit.getPlayer(ranked.get(0).getKey());
             if (best != null) plugin.discord().bossDefeated(best, Text.plain(Text.mm(f.def.name())) + " (world boss)");
         }
+    }
+
+    /**
+     * Three seconds after a boss falls: its colour spirals up out of the body, small blasts go off around
+     * it, then one big burst, a beam of light and fanfare. Particles and sounds only, on that region.
+     */
+    void deathAnimation(Location at, WorldBossDef def, double height) {
+        Particle.DustOptions dust = new Particle.DustOptions(color(def.color()), 1.8f);
+        double top = Math.max(2, height);
+        int[] step = {0};
+        Bukkit.getRegionScheduler().runAtFixedRate(plugin, at, t -> {
+            int i = step[0]++;
+            var world = at.getWorld();
+            if (i < 12) {
+                for (int k = 0; k < 3; k++) {
+                    double a = i * 0.9 + k * Math.PI * 2 / 3, y = top * i / 12.0;
+                    world.spawnParticle(Particle.DUST, at.clone().add(Math.cos(a) * 1.2, y, Math.sin(a) * 1.2), 4, 0.05, 0.05, 0.05, 0, dust);
+                }
+                world.spawnParticle(Particle.SOUL, at.clone().add(0, top / 2, 0), 4, 0.5, top / 3, 0.5, 0.02);
+                if (i % 3 == 0) {
+                    Location blast = at.clone().add(ThreadLocalRandom.current().nextDouble(-2, 2), ThreadLocalRandom.current().nextDouble(0, top), ThreadLocalRandom.current().nextDouble(-2, 2));
+                    world.spawnParticle(Particle.EXPLOSION, blast, 1);
+                    world.playSound(blast, Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.3f);
+                }
+            } else if (i == 12) {
+                world.spawnParticle(Particle.EXPLOSION_EMITTER, at.clone().add(0, 1, 0), 2);
+                world.spawnParticle(Particle.TOTEM_OF_UNDYING, at.clone().add(0, 1, 0), 150, 1.5, 1.5, 1.5, 0.5);
+                world.spawnParticle(Particle.FIREWORK, at.clone().add(0, top, 0), 80, 1, 1, 1, 0.2);
+                world.playSound(at, Sound.ENTITY_WITHER_DEATH, 0.6f, 1.2f);
+                world.playSound(at, Sound.UI_TOAST_CHALLENGE_COMPLETE, 2f, 1f);
+            } else if (i < 20) {
+                for (double y = 0; y < 12; y += 0.75) world.spawnParticle(Particle.END_ROD, at.clone().add(0, y, 0), 1, 0.05, 0.1, 0.05, 0);
+            } else t.cancel();
+        }, 1, 4);
     }
 
     private String top(Fight f, List<Map.Entry<UUID, Double>> ranked) {
@@ -1005,6 +1255,16 @@ public final class WorldBossService implements Listener {
             return;
         }
         if ("boss".equals(victimKind)) event.setDamage(event.getDamage() / f.ratio);
+    }
+
+    /** A heavy hit effect when the boss or its minions land a blow on a player. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void hitEffect(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player p) || !"boss".equals(kind(event.getDamager()))) return;
+        Location at = p.getLocation().add(0, 1, 0);
+        p.getWorld().spawnParticle(Particle.SWEEP_ATTACK, at, 1);
+        p.getWorld().spawnParticle(Particle.CRIT, at, 15, 0.3, 0.4, 0.3, 0.3);
+        p.getWorld().playSound(at, Sound.ENTITY_PLAYER_ATTACK_STRONG, 1f, 0.6f);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

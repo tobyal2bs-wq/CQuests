@@ -7,7 +7,8 @@
 #            levitate, heal, quake, detonate, roar
 # particle: any Bukkit particle name without extra data (FLAME, SNOWFLAKE, PORTAL, ...). bar: boss bar colour.
 # season: halloween, winter, spring or summer. Seasonal bosses take the weekly slot while that season is on.
-# Try any of them with /cq test worldboss <id>.
+# halo: an item that floats and spins above the boss (a display entity; costs almost nothing).
+# Try any of them with /cq test worldboss <id>, or all of them with /cq worldboss selftest.
 bosses:
   gravelord:
     name: "<gradient:#6a1b9a:#e040fb><bold>The Gravelord</bold></gradient>"
@@ -20,6 +21,7 @@ bosses:
     bar: PURPLE
     glow: true
     particle: SOUL_FIRE_FLAME
+    halo: NETHER_STAR
     color: "#7b1fa2"
     equipment:
       head: NETHERITE_HELMET
@@ -47,6 +49,7 @@ bosses:
     bar: RED
     glow: true
     particle: LAVA
+    halo: FIRE_CHARGE
     color: "#ff6f00"
     ability-seconds: 8
     abilities: [fire_ring, quake, leap, shockwave]
@@ -68,6 +71,7 @@ bosses:
     bar: GREEN
     glow: true
     particle: SPORE_BLOSSOM_AIR
+    halo: SPIDER_EYE
     color: "#558b2f"
     minion: CAVE_SPIDER
     minions: 5
@@ -91,6 +95,7 @@ bosses:
     bar: BLUE
     glow: true
     particle: SNOWFLAKE
+    halo: BLUE_ICE
     color: "#81d4fa"
     equipment:
       head: DIAMOND_HELMET
@@ -118,6 +123,7 @@ bosses:
     bar: YELLOW
     glow: true
     particle: WAX_ON
+    halo: GOLDEN_HELMET
     color: "#ffc107"
     equipment:
       head: GOLDEN_HELMET
@@ -146,6 +152,7 @@ bosses:
     bar: BLUE
     glow: true
     particle: NAUTILUS
+    halo: HEART_OF_THE_SEA
     color: "#00acc1"
     equipment:
       head: TURTLE_HELMET
@@ -172,6 +179,7 @@ bosses:
     bar: BLUE
     glow: true
     particle: ELECTRIC_SPARK
+    halo: LIGHTNING_ROD
     color: "#5c6bc0"
     ability-seconds: 7
     abilities: [lightning, levitate, blink, pull]
@@ -216,6 +224,7 @@ bosses:
     bar: RED
     glow: true
     particle: CRIMSON_SPORE
+    halo: CRIMSON_FUNGUS
     color: "#c62828"
     minion: HOGLIN
     minions: 2
@@ -239,6 +248,7 @@ bosses:
     bar: YELLOW
     glow: true
     particle: FLAME
+    halo: BLAZE_POWDER
     color: "#ff9100"
     minion: BLAZE
     minions: 3
@@ -263,6 +273,7 @@ bosses:
     bar: GREEN
     glow: true
     particle: HAPPY_VILLAGER
+    halo: TNT
     color: "#00e676"
     ability-seconds: 6
     abilities: [detonate, detonate, leap, pull]
@@ -285,6 +296,7 @@ bosses:
     bar: GREEN
     glow: true
     particle: ITEM_SLIME
+    halo: GOLDEN_HELMET
     color: "#9ccc65"
     minion: SLIME
     minions: 4
@@ -308,6 +320,7 @@ bosses:
     bar: WHITE
     glow: true
     particle: SMOKE
+    halo: IRON_AXE
     color: "#455a64"
     equipment:
       head: NETHERITE_HELMET
@@ -334,6 +347,7 @@ bosses:
     bar: YELLOW
     glow: true
     particle: WAX_OFF
+    halo: GOLDEN_HELMET
     color: "#fbc02d"
     equipment:
       head: GOLDEN_HELMET
@@ -362,6 +376,7 @@ bosses:
     bar: PINK
     glow: true
     particle: DAMAGE_INDICATOR
+    halo: BONE
     color: "#d81b60"
     ability-seconds: 8
     abilities: [leap, quake, shockwave, roar]
@@ -383,6 +398,7 @@ bosses:
     bar: PURPLE
     glow: true
     particle: WITCH
+    halo: BREWING_STAND
     color: "#8e24aa"
     ability-seconds: 7
     abilities: [levitate, poison, blink, heal, darkness]
@@ -404,6 +420,7 @@ bosses:
     bar: PURPLE
     glow: true
     particle: REVERSE_PORTAL
+    halo: ENDER_EYE
     color: "#651fff"
     ability-seconds: 6
     abilities: [blink, darkness, levitate, pull]
@@ -426,6 +443,7 @@ bosses:
     bar: WHITE
     glow: true
     particle: WHITE_ASH
+    halo: END_CRYSTAL
     color: "#9e9e9e"
     minion: WOLF
     minions: 4
@@ -449,6 +467,7 @@ bosses:
     bar: WHITE
     glow: true
     particle: GUST
+    halo: WIND_CHARGE
     color: "#b2ebf2"
     minion: BREEZE
     minions: 2
@@ -472,6 +491,7 @@ bosses:
     bar: WHITE
     glow: true
     particle: WHITE_ASH
+    halo: CREAKING_HEART
     color: "#ff6d00"
     ability-seconds: 8
     abilities: [darkness, blink, quake, roar]
@@ -494,6 +514,7 @@ bosses:
     bar: RED
     glow: true
     particle: FLAME
+    halo: JACK_O_LANTERN
     color: "#ff6d00"
     equipment:
       head: JACK_O_LANTERN
@@ -523,6 +544,7 @@ bosses:
     bar: BLUE
     glow: true
     particle: SNOWFLAKE
+    halo: SNOWBALL
     color: "#e1f5fe"
     equipment:
       head: LEATHER_HELMET
@@ -552,6 +574,7 @@ bosses:
     bar: PINK
     glow: true
     particle: CHERRY_LEAVES
+    halo: GOLDEN_CARROT
     color: "#ff80ab"
     minion: RABBIT
     minions: 4
@@ -577,6 +600,7 @@ bosses:
     bar: YELLOW
     glow: true
     particle: LAVA
+    halo: SUNFLOWER
     color: "#ffab00"
     minion: MAGMA_CUBE
     minions: 3

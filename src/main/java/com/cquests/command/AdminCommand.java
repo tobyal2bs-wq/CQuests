@@ -85,6 +85,7 @@ public final class AdminCommand implements TabExecutor {
             case "list" -> wb.listBosses(sender);
             case "arenas" -> wb.listArenas(sender);
             case "next", "info" -> wb.info(sender);
+            case "selftest" -> { plugin.send(sender, "<gray>Spawning every world boss near the world spawn to check it works..."); wb.selfTest(sender); }
             case "stop" -> plugin.send(sender, (args.length > 2 ? wb.stop(arena) : stopAll(wb)) ? "<gray>World boss sent away." : "<gray>No world boss is alive there.");
             case "schedule" -> {
                 if (args.length > 2 && List.of("on", "off").contains(args[2].toLowerCase(Locale.ROOT))) wb.scheduleToggle(sender, args[2].equalsIgnoreCase("on"));
@@ -124,6 +125,7 @@ public final class AdminCommand implements TabExecutor {
                     <yellow>/cq worldboss spawn <boss> [arena]</yellow> <gray>start one now (real fight, real rewards)
                     <yellow>/cq worldboss stop [arena]</yellow> <gray>send it away
                     <yellow>/cq worldboss schedule on|off</yellow> <gray>turn the weekly boss on or off
+                    <yellow>/cq worldboss selftest</yellow> <gray>spawn every boss near the world spawn, run every attack, report problems
                     <yellow>/cq test worldboss <boss></yellow> <gray>try one in front of you, nothing is paid""");
         }
     }
@@ -565,7 +567,7 @@ public final class AdminCommand implements TabExecutor {
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
         }
         if (first.equals("worldboss") || first.equals("wb")) {
-            if (args.length == 2) return QuestsCommand.filter(List.of("setspawn", "wand", "border", "radius", "list", "arenas", "next", "spawn", "stop", "schedule"), args[1]);
+            if (args.length == 2) return QuestsCommand.filter(List.of("setspawn", "wand", "border", "radius", "list", "arenas", "next", "spawn", "stop", "schedule", "selftest"), args[1]);
             String action = args[1].toLowerCase(Locale.ROOT);
             if (args.length == 3) {
                 if (action.equals("spawn")) return QuestsCommand.filter(plugin.worldBosses().ids(), args[2]);
