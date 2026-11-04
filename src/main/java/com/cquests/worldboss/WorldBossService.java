@@ -106,6 +106,7 @@ public final class WorldBossService implements Listener {
         long nextAbility; long nextTitle; boolean raged; int heals; int ticks; long shownHealth = -1;
         Particle particle = Particle.FLAME; Particle.DustOptions auraDust, ringDust;
         volatile boolean over;
+        volatile String endReason;
         int chunkX, chunkZ; String chunkWorld;
         /** The block model drawn over the invisible mob, or null for a plain mob boss. */
         volatile BossModel model;
@@ -420,10 +421,16 @@ public final class WorldBossService implements Listener {
         List<String> broken = new CopyOnWriteArrayList<>();
         // Where each boss got to, so a boss that stalls is named instead of the test never reporting.
         Map<String, String> stage = new java.util.concurrent.ConcurrentHashMap<>();
+        Map<String, Fight> running = new java.util.concurrent.ConcurrentHashMap<>();
         java.util.concurrent.atomic.AtomicBoolean reported = new java.util.concurrent.atomic.AtomicBoolean();
         Runnable report = () -> {
             if (!reported.compareAndSet(false, true)) return;
-            stage.forEach((id, where) -> { if (!where.equals("done")) broken.add(id + ": stuck at " + where); });
+            stage.forEach((id, where) -> {
+                if (where.equals("done")) return;
+                Fight f = running.get(id);
+                broken.add(id + ": stuck at " + where + (f == null ? "" : " (fight " + (f.over ? "ended: " + f.endReason : "running")
+                        + ", boss " + (f.boss.isValid() ? "valid" : f.boss.isDead() ? "dead" : "removed") + ", health " + Math.round(f.boss.getHealth()) + ")"));
+            });
             String text = "World boss self-test: " + appeared.get() + "/" + list.size() + " appeared, " + attacks.get() + " attacks ran, "
                     + drawn.get() + " drawn with " + blocks.get() + " blocks, " + animations.get() + " animations, " + deaths.get() + " deaths played"
                     + (broken.isEmpty() ? "" : ". Problems: " + String.join("; ", broken));
@@ -448,6 +455,7 @@ public final class WorldBossService implements Listener {
                 if (f == null) { broken.add(def.id() + ": did not appear"); finish.accept(def.id()); return; }
                 appeared.incrementAndGet();
                 stage.put(def.id(), "entrance");
+                running.put(def.id(), f);
                 BossModel model = f.model;
                 if (model != null) { model.force = true; drawn.incrementAndGet(); blocks.addAndGet(model.blocks()); }
                 else if (modelFor(def) != null) broken.add(def.id() + ": model missing");
@@ -1052,6 +1060,7 @@ public final class WorldBossService implements Listener {
     private void end(Fight f, String reason) {
         if (f.over) return;
         f.over = true;
+        f.endReason = reason;
         fights.remove(f.key, f);
         byEntity.remove(f.boss.getUniqueId());
         for (UUID id : f.viewers) { Player p = Bukkit.getPlayer(id); if (p != null) p.hideBossBar(f.bar); }
