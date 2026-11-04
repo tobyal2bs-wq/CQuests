@@ -1,5 +1,7 @@
 package com.cquests.quest;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.Settings;
 import com.cquests.data.ActiveQuest;
@@ -279,7 +281,7 @@ public final class QuestManager {
     private boolean accept(Player player,Quest quest,boolean force,boolean quiet) {
         PlayerData data = data(player);
         if(!force&&!requirementsMet(data,quest)){
-            plugin.send(player,"<yellow>Finish the previous tasks and reach Wayfarer level "+Math.max(1,quest.level())+" before taking this quest.");
+            plugin.send(player,T.t("quest-manager.finish-the-previous-tasks-and", "<yellow>Finish the previous tasks and reach Wayfarer level <level> before taking this quest.", "level", Math.max(1,quest.level())));
             return false;
         }
         if (data.isActive(quest.id()) || (quest.category() != QuestCategory.DAILY && isDone(data, quest))) return false;
@@ -300,10 +302,10 @@ public final class QuestManager {
                 .replace("<quest>", Text.escape(quest.name())));
         if (!quiet && (plugin.getConfig() == null || plugin.getConfig().getBoolean("dialogue.how-to-tips", true))) {
             int needed = quests().together(quest.id());
-            if (needed > 1) plugin.send(player, "<aqua>Co-op: <white>needs " + needed + " players within 16 blocks doing it at the same time.");
+            if (needed > 1) plugin.send(player, T.t("quest-manager.co-op-needs-players-within", "<aqua>Co-op: <white>needs <needed> players within 16 blocks doing it at the same time.", "needed", needed));
             for (Objective objective : quest.objectives()) {
                 String tip = HowTo.describe(objective);
-                if (tip != null) plugin.send(player, "<dark_gray>  Tip: <gray>" + Text.escape(tip));
+                if (tip != null) plugin.send(player, T.t("quest-manager.tip", "<dark_gray>  Tip: <gray><tip>", "tip", Text.escape(tip)));
             }
         }
         player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1f);
@@ -496,8 +498,7 @@ public final class QuestManager {
                         long now = System.currentTimeMillis();
                         if (now - coopHint.getOrDefault(player.getUniqueId(), 0L) > 3000) {
                             coopHint.put(player.getUniqueId(), now);
-                            player.sendActionBar(Text.mm("<yellow>" + Text.escape(quest.name()) + " <gray>needs <white>" + needed
-                                    + " players</white> doing it together. <white>" + partners + "</white> nearby right now."));
+                            player.sendActionBar(Text.mm(T.t("quest-manager.needs-players-doing-it-together", "<yellow><name> <gray>needs <white><needed> players</white> doing it together. <white><partners></white> nearby right now.", "name", Text.escape(quest.name()), "needed", needed, "partners", partners)));
                         }
                         continue;
                     }
@@ -726,8 +727,7 @@ public final class QuestManager {
         if (streak > 0) dailyStreakBonus(player, quest, streak);
         if (quest.category() == QuestCategory.STORY && (quests().endsChapter(quest) || isFinalQuest(quest))) chapterReward(player, quest.chapter());
         if(quest.category()==QuestCategory.STORY&&(quests().endsChapter(quest)||isFinalQuest(quest)))
-            Sched.global(()->Bukkit.broadcast(Text.mm("<gold><bold>CHAPTER COMPLETE</bold></gold> <white>"+Text.escape(player.getName())
-                    +"</white> <gray>completed Chapter "+quest.chapter()+": <aqua>"+Text.escape(quests().chapterName(quest.chapter())))));
+            Sched.global(()->Bukkit.broadcast(Text.mm(T.t("quest-manager.chapter-complete-completed-chapter", "<gold><bold>CHAPTER COMPLETE</bold></gold> <white><player></white> <gray>completed Chapter <chapter>: <aqua><chapter2>", "player", Text.escape(player.getName()), "chapter", quest.chapter(), "chapter2", Text.escape(quests().chapterName(quest.chapter()))))));
         if(quest.category()==QuestCategory.STORY&&(quests().endsChapter(quest)||isFinalQuest(quest))&&plugin.discord()!=null)
             plugin.discord().chapterComplete(player,quest.chapter(),quests().chapterName(quest.chapter()));
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
@@ -751,7 +751,7 @@ public final class QuestManager {
         if (done.id().equals(settings().welcomeQuest)) {
             if (tutorial != null && !data(player).isCompleted(tutorial.id()) && !data(player).isActive(tutorial.id())) {
                 accept(player, tutorial, true, true);
-                plugin.send(player, "<gold>Tutorial:</gold> <white>" + Text.escape(tutorial.name()) + " <gray>Quick steps that pay out in a few minutes. Type <yellow>/quests</yellow> to see them.");
+                plugin.send(player, T.t("quest-manager.tutorial-quick-steps-that-pay", "<gold>Tutorial:</gold> <white><name> <gray>Quick steps that pay out in a few minutes. Type <yellow>/quests</yellow> to see them.", "name", Text.escape(tutorial.name())));
             } else if (tutorial == null && plugin.invites() != null) plugin.invites().onTutorialDone(player);
         }
         if (tutorial != null && done.id().equals(tutorial.id()) && plugin.invites() != null) plugin.invites().onTutorialDone(player);
@@ -771,8 +771,8 @@ public final class QuestManager {
         Random rnd = new Random(player.getUniqueId().getMostSignificantBits() ^ day * 31_337L ^ quest.id().hashCode());
         int percent = min + rnd.nextInt(max - min + 1);
         long money = Math.round(base.money() * percent / 100.0);
-        if (percent >= 200) plugin.send(player, "<gold>★ Lucky day! <white>This daily paid " + percent + "%.");
-        else if (percent <= 50) plugin.send(player, "<gray>A quiet day. This daily paid " + percent + "%.");
+        if (percent >= 200) plugin.send(player, T.t("quest-manager.lucky-day-this-daily-paid", "<gold>★ Lucky day! <white>This daily paid <percent>%.", "percent", percent));
+        else if (percent <= 50) plugin.send(player, T.t("quest-manager.a-quiet-day-this-daily", "<gray>A quiet day. This daily paid <percent>%.", "percent", percent));
         return new Reward(money, base.items(), base.effects(), base.commands(), base.xp());
     }
 
@@ -791,7 +791,7 @@ public final class QuestManager {
         }
         Reward reward = new Reward(0, items, List.of(), section.getStringList("commands"), 0);
         if (reward.isEmpty()) return;
-        plugin.send(player, "<gold><bold>Chapter " + chapter + " reward!</bold>");
+        plugin.send(player, T.t("quest-manager.chapter-reward", "<gold><bold>Chapter <chapter> reward!</bold>", "chapter", chapter));
         giveRewards(player, reward);
     }
 

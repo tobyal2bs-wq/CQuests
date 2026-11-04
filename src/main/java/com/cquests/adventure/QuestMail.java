@@ -1,5 +1,7 @@
 package com.cquests.adventure;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.PlayerData;
 import com.cquests.dialogue.MailDialog;
@@ -41,7 +43,7 @@ public final class QuestMail {
     public void notifyNew(Player player){
         var data=plugin.questManager().data(player);receive(player);long unread=letters.stream().filter(l->l.eligible(data)&&!data.letterRead(l.id())).count();
         Long old=notified.put(player.getUniqueId(),unread);
-        if(unread>0&&(old==null||unread>old))plugin.send(player,"<yellow>You have "+unread+" unread letter"+(unread==1?"":"s")+". <white>/quest mail");
+        if(unread>0&&(old==null||unread>old))plugin.send(player,T.t("quest-mail.you-have-unread-letter-quest", "<yellow>You have <unread> unread letter<s>. <white>/quest mail", "unread", unread, "s", (unread==1?"":"s")));
     }
     public void forget(Player player){notified.remove(player.getUniqueId());}
     public void open(Player player){inbox(player,0);}
@@ -75,7 +77,7 @@ public final class QuestMail {
         if(args[1].equalsIgnoreCase("thread")){thread(player,number(args,2),number(args,3));return;}
         if(args.length<3){open(player);return;}var letter=find(player,args[2]);
         if(args[1].equalsIgnoreCase("bookthread")){try{var entry=plugin.questManager().data(player).mailThread().get(Integer.parseInt(args[2]));letter=find(player,entry.source());if(letter!=null)book(player,letter,List.of(entry.text()),who(entry.sender()),entry.time(),false);}catch(RuntimeException ignored){}return;}
-        if(letter==null){plugin.send(player,"<gray>This letter is not available in your journey.");return;}
+        if(letter==null){plugin.send(player,T.t("quest-mail.this-letter-is-not-available", "<gray>This letter is not available in your journey."));return;}
         receive(player);
         switch(args[1].toLowerCase(Locale.ROOT)){
             case "open"->show(player,letter,letter.body(),who(letter.sender()),plugin.questManager().data(player).mailReceived(letter.id()),"/quest mail open "+letter.id(),number(args,3));
@@ -127,13 +129,13 @@ public final class QuestMail {
     }
     private void reply(Player player,Letter letter,String text){
         String clean=text.replaceAll("[\\p{Cntrl}]","").strip();
-        if(clean.isBlank()||clean.length()>800){plugin.send(player,"<gray>Write a letter of 1–800 characters.");return;}
+        if(clean.isBlank()||clean.length()>800){plugin.send(player,T.t("quest-mail.write-a-letter-of-1", "<gray>Write a letter of 1–800 characters."));return;}
         if(isBob(letter)){plugin.gemini().reply(player,letter,clean);return;}
         var data=plugin.questManager().data(player);long now=System.currentTimeMillis();
-        if(!data.reserveCorrespondence(now)){plugin.send(player,"<gray>Give the courier a moment before sending another letter.");return;}
+        if(!data.reserveCorrespondence(now)){plugin.send(player,T.t("quest-mail.give-the-courier-a-moment", "<gray>Give the courier a moment before sending another letter."));return;}
         data.addMail(new com.cquests.data.MailEntry(letter.id(),player.getName(),clean,now,true));
         String answer=acknowledgements.getOrDefault(letter.id(),"Your letter made it safely, {player}. — {sender}").replace("{player}",player.getName()).replace("{sender}",who(letter.sender()));
-        data.addMail(new com.cquests.data.MailEntry(letter.id(),letter.sender(),answer,now,false));plugin.store().saveNow(data);plugin.send(player,"<gold>"+Text.escape(who(letter.sender()))+" has answered. <white>/quest mail replies");
+        data.addMail(new com.cquests.data.MailEntry(letter.id(),letter.sender(),answer,now,false));plugin.store().saveNow(data);plugin.send(player,T.t("quest-mail.has-answered-quest-mail-replies", "<gold><sender> has answered. <white>/quest mail replies", "sender", Text.escape(who(letter.sender()))));
         thread(player,data.mailThread().size()-1,0);
     }
     private void history(Player player,int requested){
@@ -163,7 +165,7 @@ public final class QuestMail {
     }
     private final class ThreadMenu implements LockedMenu {
         final Player player;final Inventory inventory;final List<com.cquests.data.MailEntry> entries;
-        ThreadMenu(Player p){player=p;var copy=new ArrayList<>(plugin.questManager().data(p).mailThread());Collections.reverse(copy);entries=List.copyOf(copy);inventory=Bukkit.createInventory(this,45,Text.mm("<dark_gray>Your correspondence"));
+        ThreadMenu(Player p){player=p;var copy=new ArrayList<>(plugin.questManager().data(p).mailThread());Collections.reverse(copy);entries=List.copyOf(copy);inventory=Bukkit.createInventory(this,45,Text.mm(T.t("quest-mail.your-correspondence", "<dark_gray>Your correspondence")));
             for(int i=0;i<entries.size();i++){var e=entries.get(i);inventory.setItem(i,QuestMenu.item(Material.WRITABLE_BOOK,"<gold>"+Text.escape(who(e.sender())),List.of("<gray>"+time(e.time()),"<gray>"+Text.escape(e.text().substring(0,Math.min(80,e.text().length()))),"<yellow>Click to read and reply.")));}
             inventory.setItem(44,QuestMenu.item(Material.ARROW,"<yellow>Mailbox",List.of()));
         }
@@ -174,7 +176,7 @@ public final class QuestMail {
     private final class ReadingMenu implements LockedMenu {
         final Player player;final Inventory inventory;final List<MailDialog.Button> buttons;
         ReadingMenu(Player player,String title,List<String> lines,List<MailDialog.Button> buttons){
-            this.player=player;this.buttons=List.copyOf(buttons);inventory=Bukkit.createInventory(this,54,Text.mm("<dark_gray>Mail"));
+            this.player=player;this.buttons=List.copyOf(buttons);inventory=Bukkit.createInventory(this,54,Text.mm(T.t("quest-mail.mail", "<dark_gray>Mail")));
             inventory.setItem(13,QuestMenu.item(Material.PAPER,"<gold>"+Text.escape(title),lines));
             inventory.setItem(4,QuestMenu.item(Material.FEATHER,"<yellow>Hover over the letter to read",List.of("<gray>Use the buttons below to continue.")));
             for(int i=0;i<buttons.size();i++)inventory.setItem(27+i,QuestMenu.item(Material.ARROW,"<white>"+Text.escape(buttons.get(i).label()),List.of()));
@@ -186,16 +188,15 @@ public final class QuestMail {
         var data=plugin.questManager().data(player);
         if(data.wheatHarvested()%750!=0)return;
         plugin.store().saveNow(data);
-        plugin.send(player,"<gold>You found a Sunflower Token in the wheat! <gray>It is safe in your discovery pouch. Spend it with "+floraName()+". <yellow>/quest discoveries");
+        plugin.send(player,T.t("quest-mail.you-found-a-sunflower-token", "<gold>You found a Sunflower Token in the wheat! <gray>It is safe in your discovery pouch. Spend it with <floraname>. <yellow>/quest discoveries", "floraname", floraName()));
         player.playSound(player.getLocation(),Sound.ENTITY_EXPERIENCE_ORB_PICKUP,.7f,1.3f);
         notifyNew(player);
     }
     public void discoveries(Player player){
         var data=plugin.questManager().data(player);long wheat=data.wheatHarvested();
-        plugin.send(player,"<gold><bold>Field discoveries</bold>\n<yellow>Sunflower Tokens: <white>"+data.sunflowers()+
-                "\n<gray>Next token: <white>"+(750-wheat%750)+" <gray>successful wheat harvests away.\n<gray>"+floraName()+" accepts these tokens. Ordinary sunflowers do not count.");
+        plugin.send(player,T.t("quest-mail.field-discoveries-sunflower-tokens-next", "<gold><bold>Field discoveries</bold>\n<yellow>Sunflower Tokens: <white><sunflowers>\n<gray>Next token: <white><wheat> <gray>successful wheat harvests away.\n<gray><floraname> accepts these tokens. Ordinary sunflowers do not count.", "sunflowers", data.sunflowers(), "wheat", (750-wheat%750), "floraname", floraName()));
         for(var entry:Map.of(750L,"The Sun in the Straw",3000L,"A Courier's Lost Button",10000L,"The Old Field Marker").entrySet().stream().sorted(Map.Entry.comparingByKey()).toList())
-            plugin.send(player,(wheat>=entry.getKey()?"<green>Discovered: ":"<dark_gray>Unfound: ")+entry.getValue()+" <gray>("+entry.getKey()+" wheat)");
+            plugin.send(player,T.t("quest-mail.wheat", "<unfound><getvalue> <gray>(<getkey> wheat)", "unfound", (wheat>=entry.getKey()?"<green>Discovered: ":"<dark_gray>Unfound: "), "getvalue", entry.getValue(), "getkey", entry.getKey()));
     }
     private final class Mailbox implements LockedMenu {
         private final Player player;private final Inventory inventory;private final List<Letter> visible;private final int page;
@@ -203,7 +204,7 @@ public final class QuestMail {
             this.player=player;var data=plugin.questManager().data(player);
             visible=letters.stream().filter(l->l.eligible(data)).sorted(Comparator.comparing(l->data.letterRead(l.id()))).toList();
             this.page=Math.max(0,Math.min(page,Math.max(0,(visible.size()-1)/45)));
-            inventory=Bukkit.createInventory(this,54,Text.mm("<dark_gray>Your letters • "+(this.page+1)));
+            inventory=Bukkit.createInventory(this,54,Text.mm(T.t("quest-mail.your-letters", "<dark_gray>Your letters • <page>", "page", (this.page+1))));
             for(int i=0;i<45&&this.page*45+i<visible.size();i++){
                 var l=visible.get(this.page*45+i);boolean read=data.letterRead(l.id());
                 inventory.setItem(i,QuestMenu.item(read?Material.PAPER:Material.WRITABLE_BOOK,"<gold>"+Text.escape(l.subject()),

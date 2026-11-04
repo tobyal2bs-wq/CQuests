@@ -1,5 +1,7 @@
 package com.cquests.command;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.ActiveQuest;
 import com.cquests.data.PlayerData;
@@ -49,9 +51,7 @@ public final class AdminCommand implements TabExecutor {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> {
                 plugin.reload();
-                plugin.send(sender, "<green>CQuests reloaded: " + plugin.npcs().all().size() + " NPCs, "
-                        + plugin.quests().story().size() + " story quests, "
-                        + String.format(Locale.ROOT, "%,d", plugin.quests().totalSide()) + " side quests.");
+                plugin.send(sender, T.t("admin-command.cquests-reloaded-npcs-story-quests", "<green>CQuests reloaded: <size> NPCs, <size2> story quests, <amount> side quests.", "size", plugin.npcs().all().size(), "size2", plugin.quests().story().size(), "amount", String.format(Locale.ROOT, "%,d", plugin.quests().totalSide())));
             }
             case "character" -> plugin.characters().command(sender,args);
             case "npc" -> npc(sender, args);
@@ -84,18 +84,18 @@ public final class AdminCommand implements TabExecutor {
         switch (action) {
             case "list" -> wb.listBosses(sender);
             case "menu", "panel", "gui" -> {
-                if (player == null) plugin.send(sender, "<red>Run this in game."); else com.cquests.worldboss.BossPanel.open(plugin, player);
+                if (player == null) plugin.send(sender, T.t("admin-command.run-this-in-game", "<red>Run this in game.")); else com.cquests.worldboss.BossPanel.open(plugin, player);
             }
             case "arenas" -> wb.listArenas(sender);
             case "next", "info" -> wb.info(sender);
-            case "selftest" -> { plugin.send(sender, "<gray>Spawning every world boss near the world spawn to check it works..."); wb.selfTest(sender); }
+            case "selftest" -> { plugin.send(sender, T.t("admin-command.spawning-every-world-boss-near", "<gray>Spawning every world boss near the world spawn to check it works...")); wb.selfTest(sender); }
             case "stop" -> plugin.send(sender, (args.length > 2 ? wb.stop(arena) : stopAll(wb)) ? "<gray>World boss sent away." : "<gray>No world boss is alive there.");
             case "schedule" -> {
                 if (args.length > 2 && List.of("on", "off").contains(args[2].toLowerCase(Locale.ROOT))) wb.scheduleToggle(sender, args[2].equalsIgnoreCase("on"));
                 else wb.info(sender);
             }
             case "setspawn", "wand", "border", "radius", "spawn" -> {
-                if (player == null) { plugin.send(sender, "<red>Run this in game."); return; }
+                if (player == null) { plugin.send(sender, T.t("admin-command.run-this-in-game", "<red>Run this in game.")); return; }
                 switch (action) {
                     case "setspawn" -> wb.setSpawn(player, arena);
                     case "wand" -> wb.giveWand(player, arena);
@@ -104,16 +104,16 @@ public final class AdminCommand implements TabExecutor {
                         if (what.equals("clear")) wb.clearBorder(player, arena);
                         else {
                             var a = wb.arenaFor(arena);
-                            if (a == null) plugin.send(player, "<red>No arena " + Text.escape(arena)); else wb.show(player, a);
+                            if (a == null) plugin.send(player, T.t("admin-command.no-arena", "<red>No arena <arena>", "arena", Text.escape(arena))); else wb.show(player, a);
                         }
                     }
                     case "radius" -> {
                         int r;
-                        try { r = Integer.parseInt(args.length > 3 ? args[3] : ""); } catch (NumberFormatException e) { plugin.send(player, "<yellow>/cq worldboss radius <arena> <blocks>"); return; }
+                        try { r = Integer.parseInt(args.length > 3 ? args[3] : ""); } catch (NumberFormatException e) { plugin.send(player, T.t("admin-command.cq-worldboss-radius", "<yellow>/cq worldboss radius <arena> <blocks>")); return; }
                         wb.setRadius(player, arena, r);
                     }
                     default -> { // spawn <boss> [arena]
-                        if (args.length < 3) { plugin.send(player, "<yellow>/cq worldboss spawn <boss> [arena]"); return; }
+                        if (args.length < 3) { plugin.send(player, T.t("admin-command.cq-worldboss-spawn-arena", "<yellow>/cq worldboss spawn <boss> [arena]")); return; }
                         wb.spawnAt(player, args[2], args.length > 3 ? args[3] : "main");
                     }
                 }
@@ -187,12 +187,12 @@ public final class AdminCommand implements TabExecutor {
             return;
         }
         if (args.length < 3) {
-            plugin.send(sender, "<red>Usage: /cq npc " + action + " <id>");
+            plugin.send(sender, T.t("admin-command.usage-cq-npc", "<red>Usage: /cq npc <action> <id>", "action", action));
             return;
         }
         NpcDef npc = plugin.npcs().get(args[2]);
         if (npc == null) {
-            plugin.send(sender, "<red>No NPC with id '" + Text.escape(args[2]) + "'. See /cq npc list.");
+            plugin.send(sender, T.t("admin-command.no-npc-with-id-see", "<red>No NPC with id '<input2>'. See /cq npc list.", "input2", Text.escape(args[2])));
             return;
         }
         switch (action) {
@@ -205,14 +205,14 @@ public final class AdminCommand implements TabExecutor {
             }
             case "repair" -> plugin.spawns().repair(npc, sender);
             case "skin" -> {
-                if (!sender.isOp()) { plugin.send(sender,"<red>Only operators can change NPC skins."); return; }
-                if(args.length!=4||!args[3].matches("[A-Za-z0-9_]{1,16}")){plugin.send(sender,"<red>/cq npc skin <id> <username|default|villager>");return;}
+                if (!sender.isOp()) { plugin.send(sender,T.t("admin-command.only-operators-can-change-npc", "<red>Only operators can change NPC skins.")); return; }
+                if(args.length!=4||!args[3].matches("[A-Za-z0-9_]{1,16}")){plugin.send(sender,T.t("admin-command.cq-npc-skin", "<red>/cq npc skin <id> <username|default|villager>"));return;}
                 String skin=args[3].equalsIgnoreCase("villager")?"":args[3];
                 var file=new File(plugin.getDataFolder(),"npcs.yml");
                 var yaml=org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
                 yaml.set("npcs."+npc.id()+".player-skin",skin);
-                try{yaml.save(file);plugin.reload();plugin.send(sender,"<green>NPC appearance saved; quests and progress preserved. Player skins require Minecraft 1.21.9+.");}
-                catch(IOException e){plugin.send(sender,"<red>Could not save skin: "+Text.escape(e.getMessage()));}
+                try{yaml.save(file);plugin.reload();plugin.send(sender,T.t("admin-command.npc-appearance-saved-quests-and", "<green>NPC appearance saved; quests and progress preserved. Player skins require Minecraft 1.21.9+."));}
+                catch(IOException e){plugin.send(sender,T.t("admin-command.could-not-save-skin", "<red>Could not save skin: <getmessage>", "getmessage", Text.escape(e.getMessage())));}
             }
             case "rename" -> {
                 var forwarded=new ArrayList<String>(List.of("character",npc.id(),"name"));
@@ -226,7 +226,7 @@ public final class AdminCommand implements TabExecutor {
                 SpawnManager.Point point = plugin.spawns().points().get(npc.id());
                 Location loc = point == null ? null : point.location();
                 if (!(sender instanceof Player player) || loc == null) {
-                    plugin.send(sender, "<red>That NPC has no spawn point (or run this in game).");
+                    plugin.send(sender, T.t("admin-command.that-npc-has-no-spawn", "<red>That NPC has no spawn point (or run this in game)."));
                     return;
                 }
                 player.teleportAsync(loc);
@@ -242,17 +242,17 @@ public final class AdminCommand implements TabExecutor {
         }
         selections.computeIfAbsent(player.getUniqueId(), k -> new Location[2])[index] = player.getLocation().toBlockLocation();
         Location l = player.getLocation();
-        plugin.send(sender, "<green>pos" + (index + 1) + " set to " + l.getBlockX() + ", " + l.getBlockY() + ", " + l.getBlockZ());
+        plugin.send(sender, T.t("admin-command.pos-set-to", "<green>pos<index> set to <getblockx>, <getblocky>, <getblockz>", "index", (index + 1), "getblockx", l.getBlockX(), "getblocky", l.getBlockY(), "getblockz", l.getBlockZ()));
     }
 
     private void scatter(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            plugin.send(sender, "<red>Usage: /cq scatter <id,id,...|act1|act2|all> [worldguard-region]");
+            plugin.send(sender, T.t("admin-command.usage-cq-scatter-worldguard-region", "<red>Usage: /cq scatter <id,id,...|act1|act2|all> [worldguard-region]"));
             return;
         }
         List<NpcDef> npcs = selectNpcs(args[1]);
         if (npcs.isEmpty()) {
-            plugin.send(sender, "<red>No NPCs matched '" + Text.escape(args[1]) + "'.");
+            plugin.send(sender, T.t("admin-command.no-npcs-matched", "<red>No NPCs matched '<input>'.", "input", Text.escape(args[1])));
             return;
         }
         World world;
@@ -263,31 +263,31 @@ public final class AdminCommand implements TabExecutor {
                 world = Bukkit.getWorld(args[3]);
             }
             if (world == null) {
-                plugin.send(sender, "<red>Unknown world.");
+                plugin.send(sender, T.t("admin-command.unknown-world", "<red>Unknown world."));
                 return;
             }
             if (!WorldGuardHook.available()) {
-                plugin.send(sender, "<red>WorldGuard is not installed; use /cq pos1 and /cq pos2 instead.");
+                plugin.send(sender, T.t("admin-command.worldguard-is-not-installed-use", "<red>WorldGuard is not installed; use /cq pos1 and /cq pos2 instead."));
                 return;
             }
             box = WorldGuardHook.bounds(world, args[2]);
             if (box == null) {
-                plugin.send(sender, "<red>No WorldGuard region '" + Text.escape(args[2]) + "' in " + world.getName() + ".");
+                plugin.send(sender, T.t("admin-command.no-worldguard-region-in", "<red>No WorldGuard region '<input2>' in <world>.", "input2", Text.escape(args[2]), "world", world.getName()));
                 return;
             }
         } else {
             Location[] sel = sender instanceof Player p ? selections.get(p.getUniqueId()) : null;
             if (sel == null || sel[0] == null || sel[1] == null || !sel[0].getWorld().equals(sel[1].getWorld())) {
-                plugin.send(sender, "<red>Set /cq pos1 and /cq pos2 first, or name a WorldGuard region.");
+                plugin.send(sender, T.t("admin-command.set-cq-pos1-and-cq", "<red>Set /cq pos1 and /cq pos2 first, or name a WorldGuard region."));
                 return;
             }
             world = sel[0].getWorld();
             if(sender instanceof Player player&&!player.getWorld().equals(world)){
-                plugin.send(sender,"<yellow>Your selection belongs to another world. Set both corners here, or use /cq scatterworld in your current world.");return;
+                plugin.send(sender,T.t("admin-command.your-selection-belongs-to-another", "<yellow>Your selection belongs to another world. Set both corners here, or use /cq scatterworld in your current world."));return;
             }
             box = new int[]{sel[0].getBlockX(), sel[0].getBlockY(), sel[0].getBlockZ(), sel[1].getBlockX(), sel[1].getBlockY(), sel[1].getBlockZ()};
         }
-        plugin.send(sender, "<gray>Scattering " + npcs.size() + " NPCs...");
+        plugin.send(sender, T.t("admin-command.scattering-npcs", "<gray>Scattering <size> NPCs...", "size", npcs.size()));
         plugin.spawns().scatter(npcs, world, box, sender);
     }
 
@@ -330,8 +330,8 @@ public final class AdminCommand implements TabExecutor {
      */
     private void scatterWorld(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            plugin.send(sender, "<red>/cq scatterworld <chapter6|all|id,id> <size|border> [depth] [world] [centerX centerZ]");
-            plugin.send(sender, "<gray>Example: <yellow>/cq scatterworld chapter6 10000</yellow> spreads chapter 6 over 10,000 × 10,000 blocks of the world.");
+            plugin.send(sender, T.t("admin-command.cq-scatterworld-depth-world-centerx", "<red>/cq scatterworld <chapter6|all|id,id> <size|border> [depth] [world] [centerX centerZ]"));
+            plugin.send(sender, T.t("admin-command.example-cq-scatterworld-chapter6-10000", "<gray>Example: <yellow>/cq scatterworld chapter6 10000</yellow> spreads chapter 6 over 10,000 × 10,000 blocks of the world."));
             return;
         }
         try {
@@ -342,7 +342,7 @@ public final class AdminCommand implements TabExecutor {
             World world = sender instanceof Player p ? p.getWorld() : Bukkit.getWorlds().get(0);
             if (!rest.isEmpty() && !rest.get(0).matches("-?\\d+")) {
                 world = Bukkit.getWorld(rest.remove(0));
-                if (world == null) { plugin.send(sender, "<red>Unknown world."); return; }
+                if (world == null) { plugin.send(sender, T.t("admin-command.unknown-world", "<red>Unknown world.")); return; }
             }
             var border = world.getWorldBorder();
             int centerX = border.getCenter().getBlockX(), centerZ = border.getCenter().getBlockZ();
@@ -354,14 +354,13 @@ public final class AdminCommand implements TabExecutor {
             if (width < 16 || depth < 16 || width > 100000 || depth > 100000) throw new IllegalArgumentException();
             if (Math.abs((long) centerX) + width / 2L > 29_999_000 || Math.abs((long) centerZ) + depth / 2L > 29_999_000) throw new IllegalArgumentException();
             List<NpcDef> npcs = selectNpcs(args[1]);
-            if (npcs.isEmpty()) { plugin.send(sender, "<red>No NPCs matched that selector."); return; }
+            if (npcs.isEmpty()) { plugin.send(sender, T.t("admin-command.no-npcs-matched-that-selector", "<red>No NPCs matched that selector.")); return; }
             int minX = centerX - width / 2, minZ = centerZ - depth / 2;
             int[] box = {minX, world.getMinHeight() + 1, minZ, minX + width - 1, world.getMaxHeight() - 2, minZ + depth - 1};
-            plugin.send(sender, "<white>Spreading " + npcs.size() + " villagers over " + String.format(Locale.ROOT, "%,d × %,d", width, depth)
-                    + " blocks of " + Text.escape(world.getName()) + " (centre " + centerX + ", " + centerZ + "). Only safe ground is used; progress is preserved.");
+            plugin.send(sender, T.t("admin-command.spreading-villagers-over-blocks-of", "<white>Spreading <size> villagers over <amount> blocks of <world> (centre <centerx>, <centerz>). Only safe ground is used; progress is preserved.", "size", npcs.size(), "amount", String.format(Locale.ROOT, "%,d × %,d", width, depth), "world", Text.escape(world.getName()), "centerx", centerX, "centerz", centerZ));
             plugin.spawns().scatter(npcs, world, box, sender);
         } catch (IllegalArgumentException e) {
-            plugin.send(sender, "<red>Size must be a whole number from 16 to 100000 (or border); centers must be valid world coordinates.");
+            plugin.send(sender, T.t("admin-command.size-must-be-a-whole", "<red>Size must be a whole number from 16 to 100000 (or border); centers must be valid world coordinates."));
         }
     }
 
@@ -381,13 +380,13 @@ public final class AdminCommand implements TabExecutor {
             return;
         }
         int number;
-        try { number = Integer.parseInt(args[1]); } catch (NumberFormatException e) { plugin.send(sender, "<red>Usage: /cq chapter <number> on|off"); return; }
+        try { number = Integer.parseInt(args[1]); } catch (NumberFormatException e) { plugin.send(sender, T.t("admin-command.usage-cq-chapter-on-off", "<red>Usage: /cq chapter <number> on|off")); return; }
         String mode = args[2].toLowerCase(Locale.ROOT);
-        if (!List.of("on", "enable", "true", "off", "disable", "false").contains(mode)) { plugin.send(sender, "<red>Usage: /cq chapter <number> on|off"); return; }
+        if (!List.of("on", "enable", "true", "off", "disable", "false").contains(mode)) { plugin.send(sender, T.t("admin-command.usage-cq-chapter-on-off", "<red>Usage: /cq chapter <number> on|off")); return; }
         boolean on = List.of("on", "enable", "true").contains(mode);
-        if (!names.containsKey(number)) { plugin.send(sender, "<red>quests.yml has no chapter " + number + "."); return; }
-        if (number == 1 && !on) { plugin.send(sender, "<red>Chapter 1 is where everyone starts and can't be switched off."); return; }
-        if (on != locked.contains(number)) { plugin.send(sender, "<gray>Chapter " + number + " is already " + (on ? "on" : "off") + "."); return; }
+        if (!names.containsKey(number)) { plugin.send(sender, T.t("admin-command.quests-yml-has-no-chapter", "<red>quests.yml has no chapter <number>.", "number", number)); return; }
+        if (number == 1 && !on) { plugin.send(sender, T.t("admin-command.chapter-1-is-where-everyone", "<red>Chapter 1 is where everyone starts and can't be switched off.")); return; }
+        if (on != locked.contains(number)) { plugin.send(sender, T.t("admin-command.chapter-is-already", "<gray>Chapter <number> is already <off>.", "number", number, "off", (on ? "on" : "off"))); return; }
         var next = new java.util.TreeSet<>(locked);
         if (on) next.remove(number); else next.add(number);
         plugin.getConfig().set("chapters.locked", new ArrayList<>(next));
@@ -399,7 +398,7 @@ public final class AdminCommand implements TabExecutor {
     }
 
     private void backup(CommandSender sender) {
-        plugin.send(sender, "<gray>Backing up quest data...");
+        plugin.send(sender, T.t("admin-command.backing-up-quest-data", "<gray>Backing up quest data..."));
         Sched.async(() -> {
             String name = plugin.backups().backup("manual");
             plugin.send(sender, name == null ? "<red>Backup failed, see the console." : "<green>Saved backups/" + name);
@@ -409,7 +408,7 @@ public final class AdminCommand implements TabExecutor {
     private void backups(CommandSender sender) {
         List<File> files = plugin.backups().files();
         if (files.isEmpty()) {
-            plugin.send(sender, "<gray>No backups yet. Make one with <yellow>/cq backup</yellow>.");
+            plugin.send(sender, T.t("admin-command.no-backups-yet-make-one", "<gray>No backups yet. Make one with <yellow>/cq backup</yellow>."));
             return;
         }
         StringBuilder out = new StringBuilder("<gold>Backups</gold> <gray>(newest first)");
@@ -422,19 +421,19 @@ public final class AdminCommand implements TabExecutor {
 
     private void restore(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            plugin.send(sender, "<red>Usage: /cq restore <backup|latest> <player|all>");
+            plugin.send(sender, T.t("admin-command.usage-cq-restore", "<red>Usage: /cq restore <backup|latest> <player|all>"));
             return;
         }
         File backup = plugin.backups().find(args[1]);
         if (backup == null) {
-            plugin.send(sender, "<red>No backup called '" + Text.escape(args[1]) + "'. See /cq backups.");
+            plugin.send(sender, T.t("admin-command.no-backup-called-see-cq", "<red>No backup called '<input>'. See /cq backups.", "input", Text.escape(args[1])));
             return;
         }
         UUID target = null;
         if (!args[2].equalsIgnoreCase("all")) {
             target = resolve(args[2]);
             if (target == null) {
-                plugin.send(sender, "<red>Unknown player '" + Text.escape(args[2]) + "'. Use their exact name or UUID.");
+                plugin.send(sender, T.t("admin-command.unknown-player-use-their-exact", "<red>Unknown player '<input2>'. Use their exact name or UUID.", "input2", Text.escape(args[2])));
                 return;
             }
         }
@@ -457,7 +456,7 @@ public final class AdminCommand implements TabExecutor {
                         : "<green>Restored " + restored.size() + (restored.size() == 1 ? " player" : " players") + " from " + backup.getName()
                         + ". <gray>The replaced files were kept as .yml.before-restore.");
             } catch (IOException e) {
-                plugin.send(sender, "<red>Restore failed: " + Text.escape(String.valueOf(e.getMessage())));
+                plugin.send(sender, T.t("admin-command.restore-failed", "<red>Restore failed: <getmessage>", "getmessage", Text.escape(String.valueOf(e.getMessage()))));
             }
         });
     }
@@ -477,12 +476,12 @@ public final class AdminCommand implements TabExecutor {
 
     private void player(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            plugin.send(sender, "<red>Usage: /cq player <name> reset|complete <quest>|give <quest>|resetdaily");
+            plugin.send(sender, T.t("admin-command.usage-cq-player-reset-complete", "<red>Usage: /cq player <name> reset|complete <quest>|give <quest>|resetdaily"));
             return;
         }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) {
-            plugin.send(sender, "<red>That player is not online.");
+            plugin.send(sender, T.t("admin-command.that-player-is-not-online", "<red>That player is not online."));
             return;
         }
         PlayerData data = plugin.questManager().data(target);
@@ -491,15 +490,15 @@ public final class AdminCommand implements TabExecutor {
         switch (action) {
             case "reset" -> {
                 data.reset();
-                plugin.send(sender, "<green>Reset all quest progress for " + target.getName() + ".");
+                plugin.send(sender, T.t("admin-command.reset-all-quest-progress-for", "<green>Reset all quest progress for <player>.", "player", target.getName()));
             }
             case "resetdaily" -> {
                 data.setLastDailyAt(0);
-                plugin.send(sender, "<green>" + target.getName() + " can take a new daily quest now.");
+                plugin.send(sender, T.t("admin-command.can-take-a-new-daily", "<green><player> can take a new daily quest now.", "player", target.getName()));
             }
             case "complete" -> {
                 if (quest == null) {
-                    plugin.send(sender, "<red>Unknown quest.");
+                    plugin.send(sender, T.t("admin-command.unknown-quest", "<red>Unknown quest."));
                     return;
                 }
                 synchronized (data) {
@@ -516,11 +515,11 @@ public final class AdminCommand implements TabExecutor {
                     }
                 }
                 Sched.entity(target, () -> plugin.finale().achievements().sync(target));
-                plugin.send(sender, "<green>Done. If the quest was active it now waits for turn-in.");
+                plugin.send(sender, T.t("admin-command.done-if-the-quest-was", "<green>Done. If the quest was active it now waits for turn-in."));
             }
             case "give" -> {
                 if (quest == null) {
-                    plugin.send(sender, "<red>Unknown quest.");
+                    plugin.send(sender, T.t("admin-command.unknown-quest", "<red>Unknown quest."));
                     return;
                 }
                 data.uncomplete(quest.id());
@@ -528,9 +527,9 @@ public final class AdminCommand implements TabExecutor {
                     data.setSideDone(quest.giver(), Math.min(data.sideDone(quest.giver()), quest.order() - 1));
                 }
                 plugin.questManager().forceAccept(target, quest);
-                plugin.send(sender, "<green>Gave " + Text.escape(quest.name()) + " to " + target.getName() + ".");
+                plugin.send(sender, T.t("admin-command.gave-to", "<green>Gave <name> to <player>.", "name", Text.escape(quest.name()), "player", target.getName()));
             }
-            default -> plugin.send(sender, "<red>Unknown action.");
+            default -> plugin.send(sender, T.t("admin-command.unknown-action", "<red>Unknown action."));
         }
         plugin.visibility().refresh(target);
     }
@@ -538,17 +537,17 @@ public final class AdminCommand implements TabExecutor {
     private void finale(CommandSender sender, String[] args) {
         Player target = args.length > 1 ? Bukkit.getPlayerExact(args[1]) : sender instanceof Player p ? p : null;
         if (target == null) {
-            plugin.send(sender, "<red>Usage: /cq finale [player]");
+            plugin.send(sender, T.t("admin-command.usage-cq-finale-player", "<red>Usage: /cq finale [player]"));
             return;
         }
         plugin.finale().play(target, true);
-        plugin.send(sender, "<green>Playing the ending for " + target.getName() + " (preview, no advancement).");
+        plugin.send(sender, T.t("admin-command.playing-the-ending-for-preview", "<green>Playing the ending for <player> (preview, no advancement).", "player", target.getName()));
     }
 
     private void quest(CommandSender sender, String[] args) {
         Quest quest = args.length > 1 ? plugin.quests().get(args[1]) : null;
         if (quest == null) {
-            plugin.send(sender, "<red>Usage: /cq quest <id>. Example ids: welcome, side_jerry_1, daily_1");
+            plugin.send(sender, T.t("admin-command.usage-cq-quest-example-ids", "<red>Usage: /cq quest <id>. Example ids: welcome, side_jerry_1, daily_1"));
             return;
         }
         StringBuilder out = new StringBuilder("<gold><bold>" + Text.escape(quest.name()) + "</bold></gold> <gray>" + quest.id()

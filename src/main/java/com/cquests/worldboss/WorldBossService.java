@@ -1,5 +1,7 @@
 package com.cquests.worldboss;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.util.Sched;
 import com.cquests.util.Text;
@@ -139,6 +141,7 @@ public final class WorldBossService implements Listener {
         fightKey = new NamespacedKey(plugin, "worldboss_fight");
         wandKey = new NamespacedKey(plugin, "worldboss_wand");
         arenasFile = new File(plugin.getDataFolder(), "worldboss-arenas.yml");
+        Privacy.init(plugin);
         reload();
     }
 
@@ -172,6 +175,16 @@ public final class WorldBossService implements Listener {
         YamlConfiguration bossYaml = YamlConfiguration.loadConfiguration(bossFile);
         addNewBosses(bossFile, bossYaml);
         defs = WorldBossDef.load(bossYaml, plugin.getLogger());
+        var cfg = plugin.getConfig();
+        ModelRig.detail = switch (cfg.getString("world-bosses.model-detail", "high").toLowerCase(java.util.Locale.ROOT)) {
+            case "low" -> 0;
+            case "medium" -> 1;
+            default -> 2;
+        };
+        BossModel.period = Math.max(1, Math.min(10, cfg.getInt("world-bosses.model-update-ticks", 3)));
+        BossModel.maxShards = Math.max(0, cfg.getInt("world-bosses.max-shards-per-death", 48));
+        BossModel.viewDistance = Math.max(32, cfg.getInt("world-bosses.model-view-distance", 96));
+        BossModel.particles = Math.max(0, Math.min(2, cfg.getDouble("world-bosses.particle-multiplier", 1.0)));
         try (var in = plugin.getResource("worldboss-models.json")) {
             models = in == null ? Map.of() : ModelRig.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
         } catch (IOException | RuntimeException e) {
@@ -202,6 +215,8 @@ public final class WorldBossService implements Listener {
 
     public void start() {
         if (timer != null) timer.cancel();
+        // CBosses loads after CQuests (it soft-depends on it), so check once the server is up
+        Sched.global(() -> { if (deferred()) plugin.getLogger().info("CBosses is installed: CQuests leaves the world bosses to it (world-bosses.defer-to-cbosses)."); });
         timer = Sched.globalTimer(t -> scheduleTick(), 20 * 30, 20 * 30);
     }
 
@@ -211,7 +226,12 @@ public final class WorldBossService implements Listener {
     }
 
     private int radius() { return Math.max(8, plugin.getConfig().getInt("world-bosses.default-radius", 40)); }
-    public boolean enabled() { return plugin.getConfig().getBoolean("world-bosses.enabled", true); }
+    public boolean enabled() { return plugin.getConfig().getBoolean("world-bosses.enabled", true) && !deferred(); }
+
+    /** With CBosses installed the world bosses are its job (world-bosses.defer-to-cbosses). */
+    public boolean deferred() {
+        return plugin.getConfig().getBoolean("world-bosses.defer-to-cbosses", true) && Bukkit.getPluginManager().isPluginEnabled("CBosses");
+    }
     public Map<String, WorldBossDef> defs() { return defs; }
 
     /** The block model a boss is drawn with, or null (models off, "model: none", or no model by that name). */
@@ -267,48 +287,46 @@ public final class WorldBossService implements Listener {
         Arena a = arena(arenaId, true);
         a.spawn(player.getLocation());
         save();
-        plugin.send(player, "<green>World boss spawn for arena <white>" + a.id + "</white> set here. <gray>Border: " + a.describe()
-                + ". Use <yellow>/cq worldboss wand " + a.id + "</yellow> to draw the border.");
+        plugin.send(player, T.t("world-boss-service.world-boss-spawn-for-arena", "<green>World boss spawn for arena <white><arena></white> set here. <gray>Border: <border>. Use <yellow>/cq worldboss wand <arena></yellow> to draw the border.", "arena", a.id, "border", a.describe()));
     }
 
     public void giveWand(Player player, String arenaId) {
         Arena a = arena(arenaId, true);
         ItemStack stick = new ItemStack(Material.STICK);
         stick.editMeta(meta -> {
-            meta.displayName(Text.mm("<gold><bold>Boss Border Stick</bold></gold> <gray>(" + a.id + ")").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
-            meta.lore(List.of(Text.mm("<yellow>Left-click a block</yellow><gray>: add a corner"), Text.mm("<yellow>Right-click</yellow><gray>: remove the last corner"),
-                    Text.mm("<yellow>Sneak + right-click</yellow><gray>: show the border")));
+            meta.displayName(Text.mm(T.t("world-boss-service.boss-border-stick", "<gold><bold>Boss Border Stick</bold></gold> <gray>(<arena>)", "arena", a.id)).decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+            meta.lore(List.of(Text.mm(T.t("world-boss-service.left-click-a-block-add", "<yellow>Left-click a block</yellow><gray>: add a corner")), Text.mm(T.t("world-boss-service.right-click-remove-the-last", "<yellow>Right-click</yellow><gray>: remove the last corner")),
+                    Text.mm(T.t("world-boss-service.sneak-right-click-show-the", "<yellow>Sneak + right-click</yellow><gray>: show the border"))));
             meta.setEnchantmentGlintOverride(true);
             meta.getPersistentDataContainer().set(wandKey, PersistentDataType.STRING, a.id);
         });
         player.getInventory().addItem(stick).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
-        plugin.send(player, "<gold>Border stick for arena <white>" + a.id + "</white>. <gray>Left-click blocks around the arena to add corners in order. The boss can never walk past this outline.");
+        plugin.send(player, T.t("world-boss-service.border-stick-for-arena-left", "<gold>Border stick for arena <white><arena></white>. <gray>Left-click blocks around the arena to add corners in order. The boss can never walk past this outline.", "arena", a.id));
     }
 
     public void clearBorder(Player player, String arenaId) {
         Arena a = arena(arenaId, false);
-        if (a == null) { plugin.send(player, "<red>No arena " + Text.escape(arenaId)); return; }
+        if (a == null) { plugin.send(player, T.t("world-boss-service.no-arena", "<red>No arena <arenaid>", "arenaid", Text.escape(arenaId))); return; }
         a.clear(); save();
-        plugin.send(player, "<gray>Border cleared. Arena <white>" + a.id + "</white> now uses a circle of " + a.radius + " blocks around its spawn.");
+        plugin.send(player, T.t("world-boss-service.border-cleared-arena-now-uses", "<gray>Border cleared. Arena <white><arena></white> now uses a circle of <radius> blocks around its spawn.", "arena", a.id, "radius", a.radius));
     }
 
     public void setRadius(Player player, String arenaId, int radius) {
         Arena a = arena(arenaId, true);
         a.radius = Math.max(8, Math.min(500, radius)); save();
-        plugin.send(player, "<gray>Arena <white>" + a.id + "</white> circle radius: " + a.radius + " (used when there is no outline).");
+        plugin.send(player, T.t("world-boss-service.arena-circle-radius-used-when", "<gray>Arena <white><arena></white> circle radius: <radius> (used when there is no outline).", "arena", a.id, "radius", a.radius));
     }
 
     public void listArenas(org.bukkit.command.CommandSender to) {
-        if (arenas.isEmpty()) { plugin.send(to, "<yellow>No arenas yet. Stand where the boss should appear and run /cq worldboss setspawn main."); return; }
+        if (arenas.isEmpty()) { plugin.send(to, T.t("world-boss-service.no-arenas-yet-stand-where", "<yellow>No arenas yet. Stand where the boss should appear and run /cq worldboss setspawn main.")); return; }
         for (Arena a : arenas.values()) {
             Location s = a.spawn();
-            plugin.send(to, "<white>" + a.id + " <gray>" + (s == null ? "no spawn set" : s.getWorld().getName() + " " + s.getBlockX() + " " + s.getBlockY() + " " + s.getBlockZ())
-                    + ", border: " + a.describe() + (fights.containsKey(a.id) ? " <red>(boss alive)" : ""));
+            plugin.send(to, T.t("world-boss-service.border", "<white><arena> <gray><player>, border: <border><alive>", "arena", a.id, "player", (s == null ? "no spawn set" : s.getWorld().getName() + " " + s.getBlockX() + " " + s.getBlockY() + " " + s.getBlockZ()), "border", a.describe(), "alive", (fights.containsKey(a.id) ? " <red>(boss alive)" : "")));
         }
     }
 
     public void listBosses(org.bukkit.command.CommandSender to) {
-        plugin.send(to, "<gold>World bosses</gold> <gray>(" + defs.size() + ")");
+        plugin.send(to, T.t("world-boss-service.world-bosses", "<gold>World bosses</gold> <gray>(<count>)", "count", defs.size()));
         for (WorldBossDef d : defs.values())
             to.sendMessage(Text.mm(" <dark_gray>-</dark_gray> <white>" + d.id() + "</white> " + d.name() + " <gray>" + Text.escape(d.title())
                     + (d.seasonal() ? " <light_purple>(" + d.season() + ")" : "")));
@@ -326,7 +344,7 @@ public final class WorldBossService implements Listener {
         scheduleOn = on;
         plugin.getConfig().set("world-bosses.schedule.enabled", on);
         plugin.saveConfig();
-        plugin.send(to, "<gray>Weekly world boss: <white>" + (on ? "on" : "off"));
+        plugin.send(to, T.t("world-boss-service.weekly-world-boss", "<gray>Weekly world boss: <white><off>", "off", (on ? "on" : "off")));
     }
 
     // ------------------------------------------------------------------ schedule
@@ -412,32 +430,32 @@ public final class WorldBossService implements Listener {
 
     /** Starts a fight. {@code tester} non-null makes it a test: at the tester, nothing is paid, and the tester is told why if it fails. */
     public boolean spawn(WorldBossDef def, Arena arena, Player tester, boolean test) {
-        if (!enabled()) { if (tester != null) plugin.send(tester, "<yellow>World bosses are off (world-bosses.enabled)."); return false; }
+        if (!enabled()) { if (tester != null) plugin.send(tester, T.t("world-boss-service.world-bosses-are-off-world", "<yellow>World bosses are off (world-bosses.enabled).")); return false; }
         String key = test ? "test:" + tester.getUniqueId() : arena.id;
         Fight old = fights.get(key);
-        if (old != null) { if (!test) { if (tester != null) plugin.send(tester, "<yellow>A boss is already alive in " + arena.id + ". /cq worldboss stop " + arena.id); return false; } end(old, "stopped"); }
+        if (old != null) { if (!test) { if (tester != null) plugin.send(tester, T.t("world-boss-service.a-boss-is-already-alive", "<yellow>A boss is already alive in <arena>. /cq worldboss stop <arena>", "arena", arena.id)); return false; } end(old, "stopped"); }
         if (fights.size() >= Math.max(1, plugin.getConfig().getInt("world-bosses.max-active", 4))) {
-            if (tester != null) plugin.send(tester, "<yellow>Too many world bosses are alive at once."); return false;
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.too-many-world-bosses-are", "<yellow>Too many world bosses are alive at once.")); return false;
         }
         Location at = arena.spawn();
-        if (at == null) { if (tester != null) plugin.send(tester, "<yellow>Arena " + arena.id + " has no spawn. /cq worldboss setspawn " + arena.id); return false; }
-        if (at.getWorld().getDifficulty() == org.bukkit.Difficulty.PEACEFUL) { if (tester != null) plugin.send(tester, "<yellow>Bosses cannot appear in a Peaceful world."); return false; }
+        if (at == null) { if (tester != null) plugin.send(tester, T.t("world-boss-service.arena-has-no-spawn-cq", "<yellow>Arena <arena> has no spawn. /cq worldboss setspawn <arena>", "arena", arena.id)); return false; }
+        if (at.getWorld().getDifficulty() == org.bukkit.Difficulty.PEACEFUL) { if (tester != null) plugin.send(tester, T.t("world-boss-service.bosses-cannot-appear-in-a", "<yellow>Bosses cannot appear in a Peaceful world.")); return false; }
         Sched.at(at, () -> ritual(at, def, () -> doSpawn(def, arena, key, at, tester, test)));
         return true;
     }
 
     public boolean spawnAt(Player player, String bossId, String arenaId) {
         WorldBossDef def = defs.get(bossId.toLowerCase(Locale.ROOT));
-        if (def == null) { plugin.send(player, "<red>No world boss " + Text.escape(bossId) + ". <gray>/cq worldboss list"); return false; }
+        if (def == null) { plugin.send(player, T.t("world-boss-service.no-world-boss-cq-worldboss", "<red>No world boss <bossid>. <gray>/cq worldboss list", "bossid", Text.escape(bossId))); return false; }
         Arena a = arena(arenaId, false);
-        if (a == null) { plugin.send(player, "<red>No arena " + Text.escape(arenaId) + ". <gray>/cq worldboss setspawn " + Text.escape(arenaId)); return false; }
+        if (a == null) { plugin.send(player, T.t("world-boss-service.no-arena-cq-worldboss-setspawn", "<red>No arena <arenaid>. <gray>/cq worldboss setspawn <arenaid>", "arenaid", Text.escape(arenaId))); return false; }
         return spawn(def, a, player, false);
     }
 
     /** /cq test worldboss: the boss appears a few blocks in front of you inside a 25 block circle; nothing is paid. */
     public boolean test(Player player, String bossId) {
         WorldBossDef def = bossId == null || bossId.isBlank() ? null : defs.get(bossId.toLowerCase(Locale.ROOT));
-        if (def == null) { plugin.send(player, "<yellow>/cq test worldboss <boss></yellow> <gray>Bosses: <white>" + String.join(", ", defs.keySet())); return false; }
+        if (def == null) { plugin.send(player, T.t("world-boss-service.cq-test-worldboss-bosses", "<yellow>/cq test worldboss <boss></yellow> <gray>Bosses: <white><list>", "list", String.join(", ", defs.keySet()))); return false; }
         Arena a = new Arena("test-" + player.getName().toLowerCase(Locale.ROOT), 25);
         Vector look = player.getLocation().getDirection().setY(0);
         if (look.lengthSquared() < 0.01) look = new Vector(1, 0, 0);
@@ -575,12 +593,12 @@ public final class WorldBossService implements Listener {
         try {
             mob = (Mob) at.getWorld().spawn(at, def.entity().getEntityClass(), e -> dress((Mob) e, def, key, look));
         } catch (RuntimeException e) {
-            if (tester != null) plugin.send(tester, "<yellow>" + def.name() + " <yellow>could not appear here: " + Text.escape(String.valueOf(e.getMessage())));
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.could-not-appear-here", "<yellow><boss> <yellow>could not appear here: <getmessage>", "boss", def.name(), "getmessage", Text.escape(String.valueOf(e.getMessage()))));
             else plugin.getLogger().warning("World boss " + def.id() + " could not appear: " + e);
             return null;
         }
         if (!mob.isValid()) {
-            if (tester != null) plugin.send(tester, "<yellow>Something stopped the boss from appearing (another plugin or a protected area).");
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.something-stopped-the-boss-from", "<yellow>Something stopped the boss from appearing (another plugin or a protected area)."));
             else plugin.getLogger().warning("World boss " + def.id() + " was removed right after spawning (protected area, Peaceful or another plugin).");
             return null;
         }
@@ -633,7 +651,7 @@ public final class WorldBossService implements Listener {
         }
         mob.getScheduler().runAtFixedRate(plugin, t -> { if (!tick(fight)) t.cancel(); }, () -> end(fight, "gone"), 2, 10);
         if (test) {
-            if (tester != null) plugin.send(tester, "<gray>Test world boss: " + def.name() + " <gray>(" + def.id() + "). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.");
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.test-world-boss-nothing-is", "<gray>Test world boss: <boss> <gray>(<id>). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.", "boss", def.name(), "id", def.id()));
         } else {
             broadcast("<dark_gray><st>                                        </st>\n"
                     + "<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  " + def.name() + "\n"
@@ -806,7 +824,7 @@ public final class WorldBossService implements Listener {
             loc.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc.clone().add(0, 1, 0), 1);
             ring(loc, Math.max(3, boss.getWidth() * 2), Color.fromRGB(0xaa00ff), 40);
             for (Player p : close) {
-                p.showTitle(Title.title(Text.mm(f.def.name()), Text.mm("<red><bold>is enraged!")));
+                p.showTitle(Title.title(Text.mm(f.def.name()), Text.mm(T.t("world-boss-service.is-enraged", "<red><bold>is enraged!"))));
                 p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.8f, 0.7f);
             }
             if (f.def.minion() != null) summonMinions(f, f.def.minions());
@@ -1042,7 +1060,7 @@ public final class WorldBossService implements Listener {
                     boss.setHealth(Math.min(f.max, boss.getHealth() + f.max * 0.12));
                     world.spawnParticle(Particle.HAPPY_VILLAGER, at.clone().add(0, boss.getHeight() / 2, 0), 60, 1, 1, 1, 0.1);
                     world.playSound(at, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.8f);
-                    for (Player p : targets) p.sendActionBar(Text.mm(f.def.name() + " <green>heals itself!"));
+                    for (Player p : targets) p.sendActionBar(Text.mm(T.t("world-boss-service.heals-itself", "<boss> <green>heals itself!", "boss", f.def.name())));
                 } else ability(f, "shockwave", targets);
             }
             case "quake" -> {
@@ -1149,7 +1167,7 @@ public final class WorldBossService implements Listener {
         }
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
-            if (tester != null && !reason.equals("shutdown") && !reason.equals("stopped") && !reason.equals("defeated")) plugin.send(tester, "<gray>Test world boss ended (" + reason + ").");
+            if (tester != null && !reason.equals("shutdown") && !reason.equals("stopped") && !reason.equals("defeated")) plugin.send(tester, T.t("world-boss-service.test-world-boss-ended", "<gray>Test world boss ended (<reason>).", "reason", reason));
             return;
         }
         switch (reason) {
@@ -1169,7 +1187,7 @@ public final class WorldBossService implements Listener {
         if (f.model == null) deathAnimation(fell, f.def, f.boss.getHeight());
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
-            if (tester != null) plugin.send(tester, "<green>Test boss beaten. <gray>Top damage: " + top(f, ranked));
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.test-boss-beaten-top-damage", "<green>Test boss beaten. <gray>Top damage: <ranked>", "ranked", top(f, ranked)));
             return;
         }
         double minimum = f.max * f.ratio * Math.max(0, plugin.getConfig().getDouble("world-bosses.min-damage-percent", 2)) / 100.0;
@@ -1205,8 +1223,8 @@ public final class WorldBossService implements Listener {
                     try { if (parts.length > 1) amount = Math.max(1, Math.min(64, Integer.parseInt(parts[1]))); } catch (NumberFormatException ignored) { }
                     if (m != null && m.isItem()) p.getInventory().addItem(new ItemStack(m, amount)).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left));
                 }
-                p.showTitle(Title.title(Text.mm("<gold><bold>VICTORY"), Text.mm(f.def.name() + " <gray>is defeated. You placed <white>#" + rank)));
-                plugin.send(p, "<gold>World boss reward: <white>#" + rank + "</white> in damage" + (paid > 0 ? ", <green>+" + String.format(Locale.ROOT, "%,d", paid) + "</green> money" : "") + (items.isEmpty() ? "" : ", plus items") + ".");
+                p.showTitle(Title.title(Text.mm(T.t("world-boss-service.victory", "<gold><bold>VICTORY")), Text.mm(T.t("world-boss-service.is-defeated-you-placed", "<boss> <gray>is defeated. You placed <white>#<rank>", "boss", f.def.name(), "rank", rank))));
+                plugin.send(p, T.t("world-boss-service.world-boss-reward-in-damage", "<gold>World boss reward: <white>#<rank></white> in damage<amount><items>.", "rank", rank, "amount", (paid > 0 ? ", <green>+" + String.format(Locale.ROOT, "%,d", paid) + "</green> money" : ""), "items", (items.isEmpty() ? "" : ", plus items")));
             });
         }
         broadcast(defeatMessage(f, ranked));
@@ -1301,14 +1319,13 @@ public final class WorldBossService implements Listener {
     public void info(org.bukkit.command.CommandSender to) {
         Fight live = fights.values().stream().filter(f -> !f.test).findFirst().orElse(null);
         if (live != null) {
-            plugin.send(to, "<gold>⚔ " + live.def.name() + " <gold>is alive now" + where(live.arena));
+            plugin.send(to, T.t("world-boss-service.is-alive-now", "<gold>⚔ <boss> <gold>is alive now<where>", "boss", live.def.name(), "where", where(live.arena)));
             return;
         }
         WorldBossDef def = upcoming();
         ZonedDateTime next = next();
-        if (def == null || next == null) { plugin.send(to, "<gray>No world boss is scheduled."); return; }
-        plugin.send(to, "<gold>Next world boss: </gold>" + def.name() + " <gray>" + Text.escape(def.title()) + " <gray>in <white>" + nextText() + "</white>"
-                + " <dark_gray>(" + next.getDayOfWeek().toString().charAt(0) + next.getDayOfWeek().toString().substring(1).toLowerCase(Locale.ROOT) + " " + next.toLocalTime() + ")" + where(arenaFor()));
+        if (def == null || next == null) { plugin.send(to, T.t("world-boss-service.no-world-boss-is-scheduled", "<gray>No world boss is scheduled.")); return; }
+        plugin.send(to, T.t("world-boss-service.next-world-boss-in", "<gold>Next world boss: </gold><boss> <gray><title> <gray>in <white><time></white> <dark_gray>(<charat><root> <tolocaltime>)<where>", "boss", def.name(), "title", Text.escape(def.title()), "time", nextText(), "charat", next.getDayOfWeek().toString().charAt(0), "root", next.getDayOfWeek().toString().substring(1).toLowerCase(Locale.ROOT), "tolocaltime", next.toLocalTime(), "where", where(arenaFor())));
     }
 
     public String upcomingName() {
@@ -1331,15 +1348,15 @@ public final class WorldBossService implements Listener {
         Arena a = arena(id, true);
         if (event.getAction() == Action.LEFT_CLICK_BLOCK && event.getClickedBlock() != null) {
             var b = event.getClickedBlock();
-            if (a.world != null && !a.world.equals(b.getWorld().getName()) && !a.points().isEmpty()) { plugin.send(player, "<red>The border must be in the same world as the arena spawn."); return; }
+            if (a.world != null && !a.world.equals(b.getWorld().getName()) && !a.points().isEmpty()) { plugin.send(player, T.t("world-boss-service.the-border-must-be-in", "<red>The border must be in the same world as the arena spawn.")); return; }
             if (a.world == null) a.world = b.getWorld().getName();
             String problem = a.add(b.getX(), b.getZ());
             save();
             int n = a.points().size();
-            plugin.send(player, "<green>Corner " + n + "</green> <gray>at " + b.getX() + ", " + b.getZ() + (n < 3 ? ". Add " + (3 - n) + " more." : problem == null ? ". Border saved." : ". <red>" + Text.escape(problem)));
+            plugin.send(player, T.t("world-boss-service.corner-at", "<green>Corner <n></green> <gray>at <getx>, <getz><problem>", "n", n, "getx", b.getX(), "getz", b.getZ(), "problem", (n < 3 ? ". Add " + (3 - n) + " more." : problem == null ? ". Border saved." : ". <red>" + Text.escape(problem))));
             show(player, a);
         } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) {
-            if (player.isSneaking()) { show(player, a); plugin.send(player, "<gray>Arena <white>" + a.id + "</white>: " + a.describe() + "."); return; }
+            if (player.isSneaking()) { show(player, a); plugin.send(player, T.t("world-boss-service.arena", "<gray>Arena <white><arena></white>: <border>.", "arena", a.id, "border", a.describe())); return; }
             plugin.send(player, a.undo() ? "<yellow>Removed the last corner. <gray>" + a.points().size() + " left." : "<gray>No corners to remove.");
             save();
             show(player, a);
@@ -1403,7 +1420,7 @@ public final class WorldBossService implements Listener {
         if (f == null) return;
         if ("boss".equals(victimKind) && plugin.getConfig().getBoolean("world-bosses.only-hurt-from-inside", true) && !f.arena.contains(player.getLocation())) {
             event.setCancelled(true);
-            player.sendActionBar(Text.mm("<red>Step inside the arena to hurt " + f.def.name()));
+            player.sendActionBar(Text.mm(T.t("world-boss-service.step-inside-the-arena-to", "<red>Step inside the arena to hurt <boss>", "boss", f.def.name())));
             return;
         }
         if ("boss".equals(victimKind)) {

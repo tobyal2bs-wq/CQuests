@@ -1,5 +1,7 @@
 package com.cquests.adventure;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.gui.LockedMenu;
 import com.cquests.gui.QuestMenu;
@@ -121,7 +123,7 @@ public final class QuestAdventures implements Listener {
         plugin.nameplates().spawn(new NpcDef(label,"<gold>Pip</gold>","Your companion","WEAPONSMITH","PLAINS",
                 plugin.progression().level(plugin.questManager().data(player)),1,true,false,false,"",List.of(),List.of()),villager,at);
         plugin.nameplates().show(player,label,true);
-        plugin.send(player,plugin.characters().label("pip","<gold>Pip")+" <gray>jogs up beside you. <white>"+plugin.characters().text("pip","arrival",plugin.memories().companionLine(plugin.questManager().data(player))));
+        plugin.send(player,T.t("quest-adventures.jogs-up-beside-you", "<pip> <gray>jogs up beside you. <white><player>", "pip", plugin.characters().label("pip","<gold>Pip"), "player", plugin.characters().text("pip","arrival",plugin.memories().companionLine(plugin.questManager().data(player)))));
         villager.getScheduler().runAtFixedRate(plugin,t->{if(!tick(session,false)){t.cancel();return;}},()->retired(companions,id,session),5,5);
         return true;
     }
@@ -182,7 +184,7 @@ public final class QuestAdventures implements Listener {
      */
     public boolean testBoss(Player player,String quest){
         Boss b=bossDefs.get(quest.toLowerCase(Locale.ROOT));
-        if(b==null){plugin.send(player,"<red>No boss for "+Text.escape(quest)+". Bosses: <white>"+String.join(", ",bossIds()));return false;}
+        if(b==null){plugin.send(player,T.t("quest-adventures.no-boss-for-bosses", "<red>No boss for <quest>. Bosses: <white><bossids>", "quest", Text.escape(quest), "bossids", String.join(", ",bossIds())));return false;}
         var old=bosses.get(player.getUniqueId());if(old!=null)stop(bosses,player.getUniqueId(),old);
         return summon(player,b,true,null);
     }
@@ -221,21 +223,21 @@ public final class QuestAdventures implements Listener {
     public static final List<String> EVENTS=List.of("lightning","darkness","slowness","levitate","roar");
     private boolean summon(Player player,Boss b,boolean test,String pipMode){
         UUID id=player.getUniqueId();
-        if(player.getWorld().getDifficulty()==Difficulty.PEACEFUL){plugin.send(player,"<yellow>Bosses cannot wake in a Peaceful world.");return false;}
+        if(player.getWorld().getDifficulty()==Difficulty.PEACEFUL){plugin.send(player,T.t("quest-adventures.bosses-cannot-wake-in-a", "<yellow>Bosses cannot wake in a Peaceful world."));return false;}
         boolean allowed=b.quest().equals("story_aldis")?plugin.getConfig().getBoolean("adventures.wither",true):true;
         if(!running||!bossesEnabled||!allowed||!plugin.getConfig().getBoolean("adventures.enabled",true)
                 ||(!test&&(!playable(player)||!active(player,b.quest())))||bosses.containsKey(id))return false;
-        if(!test&&!plugin.memories().near(player,b.giver())){plugin.send(player,"<yellow>Stand near "+Text.escape(plugin.npcs().name(b.giver()))+" to call it.");return false;}
+        if(!test&&!plugin.memories().near(player,b.giver())){plugin.send(player,T.t("quest-adventures.stand-near-to-call-it", "<yellow>Stand near <giver> to call it.", "giver", Text.escape(plugin.npcs().name(b.giver()))));return false;}
         Location at=ground(player.getLocation(),6);
-        if(at==null){plugin.send(player,"<yellow>Find clear, solid ground with space beside you first.");return false;}
+        if(at==null){plugin.send(player,T.t("quest-adventures.find-clear-solid-ground-with", "<yellow>Find clear, solid ground with space beside you first."));return false;}
         // A bounded clear volume avoids summoning inside walls, trees or a cave ceiling.
         for(int x=-1;x<=1;x++)for(int y=0;y<4;y++)for(int z=-1;z<=1;z++){
             var check=at.clone().add(x,y,z);if(!Bukkit.isOwnedByCurrentRegion(check)||!check.getBlock().getType().isAir()){
-                plugin.send(player,"<yellow>It needs a clear space above solid ground.");return false;
+                plugin.send(player,T.t("quest-adventures.it-needs-a-clear-space", "<yellow>It needs a clear space above solid ground."));return false;
             }
         }
         var slots=bossSlots;
-        if(!slots.tryAcquire()){plugin.send(player,"<yellow>Too many boss fights are running on the server. Try again in a minute.");return false;}
+        if(!slots.tryAcquire()){plugin.send(player,T.t("quest-adventures.too-many-boss-fights-are", "<yellow>Too many boss fights are running on the server. Try again in a minute."));return false;}
         Mob mob;
         try{mob=(Mob)at.getWorld().spawn(at,b.entity().getEntityClass(),e->{
             mark(e,player,"boss");e.setVisibleByDefault(false);
@@ -244,7 +246,7 @@ public final class QuestAdventures implements Listener {
                 if(b.weapon()!=null&&m.getEquipment()!=null){m.getEquipment().setItemInMainHand(new org.bukkit.inventory.ItemStack(b.weapon()));m.getEquipment().setItemInMainHandDropChance(0f);}
                 if(m instanceof Ageable a)a.setAdult();}
             if(e instanceof Wither w){w.setInvulnerableTicks(0);if(w.getBossBar()!=null)w.getBossBar().setVisible(false);}
-        });}catch(RuntimeException error){slots.release();plugin.send(player,"<yellow>It could not enter this area. Try another clear spot.");return false;}
+        });}catch(RuntimeException error){slots.release();plugin.send(player,T.t("quest-adventures.it-could-not-enter-this", "<yellow>It could not enter this area. Try another clear spot."));return false;}
         if(!mob.isValid()){slots.release();return false;}
         Session session=new Session(player,b.quest(),mob);session.boss=b;session.test=test;
         if(pipMode!=null&&(test||pipLeft(player)>0)){
@@ -253,21 +255,21 @@ public final class QuestAdventures implements Listener {
                 try{session.pip=spot.getWorld().spawn(spot,Villager.class,v->{
                     mark(v,player,"pip");v.setVisibleByDefault(false);v.setInvulnerable(true);v.setCollidable(false);v.setSilent(true);
                     v.setRemoveWhenFarAway(false);v.setCanPickupItems(false);v.setProfession(Villager.Profession.WEAPONSMITH);v.setAdult();v.setBreed(false);
-                    v.customName(Text.mm("<gold>Pip"));v.setCustomNameVisible(true);
+                    v.customName(Text.mm(T.t("quest-adventures.pip", "<gold>Pip")));v.setCustomNameVisible(true);
                     if(v.getEquipment()!=null)v.getEquipment().setItemInMainHand(new org.bukkit.inventory.ItemStack("sword".equals(pipMode)?Material.IRON_SWORD:Material.BOW));
                 });
                 session.pipMode=pipMode;player.showEntity(plugin,session.pip);
                 if(!test)plugin.questManager().data(player).addPipHelped();
-                plugin.send(player,"<gold>Pip <white>runs in with "+("sword".equals(pipMode)?"a sword":"a bow")+"! <gray>"+(test?"(test)":pipLeft(player)+" more fights Pip can help with."));
+                plugin.send(player,T.t("quest-adventures.pip-runs-in-with", "<gold>Pip <white>runs in with <bow>! <gray><with>", "bow", ("sword".equals(pipMode)?"a sword":"a bow"), "with", (test?"(test)":pipLeft(player)+" more fights Pip can help with.")));
                 }catch(RuntimeException ignored){session.pip=null;}
             }
         }session.slots=slots;session.nextEvent=System.nanoTime()+20_000_000_000L;
         session.bar=net.kyori.adventure.bossbar.BossBar.bossBar(Text.mm(b.name()),1f,net.kyori.adventure.bossbar.BossBar.Color.RED,net.kyori.adventure.bossbar.BossBar.Overlay.NOTCHED_10);
         bosses.put(id,session);player.showEntity(plugin,mob);player.showBossBar(session.bar);
         mob.getScheduler().runAtFixedRate(plugin,t->{if(!tick(session,true))t.cancel();},()->retired(bosses,id,session),1,5);
-        player.showTitle(net.kyori.adventure.title.Title.title(Text.mm(b.name()),Text.mm("<gray>Stand your ground.")));
-        if(test)plugin.send(player,"<gray>Test fight: nothing counts and nothing drops. <yellow>/cq test bossphase</yellow> jumps to half health, <yellow>/cq test bossstop</yellow> ends it.");
-        plugin.send(player,b.name()+" <gold>wakes. <white>Stand your ground.");return true;
+        player.showTitle(net.kyori.adventure.title.Title.title(Text.mm(b.name()),Text.mm(T.t("quest-adventures.stand-your-ground", "<gray>Stand your ground."))));
+        if(test)plugin.send(player,T.t("quest-adventures.test-fight-nothing-counts-and", "<gray>Test fight: nothing counts and nothing drops. <yellow>/cq test bossphase</yellow> jumps to half health, <yellow>/cq test bossstop</yellow> ends it."));
+        plugin.send(player,T.t("quest-adventures.wakes-stand-your-ground", "<name> <gold>wakes. <white>Stand your ground.", "name", b.name()));return true;
     }
     private static void maxHealth(LivingEntity e,double health){
         var registry=org.bukkit.Registry.ATTRIBUTE;
@@ -291,7 +293,7 @@ public final class QuestAdventures implements Listener {
         if(b==null)return;
         if(!session.phased&&mob.getHealth()<=max/2){
             session.phased=true;
-            player.showTitle(net.kyori.adventure.title.Title.title(Text.mm(b.name()),Text.mm("<red>is furious!")));
+            player.showTitle(net.kyori.adventure.title.Title.title(Text.mm(b.name()),Text.mm(T.t("quest-adventures.is-furious", "<red>is furious!"))));
             if(session.bar!=null)session.bar.color(net.kyori.adventure.bossbar.BossBar.Color.PURPLE);
             events(session);
             if(b.minion()!=null)for(int i=0;i<b.minions();i++){
@@ -450,7 +452,7 @@ public final class QuestAdventures implements Listener {
         var session=bosses.get(id);
         if(session!=null&&session.mob.getUniqueId().equals(event.getEntity().getUniqueId())&&bosses.remove(id,session)){
             retired(bosses,id,session);String type=event.getEntity().getType().name();Boss b=session.boss;
-            if(session.test){Sched.entity(session.player,()->plugin.send(session.player,"<green>Test boss defeated. <gray>Nothing was counted."));return;}
+            if(session.test){Sched.entity(session.player,()->plugin.send(session.player,T.t("quest-adventures.test-boss-defeated-nothing-was", "<green>Test boss defeated. <gray>Nothing was counted.")));return;}
             Sched.entity(session.player,()->{if(running&&active(session.player,session.quest)){
                 plugin.questManager().progress(session.player,ObjectiveType.KILL,type,1,true);
                 if(b!=null&&plugin.discord()!=null)plugin.discord().bossDefeated(session.player,Text.plain(Text.mm(b.name())));

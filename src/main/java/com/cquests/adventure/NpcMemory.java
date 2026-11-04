@@ -1,5 +1,7 @@
 package com.cquests.adventure;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.PlayerData;
 import com.cquests.gui.LockedMenu;
@@ -85,7 +87,7 @@ public final class NpcMemory {
         private boolean used;
         ChoiceMenu(Player player,Decision decision) {
             this.player=player;this.decision=decision;
-            inventory=Bukkit.createInventory(this,27,Text.mm("<dark_gray>A promise to remember"));
+            inventory=Bukkit.createInventory(this,27,Text.mm(T.t("npc-memory.a-promise-to-remember", "<dark_gray>A promise to remember")));
             for(int i=0;i<27;i++)inventory.setItem(i,QuestMenu.item(Material.GRAY_STAINED_GLASS_PANE," ",List.of()));
             inventory.setItem(4,QuestMenu.item(Material.WRITABLE_BOOK,"<gold>They will remember your answer",DialogueLines.wrap(plugin.questManager().fill(decision.prompt(),player))));
             inventory.setItem(11,QuestMenu.item(Material.SUNFLOWER,"<white>"+Text.escape(decision.kind()),List.of("<gray>Give them your word.")));
@@ -101,7 +103,7 @@ public final class NpcMemory {
             used=true;var data=plugin.questManager().data(player);
             if(!data.decide(decision.quest(),slot==11?"kind":"selfish")){player.closeInventory();return;}
             plugin.store().saveNow(data);plugin.mail().notifyNew(player);player.closeInventory();
-            plugin.send(player,"<gold>"+Text.escape(plugin.npcs().get(decision.npc()).name())+" <gray>will remember that.");
+            plugin.send(player,T.t("npc-memory.will-remember-that", "<gold><name> <gray>will remember that.", "name", Text.escape(plugin.npcs().get(decision.npc()).name())));
             var npc=plugin.npcs().get(decision.npc());
             plugin.speech().start(player,npc,List.of(plugin.questManager().fill(slot==11?decision.warm():decision.wary(),player)),()->{});
         }

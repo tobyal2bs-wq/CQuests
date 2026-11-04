@@ -1,5 +1,7 @@
 package com.cquests.farm;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.model.ObjectiveType;
 import com.cquests.util.Sched;
@@ -94,9 +96,9 @@ public final class FarmService {
         ItemStack item=new ItemStack(tier.material());
         item.editMeta(meta->{
             meta.displayName(Text.mm("<!italic><gold><bold>"+Text.escape(tier.name())));
-            meta.lore(List.of(Text.mm("<!italic><gray>Personal farm tool • wheat only"),
-                    Text.mm("<!italic><aqua>Skill XP ×"+tier.multiplier()+" <gray>• extra wheat "+Math.round(tier.chance()*100)+"%"),
-                    Text.mm("<!italic><gray>Returns to your private locker when you leave.")));
+            meta.lore(List.of(Text.mm(T.t("farm-service.personal-farm-tool-wheat-only", "<!italic><gray>Personal farm tool • wheat only")),
+                    Text.mm(T.t("farm-service.skill-xp-extra-wheat", "<!italic><aqua>Skill XP ×<multiplier> <gray>• extra wheat <chance>%", "multiplier", tier.multiplier(), "chance", Math.round(tier.chance()*100))),
+                    Text.mm(T.t("farm-service.returns-to-your-private-locker", "<!italic><gray>Returns to your private locker when you leave."))));
             meta.setUnbreakable(true);
             var p=meta.getPersistentDataContainer();p.set(hoeKey,PersistentDataType.BYTE,(byte)1);
             p.set(ownerKey,PersistentDataType.STRING,player.getUniqueId().toString());p.set(tierKey,PersistentDataType.INTEGER,tier.id());
@@ -127,14 +129,14 @@ public final class FarmService {
     private void applyUpdate(Player player,boolean auditInventory,boolean isInside){
         if(isInside){
             boolean entered=inside.add(player.getUniqueId());
-            if(entered){plugin.send(player,"<gold>Harvest grounds <gray>• commands are paused; your tool is bound to this area.");equip(player);}
+            if(entered){plugin.send(player,T.t("farm-service.harvest-grounds-commands-are-paused", "<gold>Harvest grounds <gray>• commands are paused; your tool is bound to this area."));equip(player);}
             if(!entered&&!auditInventory)return;
             int count=0;boolean invalid=marked(player.getItemOnCursor());
             for(ItemStack item:player.getInventory().getContents())if(marked(item)){count+=item.getAmount();invalid|=!owned(player,item);}
             if(invalid||count>1){strip(player);equip(player);}
         }else if(inside.remove(player.getUniqueId())||(auditInventory&&hasTool(player))){
             strip(player);cooldowns.remove(player.getUniqueId());
-            player.sendActionBar(Text.mm("<gray>Your hoe is safe in your private field locker."));
+            player.sendActionBar(Text.mm(T.t("farm-service.your-hoe-is-safe-in", "<gray>Your hoe is safe in your private field locker.")));
         }
     }
     private boolean hasTool(Player player){for(ItemStack item:player.getInventory().getContents())if(marked(item))return true;return marked(player.getItemOnCursor());}
@@ -152,7 +154,7 @@ public final class FarmService {
     public void hint(Player player){
         long now=System.currentTimeMillis();Long last=hints.get(player.getUniqueId());
         if(last!=null&&now-last<3000)return;hints.put(player.getUniqueId(),now);
-        if(player.getGameMode()==GameMode.CREATIVE){player.sendActionBar(Text.mm("<yellow>Switch to survival mode to harvest with the farm hoe."));return;}
+        if(player.getGameMode()==GameMode.CREATIVE){player.sendActionBar(Text.mm(T.t("farm-service.switch-to-survival-mode-to", "<yellow>Switch to survival mode to harvest with the farm hoe.")));return;}
         if(!hasTool(player)&&inFarm(player))equip(player,false);
         player.sendActionBar(Text.mm(hasTool(player)?"<yellow>Hold your farm hoe and left-click mature wheat.":"<yellow>Stand inside the field to get your farm hoe."));
     }
@@ -164,27 +166,27 @@ public final class FarmService {
         // The first tool is free: hand it out on the way in instead of making players find the anvil first.
         Tier first=tiers.get(1);
         if(data.hoeTier()==0&&first!=null&&first.cost()<=0&&plugin.progression().level(data)>=first.level()&&inFarm(player)){
-            data.setHoeTier(1);plugin.send(player,"<green>You got a free "+Text.escape(first.name())+"<gray>. Left-click mature wheat to harvest it; it regrows in a second.");
+            data.setHoeTier(1);plugin.send(player,T.t("farm-service.you-got-a-free-left", "<green>You got a free <name><gray>. Left-click mature wheat to harvest it; it regrows in a second.", "name", Text.escape(first.name())));
         }
         Tier tier=tiers.get(data.hoeTier());
         if(tier==null||!inFarm(player))return false;
         strip(player);
         int slot=-1;
         for(int i=0;i<9;i++){ItemStack stack=player.getInventory().getItem(i);if(stack==null||stack.getType().isAir()){slot=i;break;}}
-        if(slot<0){plugin.send(player,"<yellow>Make room in your hotbar, then use the field locker.");return false;}
+        if(slot<0){plugin.send(player,T.t("farm-service.make-room-in-your-hotbar", "<yellow>Make room in your hotbar, then use the field locker."));return false;}
         player.getInventory().setItem(slot,tool(player,tier));
         if(select&&slot<9)player.getInventory().setHeldItemSlot(slot);
         return true;
     }
     public boolean purchase(Player player,int id){
         Tier tier=tiers.get(id);var data=plugin.questManager().data(player);
-        if(tier==null||id!=data.hoeTier()+1){plugin.send(player,"<yellow>Upgrades follow the tool tiers in order.");return false;}
-        if(plugin.progression().level(data)<tier.level()){plugin.send(player,"<red>Wayfarer level "+tier.level()+" is required.");return false;}
-        if(tier.cost()>0&&!economy.available()){plugin.send(player,"<red>The economy provider is unavailable. No money was taken.");return false;}
-        if(!economy.withdraw(player,tier.cost())){plugin.send(player,"<red>Purchase declined. Check your balance or economy provider.");return false;}
+        if(tier==null||id!=data.hoeTier()+1){plugin.send(player,T.t("farm-service.upgrades-follow-the-tool-tiers", "<yellow>Upgrades follow the tool tiers in order."));return false;}
+        if(plugin.progression().level(data)<tier.level()){plugin.send(player,T.t("farm-service.wayfarer-level-is-required", "<red>Wayfarer level <level> is required.", "level", tier.level()));return false;}
+        if(tier.cost()>0&&!economy.available()){plugin.send(player,T.t("farm-service.the-economy-provider-is-unavailable", "<red>The economy provider is unavailable. No money was taken."));return false;}
+        if(!economy.withdraw(player,tier.cost())){plugin.send(player,T.t("farm-service.purchase-declined-check-your-balance", "<red>Purchase declined. Check your balance or economy provider."));return false;}
         data.setHoeTier(id);plugin.store().saveNow(data);strip(player);if(inFarm(player))equip(player);
         player.playSound(player.getLocation(),Sound.BLOCK_ANVIL_USE,.5f,1.3f);
-        plugin.send(player,"<green>Unlocked "+Text.escape(tier.name())+"<gray>. Stored in your personal locker.");
+        plugin.send(player,T.t("farm-service.unlocked-stored-in-your-personal", "<green>Unlocked <name><gray>. Stored in your personal locker.", "name", Text.escape(tier.name())));
         return true;
     }
     /** Keep dry soil intact only during an accepted crop's regrowth gap. */
@@ -260,7 +262,7 @@ public final class FarmService {
     public boolean validUpgrader(Player player,Spot point){if(point==null||!upgraders.contains(point)||!point.world().equals(player.getWorld().getName()))return false;var at=player.getEyeLocation();double x=at.getX()-point.x()-.5,y=at.getY()-point.y()-.5,z=at.getZ()-point.z()-.5;return x*x+y*y+z*z<=36;}
     public Spot nearbyUpgrader(Player player){for(var point:upgraders)if(validUpgrader(player,point))return point;return null;}
     public boolean anvilItem(ItemStack item){return item!=null&&item.getType()==Material.ANVIL&&item.hasItemMeta()&&item.getItemMeta().getPersistentDataContainer().has(anvilKey,PersistentDataType.BYTE);}
-    public ItemStack anvilItem(){var item=new ItemStack(Material.ANVIL);item.editMeta(meta->{meta.displayName(Text.mm("<!italic><gold><bold>Fieldsmith Anvil"));meta.lore(List.of(Text.mm("<gray>OP: place on solid ground to create a workshop."),Text.mm("<yellow>Players: right-click to upgrade your hoe.")));meta.getPersistentDataContainer().set(anvilKey,PersistentDataType.BYTE,(byte)1);});return item;}
+    public ItemStack anvilItem(){var item=new ItemStack(Material.ANVIL);item.editMeta(meta->{meta.displayName(Text.mm(T.t("farm-service.fieldsmith-anvil", "<!italic><gold><bold>Fieldsmith Anvil")));meta.lore(List.of(Text.mm(T.t("farm-service.op-place-on-solid-ground", "<gray>OP: place on solid ground to create a workshop.")),Text.mm(T.t("farm-service.players-right-click-to-upgrade", "<yellow>Players: right-click to upgrade your hoe."))));meta.getPersistentDataContainer().set(anvilKey,PersistentDataType.BYTE,(byte)1);});return item;}
     public String role(String npc){for(String role:List.of("shop","upgrader","locker"))if(npc.equalsIgnoreCase(config.getString("npcs."+role,"")))return role;return null;}
     private void saveConfig(){try{config.save(file);}catch(Exception e){throw new IllegalStateException("Farm configuration could not be saved",e);}}
     public synchronized void shutdown(){running=false;savePending();writer.shutdown();try{if(!writer.awaitTermination(10,TimeUnit.SECONDS))plugin.getLogger().warning("Farm writer did not drain within 10 seconds");}catch(InterruptedException e){Thread.currentThread().interrupt();}}

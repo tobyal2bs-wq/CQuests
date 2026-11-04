@@ -1,5 +1,7 @@
 package com.cquests.merchant;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.gui.*;
 import org.bukkit.*;
@@ -32,10 +34,10 @@ public final class MerchantEditor implements LockedMenu {
         inventory.setItem(51,QuestMenu.item(Material.BARRIER,"<red>Close",List.of("<gray>Unsaved changes are discarded.")));
     }
     private void preview(int slot,ItemStack item,String title){if(item==null){inventory.setItem(slot,QuestMenu.item(Material.LIGHT_GRAY_STAINED_GLASS_PANE,"<yellow>"+title,List.of("<gray>Click, then click a stack in your inventory.")));return;}
-        ItemStack preview=item.clone();preview.editMeta(meta->{var lore=meta.lore()==null?new ArrayList<net.kyori.adventure.text.Component>():new ArrayList<>(meta.lore());lore.add(com.cquests.util.Text.mm("<yellow>Editor field: "+title));meta.lore(lore);});inventory.setItem(slot,preview);}
+        ItemStack preview=item.clone();preview.editMeta(meta->{var lore=meta.lore()==null?new ArrayList<net.kyori.adventure.text.Component>():new ArrayList<>(meta.lore());lore.add(com.cquests.util.Text.mm(T.t("merchant-editor.editor-field", "<yellow>Editor field: <title>", "title", title)));meta.lore(lore);});inventory.setItem(slot,preview);}
     public void capture(ItemStack item){
-        if(!allowed())return;if(field==31||field==33){plugin.send(player,"<yellow>Use the amount buttons to set the selected price.");return;}
-        if(item==null||item.getType().isAir()||!plugin.merchants().safeItem(item)){plugin.send(player,"<red>Use an ordinary item template. Bound tools, wands and container items cannot be traded.");return;}
+        if(!allowed())return;if(field==31||field==33){plugin.send(player,T.t("merchant-editor.use-the-amount-buttons-to", "<yellow>Use the amount buttons to set the selected price."));return;}
+        if(item==null||item.getType().isAir()||!plugin.merchants().safeItem(item)){plugin.send(player,T.t("merchant-editor.use-an-ordinary-item-template", "<red>Use an ordinary item template. Bound tools, wands and container items cannot be traded."));return;}
         if(field==20)first=item.clone();else if(field==22)second=item.clone();else reward=item.clone();draw();
     }
     public void click(int slot,ClickType type){
@@ -46,8 +48,8 @@ public final class MerchantEditor implements LockedMenu {
         if(delta!=0){if(field==33)sunflowers=Math.max(0,Math.min(1_000_000_000L,sunflowers+delta));else if(field==31)money=Math.max(0,Math.min(1_000_000_000L,money+delta));else{ItemStack item=field==20?first:field==22?second:reward;if(item!=null)item.setAmount(Math.max(1,Math.min(item.getMaxStackSize(),item.getAmount()+delta)));}draw();return;}
         if(slot==47||slot==49){try{
             TradeOffer offer=slot==47?null:new TradeOffer(first,second,reward,money,sunflowers);
-            if(!plugin.merchants().offer(player,id,selected,offer,revision)){plugin.send(player,"<yellow>Save rejected: merchant changed, permission changed or template is forbidden. Reopen the editor.");player.closeInventory();return;}
-            plugin.send(player,"<green>Saved offer "+(selected+1)+" for "+id+".");load(selected);
+            if(!plugin.merchants().offer(player,id,selected,offer,revision)){plugin.send(player,T.t("merchant-editor.save-rejected-merchant-changed-permission", "<yellow>Save rejected: merchant changed, permission changed or template is forbidden. Reopen the editor."));player.closeInventory();return;}
+            plugin.send(player,T.t("merchant-editor.saved-offer-for", "<green>Saved offer <selected> for <id>.", "selected", (selected+1), "id", id));load(selected);
         }catch(IllegalArgumentException e){plugin.send(player,"<red>"+e.getMessage());}}
     }
 }

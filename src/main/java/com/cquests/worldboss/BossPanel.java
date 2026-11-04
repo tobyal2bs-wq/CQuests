@@ -1,5 +1,7 @@
 package com.cquests.worldboss;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.gui.LockedMenu;
 import com.cquests.gui.QuestMenu;
@@ -36,11 +38,11 @@ public final class BossPanel implements LockedMenu {
 
     private BossPanel(CQuestsPlugin plugin, Player player) {
         this.plugin = plugin; this.player = player;
-        this.inventory = Bukkit.createInventory(this, 54, Text.mm("<dark_gray>World boss controls"));
+        this.inventory = Bukkit.createInventory(this, 54, Text.mm(T.t("boss-panel.world-boss-controls", "<dark_gray>World boss controls")));
     }
 
     public static void open(CQuestsPlugin plugin, Player player) {
-        if (!player.hasPermission("cquests.admin")) { plugin.send(player, "<red>Only operators can open the boss controls."); return; }
+        if (!player.hasPermission("cquests.admin")) { plugin.send(player, T.t("boss-panel.only-operators-can-open-the", "<red>Only operators can open the boss controls.")); return; }
         Sched.entity(player, () -> {
             BossPanel panel = new BossPanel(plugin, player);
             panel.fill();
@@ -107,7 +109,7 @@ public final class BossPanel implements LockedMenu {
                 return;
             } else {
                 player.closeInventory();
-                if (wb.spawnAt(player, id, "main")) plugin.send(player, "<green>Summoning it at the main arena...");
+                if (wb.spawnAt(player, id, "main")) plugin.send(player, T.t("boss-panel.summoning-it-at-the-main", "<green>Summoning it at the main arena..."));
                 return;
             }
             Sched.entityLater(player, 2, this::fill);
@@ -116,8 +118,8 @@ public final class BossPanel implements LockedMenu {
         switch (slot) {
             case SLOT_SCHEDULE -> { wb.scheduleToggle(player, !wb.scheduleOn()); fill(); }
             case SLOT_SPAWN -> { wb.setSpawn(player, "main"); fill(); }
-            case SLOT_STOP -> { wb.stopAll(); plugin.send(player, "<gray>Every world boss was sent away."); Sched.entityLater(player, 2, this::fill); }
-            case SLOT_SELFTEST -> { player.closeInventory(); plugin.send(player, "<gray>Spawning every world boss near the world spawn..."); wb.selfTest(player); }
+            case SLOT_STOP -> { wb.stopAll(); plugin.send(player, T.t("boss-panel.every-world-boss-was-sent", "<gray>Every world boss was sent away.")); Sched.entityLater(player, 2, this::fill); }
+            case SLOT_SELFTEST -> { player.closeInventory(); plugin.send(player, T.t("boss-panel.spawning-every-world-boss-near", "<gray>Spawning every world boss near the world spawn...")); wb.selfTest(player); }
             case SLOT_BACK -> { player.closeInventory(); QuestMenu.open(plugin, player); }
             case SLOT_CLOSE -> player.closeInventory();
             default -> { }

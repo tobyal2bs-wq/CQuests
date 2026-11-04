@@ -1,5 +1,7 @@
 package com.cquests.command;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.PlayerData;
 import com.cquests.finale.StoryBook;
@@ -92,7 +94,7 @@ final class TestCommand {
             return;
         }
         if (!(sender instanceof Player player)) {
-            plugin.send(sender, "<red>Run this one in game; it plays on you.");
+            plugin.send(sender, T.t("test-command.run-this-one-in-game", "<red>Run this one in game; it plays on you."));
             return;
         }
         String arg = args.length > 2 ? args[2] : "";
@@ -103,7 +105,7 @@ final class TestCommand {
                 case "chapter" -> chapter(player, arg);
                 case "ending" -> {
                     plugin.finale().play(player, true);
-                    plugin.send(player, "<gray>Playing the ending as a preview: no rewards, no achievement.");
+                    plugin.send(player, T.t("test-command.playing-the-ending-as-a", "<gray>Playing the ending as a preview: no rewards, no achievement."));
                 }
                 case "achievement" -> achievement(player, arg);
                 case "finish" -> finish(player, arg);
@@ -111,14 +113,14 @@ final class TestCommand {
                 case "roam" -> roam(player, arg);
                 case "book" -> StoryBook.open(plugin, player);
                 case "boss" -> {
-                    if (arg.isBlank()) plugin.send(player, "<yellow>/cq test boss <quest></yellow> <gray>Bosses: <white>" + String.join(", ", plugin.adventures().bossIds()));
-                    else if (!plugin.adventures().testBoss(player, arg)) plugin.send(player, "<yellow>The boss could not start. Stand on open, solid ground with space around you, not in Peaceful.");
+                    if (arg.isBlank()) plugin.send(player, T.t("test-command.cq-test-boss-bosses", "<yellow>/cq test boss <quest></yellow> <gray>Bosses: <white><bossids>", "bossids", String.join(", ", plugin.adventures().bossIds())));
+                    else if (!plugin.adventures().testBoss(player, arg)) plugin.send(player, T.t("test-command.the-boss-could-not-start", "<yellow>The boss could not start. Stand on open, solid ground with space around you, not in Peaceful."));
                 }
-                case "bossphase" -> { if (!plugin.adventures().testPhase(player)) plugin.send(player, "<yellow>Start one first with /cq test boss <quest>."); }
+                case "bossphase" -> { if (!plugin.adventures().testPhase(player)) plugin.send(player, T.t("test-command.start-one-first-with-cq", "<yellow>Start one first with /cq test boss <quest>.")); }
                 case "bossstop" -> plugin.send(player, plugin.adventures().testStop(player) ? "<gray>Boss fight ended." : "<gray>No boss fight is running for you.");
-                case "bossevent" -> { if (!plugin.adventures().testEvent(player, arg)) plugin.send(player, "<yellow>Events: " + String.join(", ", com.cquests.adventure.QuestAdventures.EVENTS)); }
+                case "bossevent" -> { if (!plugin.adventures().testEvent(player, arg)) plugin.send(player, T.t("test-command.events", "<yellow>Events: <events>", "events", String.join(", ", com.cquests.adventure.QuestAdventures.EVENTS))); }
                 case "discord" -> discord(player, arg);
-                case "pip" -> { if (!plugin.adventures().testPip(player, arg)) plugin.send(player, "<yellow>The test fight could not start. Stand on open, solid ground, not in Peaceful."); }
+                case "pip" -> { if (!plugin.adventures().testPip(player, arg)) plugin.send(player, T.t("test-command.the-test-fight-could-not", "<yellow>The test fight could not start. Stand on open, solid ground, not in Peaceful.")); }
                 case "companion" -> plugin.send(player, plugin.adventures().testCompanion(player)
                         ? "<gray>Pip follows you for a minute, like on an escort quest. <yellow>/cq test bossstop</yellow> sends Pip home."
                         : "<yellow>Pip could not come. Stand on open, solid ground.");
@@ -135,13 +137,12 @@ final class TestCommand {
                 case "cost" -> cost(player, arg);
                 case "where" -> plugin.directions().explain(player, true);
                 case "all" -> {
-                    plugin.send(player, "<gold>Every boss</gold> <gray>(click to start a test fight)");
+                    plugin.send(player, T.t("test-command.every-boss-click-to-start", "<gold>Every boss</gold> <gray>(click to start a test fight)"));
                     for (String id : plugin.adventures().bossIds()) {
                         Quest q = plugin.quests().get(id);
-                        player.sendMessage(Text.mm("<yellow><click:run_command:'/cq test boss " + id + "'><hover:show_text:'Start this test fight'> ▶ " + id
-                                + "</hover></click> <gray>" + (q == null ? "(chapter switched off)" : "Chapter " + q.chapter() + ": " + Text.escape(q.name()))));
+                        player.sendMessage(Text.mm(T.t("test-command.line", "<yellow><click:run_command:'/cq test boss <id>'><hover:show_text:'Start this test fight'> ▶ <id></hover></click> <gray><name>", "id", id, "name", (q == null ? "(chapter switched off)" : "Chapter " + q.chapter() + ": " + Text.escape(q.name())))));
                     }
-                    plugin.send(player, "<gray>Also: /cq test worldbossnext, worldboss <id>, tutorial, season <id>, invite, bossnext, companion, pip <bow|sword>, celebrate, chapter <n>, ending, bossevent <event>, discord <event>, where, welcome.");
+                    plugin.send(player, T.t("test-command.also-cq-test-worldbossnext-worldboss", "<gray>Also: /cq test worldbossnext, worldboss <id>, tutorial, season <id>, invite, bossnext, companion, pip <bow|sword>, celebrate, chapter <n>, ending, bossevent <event>, discord <event>, where, welcome."));
                 }
                 default -> help(player);
             }
@@ -151,21 +152,21 @@ final class TestCommand {
     /** Each call stops the current test fight and starts the next boss, so every boss and mini boss can be seen in turn. */
     private void bossNext(Player player) {
         List<String> ids = new java.util.ArrayList<>(plugin.adventures().bossIds());
-        if (ids.isEmpty()) { plugin.send(player, "<yellow>No bosses in bosses.yml."); return; }
+        if (ids.isEmpty()) { plugin.send(player, T.t("test-command.no-bosses-in-bosses-yml", "<yellow>No bosses in bosses.yml.")); return; }
         int index = Math.floorMod(nextBoss.merge(player.getUniqueId(), 1, Integer::sum) - 1, ids.size());
         plugin.adventures().testStop(player);
         String id = ids.get(index);
-        plugin.send(player, "<gold>Boss " + (index + 1) + "/" + ids.size() + ":</gold> <white>" + id + " <gray>(run /cq test bossnext again for the next one)");
-        if (!plugin.adventures().testBoss(player, id)) plugin.send(player, "<yellow>The boss could not start. Stand on open, solid ground with space around you, not in Peaceful.");
+        plugin.send(player, T.t("test-command.boss-run-cq-test-bossnext", "<gold>Boss <index>/<size>:</gold> <white><id> <gray>(run /cq test bossnext again for the next one)", "index", (index + 1), "size", ids.size(), "id", id));
+        if (!plugin.adventures().testBoss(player, id)) plugin.send(player, T.t("test-command.the-boss-could-not-start", "<yellow>The boss could not start. Stand on open, solid ground with space around you, not in Peaceful."));
     }
 
     /** Each call ends your test world boss and starts the next one, so all of them can be seen in turn. */
     private void worldBossNext(Player player) {
         List<String> ids = plugin.worldBosses().ids();
-        if (ids.isEmpty()) { plugin.send(player, "<yellow>No bosses in worldbosses.yml."); return; }
+        if (ids.isEmpty()) { plugin.send(player, T.t("test-command.no-bosses-in-worldbosses-yml", "<yellow>No bosses in worldbosses.yml.")); return; }
         int index = Math.floorMod(nextWorldBoss.merge(player.getUniqueId(), 1, Integer::sum) - 1, ids.size());
         plugin.worldBosses().testStop(player);
-        plugin.send(player, "<gold>World boss " + (index + 1) + "/" + ids.size() + ":</gold> <white>" + ids.get(index) + " <gray>(run /cq test worldbossnext again for the next one)");
+        plugin.send(player, T.t("test-command.world-boss-run-cq-test", "<gold>World boss <index>/<size>:</gold> <white><index2> <gray>(run /cq test worldbossnext again for the next one)", "index", (index + 1), "size", ids.size(), "index2", ids.get(index)));
         plugin.worldBosses().test(player, ids.get(index));
     }
 
@@ -173,61 +174,57 @@ final class TestCommand {
     private void tutorial(Player player) {
         String id = plugin.getConfig().getString("quests.tutorial-quest", "tutorial");
         Quest quest = id == null || id.isBlank() ? null : plugin.quests().get(id);
-        if (quest == null) { plugin.send(player, "<yellow>No tutorial quest (quests.tutorial-quest in config.yml)."); return; }
+        if (quest == null) { plugin.send(player, T.t("test-command.no-tutorial-quest-quests-tutorial", "<yellow>No tutorial quest (quests.tutorial-quest in config.yml).")); return; }
         var data = plugin.questManager().data(player);
         synchronized (data) { data.remove(quest.id()); data.uncomplete(quest.id()); }
         plugin.questManager().forceAccept(player, quest);
-        plugin.send(player, "<gray>Tutorial started: <white>" + Text.escape(quest.name()) + "</white>. It pays out when every step is done.");
+        plugin.send(player, T.t("test-command.tutorial-started-it-pays-out", "<gray>Tutorial started: <white><name></white>. It pays out when every step is done.", "name", Text.escape(quest.name())));
     }
 
     /** Shows whether a season is on and gives you one of its daily quests to try. */
     private void season(Player player, String id) {
-        if (id.isBlank()) { plugin.send(player, "<yellow>/cq test season <id></yellow> <gray>Seasons: " + String.join(", ", plugin.seasons().ids())); return; }
+        if (id.isBlank()) { plugin.send(player, T.t("test-command.cq-test-season-seasons", "<yellow>/cq test season <id></yellow> <gray>Seasons: <list>", "list", String.join(", ", plugin.seasons().ids()))); return; }
         String season = id.toLowerCase(java.util.Locale.ROOT);
-        plugin.send(player, plugin.seasons().name(season) + " <gray>is <white>" + plugin.seasons().mode(season) + "</white>" + (plugin.seasons().active(season) ? " <green>(running)" : " <dark_gray>(not running)"));
+        plugin.send(player, T.t("test-command.is", "<season> <gray>is <white><season2></white><running>", "season", plugin.seasons().name(season), "season2", plugin.seasons().mode(season), "running", (plugin.seasons().active(season) ? " <green>(running)" : " <dark_gray>(not running)")));
         Quest pick = null;
         for (Quest q : plugin.quests().dailyPool()) if (season.equals(plugin.quests().season(q.id()))) { pick = q; break; }
-        if (pick == null) plugin.send(player, "<gray>No seasonal dailies for " + Text.escape(season) + " in quests.yml.");
+        if (pick == null) plugin.send(player, T.t("test-command.no-seasonal-dailies-for-in", "<gray>No seasonal dailies for <season> in quests.yml.", "season", Text.escape(season)));
         else {
             var data = plugin.questManager().data(player);
             if (!data.isActive(pick.id())) plugin.questManager().forceAccept(player, pick);
-            plugin.send(player, "<gray>Gave you the seasonal daily <white>" + Text.escape(pick.name()) + "</white>. <gray>Abandon it with /quests abandon " + pick.id());
+            plugin.send(player, T.t("test-command.gave-you-the-seasonal-daily", "<gray>Gave you the seasonal daily <white><name></white>. <gray>Abandon it with /quests abandon <id>", "name", Text.escape(pick.name()), "id", pick.id()));
         }
         for (var def : plugin.worldBosses().defs().values()) if (season.equals(def.season()))
-            player.sendMessage(Text.mm("<yellow><click:run_command:'/cq test worldboss " + def.id() + "'><hover:show_text:'Try this boss'> ▶ Seasonal boss: </hover></click>" + def.name()));
+            player.sendMessage(Text.mm(T.t("test-command.seasonal-boss", "<yellow><click:run_command:'/cq test worldboss <id>'><hover:show_text:'Try this boss'> ▶ Seasonal boss: </hover></click><boss>", "id", def.id(), "boss", def.name())));
     }
 
     private void coop(Player player) {
         Quest quest = null;
         for (Quest q : plugin.quests().dailyPool()) if (plugin.quests().together(q.id()) > 1) { quest = q; break; }
-        if (quest == null) { plugin.send(player, "<yellow>No co-op quests in quests.yml (together: 2 or more)."); return; }
+        if (quest == null) { plugin.send(player, T.t("test-command.no-co-op-quests-in", "<yellow>No co-op quests in quests.yml (together: 2 or more).")); return; }
         var data = plugin.questManager().data(player);
         if (!data.isActive(quest.id())) plugin.questManager().forceAccept(player, quest);
-        plugin.send(player, "<gold>" + Text.escape(quest.name()) + "</gold> <gray>needs <white>" + plugin.quests().together(quest.id())
-                + "</white> players. Friends near you now: <white>" + plugin.questManager().nearbyPlayers(player)
-                + "</white>. Progress only counts while they do the same thing within 5 seconds. Drop it with /quests abandon.");
+        plugin.send(player, T.t("test-command.needs-players-friends-near-you", "<gold><name></gold> <gray>needs <white><id></white> players. Friends near you now: <white><player></white>. Progress only counts while they do the same thing within 5 seconds. Drop it with /quests abandon.", "name", Text.escape(quest.name()), "id", plugin.quests().together(quest.id()), "player", plugin.questManager().nearbyPlayers(player)));
     }
 
     private void daily(Player player) {
         var pool = plugin.quests().dailyPool();
-        if (pool.isEmpty()) { plugin.send(player, "<yellow>No daily quests."); return; }
+        if (pool.isEmpty()) { plugin.send(player, T.t("test-command.no-daily-quests", "<yellow>No daily quests.")); return; }
         long day = System.currentTimeMillis() / 86_400_000L;
         var rnd = new java.util.Random(player.getUniqueId().getLeastSignificantBits() ^ day * 1_000_003L);
         Quest quest = pool.get(rnd.nextInt(pool.size()));
         var reward = plugin.questManager().dailyReward(player, quest);
-        plugin.send(player, "<gold>A daily you could get today:</gold> <white>" + Text.escape(quest.name()) + "</white> <gray>• pays <green>$"
-                + Text.formatMoney(reward.money()) + "</green> <gray>(base $" + Text.formatMoney(quest.reward().money()) + "). Each player gets their own daily and money roll.");
+        plugin.send(player, T.t("test-command.a-daily-you-could-get", "<gold>A daily you could get today:</gold> <white><name></white> <gray>• pays <green>$<money></green> <gray>(base $<money2>). Each player gets their own daily and money roll.", "name", Text.escape(quest.name()), "money", Text.formatMoney(reward.money()), "money2", Text.formatMoney(quest.reward().money())));
     }
 
     private void cost(Player player, String arg) {
         int chapter;
-        try { chapter = Integer.parseInt(arg.isBlank() ? "2" : arg); } catch (NumberFormatException e) { plugin.send(player, "<red>/cq test cost <chapter>"); return; }
+        try { chapter = Integer.parseInt(arg.isBlank() ? "2" : arg); } catch (NumberFormatException e) { plugin.send(player, T.t("test-command.cq-test-cost", "<red>/cq test cost <chapter>")); return; }
         Quest first = null;
         for (Quest q : plugin.quests().story()) if (q.chapter() == chapter) { first = q; break; }
         long cost = first == null ? com.cquests.quest.QuestManager.chapterCostFor(plugin, chapter) : plugin.questManager().chapterCost(first);
         double balance = new com.cquests.farm.EconomyBridge().balance(player);
-        plugin.send(player, "<gold>Chapter " + chapter + "</gold> <gray>costs <white>" + Text.compact(cost) + "</white>. Your balance reads <white>"
-                + (Double.isFinite(balance) ? Text.compact((long) balance) : "nothing (set economy.balance-placeholder or install Vault)") + "</white>.");
+        plugin.send(player, T.t("test-command.chapter-costs-your-balance-reads", "<gold>Chapter <chapter></gold> <gray>costs <white><cost></white>. Your balance reads <white><place></white>.", "chapter", chapter, "cost", Text.compact(cost), "place", (Double.isFinite(balance) ? Text.compact((long) balance) : "nothing (set economy.balance-placeholder or install Vault)")));
     }
 
     private void targets(CommandSender sender) {
@@ -240,20 +237,19 @@ final class TestCommand {
             String problem = com.cquests.quest.HowTo.problem(objective);
             if (problem != null && bad++ < 20) plugin.send(sender, "<red>" + quest.id() + "</red> <gray>" + Text.escape(objective.target().spec()) + ": " + Text.escape(problem));
         }
-        plugin.send(sender, (bad == 0 ? "<green>" : "<yellow>") + "Checked " + checked + " objectives against this server's own items, blocks, mobs and recipes: "
-                + (bad == 0 ? "all real." : bad + " problems."));
+        plugin.send(sender, T.t("test-command.checked-objectives-against-this-server", "<yellow>Checked <checked> objectives against this server's own items, blocks, mobs and recipes: <problems>", "yellow", (bad == 0 ? "<green>" : "<yellow>"), "checked", checked, "problems", (bad == 0 ? "all real." : bad + " problems.")));
     }
 
     private void discord(Player player, String what) {
         var hook = plugin.discord();
-        if (hook == null || !hook.enabled()) { plugin.send(player, "<yellow>Set discord.webhook-url in config.yml and /cq reload first."); return; }
+        if (hook == null || !hook.enabled()) { plugin.send(player, T.t("test-command.set-discord-webhook-url-in", "<yellow>Set discord.webhook-url in config.yml and /cq reload first.")); return; }
         switch (what.toLowerCase(Locale.ROOT)) {
             case "boss" -> hook.bossDefeated(player, "Gorehorn, the Iron Tusk");
             case "streak" -> hook.dailyStreak(player, 7);
             case "journey" -> hook.journeyFinished(player);
             default -> hook.chapterComplete(player, 1, plugin.quests().chapterName(1));
         }
-        plugin.send(player, "<green>Sample post sent to Discord. <gray>(Event switches under discord.events still apply.)");
+        plugin.send(player, T.t("test-command.sample-post-sent-to-discord", "<green>Sample post sent to Discord. <gray>(Event switches under discord.events still apply.)"));
     }
 
     // ------------------------------------------------------------------ messages
@@ -262,9 +258,9 @@ final class TestCommand {
         Player player = sender instanceof Player p ? p : null;
         String name = player == null ? "Steve" : player.getName();
         QuestManager qm = plugin.questManager();
-        plugin.send(sender, "<gold><bold>Every message</bold></gold> <gray>(sample values filled in)");
-        plugin.send(sender, "<gray>Name tag: " + plugin.settings().npcNameFormat
-                .replace("<name>", "Stephan").replace("<level>", "0").replace("<title>", " <gray>Keeper of the Road</gray>"));
+        plugin.send(sender, T.t("test-command.every-message-sample-values-filled", "<gold><bold>Every message</bold></gold> <gray>(sample values filled in)"));
+        plugin.send(sender, T.t("test-command.name-tag", "<gray>Name tag: <place>", "place", plugin.settings().npcNameFormat
+                .replace("<name>", "Stephan").replace("<level>", "0").replace("<title>", " <gray>Keeper of the Road</gray>")));
         for (Map.Entry<String, String> entry : new TreeMap<>(plugin.settings().messages()).entrySet()) {
             String key = entry.getKey();
             if (key.equals("first-join") || entry.getValue().isBlank()) {
@@ -288,12 +284,12 @@ final class TestCommand {
             if (key.startsWith("npc-")) {
                 sender.sendMessage(Text.mm(plugin.settings().npcChatFormat.replace("<name>", "Stephan").replace("<text>", text)));
             } else if (key.endsWith("-title") || key.endsWith("-description")) {
-                sender.sendMessage(Text.mm("<gray>Achievement text: <white>" + Text.escape(text)));
+                sender.sendMessage(Text.mm(T.t("test-command.achievement-text", "<gray>Achievement text: <white><text>", "text", Text.escape(text))));
             } else {
                 plugin.send(sender, text);
             }
         }
-        plugin.send(sender, "<gray>See the new player guide with <yellow>/cq test welcome</yellow>.");
+        plugin.send(sender, T.t("test-command.see-the-new-player-guide", "<gray>See the new player guide with <yellow>/cq test welcome</yellow>."));
     }
 
     // ------------------------------------------------------------------ animations
@@ -302,7 +298,7 @@ final class TestCommand {
         Quest quest = plugin.quests().story().stream().filter(Quest::big).findFirst()
                 .orElse(plugin.quests().story().isEmpty() ? null : plugin.quests().story().get(0));
         if (quest == null) {
-            plugin.send(player, "<red>There are no story quests.");
+            plugin.send(player, T.t("test-command.there-are-no-story-quests", "<red>There are no story quests."));
             return;
         }
         plugin.finale().celebrate(player, quest);
@@ -317,7 +313,7 @@ final class TestCommand {
             }
         }
         if (last == null) {
-            plugin.send(player, "<red>There is no chapter " + chapter + ".");
+            plugin.send(player, T.t("test-command.there-is-no-chapter", "<red>There is no chapter <chapter>.", "chapter", chapter));
             return;
         }
         plugin.finale().chapterComplete(player, last, plugin.quests().nextStory(last));
@@ -333,11 +329,11 @@ final class TestCommand {
         }
         int chapter = arg.equalsIgnoreCase("end") ? 0 : parse(arg, -1);
         if (chapter < 0) {
-            plugin.send(player, "<red>Usage: /cq test achievement <chapter number|end|reset>");
+            plugin.send(player, T.t("test-command.usage-cq-test-achievement", "<red>Usage: /cq test achievement <chapter number|end|reset>"));
             return;
         }
         if (!plugin.finale().achievements().grantForTest(player, chapter)) {
-            plugin.send(player, "<red>That achievement isn't loaded. Is there a chapter " + chapter + "?");
+            plugin.send(player, T.t("test-command.that-achievement-isn-t-loaded", "<red>That achievement isn't loaded. Is there a chapter <chapter>?", "chapter", chapter));
         }
     }
 
@@ -350,7 +346,7 @@ final class TestCommand {
         }
         List<Quest> own = plugin.quests().storyFrom(npc.id());
         if (own.isEmpty()) {
-            plugin.send(player, "<red>" + Text.escape(npc.name()) + " has no story quests, so it never disappears.");
+            plugin.send(player, T.t("test-command.has-no-story-quests-so", "<red><name> has no story quests, so it never disappears.", "name", Text.escape(npc.name())));
             return;
         }
         PlayerData data = plugin.questManager().data(player);
@@ -372,11 +368,9 @@ final class TestCommand {
         plugin.store().saveNow(data);
         plugin.visibility().refresh(player);
         if (plugin.questManager().finishedWith(data, npc)) {
-            plugin.send(player, "<green>" + Text.escape(npc.name()) + " is finished for you."
-                    + (plugin.settings().hideFinishedVillagers ? " It is hidden if no active quest needs it." : " Enable spawning.hide-finished-villagers to hide it.")
-                    + " <gray>Undo with <yellow>/cq test unfinish " + npc.id() + "</yellow>.");
+            plugin.send(player, T.t("test-command.is-finished-for-you-undo", "<green><name> is finished for you.<it> <gray>Undo with <yellow>/cq test unfinish <id></yellow>.", "name", Text.escape(npc.name()), "it", (plugin.settings().hideFinishedVillagers ? " It is hidden if no active quest needs it." : " Enable spawning.hide-finished-villagers to hide it."), "id", npc.id()));
         } else {
-            plugin.send(player, "<yellow>" + Text.escape(npc.name()) + " still shows because one of your active quests needs it.");
+            plugin.send(player, T.t("test-command.still-shows-because-one-of", "<yellow><name> still shows because one of your active quests needs it.", "name", Text.escape(npc.name())));
         }
     }
 
@@ -387,7 +381,7 @@ final class TestCommand {
         }
         Undo previous = undo.remove(key(player, npc));
         if (previous == null) {
-            plugin.send(player, "<red>Nothing to undo for " + Text.escape(npc.name()) + ". Use /cq test finish first.");
+            plugin.send(player, T.t("test-command.nothing-to-undo-for-use", "<red>Nothing to undo for <name>. Use /cq test finish first.", "name", Text.escape(npc.name())));
             return;
         }
         PlayerData data = plugin.questManager().data(player);
@@ -397,7 +391,7 @@ final class TestCommand {
         }
         plugin.store().saveNow(data);
         plugin.visibility().refresh(player);
-        plugin.send(player, "<green>" + Text.escape(npc.name()) + " is back, and your progress is as it was.");
+        plugin.send(player, T.t("test-command.is-back-and-your-progress", "<green><name> is back, and your progress is as it was.", "name", Text.escape(npc.name())));
     }
 
     private void roam(Player player, String id) {
@@ -406,9 +400,9 @@ final class TestCommand {
             return;
         }
         if (plugin.spawns().roamNow(npc)) {
-            plugin.send(player, "<green>" + Text.escape(npc.name()) + " is moving to a new spot in its area.");
+            plugin.send(player, T.t("test-command.is-moving-to-a-new", "<green><name> is moving to a new spot in its area.", "name", Text.escape(npc.name())));
         } else {
-            plugin.send(player, "<red>" + Text.escape(npc.name()) + " has no area to roam in. Place it with /cq scatter first.");
+            plugin.send(player, T.t("test-command.has-no-area-to-roam", "<red><name> has no area to roam in. Place it with /cq scatter first.", "name", Text.escape(npc.name())));
         }
     }
 
@@ -417,7 +411,7 @@ final class TestCommand {
     private NpcDef npc(Player player, String id) {
         NpcDef npc = plugin.npcs().get(id.toLowerCase(Locale.ROOT));
         if (npc == null) {
-            plugin.send(player, "<red>Unknown villager '" + Text.escape(id) + "'. See /cq npc list.");
+            plugin.send(player, T.t("test-command.unknown-villager-see-cq-npc", "<red>Unknown villager '<id>'. See /cq npc list.", "id", Text.escape(id)));
         }
         return npc;
     }

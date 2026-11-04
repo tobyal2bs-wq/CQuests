@@ -1,5 +1,7 @@
 package com.cquests.gui;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.dialogue.DialogueView;
 import com.cquests.dialogue.MailDialog;
@@ -24,7 +26,7 @@ public final class QuestJournal {
 
     public static void open(CQuestsPlugin plugin,Player player){command(plugin,player,new String[]{"journal"});}
     public static void command(CQuestsPlugin plugin,Player player,String[] args){
-        if(!player.hasPermission("quests.use")){plugin.send(player,"<red>You need quests.use to open your quests.");return;}
+        if(!player.hasPermission("quests.use")){plugin.send(player,T.t("quest-journal.you-need-quests-use-to", "<red>You need quests.use to open your quests."));return;}
         String action=args.length>1?args[1].toLowerCase(Locale.ROOT):"home";
         switch(action){
             case "close"->player.closeInventory();

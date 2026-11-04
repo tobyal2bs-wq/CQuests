@@ -276,6 +276,17 @@ world-bosses:
   enabled: true
   # Draw the bosses with block models (worldboss-models.json). false uses the plain mobs with their armour.
   models: true
+  # How much fine detail the models keep: high (every plate, vein, patch and fringe), medium (no surface
+  # patches) or low (only the main shapes and glowing veins). Lower it on a busy server.
+  model-detail: high
+  # Ticks between model updates (3 is smooth, 4-5 halves the cost) and how far players see them move.
+  model-update-ticks: 3
+  model-view-distance: 96
+  # Most shards one death breaks into, and a multiplier for every entrance and death particle.
+  max-shards-per-death: 48
+  particle-multiplier: 1.0
+  # With the CBosses plugin installed, CQuests leaves the world bosses to it (no double bosses).
+  defer-to-cbosses: true
   schedule:
     enabled: true
     # Days and time the weekly boss wakes (MONDAY ... SUNDAY). Add more days for more fights a week.
