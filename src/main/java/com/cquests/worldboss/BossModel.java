@@ -216,8 +216,17 @@ final class BossModel {
 
     private static boolean same(Transformation a, Transformation b) {
         if (b == null) return false;
-        return a.getTranslation().distanceSquared(b.getTranslation()) < 1e-6f && a.getScale().distanceSquared(b.getScale()) < 1e-6f
-                && Math.abs(a.getLeftRotation().dot(b.getLeftRotation())) > 0.99999f;
+        // Plain arithmetic: the JOML bundled with each server version differs, so avoid newer helpers.
+        Vector3f ta = a.getTranslation(), tb = b.getTranslation(), sa = a.getScale(), sb = b.getScale();
+        Quaternionf qa = a.getLeftRotation(), qb = b.getLeftRotation();
+        float dt = sq(ta.x - tb.x) + sq(ta.y - tb.y) + sq(ta.z - tb.z);
+        float ds = sq(sa.x - sb.x) + sq(sa.y - sb.y) + sq(sa.z - sb.z);
+        float dot = qa.x * qb.x + qa.y * qb.y + qa.z * qb.z + qa.w * qb.w;
+        return dt < 1e-6f && ds < 1e-6f && Math.abs(dot) > 0.99999f;
+    }
+
+    private static float sq(float v) {
+        return v * v;
     }
 
     // ------------------------------------------------------------------ spawn and death steps
