@@ -94,8 +94,8 @@ for cmd in "cq npc rename jerry Farmer Jerold" "cq npc list" "cq character jerry
            "cq backup" "cq backups" "cq restore latest 00000000-0000-0000-0000-000000000001"; do
   echo "$cmd" >> console
   sleep 4
-  # The self-test plays every entrance, attack animation and death, which takes about 20 seconds.
-  if [ "$cmd" = "cq worldboss selftest" ]; then sleep 24; fi
+  # The self-test plays every entrance, attack animation and death, which takes about 20 seconds; it reports by itself after 45 seconds at the latest.
+  if [ "$cmd" = "cq worldboss selftest" ]; then sleep 44; fi
 done
 echo "stop" >> console
 wait "$SERVER" || true

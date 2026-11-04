@@ -418,16 +418,25 @@ public final class WorldBossService implements Listener {
                 blocks = new java.util.concurrent.atomic.AtomicInteger(), animations = new java.util.concurrent.atomic.AtomicInteger(),
                 deaths = new java.util.concurrent.atomic.AtomicInteger();
         List<String> broken = new CopyOnWriteArrayList<>();
-        Runnable finish = () -> {
-            if (done.incrementAndGet() < list.size()) return;
-            String report = "World boss self-test: " + appeared.get() + "/" + list.size() + " appeared, " + attacks.get() + " attacks ran, "
+        // Where each boss got to, so a boss that stalls is named instead of the test never reporting.
+        Map<String, String> stage = new java.util.concurrent.ConcurrentHashMap<>();
+        java.util.concurrent.atomic.AtomicBoolean reported = new java.util.concurrent.atomic.AtomicBoolean();
+        Runnable report = () -> {
+            if (!reported.compareAndSet(false, true)) return;
+            stage.forEach((id, where) -> { if (!where.equals("done")) broken.add(id + ": stuck at " + where); });
+            String text = "World boss self-test: " + appeared.get() + "/" + list.size() + " appeared, " + attacks.get() + " attacks ran, "
                     + drawn.get() + " drawn with " + blocks.get() + " blocks, " + animations.get() + " animations, " + deaths.get() + " deaths played"
                     + (broken.isEmpty() ? "" : ". Problems: " + String.join("; ", broken));
-            if (broken.isEmpty()) plugin.getLogger().info(report); else plugin.getLogger().warning(report);
-            if (to instanceof Player) plugin.send(to, "<gray>" + Text.escape(report));
+            if (broken.isEmpty()) plugin.getLogger().info(text); else plugin.getLogger().warning(text);
+            if (to instanceof Player) plugin.send(to, "<gray>" + Text.escape(text));
         };
+        java.util.function.Consumer<String> finish = id -> {
+            if (!"done".equals(stage.put(id, "done")) && done.incrementAndGet() >= list.size()) report.run();
+        };
+        Bukkit.getGlobalRegionScheduler().runDelayed(plugin, t -> report.run(), 900);
         for (int i = 0; i < list.size(); i++) {
             WorldBossDef def = list.get(i);
+            stage.put(def.id(), "ritual");
             Location at = base.clone().add(30 + (i % 6) * 9, 0, 30 + (i / 6) * 9);
             Sched.at(at, () -> ritual(at, def, () -> {
                 at.setY(at.getWorld().getHighestBlockYAt(at) + 1);
@@ -435,22 +444,24 @@ public final class WorldBossService implements Listener {
                 arena.spawn(at);
                 Fight f;
                 try { f = spawnFight(def, arena, "selftest:" + def.id(), at, null, true); }
-                catch (RuntimeException | LinkageError e) { broken.add(def.id() + ": " + e); finish.run(); return; }
-                if (f == null) { broken.add(def.id() + ": did not appear"); finish.run(); return; }
+                catch (RuntimeException | LinkageError e) { broken.add(def.id() + ": " + e); finish.accept(def.id()); return; }
+                if (f == null) { broken.add(def.id() + ": did not appear"); finish.accept(def.id()); return; }
                 appeared.incrementAndGet();
+                stage.put(def.id(), "entrance");
                 BossModel model = f.model;
                 if (model != null) { model.force = true; drawn.incrementAndGet(); blocks.addAndGet(model.blocks()); }
                 else if (modelFor(def) != null) broken.add(def.id() + ": model missing");
                 int entrance = 0;
                 if (model != null) for (ModelRig.Step s : model.model.spawn) entrance = Math.max(entrance, s.end());
                 Sched.entityLater(f.boss, 20 + entrance, () -> {
+                    stage.put(def.id(), "attacks");
                     for (String ability : WorldBossDef.ABILITIES) {
                         try { ability(f, ability, List.of()); attacks.incrementAndGet(); }
                         catch (RuntimeException | LinkageError e) { broken.add(def.id() + " " + ability + ": " + e); }
                     }
                     try { aura(f, f.boss.getLocation()); if (model == null) deathAnimation(f.boss.getLocation(), def, f.boss.getHeight()); }
                     catch (RuntimeException | LinkageError e) { broken.add(def.id() + " effects: " + e); }
-                    if (model == null) { Sched.entityLater(f.boss, 40, () -> { end(f, "stopped"); finish.run(); }); return; }
+                    if (model == null) { Sched.entityLater(f.boss, 40, () -> { end(f, "stopped"); finish.accept(def.id()); }); return; }
                     // Every attack animation in turn, then the death.
                     List<String> anims = new ArrayList<>(model.model.attackAnimations());
                     for (int k = 0; k < anims.size(); k++) {
@@ -458,10 +469,11 @@ public final class WorldBossService implements Listener {
                         Sched.entityLater(f.boss, 1 + k * 24L, () -> model.attack(name));
                     }
                     Sched.entityLater(f.boss, 2 + anims.size() * 24L, () -> {
+                        stage.put(def.id(), "death");
                         animations.addAndGet(model.animationsPlayed);
                         try {
-                            model.die(() -> { deaths.incrementAndGet(); finish.run(); });
-                        } catch (RuntimeException | LinkageError e) { broken.add(def.id() + " death: " + e); finish.run(); }
+                            model.die(() -> { deaths.incrementAndGet(); finish.accept(def.id()); });
+                        } catch (RuntimeException | LinkageError e) { broken.add(def.id() + " death: " + e); finish.accept(def.id()); }
                         end(f, "stopped");
                     });
                 });
