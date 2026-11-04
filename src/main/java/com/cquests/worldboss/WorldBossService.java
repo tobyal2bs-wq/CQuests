@@ -144,8 +144,34 @@ public final class WorldBossService implements Listener {
 
     // ------------------------------------------------------------------ setup
 
+    /** Bosses added in a new version are copied into an older worldbosses.yml; existing ones are left alone. */
+    private void addNewBosses(File file, YamlConfiguration yaml) {
+        try (var in = plugin.getResource("worldbosses.yml")) {
+            if (in == null || !file.exists()) return;
+            YamlConfiguration bundled = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+            var from = bundled.getConfigurationSection("bosses");
+            if (from == null) return;
+            java.util.List<String> added = new ArrayList<>();
+            for (String id : from.getKeys(false)) {
+                if (yaml.contains("bosses." + id)) continue;
+                var sec = from.getConfigurationSection(id);
+                if (sec == null) continue;
+                for (String k : sec.getKeys(true)) if (!sec.isConfigurationSection(k)) yaml.set("bosses." + id + "." + k, sec.get(k));
+                added.add(id);
+            }
+            if (added.isEmpty()) return;
+            yaml.save(file);
+            plugin.getLogger().info("Added new world bosses to worldbosses.yml: " + String.join(", ", added));
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not add new world bosses to worldbosses.yml: " + e.getMessage());
+        }
+    }
+
     public void reload() {
-        defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "worldbosses.yml")), plugin.getLogger());
+        File bossFile = new File(plugin.getDataFolder(), "worldbosses.yml");
+        YamlConfiguration bossYaml = YamlConfiguration.loadConfiguration(bossFile);
+        addNewBosses(bossFile, bossYaml);
+        defs = WorldBossDef.load(bossYaml, plugin.getLogger());
         try (var in = plugin.getResource("worldboss-models.json")) {
             models = in == null ? Map.of() : ModelRig.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
         } catch (IOException | RuntimeException e) {

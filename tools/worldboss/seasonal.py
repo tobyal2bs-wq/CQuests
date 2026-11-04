@@ -426,6 +426,10 @@ def clucksworth():
     for x, y, z, c in ((6.4, 27, 6.8, "pink_concrete"), (-7.4, 18, 6, "yellow_concrete"), (-5.6, 29, -6, "light_blue_concrete")):
         m.c("body", c, (x, y, z), (1.6, 1.6, 1.6), (45, 45, 0))
         m.c("body", "yellow_concrete" if c != "yellow_concrete" else "orange_concrete", (x, y, z), (0.8, 0.8, 1.9))
+    # its weak spot: the golden egg it is sitting on, peeking out of the chest feathers and glowing
+    m.c("body", "gold_block", (0, 18, 9.2), (5, 6.4, 2.6), light=True)
+    m.c("body", "gold_block", (0, 18, 9.8), (3.6, 4.6, 2.6), light=True)
+    m.c("body", "yellow_concrete", (-1, 19.6, 11.15), (1, 1.4, 0.2), light=True)
     # wings as arms, with feather fingers
     for s, a in ((1, "armL"), (-1, "armR")):
         blob(m, a, feather, (11 * s, 22, -0.4), (3.4, 12, 10), 1.4)
@@ -578,7 +582,7 @@ def admiral_pinchworth():
         m.bone(f"legL{i}", "body", (11, 13, zs[i]))
         m.bone(f"legR{i}", "body", (-11, 13, zs[i]))
         a = fan[i]
-        mlimb(m, f"legL{i}", leg, (11, 13, zs[i]), [(8, 1.8, (a, 0, -70)), (10, 1.5, (a, 0, -150), sh2), (3, 0.9, (a, 0, -175), "white_terracotta")])
+        mlimb(m, f"legL{i}", leg, (11, 13, zs[i]), [(8, 1.8, (a, 0, -60)), (13, 1.5, (a * 0.5, 0, -160), sh2), (5, 0.9, (a * 0.3, 0, -178), "white_terracotta")])
     m.attacks = {"leap": "leap", "minions": "drum", "pull": "rearup", "volley": "spit"}
     m.melee = "fang"
     return m

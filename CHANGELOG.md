@@ -2,6 +2,8 @@
 
 Full notes for each release are in the RELEASE-x.y.z.md files and on the GitHub releases page.
 
+CQuests **1.13.0**: every seasonal boss rebuilt to be funny, four new seasonal bosses (Great Gourd, Frostbottom, Clucksworth, Admiral Pinchworth), an operator boss control panel and top 3 damage on kill. See [RELEASE-1.13.0.md](RELEASE-1.13.0.md).
+
 CQuests **1.12.0**: world bosses hold their weapons in the fist, bend their elbows, have hit zones (weak spot x2.5, head x1.5, weapon x0.3), more detail and cheaper updates. See [RELEASE-1.12.0.md](RELEASE-1.12.0.md).
 
 CQuests **1.11.0**: every world boss is a jointed block model with 3+ attack animations, its own entrance and its own death, checked on 1.21.4, 26.2 and 26.3. See [RELEASE-1.11.0.md](RELEASE-1.11.0.md).
