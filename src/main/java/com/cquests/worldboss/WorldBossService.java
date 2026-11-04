@@ -810,7 +810,7 @@ public final class WorldBossService implements Listener {
         }
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
-            if (tester != null && !reason.equals("shutdown")) plugin.send(tester, "<gray>Test world boss ended (" + reason + ").");
+            if (tester != null && !reason.equals("shutdown") && !reason.equals("stopped") && !reason.equals("defeated")) plugin.send(tester, "<gray>Test world boss ended (" + reason + ").");
             return;
         }
         switch (reason) {

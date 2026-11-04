@@ -207,6 +207,15 @@ bot.once('spawn', async () => {
     await message(/World boss 1\/\d+:/, start)
     await sleep(1000)
     await command('/cq test worldbossstop')
+    // Every world boss must be able to appear on this server version.
+    start = chat.length
+    for (let i = 1; i < 24; i++) { bot.chat('/cq test worldbossnext'); await sleep(700) }
+    await command('/cq test worldbossstop')
+    await sleep(500)
+    const appeared = chat.slice(start).filter(m => /Test world boss: /.test(m)).length
+    const broken = chat.slice(start).filter(m => /could not appear|stopped the boss/.test(m))
+    if (broken.length) fail('world boss failed to appear: ' + broken.join(' | '))
+    check(appeared >= 23, 'all world bosses appeared (' + appeared + ')')
     start = await command('/cq test invite')
     await message(/Inviter gets/, start)
     console.log('OK world boss and invite test commands')

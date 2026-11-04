@@ -133,7 +133,7 @@ public final class InviteService {
 
     /** Money by name (works offline with most economy plugins); items only when the player is online. */
     private void pay(Player online, String name, String path) {
-        long money = plugin.getConfig().getLong(path + ".money", 0);
+        long money = plugin.getConfig().getLong(path + ".money");
         String moneyCommand = plugin.settings().moneyCommand;
         if (money > 0 && moneyCommand != null && !moneyCommand.isBlank()) {
             String command = moneyCommand.replace("%player%", name).replace("%amount%", Long.toString(money));
@@ -167,9 +167,9 @@ public final class InviteService {
     /** /cq test invite: shows both sides' messages and rewards without saving anything. */
     public void test(Player player) {
         plugin.send(player, "<gray>New player sees: <gold>Welcome! <white>" + Text.escape(player.getName()) + "</white> <gray>will get their reward when they finish the tutorial.");
-        plugin.send(player, "<gray>New player gets: <white>" + plugin.getConfig().getLong("invites.new-player.money", 0) + " money " + plugin.getConfig().getStringList("invites.new-player.items"));
-        plugin.send(player, "<gray>Inviter gets: <white>" + plugin.getConfig().getLong("invites.inviter.money", 0) + " money " + plugin.getConfig().getStringList("invites.inviter.items")
-                + " <gray>after the tutorial. Milestones: <white>" + String.join(", ", plugin.getConfig().getConfigurationSection("invites.milestones") == null ? List.of()
-                : plugin.getConfig().getConfigurationSection("invites.milestones").getKeys(false)));
+        plugin.send(player, "<gray>New player gets: <white>" + plugin.getConfig().getLong("invites.new-player.money") + " money " + plugin.getConfig().getStringList("invites.new-player.items"));
+        plugin.send(player, "<gray>Inviter gets: <white>" + plugin.getConfig().getLong("invites.inviter.money") + " money " + plugin.getConfig().getStringList("invites.inviter.items")
+                + " <gray>after the tutorial. Milestones: <white>" + String.join(", ", plugin.getConfig().isConfigurationSection("invites.milestones")
+                ? plugin.getConfig().getConfigurationSection("invites.milestones").getKeys(false) : java.util.Set.of()));
     }
 }
