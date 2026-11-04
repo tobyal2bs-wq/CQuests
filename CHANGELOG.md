@@ -2,6 +2,8 @@
 
 Full notes for each release are in the RELEASE-x.y.z.md files and on the GitHub releases page.
 
+CQuests **1.11.0**: every world boss is a jointed block model with 3+ attack animations, its own entrance and its own death, checked on 1.21.4, 26.2 and 26.3. See [RELEASE-1.11.0.md](RELEASE-1.11.0.md).
+
 CQuests **1.10.1**: world boss animations, halos, a lighter fight loop and `/cq worldboss selftest`, checked on 1.21.4, 26.2 and 26.3. See [RELEASE-1.10.1.md](RELEASE-1.10.1.md).
 
 CQuests **1.10.0**: weekly world bosses (20 + 4 seasonal) with a border stick, seasons, a tutorial quest and invite rewards. See [RELEASE-1.10.0.md](RELEASE-1.10.0.md).

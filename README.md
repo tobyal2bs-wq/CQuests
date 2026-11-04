@@ -203,6 +203,8 @@ One world boss wakes every week (`world-bosses.schedule`, Saturday 20:00 by defa
 
 A world boss only attacks players, is pulled back the moment it reaches its border, never breaks, burns or changes blocks, drops nothing and is never saved into the world. Players have to stand inside the border to hurt it. Everyone who did at least 2% of its health is paid; the top 3 get more. Bosses, their looks, attacks and rewards are in `worldbosses.yml`. Try any of them with `/cq test worldboss <id>` or go through all of them with `/cq test worldbossnext`. Players see the next one with `/quests worldboss`.
 
+Each boss is drawn as a jointed model built from display blocks that rides the invisible mob, with its own entrance, at least three attack animations and its own death. `world-bosses.models: false` in `config.yml` turns the models off; `model: none` on one boss turns it off for that boss.
+
 ### Seasons
 
 `/cq season` lists Halloween, Winterfest, Spring Bloom and Summer Blaze. `/cq season halloween on` starts one now, `off` ends it, `auto` runs it between its dates every year. While a season is on, its daily quests can be offered and its world boss takes the weekly slot.
