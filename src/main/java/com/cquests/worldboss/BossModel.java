@@ -13,6 +13,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.persistence.PersistentDataType;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -44,6 +46,12 @@ final class BossModel {
     private final Plugin plugin;
     private final Mob mob;
     private final List<BlockDisplay> parts = new ArrayList<>();
+    /** One invisible hit box per zone of the body (head, weak spot, arms...), moved with its bone. */
+    private final List<Interaction> zones = new ArrayList<>();
+    private final Map<UUID, Integer> zoneIndex = new java.util.concurrent.ConcurrentHashMap<>();
+    private Matrix4f[] bones;
+    /** Far from every player the model updates half as often; the client blends over the longer gap. */
+    private int frame, stride = 1;
     private final BlockData[] original;
     private final Matrix4f[] pose, op;
     private final Transformation[] sent;
@@ -58,6 +66,8 @@ final class BossModel {
     private int viewerCheck;
     /** The self-test has nobody watching but still wants every update sent. */
     volatile boolean force;
+    /** Damage of a melee swing that lands beyond the mob's own short reach (its hitbox is smaller than the model). */
+    volatile double meleeDamage;
     private ScheduledTask loop;
     int animationsPlayed;
 
@@ -70,13 +80,15 @@ final class BossModel {
     }
 
     int blocks() { return parts.size(); }
+    int zoneCount() { int n = 0; for (Interaction z : zones) if (z.isValid()) n++; return n; }
     boolean dying() { return dying; }
 
     /** Spawns the hidden blocks on the mob. Runs on the mob's region. */
     void build(NamespacedKey kindKey, NamespacedKey fightKey, String fight) {
         Location at = mob.getLocation();
         at.setYaw(0); at.setPitch(0);
-        float range = Math.max(1f, model.blocks() / 3f);
+        // view range 1 is about 64 blocks; a boss is seen a little further than a normal mob, no more
+        float range = Math.max(0.75f, Math.min(1.5f, model.blocks() / 5f));
         Transformation hidden = new Transformation(new Vector3f(), new Quaternionf(), new Vector3f(), new Quaternionf());
         for (int i = 0; i < model.cubes.size(); i++) {
             ModelRig.Cube c = model.cubes.get(i);
@@ -100,6 +112,55 @@ final class BossModel {
             });
             mob.addPassenger(d);
             parts.add(d);
+        }
+        float s = model.scale / 16f;
+        for (int i = 0; i < model.zones.size(); i++) {
+            ModelRig.Zone z = model.zones.get(i);
+            Interaction box = at.getWorld().spawn(at, Interaction.class, e -> {
+                e.setPersistent(false);
+                e.getPersistentDataContainer().set(kindKey, PersistentDataType.STRING, "zone");
+                e.getPersistentDataContainer().set(fightKey, PersistentDataType.STRING, fight);
+                e.setInteractionWidth(z.w() * s);
+                e.setInteractionHeight(z.h() * s);
+                e.setResponsive(true);
+            });
+            zoneIndex.put(box.getUniqueId(), i);
+            zones.add(box);
+        }
+    }
+
+    /** The zone a hit box stands for, or null when it is not one of this model's. */
+    ModelRig.Zone zone(Entity box) {
+        Integer i = zoneIndex.get(box.getUniqueId());
+        return i == null ? null : model.zones.get(i);
+    }
+
+    /** Moves each hit box to where its bone is now. */
+    private void placeZones() {
+        if (bones == null || zones.isEmpty()) return;
+        Location base = mob.getLocation();
+        float s = model.scale / 16f, r = ModelRig.rad(yaw);
+        Matrix4f turn = new Matrix4f().rotationY(-r);
+        for (int i = 0; i < zones.size(); i++) {
+            Interaction box = zones.get(i);
+            if (!box.isValid()) continue;
+            ModelRig.Zone z = model.zones.get(i);
+            Vector3f p = bones[z.bone()].transformPosition(new Vector3f(z.center())).mul(s);
+            turn.transformPosition(p);
+            Location to = new Location(base.getWorld(), base.getX() + p.x, base.getY() + p.y - z.h() * s / 2, base.getZ() + p.z);
+            Location at = box.getLocation();
+            if (at.getWorld() == to.getWorld() && at.distanceSquared(to) < 0.01) continue;
+            if (Bukkit.isOwnedByCurrentRegion(box)) box.teleportAsync(to);
+            else box.getScheduler().run(plugin, t -> box.teleportAsync(to), null);
+        }
+    }
+
+    private void removeZones() {
+        for (Interaction box : zones) {
+            if (!box.isValid()) continue;
+            try {
+                if (Bukkit.isOwnedByCurrentRegion(box)) box.remove(); else box.getScheduler().run(plugin, t -> box.remove(), null);
+            } catch (RuntimeException ignored) { }
         }
     }
 
@@ -125,8 +186,10 @@ final class BossModel {
 
     private void restPose() {
         ModelRig.Anim idle = model.anim("idle");
-        Matrix4f[] cubes = ModelRig.cubes(model, ModelRig.pose(model, List.of(new ModelRig.Layer(idle, 0, 1))));
+        bones = ModelRig.pose(model, List.of(new ModelRig.Layer(idle, 0, 1)));
+        Matrix4f[] cubes = ModelRig.cubes(model, bones);
         System.arraycopy(cubes, 0, pose, 0, cubes.length);
+        placeZones();
     }
 
     private Matrix4f world() {
@@ -170,11 +233,25 @@ final class BossModel {
                 && target2.getWorld().equals(now.getWorld()) && target2.getLocation().distanceSquared(now) < Math.pow(Math.max(2.6, model.blocks() * 0.55), 2)) {
             lastMelee = idleT;
             attack(model.melee);
+            ModelRig.Anim swing = model.anim(model.melee);
+            double reach = Math.max(2.6, model.blocks() * 0.55);
+            if (swing != null && meleeDamage > 0) mob.getScheduler().runDelayed(plugin, t -> {
+                if (!live || !mob.isValid() || !target2.isValid() || !target2.getWorld().equals(mob.getWorld())) return;
+                double d = target2.getLocation().distanceSquared(mob.getLocation());
+                // close in, the mob's own attack already lands
+                if (d > 1.8 * 1.8 && d < reach * reach && Bukkit.isOwnedByCurrentRegion(target2)) target2.damage(meleeDamage, mob);
+            }, null, Math.max(1, Math.round(swing.hit() * 20)));
         }
         float turn = now.getYaw() - yaw;
         yaw = now.getYaw();
-        if (++viewerCheck % 7 == 1) visible = force || !now.getNearbyPlayers(96).isEmpty();
+        if (++viewerCheck % 7 == 1) {
+            double near = Double.MAX_VALUE;
+            for (var p : now.getNearbyPlayers(96)) near = Math.min(near, p.getLocation().distanceSquared(now));
+            visible = force || near < Double.MAX_VALUE;
+            stride = force || near < 28 * 28 ? 1 : 2;
+        }
         if (!visible) return true;
+        if (++frame % stride != 0 && Math.abs(turn) <= 90 && attackT > DT * 2) return true;
         List<ModelRig.Layer> layers = new ArrayList<>(4);
         layers.add(new ModelRig.Layer(model.anim("idle"), idleT, 1));
         if (walkW > 0.01f) layers.add(new ModelRig.Layer(model.anim("walk"), walkT, walkW));
@@ -183,9 +260,11 @@ final class BossModel {
             layers.add(new ModelRig.Layer(attack, attackT, Math.max(0, w)));
         }
         if (hurtT < 0.35f) layers.add(new ModelRig.Layer(model.anim("hurt"), hurtT, 1));
-        Matrix4f[] cubes = ModelRig.cubes(model, ModelRig.pose(model, layers));
+        bones = ModelRig.pose(model, layers);
+        Matrix4f[] cubes = ModelRig.cubes(model, bones);
         System.arraycopy(cubes, 0, pose, 0, cubes.length);
-        send(Math.abs(turn) > 90 ? 1 : PERIOD);
+        send(Math.abs(turn) > 90 ? 1 : PERIOD * stride);
+        if (frame % 2 == 0 || stride == 1) placeZones();
         return true;
     }
 
@@ -449,6 +528,7 @@ final class BossModel {
         deathSpot = mob.getLocation();
         yaw = deathSpot.getYaw();
         for (BlockDisplay d : parts) if (d.isValid()) mob.removePassenger(d);
+        removeZones();
         play(model.death, null, () -> { remove(); done.run(); });
     }
 
@@ -457,6 +537,7 @@ final class BossModel {
         if (dying || gone) return;
         dying = true; live = false;
         if (loop != null) loop.cancel();
+        removeZones();
         Runnable shrink = () -> {
             Matrix4f w = world();
             for (int i = 0; i < parts.size(); i++) {
@@ -475,6 +556,7 @@ final class BossModel {
     void remove() {
         gone = true; live = false;
         if (loop != null) loop.cancel();
+        removeZones();
         for (BlockDisplay d : parts) {
             if (!d.isValid()) continue;
             try {

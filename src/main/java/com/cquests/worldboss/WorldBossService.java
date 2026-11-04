@@ -23,6 +23,7 @@ import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.EvokerFangs;
 import org.bukkit.entity.Hoglin;
 import org.bukkit.entity.LivingEntity;
@@ -416,7 +417,7 @@ public final class WorldBossService implements Listener {
         List<WorldBossDef> list = new ArrayList<>(defs.values());
         java.util.concurrent.atomic.AtomicInteger appeared = new java.util.concurrent.atomic.AtomicInteger(), attacks = new java.util.concurrent.atomic.AtomicInteger(),
                 done = new java.util.concurrent.atomic.AtomicInteger(), drawn = new java.util.concurrent.atomic.AtomicInteger(),
-                blocks = new java.util.concurrent.atomic.AtomicInteger(), animations = new java.util.concurrent.atomic.AtomicInteger(),
+                blocks = new java.util.concurrent.atomic.AtomicInteger(), hitZones = new java.util.concurrent.atomic.AtomicInteger(), animations = new java.util.concurrent.atomic.AtomicInteger(),
                 deaths = new java.util.concurrent.atomic.AtomicInteger();
         List<String> broken = new CopyOnWriteArrayList<>();
         // Where each boss got to, so a boss that stalls is named instead of the test never reporting.
@@ -432,7 +433,7 @@ public final class WorldBossService implements Listener {
                         + ", boss " + (f.boss.isValid() ? "valid" : f.boss.isDead() ? "dead" : "removed") + ", health " + Math.round(f.boss.getHealth()) + ")"));
             });
             String text = "World boss self-test: " + appeared.get() + "/" + list.size() + " appeared, " + attacks.get() + " attacks ran, "
-                    + drawn.get() + " drawn with " + blocks.get() + " blocks, " + animations.get() + " animations, " + deaths.get() + " deaths played"
+                    + drawn.get() + " drawn with " + blocks.get() + " blocks and " + hitZones.get() + " hit zones, " + animations.get() + " animations, " + deaths.get() + " deaths played"
                     + (broken.isEmpty() ? "" : ". Problems: " + String.join("; ", broken));
             if (broken.isEmpty()) plugin.getLogger().info(text); else plugin.getLogger().warning(text);
             if (to instanceof Player) plugin.send(to, "<gray>" + Text.escape(text));
@@ -457,7 +458,7 @@ public final class WorldBossService implements Listener {
                 stage.put(def.id(), "entrance");
                 running.put(def.id(), f);
                 BossModel model = f.model;
-                if (model != null) { model.force = true; drawn.incrementAndGet(); blocks.addAndGet(model.blocks()); }
+                if (model != null) { model.force = true; drawn.incrementAndGet(); blocks.addAndGet(model.blocks()); hitZones.addAndGet(model.zoneCount()); }
                 else if (modelFor(def) != null) broken.add(def.id() + ": model missing");
                 int entrance = 0;
                 if (model != null) for (ModelRig.Step s : model.model.spawn) entrance = Math.max(entrance, s.end());
@@ -561,6 +562,7 @@ public final class WorldBossService implements Listener {
             BossModel model = new BossModel(plugin, look, mob);
             try {
                 model.build(kindKey, fightKey, key);
+                model.meleeDamage = def.damage() > 0 ? def.damage() : 6;
                 fight.model = model;
                 mob.setAI(false);
                 mob.setInvulnerable(true);
@@ -604,19 +606,19 @@ public final class WorldBossService implements Listener {
         m.getPersistentDataContainer().set(kindKey, PersistentDataType.STRING, "boss");
         m.getPersistentDataContainer().set(fightKey, PersistentDataType.STRING, key);
         m.setPersistent(false); m.setRemoveWhenFarAway(false); m.setCanPickupItems(false);
-        m.customName(Text.mm(def.name())); m.setCustomNameVisible(true); m.setGlowing(def.glow() && look == null);
+        m.customName(Text.mm(def.name())); m.setCustomNameVisible(look == null); m.setGlowing(def.glow() && look == null);
         if (m instanceof Ageable a) a.setAdult();
         if (m instanceof PiglinAbstract p) p.setImmuneToZombification(true);
         if (m instanceof Hoglin h) h.setImmuneToZombification(true);
         if (m instanceof Creeper c) { c.setPowered(true); c.setMaxFuseTicks(Integer.MAX_VALUE / 4); }
         double baseHeight = Math.max(0.2, m.getHeight());
-        if (m instanceof Slime s) s.setSize(look == null ? def.size() : Math.max(1, Math.min(16, (int) Math.round(look.blocks() / 0.52))));
+        if (m instanceof Slime s) s.setSize(look == null ? def.size() : Math.max(1, Math.min(16, (int) Math.round(look.blocks() * look.hitbox / 0.52))));
         if (m instanceof Wolf w) w.setAngry(true);
         if (m instanceof Rabbit r) r.setRabbitType(Rabbit.Type.THE_KILLER_BUNNY);
         attr(m, "max_health", Math.min(1024, def.health()));
         m.setHealth(Math.max(1, Math.min(1024, def.health())));
-        // A drawn boss gets a hitbox as tall as its model; the mob itself is invisible.
-        if (!(m instanceof Slime)) attr(m, "scale", look == null ? def.scale() : Math.max(0.3, Math.min(12, look.blocks() / baseHeight)));
+        // A drawn boss: the invisible mob's own hitbox covers the legs and lower body, the model's hit zones the rest.
+        if (!(m instanceof Slime)) attr(m, "scale", look == null ? def.scale() : Math.max(0.3, Math.min(12, look.blocks() * look.hitbox / baseHeight)));
         if (look != null) { m.setInvisible(true); if (m instanceof Creeper c) c.setPowered(false); }
         if (def.damage() > 0) attr(m, "attack_damage", def.damage());
         if (def.speed() > 0) attr(m, "movement_speed", def.speed());
@@ -1331,6 +1333,7 @@ public final class WorldBossService implements Listener {
         // Boss side only ever hurts players.
         if (attackerKind != null && !(victim instanceof Player)) { event.setCancelled(true); return; }
         if (victimKind == null) return;
+        if ("zone".equals(victimKind)) { event.setCancelled(true); if (attacker instanceof Player p) hitZone(p, victim); return; }
         if ("part".equals(victimKind) || !(attacker instanceof Player player)) { event.setCancelled(true); return; }
         Fight f = byEntity.get(victim.getUniqueId());
         if (f == null) return;
@@ -1339,7 +1342,54 @@ public final class WorldBossService implements Listener {
             player.sendActionBar(Text.mm("<red>Step inside the arena to hurt " + f.def.name()));
             return;
         }
-        if ("boss".equals(victimKind)) event.setDamage(event.getDamage() / f.ratio);
+        if ("boss".equals(victimKind)) {
+            ModelRig.Zone zone = aimed.remove(player.getUniqueId());
+            event.setDamage(event.getDamage() / f.ratio * (zone == null ? 1 : zone.mult()));
+        }
+    }
+
+    /** The zone a player just struck, read back by the hit it turns into. */
+    private final Map<UUID, ModelRig.Zone> aimed = new ConcurrentHashMap<>();
+
+    /**
+     * A player struck one of the model's hit boxes: turn it into a normal attack on the boss (their weapon,
+     * enchantments, crits and cooldown all count) with that part's damage multiplier and a sign of where it landed.
+     */
+    private void hitZone(Player player, Entity box) {
+        String key = box.getPersistentDataContainer().get(fightKey, PersistentDataType.STRING);
+        Fight f = key == null ? null : fights.get(key);
+        if (f == null || f.over || f.model == null || !f.boss.isValid() || !Bukkit.isOwnedByCurrentRegion(f.boss)) return;
+        ModelRig.Zone zone = f.model.zone(box);
+        if (zone == null) return;
+        aimed.put(player.getUniqueId(), zone);
+        try { player.attack(f.boss); } finally { aimed.remove(player.getUniqueId()); }
+        Location at = box.getLocation().add(0, ((Interaction) box).getInteractionHeight() / 2, 0);
+        var world = at.getWorld();
+        String label;
+        switch (zone.kind()) {
+            case "head", "helmet" -> {
+                world.spawnParticle(Particle.CRIT, at, 14, 0.3, 0.3, 0.3, 0.2);
+                world.playSound(at, Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 1.1f);
+                label = zone.kind().equals("head") ? "<gold>Head hit" : "<yellow>Helmet";
+            }
+            case "weak" -> {
+                world.spawnParticle(Particle.ENCHANTED_HIT, at, 22, 0.3, 0.3, 0.3, 0.3);
+                world.playSound(at, Sound.BLOCK_AMETHYST_BLOCK_BREAK, 1.2f, 1.4f);
+                label = "<light_purple><bold>Weak spot!";
+            }
+            case "armor" -> {
+                world.spawnParticle(Particle.ELECTRIC_SPARK, at, 8, 0.2, 0.2, 0.2, 0.1);
+                world.playSound(at, Sound.ITEM_SHIELD_BLOCK, 0.9f, 0.8f);
+                label = "<gray>Armour";
+            }
+            case "weapon" -> {
+                world.spawnParticle(Particle.ELECTRIC_SPARK, at, 10, 0.2, 0.2, 0.2, 0.15);
+                world.playSound(at, Sound.BLOCK_ANVIL_LAND, 0.35f, 1.8f);
+                label = "<gray>Blocked by its weapon";
+            }
+            default -> label = "<white>" + zone.kind().substring(0, 1).toUpperCase(Locale.ROOT) + zone.kind().substring(1);
+        }
+        player.sendActionBar(Text.mm(label + " <dark_gray>x" + (Math.round(zone.mult() * 10) / 10.0)));
     }
 
     /** A heavy hit effect when the boss or its minions land a blow on a player. */

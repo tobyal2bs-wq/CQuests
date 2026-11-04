@@ -65,7 +65,7 @@ public final class ModelRig {
         }
     }
 
-    public record Bone(String name, int parent, Vector3f pivot) {}
+    public record Bone(String name, int parent, Vector3f pivot, Vector3f rest) {}
 
     /** One block of the model; {@code local} places a unit block in its bone, in model pixels. */
     public record Cube(int bone, String block, String base, Matrix4f local, boolean light, float centerY) {}
@@ -105,6 +105,9 @@ public final class ModelRig {
         public final List<Step> spawn, death;
         public final Map<String, Anim> anims;
         final Map<String, Integer> boneIndex = new HashMap<>();
+        /** Hit zones, and how tall the real mob's hitbox is next to the model (0..1). */
+        public List<Zone> zones = List.of();
+        public float hitbox = 1f;
 
         Model(String id, String rig, float scale, float height, List<Bone> bones, List<Cube> cubes, Map<String, String> attacks,
               String melee, List<Step> spawn, List<Step> death, Map<String, Anim> anims) {
@@ -141,6 +144,13 @@ public final class ModelRig {
 
     public record Layer(Anim anim, float time, float weight) {}
 
+    /**
+     * A part of the body players can hit: head, weak spot, body, arm, tail, weapon or armour. The centre
+     * is in model pixels before posing (it follows its bone), w and h in model pixels; mult scales the
+     * damage of a hit there.
+     */
+    public record Zone(String kind, int bone, Vector3f center, float w, float h, float mult) {}
+
     private ModelRig() {}
 
     // ------------------------------------------------------------------ loading
@@ -167,7 +177,7 @@ public final class ModelRig {
                 int parent = o.get("parent") == null || o.get("parent").isJsonNull() ? -1 : index.getOrDefault(o.get("parent").getAsString(), -2);
                 if (parent == -2) throw new IllegalArgumentException(e.getKey() + ": bone " + name + " has an unknown parent");
                 index.put(name, bones.size());
-                bones.add(new Bone(name, parent, vec3(o.getAsJsonArray("pivot"))));
+                bones.add(new Bone(name, parent, vec3(o.getAsJsonArray("pivot")), o.has("rest") ? vec3(o.getAsJsonArray("rest")) : new Vector3f()));
             }
             List<Cube> cubes = new ArrayList<>();
             for (JsonElement c : m.getAsJsonArray("cubes")) {
@@ -187,8 +197,18 @@ public final class ModelRig {
             Map<String, String> attacks = new LinkedHashMap<>();
             if (m.has("attacks")) for (var a : m.getAsJsonObject("attacks").entrySet()) attacks.put(a.getKey(), a.getValue().getAsString());
             String melee = m.has("melee") && !m.get("melee").isJsonNull() ? m.get("melee").getAsString() : null;
-            out.put(e.getKey(), new Model(e.getKey(), rig, m.get("scale").getAsFloat(), m.get("height").getAsFloat(), List.copyOf(bones),
-                    List.copyOf(cubes), Collections.unmodifiableMap(attacks), melee, steps(m.getAsJsonArray("spawn")), steps(m.getAsJsonArray("death")), anims));
+            Model model = new Model(e.getKey(), rig, m.get("scale").getAsFloat(), m.get("height").getAsFloat(), List.copyOf(bones),
+                    List.copyOf(cubes), Collections.unmodifiableMap(attacks), melee, steps(m.getAsJsonArray("spawn")), steps(m.getAsJsonArray("death")), anims);
+            if (m.has("hitbox")) model.hitbox = Math.max(0.2f, Math.min(1f, m.get("hitbox").getAsFloat()));
+            List<Zone> zones = new ArrayList<>();
+            if (m.has("zones")) for (JsonElement z : m.getAsJsonArray("zones")) {
+                JsonObject o = z.getAsJsonObject();
+                Integer bone = index.get(o.get("b").getAsString());
+                if (bone == null) throw new IllegalArgumentException(e.getKey() + ": zone on unknown bone " + o.get("b").getAsString());
+                zones.add(new Zone(o.get("kind").getAsString(), bone, vec3(o.getAsJsonArray("c")), o.get("w").getAsFloat(), o.get("h").getAsFloat(), o.get("mult").getAsFloat()));
+            }
+            model.zones = List.copyOf(zones);
+            out.put(e.getKey(), model);
         }
         return out;
     }
@@ -265,6 +285,8 @@ public final class ModelRig {
                 if (ch.pos() != null) { ch.pos().sample(t, tmp); blend(pos, tmp, w); }
                 if (ch.scl() != null) { ch.scl().sample(t, tmp); blend(scl, tmp, w); }
             }
+            // resting bends (elbows, a raised weapon) add to whatever the animations do
+            rot[0] += b.rest().x; rot[1] += b.rest().y; rot[2] += b.rest().z;
             Vector3f p = b.pivot();
             Matrix4f m = new Matrix4f().translation(p.x + pos[0], p.y + pos[1], p.z + pos[2])
                     .rotateZ(rad(rot[2])).rotateY(rad(rot[1])).rotateX(rad(rot[0]))

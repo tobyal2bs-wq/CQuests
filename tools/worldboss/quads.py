@@ -90,6 +90,35 @@ def ruinmaw():
     horn(m, "jaw", bone, (-5, 19.4, 29), 1, (-30, 0, 25), (0, 0, 0), 2.4)
     m.c("jaw", "white_concrete", (-6.2, 22.4, 29.6), (1.6, 0.6, 1.6), (0, 0, 30))
     m.c("tail", bone, (0, 19.6, -21), (1.4, 1.4, 8), (-40, 0, 0), (0, 23, -18))
+    # raw flesh where the hide has rotted away, strips hanging off the ribs, flies of moss
+    for x, y, z, w, h, d in ((6.2, 30, 9, 0.8, 6, 5), (-9.05, 27, 3, 0.6, 7, 6), (2, 37.1, 9, 6, 0.4, 4), (-9.05, 23, 10, 0.6, 3, 4)):
+        m.c("body", "red_terracotta", (x, y, z), (w, h, d))
+    for x, z, h in ((6.6, -3.6, 5), (-6.6, -7, 7), (6.6, -10.4, 4), (-6.6, -2, 3)):
+        m.c("body", rot2, (x, 19.6 - h / 2 + 2, z), (0.8, h, 1.6))
+    # spine plates, broken chains still locked round the neck and a back leg
+    for z in (12, 6, 0):
+        m.c("body", dark, (0, 37.8 if z > 4 else 37.2, z), (6, 1, 4))
+    m.c("body", "iron_block", (0, 30, 14.4), (19, 2, 2))
+    for x, r in ((-8, 20), (8.5, -35), (3, 5)):
+        m.c("body", "chain", (x, 25.4, 15.6), (0.6, 8, 0.6), (r, 0, 0))
+    m.c("legBR", "iron_block", (-7.6, 8.6, -12), (7, 1.6, 7))
+    m.c("legBR", "chain", (-7.6, 4, -16), (0.6, 0.6, 8), (0, -20, 0))
+    # split hooves
+    for leg, z in (("legFL", 9), ("legBL", -12)):
+        for s, b in ((1, leg), (-1, leg[:-1] + "R")):
+            m.c(b, "black_concrete", (7.6 * s, 1, z + 3.95), (0.4, 2, 0.4))
+    # head: a torn ear, nostrils, bare teeth along the skull side, a crack glowing in the skull
+    m.c("head", rot, (6.6, 29, 18), (3, 2, 5), (0, 0, -30))
+    m.c("head", rot2, (7.6, 28.6, 16), (1.6, 1.4, 1.6), (0, 0, -30))
+    m.c("head", "calcite", (-7, 29.4, 18), (2, 4, 3), (0, 0, 40))
+    m.c("head", "black_concrete", (-1.2, 23, 32.05), (0.8, 0.8, 0.2))
+    m.c("head", "black_concrete", (1.6, 23, 32.05), (0.8, 0.8, 0.2))
+    for z in (24, 26, 28):
+        m.c("head", "white_concrete", (-6.65, 21.4, z), (0.4, 1.4, 0.8))
+    m.c("head", "lime_stained_glass", (-4, 29.8, 22), (0.6, 3.6, 0.6), (0, 0, 25), light=True)
+    # bony tail with a tuft
+    m.c("tail", bone, (0, 15.4, -25.2), (1.2, 1.2, 4), (-60, 0, 0), (0, 17, -24))
+    m.c("tail", rot2, (0, 13, -27), (2.4, 2.4, 2.4))
     m.attacks = {"leap": "pounce", "quake": "rear", "shockwave": "charge", "roar": "howl"}
     m.melee = "bite"
     m.spawn = {"style": "rise", "particle": "MYCELIUM", "sound": "ENTITY_ZOGLIN_ANGRY"}
@@ -147,6 +176,28 @@ def fenrir():
     m.c("jaw", "red_terracotta", (0, 29.3, 29.4), (4, 0.4, 7))
     # big tail sweeping up
     limb(m, "tail", fur, (0, 31, -15), [(5, 4, (-60, 0, 0)), (5, 4.6, (-35, 0, 0)), (4, 3.6, (-10, 0, 0), fur2), (3, 2.4, (15, 0, 0), fur2)])
+    # shaggy hackles down the neck and back, darker saddle, a pale belly
+    for k, z in enumerate((14, 10, 6, 2, -2, -6, -10, -14)):
+        h = 3.4 - k * 0.25
+        m.c("body", dark if k % 2 else fur, (0, (38 if z > 8 else 35.4 - (z < -4) * 0.8) + h / 2, z), (4 - k * 0.2, h, 2.6), (-30, 0, 0))
+    m.c("body", dark, (0, 34.3, -6), (9, 1, 14))
+    m.c("body", fur2, (0, 22.4, 2), (8, 1.4, 18))
+    for s in (1, -1):
+        for z in (6, 2):
+            m.c("body", fur2, (6.6 * s, 24 + (z == 2) * 1.4, z), (1, 4, 3), (0, 0, 10 * s))
+    # runes of the binding: more of them, and the broken fetter still clamped on a hind leg
+    for x, z, h in ((-6.6, -6, 3), (5.2, -12.5, 2.4), (-5.2, -12.5, 2.4)):
+        m.c("body", rune, (x, 29.4, z), (0.2 if abs(x) > 6 else 0.8, h, 0.8 if abs(x) > 6 else 0.2), light=True)
+    m.c("legBL", "iron_block", (5.4, 5, -12.6), (4.4, 1.8, 4.4))
+    m.c("legBL", "chain", (5.4, 3.4, -16), (0.6, 0.6, 6), (-20, 0, 0))
+    m.c("legBL", rune, (7.65, 5, -12.6), (0.2, 1, 1.6), light=True)
+    # head: a brow ridge, cheek ruff, scarred muzzle, frost breath curling from the jaws
+    m.c("head", dark, (0, 37, 25.4), (9, 1.2, 1.4))
+    m.m("head", fur2, (5.4, 32.4, 22), (2, 5, 5), (0, 0, 12))
+    m.c("head", "red_terracotta", (1.8, 33.2, 32), (0.6, 3, 0.2), (0, 0, 30))
+    m.m("head", "gray_wool", (3.1, 32.8, 30), (0.2, 1, 6))
+    m.c("jaw", "light_blue_stained_glass", (0, 27.6, 35), (3, 1.6, 2), light=True)
+    m.c("jaw", "white_stained_glass", (0, 28.4, 37.4), (2, 1.2, 2), light=True)
     m.attacks = {"leap": "pounce", "frost": "howl", "minions": "rear", "roar": "charge"}
     m.melee = "bite"
     m.spawn = {"style": "assemble", "particle": "SNOWFLAKE", "sound": "ENTITY_WOLF_HOWL"}
@@ -194,6 +245,42 @@ def killer_bunny():
     limb(m, "head", fur, (2.6, 33, 8), [(9, 3.4, (-8, 0, -8)), (7, 3, (-12, 0, -4))])
     m.c("head", pink, (2.9, 38.4, 9.3), (1.6, 11, 0.4), (-10, 0, -7), (2.6, 33, 8))
     limb(m, "head", fur, (-2.6, 33, 8), [(6, 3.4, (-10, 0, 20)), (8, 3, (-60, 0, 80))])
+    # shaggy fur: tufts along the back and flanks, a fluffy chest ruff, grey shading underneath
+    for x, y, z, w, h, d in ((0, 24.6, -2, 10, 1.6, 12), (0, 23.6, -9, 8, 2, 6), (8.6, 18, -4, 1.6, 6, 10), (-8.6, 18, -4, 1.6, 6, 10),
+                             (8.2, 13, 2, 1.6, 4, 6), (-8.2, 13, 2, 1.6, 4, 6)):
+        m.c("body", fur, (x, y, z), (w, h, d))
+    for x, y in ((-3.6, 11.6), (0, 10.8), (3.6, 11.6), (-2, 22.6), (2.2, 22.6)):
+        m.c("body", fur2, (x, y, 8.6), (3, 2.4, 2.4), (0, 0, 45))
+    m.c("body", "light_gray_wool", (0, 8.6, -2), (12, 1.6, 14))
+    m.c("body", fur2, (0, 15.6, -14.6), (5, 5, 1.6))
+    m.c("body", "light_gray_wool", (0, 13.4, -14.4), (3, 1.2, 1.6))
+    # a spiked leather collar with an iron ring and a tag
+    m.c("body", "brown_terracotta", (0, 23.4, 6), (12.6, 2, 6), (-10, 0, 0))
+    for x in (-5, -2.5, 0, 2.5, 5):
+        m.c("body", "iron_block", (x, 23.6, 9.2), (1, 1, 1.6), (-10, 0, 0))
+    m.c("body", "iron_block", (0, 21.4, 9.6), (2, 2, 0.5), (0, 0, 45))
+    m.c("body", "gold_block", (0, 20.4, 9.8), (1.4, 1.6, 0.3))
+    # front paws: bloodied claws; hind feet: toes and thick fur over the heel
+    for s in (1, -1):
+        b = "legFL" if s > 0 else "legFR"
+        for k in (-1, 0, 1):
+            m.c(b, "white_concrete", (3 * s + k * 1.1, 1.4, 12.4), (0.6, 0.8, 1.6), (25, 0, 0))
+            m.c(b, "red_concrete", (3 * s + k * 1.1, 1, 13.1), (0.6, 0.5, 0.6))
+        m.c(b, fur2, (3 * s, 8.6, 8.4), (4.4, 2.4, 4.4))
+        b = "legBL" if s > 0 else "legBR"
+        for k in (-1, 0, 1):
+            m.c(b, fur2, (6.6 * s + k * 1.4, 1.2, 4.8), (1.2, 2, 1.6))
+        m.c(b, fur2, (6.6 * s, 4.4, -7.4), (4.4, 3, 3))
+        m.c(b, "light_gray_wool", (6.6 * s, 0.2, -2), (4, 0.4, 10))
+    # head: cheek fluff, whiskers, a scar across one eye, inner ears, a notch bitten out of the tall ear
+    m.m("head", fur2, (6.6, 26.4, 12), (2.6, 3.4, 3.4), (0, 0, 20))
+    m.m("head", fur, (6.8, 31.6, 9), (1.4, 3, 6))
+    for y in (26.4, 25.4):
+        m.m("head", "light_gray_concrete", (6.4, y, 15.4), (6, 0.3, 0.3), (0, -15, 0))
+    m.c("head", "red_terracotta", (-3.4, 30, 14.8), (0.6, 5, 0.2), (0, 0, 25))
+    m.c("head", fur2, (0, 33.2, 9), (10, 1.4, 8))
+    m.c("head", "black_concrete", (4.2, 40.6, 8.8), (1.6, 1.6, 3.8), (-14, 0, -8))
+    m.c("head", pink, (-3.6, 36.6, 9.8), (1.4, 4, 0.4), (-10, 0, 20), (-2.6, 33, 8))
     m.attacks = {"leap": "pounce", "minions": "howl", "shockwave": "rear"}
     m.melee = "bite"
     m.spawn = {"style": "grow", "particle": "HEART", "sound": "ENTITY_RABBIT_ATTACK"}
@@ -236,6 +323,29 @@ def volatile_colossus():
     m.m("head", "red_concrete", (2.6, 37.2, 5.75), (0.8, 0.8, 0.1), light=True)
     m.c("head", "chain", (0, 42.2, 0), (0.8, 2.4, 0.8), (0, 0, 15))
     m.c("head", "end_rod", (-0.6, 44.2, 0), (1.6, 1.6, 1.6), light=True)
+    # cracks in the skin glowing with the charge building inside
+    for x, y, z, w, h, d, r in ((-2.6, 26, 3.75, 0.5, 5, 0.3, 30), (-3.6, 28.4, 3.75, 0.5, 2.6, 0.3, -40), (3.4, 11, 3.75, 0.5, 4, 0.3, -20),
+                                (5.05, 19, 0, 0.3, 5, 0.5, 15), (-5.05, 13, 1, 0.3, 4, 0.5, -25), (-2, 16, -3.75, 0.5, 5, 0.3, 35)):
+        m.c("body", "red_stained_glass", (x, y, z), (w, h, d), (0, 0, r), light=True)
+    m.c("head", "red_stained_glass", (4.6, 39.6, 5.65), (0.5, 3.4, 0.2), (0, 0, -30), light=True)
+    m.c("head", "red_stained_glass", (-6.1, 38, 1), (0.2, 3, 0.5), (25, 0, 0), light=True)
+    # a bandolier of dynamite across the chest and a detonator on the back
+    m.c("body", "brown_terracotta", (0, 21, 3.9), (1.4, 15, 0.5), (0, 0, -38))
+    for k in range(4):
+        t = -4.5 + k * 3
+        m.c("body", "red_concrete", (t * 0.62, 21 + t * 0.79, 4.4), (1, 2.6, 0.8), (0, 0, -38))
+        m.c("body", "white_concrete", (t * 0.62, 21 + t * 0.79, 4.85), (1.05, 0.5, 0.2), (0, 0, -38))
+    m.c("body", "iron_block", (0, 28.4, -5.4), (5, 3, 2))
+    m.c("body", "redstone_lamp", (-1.2, 28.4, -6.5), (1.6, 1.6, 0.4), light=True)
+    m.c("body", "lever", (1.4, 30.4, -5.6), (1, 2, 1))
+    m.c("body", "red_wool", (0, 31.6, -4.6), (0.5, 4, 0.5), (-25, 0, 0))
+    # a neck ring of darker skin and toes on every foot
+    m.c("head", g2, (0, 30.4, 0), (10.6, 1.4, 8.4))
+    for leg, z in (("legFL", 3.8), ("legBL", -3.8)):
+        for s, b in ((1, leg), (-1, leg[:-1] + "R")):
+            for k in (-1, 1):
+                m.c(b, g2, (3.6 * s + k * 1.2, 0.7, z + (2.6 if z > 0 else -2.6)), (1.4, 1.4, 1.6))
+            m.c(b, g3, (3.6 * s, 7.4, z), (4.8, 1, 4.8))
     m.attacks = {"detonate": "rear", "leap": "pounce", "pull": "howl"}
     m.melee = "toss"
     m.spawn = {"style": "unfold", "particle": "SMOKE", "sound": "ENTITY_CREEPER_PRIMED"}

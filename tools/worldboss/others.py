@@ -155,39 +155,78 @@ def king_gloop():
     m = Model("king_gloop", "slime", 2.0)
     slime(m)
     shell = "slime_block"
-    # see-through shell with rounded edges, the old core and swallowed loot inside
-    m.c("body", shell, (0, 13, 0), (28, 26, 28))
-    m.c("body", shell, (0, 13, 0), (30, 22, 24))
-    m.c("body", shell, (0, 13, 0), (24, 22, 30))
-    m.c("inner", "lime_concrete", (0, 14, 0), (12, 12, 12))
-    m.c("inner", "green_concrete", (0, 14, 0), (8, 8, 13), (0, 0, 0))
-    m.c("inner", "bone_block", (-7, 6, -6), (2, 7, 2), (0, 20, 60))
-    m.c("inner", "gold_block", (8, 5, 5), (3, 1, 3), (0, 30, 0))
-    m.c("inner", "iron_block", (6, 20, -7), (1, 9, 1.2), (30, 0, 20))
-    m.c("inner", "diamond_block", (-6, 21, 6), (2, 2, 2), (45, 45, 0))
-    # face on the shell
-    m.m("body", "black_concrete", (5.4, 17.4, 15.1), (4, 5, 0.4))
-    m.m("body", "white_concrete", (6.2, 18.6, 15.35), (1.4, 1.4, 0.2))
-    m.c("mouth", "black_concrete", (0, 9, 15.1), (8, 2.4, 0.4))
-    m.c("mouth", "green_concrete", (0, 8, 15.2), (5, 1, 0.3))
-    # crown: gold band, points, gems, a red velvet top
-    m.c("body", "gold_block", (0, 27, 0), (16, 3, 16))
-    m.c("body", "red_wool", (0, 28.6, 0), (13, 2, 13))
+    # A rounded jelly: a core box, slabs pushed out on every side and bevelled corners, so it reads as
+    # a soft blob instead of a cube. It sags at the bottom like something heavy.
+    m.c("body", shell, (0, 13.5, 0), (26, 25, 26))
+    m.c("body", shell, (0, 12, 0), (30, 19, 24))
+    m.c("body", shell, (0, 12, 0), (24, 19, 30))
+    m.c("body", shell, (0, 27, 0), (18, 2, 18))
+    m.c("body", shell, (0, 1, 0), (30, 2, 30))
+    for x, z in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+        m.c("body", shell, (12 * x, 13, 12 * z), (6, 21, 6), (0, 45, 0))
+        m.c("body", "lime_stained_glass", (13.6 * x, 0.6, 13.6 * z), (5, 1.2, 5), (0, 45, 0))
+    # drips running down the sides
+    for x, z, h in ((-9, 15.2, 5), (4, 15.2, 3.4), (15.2, 6, 4), (-15.2, -3, 6), (8, -15.2, 4.4)):
+        m.c("body", "lime_stained_glass", (x, 4 + h / 2, z), (1.6, h, 1.6))
+        m.c("body", "lime_stained_glass", (x, 3.6, z), (2.2, 1.6, 2.2))
+    # what it swallowed: an adventurer's skull and ribs, a sword, gold, a potion, the old core
+    m.c("inner", "lime_concrete", (0, 14, 0), (11, 11, 11))
+    m.c("inner", "green_concrete", (0, 14, 0), (7, 7, 11.4))
+    m.c("inner", "green_concrete", (0, 14, 0), (11.4, 7, 7))
+    m.c("inner", "bone_block", (-6, 5.4, -4), (4.4, 4, 4.4), (0, 25, 12))
+    m.c("inner", "black_concrete", (-5.4, 5.6, -1.7), (1, 1, 0.2), (0, 25, 12))
+    m.c("inner", "black_concrete", (-7.4, 5.6, -2.6), (1, 1, 0.2), (0, 25, 12))
+    for k in range(4):
+        m.c("inner", "bone_block", (5, 4 + k * 1.6, -6), (5, 0.7, 0.7), (0, 30, 0))
+    m.c("inner", "bone_block", (5, 6.4, -6), (0.8, 7, 0.8), (0, 30, 0))
+    m.c("inner", "iron_block", (7, 21, -6), (1, 10, 1.4), (35, 0, 25))
+    m.c("inner", "gold_block", (4.6, 16.6, -5.2), (3.4, 0.8, 1), (35, 0, 25))
+    m.c("inner", "brown_wool", (3.6, 15.4, -4.8), (0.9, 2.6, 0.9), (35, 0, 25))
+    for x, z, r in ((8, 5, 30), (9.4, 6.8, 70), (6.6, 7, 10), (-8, 7, 50)):
+        m.c("inner", "gold_block", (x, 3.4, z), (2.6, 0.7, 2.6), (0, r, 0))
+    m.c("inner", "pink_stained_glass", (-7, 19, 6), (2.6, 3.4, 2.6), (0, 0, 20), light=True)
+    m.c("inner", "white_wool", (-7.6, 21, 6), (1, 1, 1), (0, 0, 20))
+    m.c("inner", "diamond_block", (-3, 23, -4), (2, 2, 2), (45, 45, 0), light=True)
+    # face: big glossy eyes with highlights, angry brows, cheeks, a wide mouth with a tongue
+    m.m("body", "black_concrete", (6, 17.6, 15.1), (5, 6, 0.4))
+    m.m("body", "white_concrete", (7, 19.4, 15.35), (1.8, 1.8, 0.2))
+    m.m("body", "white_concrete", (5, 16.2, 15.35), (0.8, 0.8, 0.2))
+    m.m("body", "green_concrete", (6, 21.8, 15.4), (6, 1.4, 0.6), (0, 0, 14))
+    m.m("body", "pink_concrete", (10.4, 13.4, 15.2), (2.4, 1.2, 0.3))
+    m.c("mouth", "black_concrete", (0, 9.4, 15.1), (11, 3.4, 0.4))
+    m.c("mouth", "red_concrete", (0, 8.4, 15.25), (5, 1.2, 0.3))
+    for x in (-4.2, -2.4, 2.4, 4.2):
+        m.c("mouth", "white_concrete", (x, 10.6, 15.3), (1, 1, 0.3))
+    # crown: ermine band, gold band, eight points with pearls, a velvet top and an orb
+    m.c("body", "white_wool", (0, 26.6, 0), (17.6, 1.8, 17.6))
+    for x, z in ((-6, 8.85), (0, 8.85), (6, 8.85), (8.85, -4), (8.85, 4), (-8.85, 0)):
+        m.c("body", "black_wool", (x, 26.6, z), (0.6, 0.8, 0.2) if abs(z) > 8 else (0.2, 0.8, 0.6))
+    m.c("body", "gold_block", (0, 28.6, 0), (16, 2.4, 16))
+    m.c("body", "red_wool", (0, 30.6, 0), (13, 2, 13))
+    m.c("body", "red_wool", (0, 32.2, 0), (9, 1.4, 9))
     for k, (x, z) in enumerate(((-7, 7), (0, 7.6), (7, 7), (7.6, 0), (7, -7), (0, -7.6), (-7, -7), (-7.6, 0))):
-        h = 4.6 if k % 2 else 3.4
-        m.c("body", "gold_block", (x, 28.5 + h / 2, z), (2.2, h, 2.2), (0, 45, 0))
+        h = 5 if k % 2 else 3.6
+        m.c("body", "gold_block", (x, 29.8 + h / 2, z), (2, h, 2), (0, 45, 0))
+        m.c("body", "white_concrete", (x, 30.2 + h, z), (1, 1, 1), (45, 45, 0))
     for x, z, k in ((0, 8.1, "redstone_block"), (8.1, 0, "emerald_block"), (-8.1, 0, "lapis_block"), (0, -8.1, "diamond_block")):
-        m.c("body", k, (x, 27, z), (1.8, 1.8, 0.4) if abs(z) > 1 else (0.4, 1.8, 1.8), light=True)
-    m.c("body", "gold_block", (0, 31.6, 0), (2, 2, 2), (45, 0, 45))
-    # royal cape with ermine trim
+        m.c("body", k, (x, 28.6, z), (2, 2, 0.4) if abs(z) > 1 else (0.4, 2, 2), light=True)
+    m.c("body", "gold_block", (0, 34, 0), (2.4, 2.4, 2.4), (45, 0, 45))
+    m.c("body", "gold_block", (0, 36, 0), (0.7, 2.4, 0.7))
+    m.c("body", "gold_block", (0, 36.4, 0), (2, 0.7, 0.7))
+    # royal cape pinned with a gold clasp, ermine trim, a hem that rests on the ground
     m.c("body", "red_wool", (0, 13, -15.4), (24, 22, 0.8))
-    m.c("body", "white_wool", (0, 24.6, -15.4), (25, 2.4, 1.2))
-    for x in (-8, 0, 8):
-        m.c("body", "black_wool", (x, 24.6, -16.05), (0.8, 1.2, 0.2))
-    m.c("body", "white_wool", (0, 2, -15.4), (25, 2, 1.2))
+    m.c("body", "red_wool", (0, 2, -16.4), (24, 2, 2.4))
+    m.c("body", "white_wool", (0, 24.6, -15.6), (25, 2.6, 1.4))
+    for x in (-8, -4, 0, 4, 8):
+        m.c("body", "black_wool", (x, 24.6, -16.35), (0.8, 1.2, 0.2))
+    m.c("body", "white_wool", (0, 3.4, -15.6), (25, 1.6, 1.2))
+    m.m("body", "gold_block", (12, 23.8, -14), (2.6, 2.6, 1.6), (0, 0, 45))
     # a sceptre stuck in its side
     m.c("body", "gold_block", (16, 18, 4), (1.4, 16, 1.4), (0, 0, -25))
+    for y in (14, 18.4):
+        m.c("body", "gold_block", (16 + (y - 18) * -0.47, y, 4), (2.2, 0.7, 2.2), (0, 0, -25))
     m.c("body", "emerald_block", (19.6, 25.8, 4), (3, 3, 3), (45, 0, 20), light=True)
+    m.c("body", "gold_block", (19.6, 25.8, 4), (3.6, 0.6, 3.6), (0, 0, -25))
     m.attacks = {"leap": "slam", "quake": "hop", "minions": "burst", "poison": "spit"}
     m.melee = "hop"
     m.spawn = {"style": "drop", "particle": "ITEM_SLIME", "sound": "ENTITY_SLIME_SQUISH"}
@@ -198,28 +237,54 @@ def king_gloop():
 def sunscorch():
     m = Model("sunscorch", "slime", 1.9)
     slime(m)
-    # stacked molten layers with gaps that glow, a burning heart, solar flares turning around it
-    m.c("inner", "ochre_froglight", (0, 14, 0), (20, 20, 20), light=True)
-    m.c("inner", "shroomlight", (0, 14, 0), (16, 22, 16), (0, 45, 0), light=True)
-    for i, (y, h) in enumerate(((0, 5), (6, 4.6), (11.6, 4.6), (17.2, 4.6), (22.8, 5))):
-        m.c("body", "magma_block", (0, y + h / 2, 0), (26, h, 26), light=i in (1, 3))
-        m.c("body", "nether_bricks" if i % 2 else "blackstone", (0, y + h / 2, 0), (26.4, h * 0.3, 26.4))
-    m.c("body", "magma_block", (0, 29, 0), (20, 2.4, 20))
-    m.m("body", "yellow_concrete", (6, 19.6, 13.25), (5, 2, 0.4), light=True)
-    m.m("body", "white_concrete", (6, 19.6, 13.35), (2, 1, 0.4), light=True)
-    m.c("mouth", "orange_concrete", (0, 8.6, 13.25), (10, 2, 0.4), light=True)
-    for x in (-3.6, -1.2, 1.2, 3.6):
-        m.c("mouth", "blackstone", (x, 9.8, 13.35), (1, 0.8, 0.3))
     import math
+    # A small sun: a white-hot heart inside a rounded molten body, cooled crust plates floating on it with
+    # glowing seams between them, flares licking out of the top and a ring of embers turning around it.
+    m.c("inner", "ochre_froglight", (0, 14, 0), (18, 18, 18), light=True)
+    m.c("inner", "shroomlight", (0, 14, 0), (14, 21, 14), (0, 45, 0), light=True)
+    m.c("body", "magma_block", (0, 13.5, 0), (24, 25, 24), light=True)
+    m.c("body", "magma_block", (0, 13, 0), (27, 20, 21))
+    m.c("body", "magma_block", (0, 13, 0), (21, 20, 27))
+    m.c("body", "magma_block", (0, 1, 0), (26, 2, 26))
+    m.c("body", "magma_block", (0, 26.6, 0), (17, 2, 17), light=True)
+    for x, z in ((1, 1), (1, -1), (-1, 1), (-1, -1)):
+        m.c("body", "magma_block", (10.6 * x, 13, 10.6 * z), (5, 19, 5), (0, 45, 0))
+    # crust plates: dark, cracked, slightly proud of the surface
+    for k, (x, y, z, w, h, d, ry) in enumerate((
+            (-9, 24.4, 13.7, 6, 3, 0.8, 0), (9.6, 3.4, 13.7, 5, 4, 0.8, 0), (-10.4, 4, 13.7, 4, 3, 0.8, 0),
+            (13.7, 18, -4, 0.8, 7, 8, 0), (13.7, 6, 6, 0.8, 5, 6, 0), (-13.7, 16, 2, 0.8, 9, 7, 0),
+            (-13.7, 5, -7, 0.8, 4, 6, 0), (3, 20, -13.7, 9, 6, 0.8, 0), (-6, 7, -13.7, 7, 5, 0.8, 0),
+            (0, 27.9, -3, 8, 0.8, 6, 20), (6, 27.9, 5, 5, 0.8, 5, -15))):
+        m.c("body", "blackstone" if k % 3 else "basalt", (x, y, z), (w, h, d), (0, ry, 0))
+    for x, y, z, w, h, d in ((-5.8, 24.4, 13.8, 0.6, 3, 0.6), (13.8, 12, 1, 0.6, 1, 14), (2, 13.6, -13.8, 14, 1, 0.6), (-13.8, 11, -2.5, 0.6, 2, 1)):
+        m.c("body", "shroomlight", (x, y, z), (w, h, d), light=True)
+    # face: eyes burning white with yellow rims, a grin of flame with black teeth
+    m.m("body", "yellow_concrete", (5.6, 16.8, 13.75), (5.4, 3.4, 0.5), light=True)
+    m.m("body", "white_concrete", (5.6, 16.8, 13.95), (3, 1.6, 0.4), light=True)
+    m.m("body", "blackstone", (5.8, 19.6, 13.9), (6.4, 1.2, 0.6), (0, 0, -12))
+    m.c("mouth", "orange_concrete", (0, 9.4, 13.75), (11, 3, 0.5), light=True)
+    m.c("mouth", "yellow_concrete", (0, 9.4, 13.9), (8, 1.2, 0.4), light=True)
+    for x in (-4.2, -1.4, 1.4, 4.2):
+        m.c("mouth", "blackstone", (x, 10.6, 14), (1, 1, 0.4))
+        m.c("mouth", "blackstone", (x + 0.7, 8.2, 14), (0.9, 0.9, 0.4))
+    # ember ring on the core bone, so it turns with the idle
     for k in range(12):
         a = k * 30
         x, z = 17 * math.cos(math.radians(a)), 17 * math.sin(math.radians(a))
-        h = 7 if k % 2 else 4.6
-        m.c("inner", "orange_stained_glass" if k % 2 else "yellow_stained_glass", (x, 14, z), (h, 2, 2), (0, -a, 0), light=True)
-    for k in range(6):
-        a = k * 60 + 15
-        x, z = 11 * math.cos(math.radians(a)), 11 * math.sin(math.radians(a))
-        m.c("inner", "yellow_stained_glass", (x, 31.6, z), (2, 4, 2), (0, -a, 25), light=True)
+        h = 6 if k % 2 else 3.6
+        m.c("inner", "orange_stained_glass" if k % 2 else "yellow_stained_glass", (x, 14 + (k % 3 - 1) * 2, z), (h, 1.6, 1.6), (0, -a, 0), light=True)
+    # flares: tongues of flame rising off the top and bending outward
+    for k in range(7):
+        a = k * (360 / 7) + 10
+        r = 7 + (k % 2) * 2
+        x, z = r * math.cos(math.radians(a)), r * math.sin(math.radians(a))
+        h = 6 if k % 2 else 4
+        m.c("inner", "yellow_stained_glass", (x, 28.4 + h / 2, z), (2.2, h, 2.2), (0, -a, 22), light=True)
+        m.c("inner", "orange_stained_glass", (x * 1.15, 28.4 + h + 0.8, z * 1.15), (1.4, 2, 1.4), (0, -a, 36), light=True)
+    # heat haze ring on the ground
+    for k in range(8):
+        a = k * 45 + 22
+        m.c("body", "orange_stained_glass", (15 * math.cos(math.radians(a)), 0.4, 15 * math.sin(math.radians(a))), (4, 0.8, 1.4), (0, -a, 0), light=True)
     m.attacks = {"fire_ring": "burst", "leap": "slam", "quake": "hop", "minions": "spit"}
     m.melee = "hop"
     m.spawn = {"style": "unfold", "particle": "LAVA", "sound": "ENTITY_MAGMA_CUBE_SQUISH"}

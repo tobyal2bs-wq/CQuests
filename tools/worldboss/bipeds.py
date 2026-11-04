@@ -6,7 +6,7 @@ def frost_jarl():
     biped(m, hip=19, legx=4, neck=37, shoulder=35, armx=10.5)
     m.bone("jaw", "head", (0, 38, 3))
     m.bone("cape", "body", (0, 37, -5))
-    m.bone("axe", "armR", (-11, 15, 2))
+    m.bone("axe", "armR", (-11, 16.8, 1))
     skin = "light_blue_terracotta"
     for s, b in ((1, "legL"), (-1, "legR")):
         m.c(b, "white_wool", (4 * s, 3, 0.6), (6.4, 6, 7.6))
@@ -71,13 +71,14 @@ def frost_jarl():
     for i, x in enumerate((-6.4, -2.2, 2.2, 6.4)):
         m.c("cape", "white_wool", (x, 6.2 - (i % 2), -7.4), (4, 2.2, 1.4), (5, 0, 0), (0, 37, -5.6))
     # ice greataxe
-    m.c("axe", "spruce_log", (-11, 20, 2.6), (1.8, 38, 1.8))
-    m.c("axe", "brown_wool", (-11, 14.5, 2.6), (2.2, 6, 2.2))
-    m.c("axe", "iron_block", (-11, 38.8, 2.6), (2.6, 2, 2.6))
+    m.c("axe", "spruce_log", (-11, 27, 1), (1.8, 30, 1.8))
+    m.c("axe", "brown_wool", (-11, 17, 1), (2.2, 7, 2.2))
+    m.c("axe", "iron_block", (-11, 12.6, 1), (2.6, 1.6, 2.6))
+    m.c("axe", "iron_block", (-11, 41.8, 1), (2.6, 2, 2.6))
     for dz, h, w in ((4.5, 10, 4), (8, 8, 3.4), (10.5, 5, 2)):
-        m.c("axe", "blue_ice", (-11, 34, 2.6 + dz), (1, h, w), light=True)
-    m.c("axe", "packed_ice", (-11, 34, -1.6), (1.2, 5, 4.4))
-    m.c("axe", "light_blue_stained_glass", (-11, 34, 13), (0.8, 2.4, 1.4), light=True)
+        m.c("axe", "blue_ice", (-11, 37, 1 + dz), (1, h, w), light=True)
+    m.c("axe", "packed_ice", (-11, 37, -3.2), (1.2, 5, 4.4))
+    m.c("axe", "light_blue_stained_glass", (-11, 37, 11.4), (0.8, 2.4, 1.4), light=True)
     m.attacks = {"frost": "cast", "volley": "double", "minions": "roar", "shockwave": "slam"}
     m.melee = "swipe"
     m.spawn = {"style": "assemble", "particle": "SNOWFLAKE", "sound": "BLOCK_GLASS_PLACE"}
@@ -89,7 +90,7 @@ def warlord_gruk():
     m = Model("warlord_gruk", "biped", 1.65)
     biped(m, hip=14, legx=5.2, neck=36, shoulder=33, armx=12.5)
     m.bone("jaw", "head", (0, 38, 4))
-    m.bone("axe", "armR", (-13, 12, 3))
+    m.bone("axe", "armR", (-13, 13.4, 1.2))
     skin = "pink_terracotta"
     for s, b in ((1, "legL"), (-1, "legR")):
         m.c(b, skin, (5.2 * s, 9, 0), (6.4, 10, 6.4))
@@ -139,13 +140,14 @@ def warlord_gruk():
     for i, z in enumerate((-3, -0.6, 1.8, 4.2)):
         m.c("head", "red_wool", (0, 50.6 + (1 if i in (1, 2) else 0), z), (1.6, 3.6 + (2 if i in (1, 2) else 0), 2.6))
     # double bladed golden axe
-    m.c("axe", "dark_oak_log", (-13, 18, 3.6), (2.2, 34, 2.2))
-    m.c("axe", "gold_block", (-13, 35.4, 3.6), (3, 1.6, 3))
+    m.c("axe", "dark_oak_log", (-13, 25, 1.2), (2.2, 30, 2.2))
+    m.c("axe", "gold_block", (-13, 9.6, 1.2), (3, 1.6, 3))
+    m.c("axe", "gold_block", (-13, 40.4, 1.2), (3, 1.6, 3))
     for dz in (1, -1):
-        m.c("axe", "gold_block", (-13, 30, 3.6 + 5 * dz), (1.4, 9, 7))
-        m.c("axe", "raw_gold_block", (-13, 30, 3.6 + 8.6 * dz), (1, 12, 1.6))
-        m.c("axe", "gold_block", (-13, 30, 3.6 + 2 * dz), (2, 4, 3))
-    m.c("axe", "red_wool", (-13, 23, 3.6), (2.6, 3, 2.6))
+        m.c("axe", "gold_block", (-13, 35, 1.2 + 5 * dz), (1.4, 9, 7))
+        m.c("axe", "raw_gold_block", (-13, 35, 1.2 + 8.6 * dz), (1, 12, 1.6))
+        m.c("axe", "gold_block", (-13, 35, 1.2 + 2 * dz), (2, 4, 3))
+    m.c("axe", "red_wool", (-13, 13.4, 1.2), (2.6, 5, 2.6))
     m.attacks = {"leap": "lunge", "shockwave": "slam", "minions": "roar", "roar": "stomp"}
     m.melee = "double"
     m.spawn = {"style": "drop", "particle": "WAX_ON", "sound": "ENTITY_PIGLIN_BRUTE_ANGRY"}
@@ -304,7 +306,7 @@ def storm_herald():
 def executioner():
     m = Model("executioner", "biped", 1.75)
     biped(m, hip=19, legx=3.8, neck=36, shoulder=34, armx=10)
-    m.bone("cleaver", "armR", (-10.5, 14, 2))
+    m.bone("cleaver", "armR", (-10.5, 16.4, 1))
     skin = "light_gray_terracotta"
     for s, b in ((1, "legL"), (-1, "legR")):
         m.c(b, "black_terracotta", (3.8 * s, 12, 0), (5.4, 13, 5.6))
@@ -352,15 +354,49 @@ def executioner():
     m.c("head", skin, (0, 41.4, 5.4), (1.8, 3.6, 1.6))
     m.c("head", "red_terracotta", (-2.6, 39, 4.75), (1.4, 2, 0.2))
     # cleaver: broad iron blade, notched, bloody edge, wrapped grip
-    m.c("cleaver", "dark_oak_log", (-10.5, 12.6, 2.6), (2, 12, 2))
-    m.c("cleaver", "black_wool", (-10.5, 13, 2.6), (2.4, 6, 2.4))
-    m.c("cleaver", "iron_block", (-10.5, 18.9, 2.6), (2.8, 1.4, 4))
-    m.c("cleaver", "iron_block", (-10.5, 29, 4.4), (1.2, 19, 9))
-    m.c("cleaver", "iron_block", (-10.5, 38.8, 3.4), (1.2, 1.4, 7))
-    m.c("cleaver", "red_terracotta", (-10.5, 30, 9.2), (1.3, 14, 1))
-    m.c("cleaver", "red_concrete", (-10.5, 33, 8.4), (1.35, 3, 1))
-    m.c("cleaver", "gray_concrete", (-10.5, 34, 1.6), (1.35, 1.6, 1.6))
-    m.c("cleaver", "dark_oak_log", (-10.5, 23, 9.5), (1.3, 1.4, 0.6))
+    m.c("cleaver", "dark_oak_log", (-10.5, 18.6, 1.0), (2, 12, 2))
+    m.c("cleaver", "black_wool", (-10.5, 19.0, 1.0), (2.4, 6, 2.4))
+    m.c("cleaver", "iron_block", (-10.5, 24.9, 1.0), (2.8, 1.4, 4))
+    m.c("cleaver", "iron_block", (-10.5, 35.0, 2.8), (1.2, 19, 9))
+    m.c("cleaver", "iron_block", (-10.5, 44.8, 1.8), (1.2, 1.4, 7))
+    m.c("cleaver", "red_terracotta", (-10.5, 36.0, 7.6), (1.3, 14, 1))
+    m.c("cleaver", "red_concrete", (-10.5, 39.0, 6.8), (1.35, 3, 1))
+    m.c("cleaver", "gray_concrete", (-10.5, 40.0, 0.0), (1.35, 1.6, 1.6))
+    m.c("cleaver", "dark_oak_log", (-10.5, 29.0, 7.9), (1.3, 1.4, 0.6))
+    # muscle shading: darker skin under the chest and between the ribs, a stitched scar, a brand
+    m.c("body", "gray_terracotta", (0, 27.6, 4.6), (0.6, 7, 0.3))
+    m.m("body", "gray_terracotta", (3.4, 28, 4.6), (5, 0.5, 0.3))
+    m.m("body", "gray_terracotta", (7.6, 29, 2), (0.4, 8, 4))
+    m.c("body", "red_terracotta", (-3.6, 30.4, 4.75), (0.4, 5, 0.2), (0, 0, 35))
+    for k in range(3):
+        m.c("body", "black_concrete", (-4.6 + k * 1.1, 29 + k * 1.5, 4.85), (1.4, 0.3, 0.15), (0, 0, -55))
+    m.c("body", "orange_terracotta", (4.8, 25.4, 4.75), (1.6, 1.6, 0.2), (0, 0, 45))
+    # shoulders: a spiked iron pauldron on the cleaver arm, a coil of rope on the other
+    m.c("armR", "iron_block", (-11.4, 35.2, 0), (7.4, 2.6, 7.4), (0, 0, 12))
+    m.c("armR", "iron_block", (-11.8, 33.6, 0), (7.8, 1, 7.8), (0, 0, 12))
+    for z in (-2.4, 0, 2.4):
+        m.c("armR", "gray_concrete", (-13.4, 37.2, z), (0.9, 2.4, 0.9), (0, 0, 25))
+    m.c("armL", "spruce_planks", (10.6, 33, 0), (7, 1, 7))
+    for y in (31.4, 30.2):
+        m.c("armL", "birch_planks", (10.6, y, 0), (6.8, 0.9, 6.8), (0, 22, 0))
+    # forearms: leather bracers with iron studs
+    for s, a in ((1, "armL"), (-1, "armR")):
+        for z in (-1.6, 1.6):
+            m.c(a, "iron_block", (10.6 * s + 3.1 * s, 20.8, 0.4 + z), (0.4, 1, 1))
+    # belt: hanging keys, a whetstone and a hood rope
+    m.c("hips", "iron_block", (5.8, 13.4, 4.4), (2.4, 2.4, 0.4), (0, 0, 45))
+    for k, h in enumerate((2.4, 1.6, 2)):
+        m.c("hips", "gold_block", (4.8 + k * 1.1, 11 - h / 2, 4.6), (0.4, h, 0.4))
+    m.c("hips", "smooth_stone", (-5.4, 15.8, 4.2), (2, 3.4, 1), (0, 0, 10))
+    m.c("hips", "brown_terracotta", (6.4, 18.6, 4.8), (1.4, 3, 0.6))
+    # boots: buckles and toe caps
+    for s, b in ((1, "legL"), (-1, "legR")):
+        m.c(b, "iron_block", (3.8 * s, 2.6, 3.6), (1.4, 1, 0.3))
+        m.c(b, "black_terracotta", (3.8 * s, 1.2, 4.3), (5.4, 1.6, 0.8))
+    # hood: stitched seam up the back and a frayed hem
+    m.c("head", "gray_wool", (0, 44, -3.9), (0.5, 9, 0.3))
+    for x in (-3.6, -1.2, 1.2, 3.6):
+        m.c("head", "black_wool", (x, 36.4 - abs(x) * 0.2, 4.3), (2, 1.6, 0.8))
     m.attacks = {"leap": "lunge", "shockwave": "slam", "minions": "roar", "roar": "sweep"}
     m.melee = "swipe"
     m.spawn = {"style": "build", "particle": "SMOKE", "sound": "ENTITY_VINDICATOR_CELEBRATE"}
@@ -731,6 +767,30 @@ def old_man_winter():
     m.c("staff", "spruce_log", (-11, 46, 9), (1.4, 1.4, 5))
     m.c("staff", "chain", (-11, 43.6, 11), (0.6, 3, 0.6))
     m.c("staff", "soul_lantern", (-11, 39.6, 11), (5, 5, 5), light=True)
+    # robe: blue embroidered snowflakes down the front, a rope belt with a frozen pouch and a horn
+    for y in (29, 25):
+        m.c("body", "light_blue_concrete", (0, y, 5.65), (0.5, 3, 0.3), lean, H)
+        m.c("body", "light_blue_concrete", (0, y, 5.65), (3, 0.5, 0.3), lean, H)
+        m.c("body", "light_blue_concrete", (0, y, 5.7), (2.2, 0.5, 0.3), (14, 0, 45), H)
+        m.c("body", "light_blue_concrete", (0, y, 5.7), (2.2, 0.5, 0.3), (14, 0, -45), H)
+    m.m("body", "light_blue_terracotta", (8.65, 27.6, 0.4), (0.3, 13, 1.6), lean, H)
+    m.c("hips", "light_gray_wool", (0, 21.8, 0.4), (17.8, 1, 10.8))
+    m.c("hips", "packed_ice", (5.6, 19.4, 5.4), (2.6, 3, 1.6))
+    m.c("hips", "brown_terracotta", (5.6, 21, 5.6), (2.8, 0.8, 1.6))
+    m.c("hips", "bone_block", (-6.4, 18.4, 5.2), (1.4, 4, 1.4), (0, 0, -35))
+    m.c("hips", "gold_block", (-7.6, 16.8, 5.2), (1.8, 1.4, 1.8), (0, 0, -35))
+    # snow piled on the shoulders and hood, rosy cold cheeks, frost in the brows
+    for s, a in ((1, "armL"), (-1, "armR")):
+        m.c(a, snow, (11.6 * s, 37.4, 0.4), (5.6, 1.4, 6), (0, 0, -10 * s))
+        m.c(a, "powder_snow", (12 * s, 38.4, 1), (3, 0.8, 3), (0, 0, -10 * s))
+    m.m("head", "pink_terracotta", (3, 40.4, 6.9), (1.6, 1, 0.3), lean, H)
+    m.c("head", "powder_snow", (0, 47.8, 0.6), (8, 1, 7), lean, H)
+    m.m("head", "packed_ice", (3.8, 44.6, 7.8), (1, 0.6, 0.6), (14, 0, -20), H)
+    # a snowflake brooch holding the cloak and frost creeping up its edge
+    m.c("body", "diamond_block", (0, 35.4, 6.4), (2, 2, 0.5), (14, 0, 45), H, light=True)
+    m.c("body", "white_concrete", (0, 35.4, 6.7), (0.8, 0.8, 0.3), (14, 0, 45), H)
+    for x, y in ((-9, 12), (-7.6, 8), (8.6, 10), (6, 6), (-3, 5)):
+        m.c("cape", "light_blue_stained_glass", (x, y, -7), (2, 3, 0.4), lean, H, light=True)
     m.attacks = {"frost": "cast", "volley": "sweep", "shockwave": "stomp", "minions": "roar"}
     m.melee = "swipe"
     m.spawn = {"style": "rain", "particle": "SNOWFLAKE", "sound": "ENTITY_PLAYER_HURT_FREEZE"}

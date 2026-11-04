@@ -124,6 +124,30 @@ class ModelRigTest {
     }
 
     @Test
+    void everyBossHasHitZones() {
+        for (ModelRig.Model m : models.values()) {
+            Set<String> kinds = new HashSet<>();
+            for (ModelRig.Zone z : m.zones) {
+                kinds.add(z.kind());
+                assertTrue(z.w() > 0 && z.h() > 0 && z.mult() > 0 && z.mult() <= 3, m.id + " zone " + z);
+                assertTrue(z.bone() >= 0 && z.bone() < m.bones.size(), m.id + " zone bone");
+            }
+            assertTrue(kinds.contains("body") || kinds.contains("armor"), m.id + " has a body zone: " + kinds);
+            assertTrue(kinds.contains("weak"), m.id + " has a weak spot: " + kinds);
+            if (!m.rig.equals("slime")) assertTrue(kinds.contains("head") || kinds.contains("helmet"), m.id + " has a head zone: " + kinds);
+            assertTrue(m.hitbox >= 0.2f && m.hitbox <= 1f, m.id + " mob hitbox " + m.hitbox);
+        }
+    }
+
+    @Test
+    void elbowsBendAndWeaponsStayInTheHand() {
+        ModelRig.Model m = models.get("frost_jarl");
+        int fore = m.boneIndex.get("foreR"), axe = m.boneIndex.get("axe");
+        assertEquals(fore, m.bones.get(axe).parent(), "the axe is held by the forearm");
+        assertTrue(m.bones.get(fore).rest().x < -10, "the elbow is bent");
+    }
+
+    @Test
     void transformationKeepsShapeAndHandlesZeroScale() {
         Matrix4f m = new Matrix4f().translation(1, 2, 3).rotateY(0.7f).scale(2, 0.5f, 3);
         var t = BossModel.transformation(m);
