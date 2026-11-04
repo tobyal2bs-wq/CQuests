@@ -2,6 +2,8 @@
 
 Full notes for each release are in the RELEASE-x.y.z.md files and on the GitHub releases page.
 
+CQuests **1.10.1**: world boss animations, halos, a lighter fight loop and `/cq worldboss selftest`, checked on 1.21.4, 26.2 and 26.3. See [RELEASE-1.10.1.md](RELEASE-1.10.1.md).
+
 CQuests **1.10.0**: weekly world bosses (20 + 4 seasonal) with a border stick, seasons, a tutorial quest and invite rewards. See [RELEASE-1.10.0.md](RELEASE-1.10.0.md).
 
 CQuests **1.9.1**: `/cq test bossnext` to see every boss in turn and `/cq test companion` for Pip. See [RELEASE-1.9.1.md](RELEASE-1.9.1.md).
