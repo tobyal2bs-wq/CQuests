@@ -164,12 +164,19 @@ public final class InviteService {
         plugin.send(player, "<gray>New players type <yellow>/quests invitedby " + Text.escape(player.getName()) + "</yellow> and you both get rewards.");
     }
 
+    private java.util.Set<String> milestones() {
+        java.util.Set<String> out = new java.util.TreeSet<>();
+        var d = plugin.getConfig().getDefaults();
+        if (d != null && d.isConfigurationSection("invites.milestones")) out.addAll(d.getConfigurationSection("invites.milestones").getKeys(false));
+        if (plugin.getConfig().isConfigurationSection("invites.milestones")) out.addAll(plugin.getConfig().getConfigurationSection("invites.milestones").getKeys(false));
+        return out;
+    }
+
     /** /cq test invite: shows both sides' messages and rewards without saving anything. */
     public void test(Player player) {
         plugin.send(player, "<gray>New player sees: <gold>Welcome! <white>" + Text.escape(player.getName()) + "</white> <gray>will get their reward when they finish the tutorial.");
         plugin.send(player, "<gray>New player gets: <white>" + plugin.getConfig().getLong("invites.new-player.money") + " money " + plugin.getConfig().getStringList("invites.new-player.items"));
         plugin.send(player, "<gray>Inviter gets: <white>" + plugin.getConfig().getLong("invites.inviter.money") + " money " + plugin.getConfig().getStringList("invites.inviter.items")
-                + " <gray>after the tutorial. Milestones: <white>" + String.join(", ", plugin.getConfig().isConfigurationSection("invites.milestones")
-                ? plugin.getConfig().getConfigurationSection("invites.milestones").getKeys(false) : java.util.Set.of()));
+                + " <gray>after the tutorial. Milestones: <white>" + String.join(", ", milestones()));
     }
 }

@@ -2,6 +2,8 @@
 
 Full notes for each release are in the RELEASE-x.y.z.md files and on the GitHub releases page.
 
+CQuests **1.10.0**: weekly world bosses (20 + 4 seasonal) with a border stick, seasons, a tutorial quest and invite rewards. See [RELEASE-1.10.0.md](RELEASE-1.10.0.md).
+
 CQuests **1.9.1**: `/cq test bossnext` to see every boss in turn and `/cq test companion` for Pip. See [RELEASE-1.9.1.md](RELEASE-1.9.1.md).
 
 CQuests **1.9.0**: chapter costs from 5M that read your own balance placeholder, co-op dailies, Pip in boss fights, recipe tips from the server itself, daily money rolls and an elytra for chapter 5. See [RELEASE-1.9.0.md](RELEASE-1.9.0.md).

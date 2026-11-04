@@ -5,6 +5,8 @@ A villager quest plugin for Paper and Folia. Players follow a linked story told 
 * **Story**: 101 story quests over chapters 1 to 5, plus chapters 6 to 10 (100 more villagers) that you switch on with `/cq chapter 6 on`. Each chapter costs money to start, and finishing chapter 5 gives an elytra.
 * **Bosses**: private fights at the end of chapters 5 to 10 and mini bosses halfway through 6 to 10. Only the player sees them, they only hurt that player and they never break blocks. Pip can fight next to you with a bow or a sword in 3 boss fights.
 * **Side, daily and co-op quests**: over a million generated side quests, a daily quest that differs for every player and pays a little or a lot, daily streaks, and co-op dailies for 2 to 4 friends working at the same time.
+* **Weekly world bosses**: 20 unique public bosses (plus 4 seasonal ones) with boss bars, special attacks and rewards for everyone who helps. You set the spawn and draw a border they can never cross with a stick. They only attack players and never break blocks.
+* **Seasons, tutorial and invites**: Halloween, Winterfest, Spring and Summer events you switch on with a command, a first quest that pays out within minutes, and rewards for inviting friends.
 * **Finding your way**: every player's compass points to their next villager, with an arrow and distance above the hotbar and `/quests where`.
 * **Villagers know your server**: tips for how an item is crafted, smelted or mined come from the server's own recipes, so new blocks and items on newer Minecraft versions just work.
 * **Extras**: Discord announcements, PlaceholderAPI placeholders for everything, renaming every NPC, WorldGuard farms, backups, and `/cq test` for every feature.
@@ -191,6 +193,24 @@ The last quest of chapters 5 to 10 is a boss fight, set up in `bosses.yml`: the 
 * use events at half health and every 20 seconds after (harmless lightning, darkness, slowness, levitation, a roar), and call minions at half health
 * are capped at `max-active` fights on the whole server (6 by default) and run on the boss's own region thread on Folia
 
+### World bosses
+
+One world boss wakes every week (`world-bosses.schedule`, Saturday 20:00 by default) at the arena called `main`.
+
+1. Stand where it should appear and run `/cq worldboss setspawn main`.
+2. Run `/cq worldboss wand main` and left-click blocks around the arena to draw its border, corner by corner. Right-click removes the last corner, sneak + right-click shows the border. Without a border the boss stays inside a circle (`/cq worldboss radius main 40`).
+3. `/cq worldboss next` shows which boss comes next and when. `/cq worldboss spawn <boss>` starts one now, `/cq worldboss stop` sends it away.
+
+A world boss only attacks players, is pulled back the moment it reaches its border, never breaks, burns or changes blocks, drops nothing and is never saved into the world. Players have to stand inside the border to hurt it. Everyone who did at least 2% of its health is paid; the top 3 get more. Bosses, their looks, attacks and rewards are in `worldbosses.yml`. Try any of them with `/cq test worldboss <id>` or go through all of them with `/cq test worldbossnext`. Players see the next one with `/quests worldboss`.
+
+### Seasons
+
+`/cq season` lists Halloween, Winterfest, Spring Bloom and Summer Blaze. `/cq season halloween on` starts one now, `off` ends it, `auto` runs it between its dates every year. While a season is on, its daily quests can be offered and its world boss takes the weekly slot.
+
+### Tutorial and invites
+
+The tutorial quest "First Steps" starts right after the welcome quest and pays out within a few minutes (`quests.tutorial-quest`). New players type `/quests invitedby <name>` in their first 48 hours: they are paid at once and the friend who invited them is paid when they finish the tutorial (`invites` in config.yml). Players on the same connection don't count.
+
 ### Daily streaks
 
 Finishing the daily on the day after the last one adds a day to the streak. Each day adds `daily.streak-bonus-percent` (10%) of the daily's money, up to `daily.streak-max-days` (7). A missed day starts again at 1. Turn it off with `daily.streaks: false`.
@@ -200,6 +220,8 @@ Finishing the daily on the day after the last one adds a day to the streak. Each
 Paste a webhook link into `discord.webhook-url` and `/cq reload`. CQuests posts when someone finishes a chapter, finishes the journey, beats a boss or reaches a 7, 30 or 100 day streak. Each event can be turned off or reworded under `discord.events` and `discord.messages`. Posts are sent in the background (never on the server thread), at most one every 2 seconds, and can never ping `@everyone`, roles or users.
 
 ### Placeholders
+
+Server-wide: `worldboss_next` (time left), `worldboss_next_name`, `worldboss_alive`, `season` (seasons running now). Per player: `invites`.
 
 With PlaceholderAPI installed every value is `%cquests_<name>%`. Add `_formatted` to any number for `1,234,567` or `_short` for `1.2M`, e.g. `%cquests_xp_formatted%`. Placeholders only read what is already in memory, so they are safe for scoreboards and tab lists on Folia.
 
