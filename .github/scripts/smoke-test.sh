@@ -110,8 +110,9 @@ grep -q "Farmer Jerold" server.log || { echo "The renamed NPC did not show in /c
 grep -q "Chapter 6 (The Iron Tusk) is on" server.log || { echo "/cq chapter 6 on failed"; exit 1; }
 grep -qE "Checked [0-9]+ objectives" server.log || { echo "/cq test targets did not run"; exit 1; }
 grep -E "Checked [0-9]+ objectives" server.log || true
-grep -qE "World bosses .?\(24\)" server.log || { echo "/cq worldboss list did not list 24 bosses"; exit 1; }
-grep -q "Halloween is now on" server.log || { echo "/cq season halloween on failed"; exit 1; }
+sed 's/\x1b\[[0-9;]*m//g' server.log > plain.log
+grep -qE "World bosses \(24\)" plain.log || { echo "/cq worldboss list did not list 24 bosses"; exit 1; }
+grep -q "Halloween is now on" plain.log || { echo "/cq season halloween on failed"; grep -iE "season|halloween" plain.log | tail -20; exit 1; }
 grep -q "Chapter 6 is off" server.log || { echo "/cq chapter 6 off failed"; exit 1; }
 grep -qE "Registered [0-9]+ achievements" server.log || { echo "Achievements were not registered"; exit 1; }
 grep -qE "Backed up [0-9]+ players? to" server.log || { echo "Backup did not run"; exit 1; }
