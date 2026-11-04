@@ -549,6 +549,8 @@ def admiral_pinchworth():
     m.c("abdomen", "smooth_sandstone", (0, 25.6, -4), (13, 1, 11))
     m.c("abdomen", "sandstone", (0, 28, -4), (5, 6, 5))
     m.c("abdomen", "black_concrete", (0, 23, 1.05), (2, 3, 0.2))
+    # its weak spot: the treasure it hides in the castle, a glowing pearl in the gate
+    m.c("abdomen", "sea_lantern", (0, 22.6, 1.4), (3.4, 3.4, 3.4), light=True)
     m.c("abdomen", "spruce_log", (0, 34, -4), (0.5, 6, 0.5))
     m.c("abdomen", "blue_concrete", (1.6, 36, -4), (3, 2, 0.2))
     m.c("abdomen", "orange_concrete", (-6.6, 20.6, 1.4), (3.6, 0.8, 0.8), (0, 0, 36))
