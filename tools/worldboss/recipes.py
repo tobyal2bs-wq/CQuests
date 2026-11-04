@@ -67,10 +67,6 @@ SPAWN = {
                fx(1, "LAVA", 60, "ITEM_BUCKET_EMPTY_LAVA", 0.6, y=0, spread=2), S("pose", 3, 24, order="up", stagger=24),
                S("swap", 34, block="", order="down", stagger=22), S("light", 34, on=False, order="down", stagger=22),
                fx(40, "LARGE_SMOKE", 50, "BLOCK_LAVA_EXTINGUISH", 0.6), S("anim", 60, 26, name="slam")],
- # old man winter: a snowstorm falls and he builds up from the snow
- "old_man_winter": [S("move", 0, v=[0, 16, 0], rand=6), S("shrink", 0, s=0.5), fx(1, "SNOWFLAKE", 120, "ENTITY_PLAYER_HURT_FREEZE", 0.5, y=1.5, spread=4),
-               S("pose", 2, 18, order="random", stagger=40), fx(30, "SNOWFLAKE", 80, "BLOCK_SNOW_PLACE", 0.6), fx(60, sound="ENTITY_POLAR_BEAR_WARNING", pitch=0.5),
-               S("anim", 62, 30, name="cast")],
  # bloodtusk: charges in from far away
  "bloodtusk": [S("move", 0, v=[0, 0, -18]), S("pose", 2, 16), fx(2, "CRIMSON_SPORE", 40, "ENTITY_HOGLIN_ANGRY", 0.6, y=0.2, spread=2),
                fx(18, "BLOCK", 80, "ENTITY_HOGLIN_ATTACK", 0.6, y=0, spread=3, block="CRIMSON_NYLIUM"), S("anim", 20, 26, name="howl")],
@@ -82,18 +78,10 @@ SPAWN = {
  "fenrir": [S("shrink", 0, s=0.15), S("move", 0, v=[0, 6, 0]), S("spin", 0, deg=-120), fx(1, "SNOWFLAKE", 60, "ENTITY_WOLF_HOWL", 0.5, y=1.2),
                S("spin", 3, 12, deg=120), S("spin", 15, 12, deg=120), S("pose", 27, 14, order="out", stagger=12), fx(30, "END_ROD", 60, "ENTITY_WOLF_GROWL", 0.5),
                S("anim", 46, 30, name="howl")],
- # killer bunny: a harmless little rabbit... that grows
- "killer_bunny": [S("scale", 0, s=[0.18, 0.18, 0.18]), fx(1, "HEART", 6, "ENTITY_RABBIT_AMBIENT", 1.2, y=0.1),
-               S("scale", 20, 6, s=[1.4, 1.4, 1.4]), fx(20, sound="ENTITY_RABBIT_ATTACK", pitch=0.6), S("scale", 30, 6, s=[1.6, 1.6, 1.6]), fx(30, sound="ENTITY_RABBIT_ATTACK", pitch=0.5),
-               S("pose", 40, 8), fx(40, "DAMAGE_INDICATOR", 30, "ENTITY_RAVAGER_ROAR", 1.6), S("anim", 48, 26, name="rear")],
  # volatile colossus: unfolds from a single block of TNT
  "volatile_colossus": [S("toward", 0, y=0.1, k=1), S("shrink", 0, s=0.2), S("swap", 0, block="tnt"), fx(1, "SMOKE", 30, "ENTITY_TNT_PRIMED", 0.6, y=0.1),
                S("pose", 20, 14, order="in", stagger=18), S("swap", 34, block="", order="random", stagger=18), fx(34, "EXPLOSION", 6, "ENTITY_CREEPER_PRIMED", 0.5),
                S("anim", 56, 26, name="rear")],
- # headless horseman: rides out of a wall of fire
- "headless_horseman": [S("move", 0, v=[0, 0, -14]), S("swap", 0, block="shroomlight"), S("light", 0, on=True), fx(1, "FLAME", 80, "ENTITY_BLAZE_SHOOT", 0.5, y=0.4, spread=3),
-               S("pose", 2, 18), S("swap", 22, block="", order="random", stagger=20), S("light", 22, on=False, order="random", stagger=20),
-               fx(22, "FLAME", 60, "ENTITY_SKELETON_HORSE_AMBIENT", 0.5), S("anim", 44, 30, name="rear"), fx(48, sound="ENTITY_WITCH_CELEBRATE", pitch=0.5)],
  # broodmother: lowers itself from above on a thread, then drops the last bit
  "broodmother": [S("move", 0, v=[0, 20, 0]), S("tilt", 0, axis="x", deg=-80), fx(1, "SPORE_BLOSSOM_AIR", 40, "ENTITY_SPIDER_AMBIENT", 0.5, y=2),
                S("move", 3, 30, v=[0, -14, 0]), S("pose", 34, 8), fx(42, "BLOCK", 60, "ENTITY_SPIDER_STEP", 0.5, y=0, spread=3, block="COBWEB"),
@@ -110,10 +98,6 @@ SPAWN = {
  "king_gloop": [S("move", 0, v=[0, 3, 0], rand=9), S("shrink", 0, s=0.4), fx(1, "ITEM_SLIME", 40, "ENTITY_SLIME_JUMP", 0.8, y=0.2, spread=4),
                S("move", 3, 10, v=[0, 2, 0]), S("pose", 14, 12, order="out", stagger=10), fx(26, "ITEM_SLIME", 80, "ENTITY_SLIME_SQUISH", 0.5, y=0.1, spread=2),
                S("anim", 30, 30, name="slam")],
- # sunscorch: a tiny sun falls, flares, and opens into layers
- "sunscorch": [S("scale", 0, s=[0.1, 0.1, 0.1]), S("move", 0, v=[0, 12, 0]), S("light", 0, on=True), fx(1, "FLAME", 50, "ENTITY_BLAZE_SHOOT", 0.5, y=2),
-               S("move", 3, 14, v=[0, -12, 0]), S("scale", 17, 4, s=[30, 4, 30]), S("pose", 21, 14, order="up", stagger=14), S("light", 36, on=False, only="unlit"),
-               fx(22, "LAVA", 50, "ENTITY_MAGMA_CUBE_JUMP", 0.5, y=0, spread=2, ring=5), S("anim", 40, 22, name="burst")],
 }
 
 DEATH = {
@@ -157,9 +141,6 @@ DEATH = {
                S("anim", 16, 26, name="die_kneel"), S("swap", 40, block="obsidian", order="up", stagger=20), S("light", 40, on=False, order="up", stagger=20),
                fx(46, "LARGE_SMOKE", 80, "BLOCK_LAVA_EXTINGUISH", 0.6), S("drop", 64, 12, tilt=40, rand=1.4, order="down", stagger=12),
                fx(70, "BLOCK", 60, "BLOCK_BASALT_BREAK", 0.6, y=0, spread=2.5, block="BLACKSTONE"), S("shrink", 92, 14, s=0, order="random", stagger=14)],
- "old_man_winter": [S("anim", 0, 26, name="die_kneel"), S("swap", 4, block="snow_block", order="down", stagger=22), fx(10, "SNOWFLAKE", 80, "ENTITY_PLAYER_HURT_FREEZE", 0.5),
-               S("move", 30, 26, v=[9, 2, 0], rand=3, order="down", stagger=24), S("spin", 30, 26, deg=60), fx(30, "SNOWFLAKE", 160, "ENTITY_BREEZE_WIND_BURST", 0.5, spread=4, wind=True),
-               S("shrink", 50, 14, s=0, order="down", stagger=24), fx(60, "SNOWFLAKE", 100, "BLOCK_POWDER_SNOW_BREAK", 0.6, y=0.3, spread=5)],
  "bloodtusk": [S("anim", 0, 28, name="die_side"), fx(18, "BLOCK", 60, "ENTITY_HOGLIN_DEATH", 0.6, y=0, spread=2.5, block="CRIMSON_NYLIUM"),
                S("move", 30, 4, v=[0, 0.3, 0]), S("move", 34, 4, v=[0, -0.3, 0]), S("move", 40, 4, v=[0, 0.2, 0]), S("move", 44, 4, v=[0, -0.2, 0]),
                fx(50, "CRIMSON_SPORE", 100, "BLOCK_FUNGUS_BREAK", 0.6, y=0.2, spread=2), S("move", 56, 30, v=[0, -3, 0]), S("shrink", 86, 4, s=0)],
@@ -179,10 +160,6 @@ DEATH = {
                S("swap", 16, block=""), S("scale", 16, 4, s=[1.0, 1.0, 1.0]), S("swap", 20, block="white_concrete"), S("scale", 20, 4, s=[1.3, 1.3, 1.3]),
                fx(24, "EXPLOSION_EMITTER", 3, "ENTITY_GENERIC_EXPLODE", 0.6), S("swap", 24, block="tnt"),
                S("burst", 24, 12, power=10, up=6, tilt=240, rand=3), S("drop", 36, 14, tilt=120, rand=4), S("shrink", 60, 14, s=0, order="random", stagger=14)],
- "headless_horseman": [S("anim", 0, 28, name="rear"), fx(0, sound="ENTITY_SKELETON_HORSE_DEATH", pitch=0.6), S("light", 10, on=True),
-               S("swap", 10, block="shroomlight", order="up", stagger=30), fx(16, "FLAME", 100, "ENTITY_BLAZE_SHOOT", 0.5, spread=1.5),
-               S("move", 36, 16, v=[0, 9, 0], only="jack_o_lantern"), S("spin", 36, 16, deg=140, only="jack_o_lantern"), fx(52, "EXPLOSION", 3, "ENTITY_WITCH_CELEBRATE", 0.5, y=1.6),
-               S("shrink", 52, 2, s=0, only="jack_o_lantern"), S("shrink", 44, 20, s=0, order="up", stagger=30), fx(60, "LARGE_SMOKE", 80, "BLOCK_FIRE_EXTINGUISH", 0.5)],
  "broodmother": [S("anim", 0, 32, name="die_curl"), fx(0, "SPORE_BLOSSOM_AIR", 40, "ENTITY_SPIDER_DEATH", 0.5), fx(20, "BLOCK", 60, "ENTITY_SPIDER_HURT", 0.5, y=0, block="COBWEB"),
                S("burst", 40, 12, power=4, up=3, tilt=90, rand=1, only="white_wool"), fx(40, "ITEM_SLIME", 30, "ENTITY_TURTLE_EGG_CRACK", 0.6),
                S("move", 56, 30, v=[0, -2, 0]), S("shrink", 84, 12, s=0, order="random", stagger=12)],
@@ -198,9 +175,6 @@ DEATH = {
                S("drop", 26, 10, tilt=30, rand=1, only="gold_block"), fx(36, sound="BLOCK_CHAIN_FALL", pitch=0.6),
                S("burst", 30, 12, power=6, up=4, tilt=90, rand=2, only="slime_block"), fx(30, "ITEM_SLIME", 100, "ENTITY_SLIME_SQUISH", 0.6, y=0.1, spread=3),
                S("drop", 42, 10, tilt=0, rand=3, only="slime_block"), S("shrink", 70, 16, s=0, order="random", stagger=16), fx(70, sound="ENTITY_SLIME_JUMP_SMALL", pitch=1.2)],
- "sunscorch": [S("light", 0, on=True), S("toward", 0, 16, y=0.45, k=1), S("shrink", 0, 16, s=0.2), fx(0, "FLAME", 60, "ENTITY_MAGMA_CUBE_DEATH", 0.5, y=0.45),
-               fx(16, "FLASH", 1, "ENTITY_GENERIC_EXPLODE", 0.5, y=0.45, color="#ffcc33"), fx(16, "LAVA", 80, "ENTITY_BLAZE_SHOOT", 0.4, y=0.45, ring=7),
-               S("burst", 16, 10, power=12, up=0, tilt=200, rand=2), S("shrink", 26, 6, s=0), fx(30, "FLAME", 120, "BLOCK_FIRE_AMBIENT", 0.6, y=0.1, spread=6)],
 }
 
 # One line each for the preview page.
@@ -217,18 +191,15 @@ SPAWN_TEXT = {
  "void_walker": "Flickers in and out of three places before it arrives and screams.",
  "pale_watcher": "Grows like a tree: trunk first, branches last.",
  "molten_colossus": "Lava wells up into its shape, then cools into plates from the top down.",
- "old_man_winter": "A snowstorm falls and piles up into the old man.",
  "bloodtusk": "Charges in from far away and skids to a stop.",
  "ruinmaw": "Dragged out of the ground by its chains, swaying.",
  "fenrir": "A frost spirit circles twice and becomes the wolf.",
  "killer_bunny": "A harmless little rabbit... that keeps growing.",
  "volatile_colossus": "Unfolds out of a single block of TNT.",
- "headless_horseman": "Rides out of a wall of fire.",
  "broodmother": "Lowers itself from above on a thread, then drops the last bit.",
  "cinder_sovereign": "A spiral of embers gathers into the rings; the crown lights last.",
  "tempest": "A tornado touches down and leaves it behind.",
  "king_gloop": "Small slimes bounce together and merge into the king.",
- "sunscorch": "A tiny sun falls, flares wide and opens into molten layers.",
 }
 DEATH_TEXT = {
  "gravelord": "Sinks to its knees, the soul lantern heart floats up and bursts while the bones rain down.",
@@ -243,16 +214,119 @@ DEATH_TEXT = {
  "void_walker": "Pulled into a single point, flashes, and bursts into the void.",
  "pale_watcher": "Branches snap and fall, the trunk topples, the heart goes dark.",
  "molten_colossus": "Glows white hot, cools to obsidian from the feet up, then cracks into rubble.",
- "old_man_winter": "Kneels, turns to snow and is blown away by the wind.",
  "bloodtusk": "Rolls onto its side, twitches twice, and sinks.",
  "ruinmaw": "The rotten flesh falls off first, then the bare bones collapse.",
  "fenrir": "Howls, turns to glowing ice and spirals up into the sky.",
  "killer_bunny": "Puffs up, wobbles, and pops into fluff.",
  "volatile_colossus": "Flashes white three times, swelling, then explodes into TNT blocks.",
- "headless_horseman": "Rears up and burns from the hooves to the collar; the pumpkin flies up and bursts.",
  "broodmother": "Curls its legs and flips over; the egg sacs burst.",
  "cinder_sovereign": "The rings fly off, the fire goes out and it crumbles into coal and ash.",
  "tempest": "Spins faster and faster until the wind tears it apart.",
  "king_gloop": "Deflates into a puddle, the crown clatters down, the slime splats outward.",
- "sunscorch": "Collapses into a tiny star, flashes and goes supernova.",
 }
+
+# ---- seasonal bosses: each arrival and exit is a little joke ----
+SPAWN.update({
+ # pumpkin king: his head arrives first, bouncing in on its own, then the body rides up out of the flames to catch it
+ "headless_horseman": [S("shrink", 0, s=0), S("move", 0, v=[0, 9, 4], only="jack_o_lantern"), S("pose", 2, 12, only="jack_o_lantern"),
+               fx(14, "FLAME", 30, "BLOCK_WOOD_PLACE", 0.6, y=0.1), fx(18, sound="ENTITY_WITCH_CELEBRATE", pitch=0.6),
+               fx(20, "FLAME", 90, "ENTITY_BLAZE_SHOOT", 0.5, y=0, spread=3, ring=4), S("pose", 20, 22, order="up", stagger=22),
+               fx(44, "SOUL_FIRE_FLAME", 60, "ENTITY_SKELETON_HORSE_AMBIENT", 0.5, y=0.7), S("anim", 46, 30, name="rear")],
+ # great gourd: a seed in the dirt sprouts, swells in three gulps, and pops its lid to say hello
+ "great_gourd": [S("scale", 0, s=[0.08, 0.08, 0.08]), fx(1, "HAPPY_VILLAGER", 20, "ITEM_BONE_MEAL_USE", 0.8, y=0, spread=1),
+               S("scale", 8, 6, s=[0.35, 0.35, 0.35]), fx(8, "HAPPY_VILLAGER", 20, "ITEM_BONE_MEAL_USE", 0.9, y=0.1),
+               S("scale", 18, 6, s=[0.7, 0.7, 0.7]), fx(18, "HAPPY_VILLAGER", 30, "ITEM_BONE_MEAL_USE", 1.0, y=0.2),
+               S("scale", 28, 8, s=[1.15, 0.9, 1.15]), S("scale", 36, 6, s=[1, 1, 1]), fx(30, "BLOCK", 60, "BLOCK_ROOTED_DIRT_BREAK", 0.6, y=0, spread=2.5, block="DIRT"),
+               S("anim", 44, 30, name="roar"), fx(48, "WITCH", 50, "ENTITY_WITCH_CELEBRATE", 0.8, y=1)],
+ # old man winter: comes down out of the sky very slowly, holding his staff up like an umbrella, grumbling
+ "old_man_winter": [S("move", 0, v=[0, 22, 0]), S("spin", 0, deg=-40), fx(1, "SNOWFLAKE", 120, "ENTITY_PLAYER_HURT_FREEZE", 0.5, y=2, spread=4),
+               S("move", 2, 44, v=[0, -22, 0]), S("spin", 2, 44, deg=40), fx(24, "SNOWFLAKE", 80, "ENTITY_VILLAGER_NO", 0.6, y=1.4),
+               fx(46, "BLOCK", 60, "BLOCK_SNOW_PLACE", 0.6, y=0, spread=2.5, block="SNOW_BLOCK"), S("anim", 48, 30, name="stomp"), fx(60, sound="ENTITY_VILLAGER_NO", pitch=0.5)],
+ # frostbottom: three snowballs roll in and stack, the hat flops on last, and it sneezes the carrot nose into place
+ "frostbottom": [S("move", 0, v=[0, 0, -10], rand=3), S("spin", 0, deg=-180), S("shrink", 0, s=0.5), fx(1, "ITEM_SNOWBALL", 40, "BLOCK_SNOW_STEP", 0.8, y=0, spread=3),
+               S("pose", 2, 26, order="up", stagger=26), fx(10, sound="BLOCK_SNOW_PLACE", pitch=0.7), fx(20, sound="BLOCK_SNOW_PLACE", pitch=0.9),
+               fx(32, sound="BLOCK_SNOW_PLACE", pitch=1.1), fx(48, "SNOWFLAKE", 60, "ENTITY_PANDA_SNEEZE", 0.8, y=0.75),
+               S("anim", 50, 30, name="roar"), fx(56, sound="ENTITY_SNOW_GOLEM_AMBIENT", pitch=0.5)],
+ # killer bunny: a harmless little rabbit... that grows, and grows
+ "killer_bunny": [S("scale", 0, s=[0.18, 0.18, 0.18]), fx(1, "HEART", 6, "ENTITY_RABBIT_AMBIENT", 1.2, y=0.1),
+               S("scale", 20, 6, s=[0.5, 0.5, 0.5]), fx(20, sound="ENTITY_RABBIT_ATTACK", pitch=0.8), S("scale", 30, 6, s=[1.1, 1.1, 1.1]), fx(30, sound="ENTITY_RABBIT_ATTACK", pitch=0.5),
+               fx(38, "ANGRY_VILLAGER", 12, "ENTITY_RAVAGER_ROAR", 1.6, y=0.7), S("scale", 38, 4, s=[1, 1, 1]), S("anim", 44, 26, name="howl")],
+ # clucksworth: a giant egg wobbles three times, cracks open, and out comes an extremely angry chicken
+ "clucksworth": [S("swap", 0, block="white_concrete"), S("scale", 0, s=[0.75, 0.6, 0.75]), fx(1, "CLOUD", 30, "ENTITY_CHICKEN_EGG", 0.5, y=0.2),
+               S("spin", 8, 3, deg=20), S("spin", 11, 3, deg=-40), S("spin", 14, 3, deg=20), fx(10, sound="ENTITY_TURTLE_EGG_CRACK", pitch=0.7),
+               S("spin", 22, 3, deg=-25), S("spin", 25, 3, deg=50), S("spin", 28, 3, deg=-25), fx(24, sound="ENTITY_TURTLE_EGG_CRACK", pitch=0.6),
+               fx(36, "POOF", 60, "ENTITY_TURTLE_EGG_HATCH", 0.6), S("swap", 36, block="", order="random", stagger=10), S("scale", 36, 8, s=[1, 1, 1]),
+               S("anim", 48, 30, name="roar"), fx(50, "CLOUD", 40, "ENTITY_CHICKEN_AMBIENT", 0.5, y=0.8), fx(60, sound="ENTITY_CHICKEN_AMBIENT", pitch=0.6)],
+ # sunscorch: falls out of the sky and cannonballs onto its pool float with an enormous splash
+ "sunscorch": [S("move", 0, v=[0, 24, 0]), S("light", 0, on=True), fx(1, "FLAME", 40, "ENTITY_BLAZE_SHOOT", 0.6, y=3),
+               S("move", 2, 14, v=[0, -24, 0]), S("spin", 2, 14, deg=360), S("scale", 16, 4, s=[1.35, 0.55, 1.35]), S("scale", 20, 6, s=[0.9, 1.2, 0.9]), S("scale", 26, 4, s=[1, 1, 1]),
+               fx(16, "SPLASH", 200, "ENTITY_GENERIC_SPLASH", 0.6, y=0.1, spread=4), fx(16, "BUBBLE_POP", 80, "ENTITY_PLAYER_SPLASH_HIGH_SPEED", 0.8, y=0, spread=3, ring=4),
+               S("light", 30, on=False, only="unlit"), S("anim", 32, 22, name="burst"), fx(36, sound="ENTITY_DOLPHIN_PLAY", pitch=0.6)],
+ # admiral pinchworth: digs up out of the sand sideways, snapping its claws to a drumroll
+ "admiral_pinchworth": [S("move", 0, vh=[0, -1.1, 0]), S("move", 0, v=[-6, 0, 0]), fx(1, "BLOCK", 80, "BLOCK_SAND_BREAK", 0.7, y=0, spread=2.5, block="SAND"),
+               S("move", 4, 24, vh=[0, 0.6, 0]), S("move", 4, 24, v=[3, 0, 0]), fx(14, "BLOCK", 60, "BLOCK_SAND_BREAK", 0.6, y=0, spread=2, block="SAND"),
+               S("pose", 28, 10), fx(38, "SPLASH", 60, "BLOCK_NOTE_BLOCK_HAT", 1.4), fx(42, sound="BLOCK_NOTE_BLOCK_HAT", pitch=1.6),
+               S("anim", 40, 30, name="drum"), fx(46, sound="BLOCK_NOTE_BLOCK_HAT", pitch=1.4), fx(64, sound="BLOCK_NOTE_BLOCK_BELL", pitch=0.8)],
+})
+DEATH.update({
+ "headless_horseman": [S("anim", 0, 28, name="rear"), fx(0, sound="ENTITY_SKELETON_HORSE_DEATH", pitch=0.6), S("light", 10, on=True),
+               S("swap", 10, block="shroomlight", order="up", stagger=30), fx(16, "FLAME", 100, "ENTITY_BLAZE_SHOOT", 0.5, spread=1.5),
+               S("move", 36, 16, v=[0, 9, 0], only="jack_o_lantern"), S("spin", 36, 16, deg=140, only="jack_o_lantern"), fx(52, "EXPLOSION", 3, "ENTITY_WITCH_CELEBRATE", 0.5, y=1.6),
+               S("shrink", 52, 2, s=0, only="jack_o_lantern"), fx(52, "FIREWORK", 60, "ENTITY_FIREWORK_ROCKET_BLAST", 0.8, y=1.8),
+               S("shrink", 44, 20, s=0, order="up", stagger=30), fx(60, "LARGE_SMOKE", 80, "BLOCK_FIRE_EXTINGUISH", 0.5)],
+ # great gourd: the lid blows off, candy fountains out, and the empty pumpkin sags and caves in
+ "great_gourd": [S("anim", 0, 24, name="die_back"), fx(0, sound="ENTITY_WITCH_HURT", pitch=0.6),
+               S("move", 18, 18, v=[2, 10, 0], only="head"), S("spin", 18, 18, deg=300, only="head"), fx(18, "EXPLOSION", 2, "ENTITY_FIREWORK_ROCKET_BLAST", 0.7, y=0.9),
+               fx(20, "FIREWORK", 120, "ENTITY_FIREWORK_ROCKET_TWINKLE", 0.8, y=1), S("burst", 20, 12, power=5, up=6, tilt=200, rand=2, only="arm"),
+               S("scale", 34, 16, s=[1.3, 0.25, 1.3]), fx(34, "BLOCK", 80, "BLOCK_SLIME_BLOCK_BREAK", 0.6, y=0, spread=2, block="PUMPKIN"),
+               S("shrink", 52, 16, s=0, order="random", stagger=16), fx(66, sound="ENTITY_WITCH_CELEBRATE", pitch=1.4)],
+ # old man winter: sneezes himself to bits, then melts into a sad puddle with his slippers floating in it
+ "old_man_winter": [S("anim", 0, 20, name="die_kneel"), fx(10, "SNOWFLAKE", 60, "ENTITY_PANDA_PRE_SNEEZE", 0.6, y=0.8),
+               fx(22, "SNOWFLAKE", 200, "ENTITY_PANDA_SNEEZE", 0.5, y=0.8, spread=3), S("burst", 22, 10, power=4, up=2, tilt=160, rand=1.5, only="head"),
+               S("swap", 26, block="light_blue_stained_glass", order="down", stagger=20), S("scale", 30, 30, s=[1.6, 0.06, 1.6]),
+               fx(40, "DRIPPING_WATER", 80, "BLOCK_POWDER_SNOW_BREAK", 0.6, y=0.3, spread=2.5), fx(60, "SPLASH", 60, "ENTITY_GENERIC_SPLASH", 0.8, y=0),
+               S("shrink", 66, 20, s=0, order="random", stagger=20)],
+ # frostbottom: the head pops off and rolls away, then the rest melts
+ "frostbottom": [S("anim", 0, 14, name="hurt"), fx(0, sound="ENTITY_SNOW_GOLEM_DEATH", pitch=0.6),
+               S("move", 8, 22, v=[5, -5, 3], only="head"), S("spin", 8, 22, deg=360, only="head"), fx(10, "ITEM_SNOWBALL", 30, "BLOCK_SNOW_BREAK", 0.6, y=0.8),
+               S("drop", 14, 12, tilt=60, rand=1, only="arm"), S("swap", 28, block="light_blue_stained_glass", order="down", stagger=16),
+               S("scale", 34, 26, s=[1.5, 0.08, 1.5]), fx(36, "DRIPPING_WATER", 80, "BLOCK_POWDER_SNOW_BREAK", 0.7, y=0.3, spread=2),
+               S("shrink", 62, 16, s=0, order="random", stagger=16), fx(70, "SPLASH", 40, "ENTITY_GENERIC_SPLASH", 1.2, y=0)],
+ # clucksworth: explodes into a cloud of feathers, leaving only the eggshell helmet to fall
+ "clucksworth": [S("anim", 0, 22, name="die_back"), fx(0, sound="ENTITY_CHICKEN_HURT", pitch=0.5), fx(12, sound="ENTITY_CHICKEN_HURT", pitch=0.7),
+               fx(24, "CLOUD", 160, "ENTITY_CHICKEN_DEATH", 0.5, spread=2), fx(24, "POOF", 80, "ENTITY_GENERIC_EXPLODE", 1.6),
+               S("burst", 24, 16, power=6, up=5, tilt=220, rand=3, only="white_wool"), S("shrink", 36, 8, s=0, only="white_wool"),
+               S("drop", 28, 14, tilt=120, rand=1.5), fx(44, sound="ENTITY_CHICKEN_EGG", pitch=0.5), fx(52, sound="ENTITY_TURTLE_EGG_BREAK", pitch=0.6),
+               S("shrink", 60, 14, s=0, order="random", stagger=14)],
+ # sunscorch: the float gets a puncture, it zooms round the arena farting air, then pops into a tiny sunset
+ "sunscorch": [S("anim", 0, 20, name="die_deflate"), fx(0, sound="ENTITY_PUFFER_FISH_BLOW_OUT", pitch=0.6),
+               S("light", 12, on=True), S("move", 18, 10, v=[4, 5, 0]), S("spin", 18, 10, deg=240), S("move", 28, 10, v=[-8, 2, 3]), S("spin", 28, 10, deg=240),
+               S("move", 38, 10, v=[4, 3, -6]), S("spin", 38, 10, deg=240), fx(20, "CLOUD", 30, "ENTITY_PUFFER_FISH_BLOW_OUT", 1.2), fx(32, "CLOUD", 30, "ENTITY_PUFFER_FISH_BLOW_OUT", 0.9),
+               fx(42, "CLOUD", 30, "ENTITY_PUFFER_FISH_BLOW_OUT", 0.7), S("shrink", 48, 6, s=0), fx(50, "FLASH", 1, "ENTITY_GENERIC_EXPLODE", 1.2, y=1.6, color="#ffcc33"),
+               fx(50, "FIREWORK", 80, "ENTITY_FIREWORK_ROCKET_LARGE_BLAST", 0.8, y=1.6)],
+ # admiral pinchworth: flips onto its back, legs kicking, the sandcastle collapses on top of it
+ "admiral_pinchworth": [S("anim", 0, 30, name="die_curl"), fx(0, sound="ENTITY_TURTLE_DEATH", pitch=0.8),
+               S("move", 0, 10, v=[0, 2, 0]), S("tilt", 2, 12, axis="z", deg=180), S("move", 12, 6, v=[0, -2, 0]), fx(18, "BLOCK", 60, "BLOCK_SAND_FALL", 0.6, y=0, block="SAND"),
+               S("drop", 24, 14, tilt=90, rand=2, only="abdomen"), fx(30, "BLOCK", 120, "BLOCK_SAND_BREAK", 0.6, y=0.3, spread=2, block="SANDSTONE"),
+               S("move", 44, 30, vh=[0, -1, 0]), fx(46, "BUBBLE_POP", 60, "BLOCK_SAND_BREAK", 0.5, y=0, spread=2), S("shrink", 76, 6, s=0)],
+})
+SPAWN_TEXT.update({
+ "headless_horseman": "His pumpkin head bounces in on its own, then the body rides up out of the flames to catch it.",
+ "great_gourd": "A seed sprouts, swells in three big gulps, and pops its lid to say hello.",
+ "old_man_winter": "Floats down out of the sky very slowly, grumbling the whole way, and stomps the snow flat.",
+ "frostbottom": "Three snowballs roll in and stack up, the hat flops on last, and it sneezes.",
+ "killer_bunny": "A harmless little rabbit... that grows, and grows, and gets very angry.",
+ "clucksworth": "A giant egg wobbles, cracks, and an extremely angry chicken bursts out.",
+ "sunscorch": "Falls out of the sky and cannonballs onto its pool float with a huge splash.",
+ "admiral_pinchworth": "Digs up out of the sand sideways and snaps its claws to a drumroll.",
+})
+DEATH_TEXT.update({
+ "headless_horseman": "Rears up and burns from the hooves to the collar; the pumpkin flies up and bursts into fireworks.",
+ "great_gourd": "The lid blows off, candy fountains out, and the empty pumpkin caves in.",
+ "old_man_winter": "Sneezes so hard his head flies off, then melts into a sad little puddle.",
+ "frostbottom": "Its head pops off and rolls away, then the rest melts.",
+ "killer_bunny": "Puffs up, wobbles, and pops into fluff.",
+ "clucksworth": "Explodes into a cloud of feathers; the eggshell helmet is all that falls.",
+ "sunscorch": "Gets a puncture, zooms round the arena blowing out air, then pops into a tiny sunset.",
+ "admiral_pinchworth": "Flips onto its back with its legs kicking, and the sandcastle collapses on it.",
+})

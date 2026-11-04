@@ -85,9 +85,21 @@ boss("old_man_winter", "<gradient:#b3e5fc:#ffffff><bold>Old Man Winter</bold></g
 boss("killer_bunny", "<gradient:#ffffff:#ff1744><bold>The Killer Bunny</bold></gradient>", "Small, Fluffy, Merciless", "RABBIT",
      900, 3.5, 12, "PINK", "CHERRY_LEAVES", "#ff80ab", ["leap", "leap", "minions", "shockwave"], "RABBIT", 4, speed=0.5, armor=4,
      season="spring", money=60000, top=200000, items=["RABBIT_STEW 4", "GOLDEN_CARROT 16"], top_items=["RABBIT_FOOT 4"])
-boss("sunscorch", "<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>", "The Molten Midsummer", "MAGMA_CUBE",
-     1500, 1, 12, "YELLOW", "LAVA", "#ffab00", ["fire_ring", "leap", "quake", "minions"], "MAGMA_CUBE", 3, size=10, armor=8,
+boss("sunscorch", "<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>", "Melting On Holiday", "MAGMA_CUBE",
+     1500, 1, 12, "YELLOW", "LAVA", "#ffab00", ["fire_ring", "leap", "quake", "volley"], "MAGMA_CUBE", 3, size=10, armor=8,
      season="summer", money=60000, top=200000, items=["MAGMA_BLOCK 16", "MELON_SLICE 32"], top_items=["NETHERITE_SCRAP 2"])
+boss("great_gourd", "<gradient:#ff9100:#7c4dff><bold>The Great Gourd</bold></gradient>", "Trick or Treat, Mostly Trick", "ZOMBIE",
+     1500, 2.0, 12, "YELLOW", "WITCH", "#ff9100", ["fire_ring", "minions", "poison", "leap"], "ZOMBIE", 4, armor=8,
+     season="halloween", money=60000, top=200000, items=["PUMPKIN_PIE 16", "COOKIE 32"], top_items=["DIAMOND 8"])
+boss("frostbottom", "<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>", "The Snowman With a Grudge", "STRAY",
+     1600, 2.0, 12, "WHITE", "SNOWFLAKE", "#b3e5fc", ["frost", "volley", "quake", "minions"], "STRAY", 4, armor=8,
+     season="winter", money=60000, top=200000, items=["SNOW_BLOCK 16", "CARROT 32"], top_items=["DIAMOND 8"])
+boss("clucksworth", "<gradient:#ffffff:#ff5252><bold>Clucksworth</bold></gradient>", "The Chicken That Came First", "ZOMBIE",
+     1400, 2.0, 12, "WHITE", "CLOUD", "#ffeb3b", ["leap", "minions", "shockwave", "volley"], "ZOMBIE", 4, speed=0.3, armor=6,
+     season="spring", money=60000, top=200000, items=["EGG 16", "COOKED_CHICKEN 16"], top_items=["DIAMOND 8"])
+boss("admiral_pinchworth", "<gradient:#ff5252:#ffd180><bold>Admiral Pinchworth</bold></gradient>", "Lord of the Sandcastle", "SPIDER",
+     1500, 2.0, 12, "RED", "SPLASH", "#ff5252", ["leap", "minions", "pull", "volley"], "SILVERFISH", 5, speed=0.32, armor=10,
+     season="summer", money=60000, top=200000, items=["SAND 32", "TROPICAL_FISH 8"], top_items=["HEART_OF_THE_SEA 1"])
 
 def q(s): return '"' + s.replace('"', '\\"') + '"'
 out = ["# CQuests world bosses. One wakes each week at the arena you set with /cq worldboss setspawn <arena>.",

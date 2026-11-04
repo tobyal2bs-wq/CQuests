@@ -570,7 +570,7 @@ bosses:
       top-commands: []
   sunscorch:
     name: "<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>"
-    title: "The Molten Midsummer"
+    title: "Melting On Holiday"
     entity: MAGMA_CUBE
     size: 10
     health: 1500
@@ -584,12 +584,110 @@ bosses:
     minion: MAGMA_CUBE
     minions: 3
     ability-seconds: 8
-    abilities: [fire_ring, leap, quake, minions]
+    abilities: [fire_ring, leap, quake, volley]
     season: summer
     rewards:
       money: 60000
       top-money: 200000
       items: ["MAGMA_BLOCK 16", "MELON_SLICE 32"]
       top-items: ["NETHERITE_SCRAP 2"]
+      commands: []
+      top-commands: []
+  great_gourd:
+    name: "<gradient:#ff9100:#7c4dff><bold>The Great Gourd</bold></gradient>"
+    title: "Trick or Treat, Mostly Trick"
+    entity: ZOMBIE
+    health: 1500
+    scale: 2.0
+    damage: 12
+    armor: 8
+    bar: YELLOW
+    glow: true
+    particle: WITCH
+    color: "#ff9100"
+    minion: ZOMBIE
+    minions: 4
+    ability-seconds: 8
+    abilities: [fire_ring, minions, poison, leap]
+    season: halloween
+    rewards:
+      money: 60000
+      top-money: 200000
+      items: ["PUMPKIN_PIE 16", "COOKIE 32"]
+      top-items: ["DIAMOND 8"]
+      commands: []
+      top-commands: []
+  frostbottom:
+    name: "<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"
+    title: "The Snowman With a Grudge"
+    entity: STRAY
+    health: 1600
+    scale: 2.0
+    damage: 12
+    armor: 8
+    bar: WHITE
+    glow: true
+    particle: SNOWFLAKE
+    color: "#b3e5fc"
+    minion: STRAY
+    minions: 4
+    ability-seconds: 8
+    abilities: [frost, volley, quake, minions]
+    season: winter
+    rewards:
+      money: 60000
+      top-money: 200000
+      items: ["SNOW_BLOCK 16", "CARROT 32"]
+      top-items: ["DIAMOND 8"]
+      commands: []
+      top-commands: []
+  clucksworth:
+    name: "<gradient:#ffffff:#ff5252><bold>Clucksworth</bold></gradient>"
+    title: "The Chicken That Came First"
+    entity: ZOMBIE
+    health: 1400
+    scale: 2.0
+    damage: 12
+    speed: 0.3
+    armor: 6
+    bar: WHITE
+    glow: true
+    particle: CLOUD
+    color: "#ffeb3b"
+    minion: ZOMBIE
+    minions: 4
+    ability-seconds: 8
+    abilities: [leap, minions, shockwave, volley]
+    season: spring
+    rewards:
+      money: 60000
+      top-money: 200000
+      items: ["EGG 16", "COOKED_CHICKEN 16"]
+      top-items: ["DIAMOND 8"]
+      commands: []
+      top-commands: []
+  admiral_pinchworth:
+    name: "<gradient:#ff5252:#ffd180><bold>Admiral Pinchworth</bold></gradient>"
+    title: "Lord of the Sandcastle"
+    entity: SPIDER
+    health: 1500
+    scale: 2.0
+    damage: 12
+    speed: 0.32
+    armor: 10
+    bar: RED
+    glow: true
+    particle: SPLASH
+    color: "#ff5252"
+    minion: SILVERFISH
+    minions: 5
+    ability-seconds: 8
+    abilities: [leap, minions, pull, volley]
+    season: summer
+    rewards:
+      money: 60000
+      top-money: 200000
+      items: ["SAND 32", "TROPICAL_FISH 8"]
+      top-items: ["HEART_OF_THE_SEA 1"]
       commands: []
       top-commands: []

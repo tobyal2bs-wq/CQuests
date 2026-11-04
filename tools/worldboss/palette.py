@@ -104,7 +104,7 @@ P = {
  "black_stained_glass": ("glass", "#1a1a1a", "#333333"), "purple_stained_glass": ("glass", "#7f3fb2", "#9a5ad0"),
  "red_stained_glass": ("glass", "#993333", "#bb4a4a"), "orange_stained_glass": ("glass", "#d87f33", "#f0a050"),
  "light_blue_stained_glass": ("glass", "#6699d8", "#8ab8f0"), "cyan_stained_glass": ("glass", "#4c7f99", "#6aa0b8"),
- "lime_stained_glass": ("glass", "#7fcc19", "#a0e040"), "pink_stained_glass": ("glass", "#f27fa5", "#f6a0bd"), "lever": ("planks", "#6b5a3a", "#8a8a8a"), "white_stained_glass": ("glass", "#ffffff", "#dddddd"),
+ "lime_stained_glass": ("glass", "#7fcc19", "#a0e040"), "pink_stained_glass": ("glass", "#f27fa5", "#f6a0bd"), "white_concrete_powder": ("snow", "#e2e4e4", "#f2f4f4"), "lever": ("planks", "#6b5a3a", "#8a8a8a"), "white_stained_glass": ("glass", "#ffffff", "#dddddd"),
  "magenta_stained_glass": ("glass", "#b24cd8", "#d070f0"), "yellow_stained_glass": ("glass", "#e5e533", "#f5f560"),
  "ice": ("ice", "#7fa9fc", "#a6c4ff"), "packed_ice": ("ice", "#8db4fa", "#b0caff"), "blue_ice": ("ice", "#74a7fd", "#5a8ff0"),
  "snow_block": ("flat", "#f6fbfb", "#e6eeee"), "powder_snow": ("flat", "#f8fdfd", "#e9f2f2"),

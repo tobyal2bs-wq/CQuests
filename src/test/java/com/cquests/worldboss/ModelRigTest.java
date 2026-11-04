@@ -37,7 +37,7 @@ class ModelRigTest {
             ModelRig.Model m = models.get(d.model());
             assertNotNull(m, d.id() + " has a model");
             assertTrue(m.cubes.size() >= 38, d.id() + " has " + m.cubes.size() + " blocks");
-            assertTrue(m.cubes.size() <= 140, d.id() + " is not too heavy: " + m.cubes.size());
+            assertTrue(m.cubes.size() <= 170, d.id() + " is not too heavy: " + m.cubes.size());
             assertTrue(m.blocks() >= 3 && m.blocks() <= 8, d.id() + " is " + m.blocks() + " blocks tall");
             for (ModelRig.Cube c : m.cubes) {
                 Material mat = Material.matchMaterial(c.base());

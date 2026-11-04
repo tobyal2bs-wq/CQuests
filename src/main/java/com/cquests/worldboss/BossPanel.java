@@ -55,7 +55,7 @@ public final class BossPanel implements LockedMenu {
     private void fill() {
         inventory.clear(); bossAt.clear();
         WorldBossService wb = plugin.worldBosses();
-        List<WorldBossDef> defs = new ArrayList<>(wb.defs());
+        List<WorldBossDef> defs = new ArrayList<>(wb.defs().values());
         defs.sort((a, b) -> a.seasonal() == b.seasonal() ? 0 : a.seasonal() ? 1 : -1);
         WorldBossDef next = wb.upcoming();
         for (int i = 0; i < defs.size() && i < 45; i++) {

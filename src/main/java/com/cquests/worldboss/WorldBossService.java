@@ -194,7 +194,6 @@ public final class WorldBossService implements Listener {
         return models.get(def.model());
     }
     public List<String> ids() { return new ArrayList<>(defs.keySet()); }
-    public java.util.Collection<WorldBossDef> defs() { return defs.values(); }
     public boolean scheduleOn() { return scheduleOn; }
     /** True while a real (not test) fight with this boss is on. */
     public boolean alive(String bossId) {

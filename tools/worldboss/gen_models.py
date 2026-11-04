@@ -1,6 +1,6 @@
 import json, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
-import anims, models, palette, bipeds, quads, others, recipes
+import anims, models, palette, bipeds, quads, others, seasonal, recipes
 out = {"version": 1, "rigs": anims.RIGS, "models": {}}
 used = set()
 for fn in models.MODELS:
