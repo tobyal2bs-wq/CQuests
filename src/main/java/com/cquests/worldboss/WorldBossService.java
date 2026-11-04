@@ -107,7 +107,7 @@ public final class WorldBossService implements Listener {
         Particle particle = Particle.FLAME; Particle.DustOptions auraDust, ringDust;
         volatile boolean over;
         volatile String endReason;
-        int chunkX, chunkZ; String chunkWorld;
+        int chunkX, chunkZ, chunkR; String chunkWorld;
         /** The block model drawn over the invisible mob, or null for a plain mob boss. */
         volatile BossModel model;
 
@@ -554,7 +554,8 @@ public final class WorldBossService implements Listener {
         fights.put(key, fight);
         byEntity.put(mob.getUniqueId(), fight);
         fight.chunkWorld = at.getWorld().getName(); fight.chunkX = at.getBlockX() >> 4; fight.chunkZ = at.getBlockZ() >> 4;
-        at.getWorld().addPluginChunkTicket(fight.chunkX, fight.chunkZ, plugin);
+        fight.chunkR = Math.max(1, Math.min(2, (arena.radius + 15) >> 4));
+        tickets(at.getWorld(), fight, 1);
         if (look != null) {
             // Drawn with blocks: the mob waits, unhurt, until its entrance has played.
             BossModel model = new BossModel(plugin, look, mob);
@@ -1057,6 +1058,24 @@ public final class WorldBossService implements Listener {
 
     // ------------------------------------------------------------------ ending
 
+    /** Fights that keep each chunk loaded. Plugin tickets are not counted, so two fights sharing a chunk must not drop each other's. */
+    private final Map<String, Integer> ticketUsers = new ConcurrentHashMap<>();
+
+    /** Keeps (delta 1) or releases (delta -1) the chunks around a fight's spawn so the boss is never unloaded while it walks. */
+    private void tickets(org.bukkit.World world, Fight f, int delta) {
+        for (int dx = -f.chunkR; dx <= f.chunkR; dx++) for (int dz = -f.chunkR; dz <= f.chunkR; dz++) {
+            int x = f.chunkX + dx, z = f.chunkZ + dz;
+            String key = world.getName() + ":" + x + ":" + z;
+            int users = ticketUsers.merge(key, delta, Integer::sum);
+            if (users <= 0) ticketUsers.remove(key);
+            boolean add = delta > 0 && users == 1, remove = delta < 0 && users <= 0;
+            if (!add && !remove) continue;
+            Location chunk = new Location(world, x * 16 + 8, 64, z * 16 + 8);
+            Runnable change = () -> { if (add) world.addPluginChunkTicket(x, z, plugin); else world.removePluginChunkTicket(x, z, plugin); };
+            if (Bukkit.isOwnedByCurrentRegion(chunk)) change.run(); else Sched.at(chunk, change);
+        }
+    }
+
     private void end(Fight f, String reason) {
         if (f.over) return;
         f.over = true;
@@ -1080,9 +1099,7 @@ public final class WorldBossService implements Listener {
         }
         var world = Bukkit.getWorld(f.chunkWorld == null ? "" : f.chunkWorld);
         if (world != null) {
-            Location chunk = new Location(world, f.chunkX * 16 + 8, 64, f.chunkZ * 16 + 8);
-            Runnable unticket = () -> world.removePluginChunkTicket(f.chunkX, f.chunkZ, plugin);
-            if (Bukkit.isOwnedByCurrentRegion(chunk)) unticket.run(); else Sched.at(chunk, unticket);
+            tickets(world, f, -1);
         }
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
