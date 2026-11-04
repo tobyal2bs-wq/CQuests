@@ -15,6 +15,19 @@ final class ContentUpgrade {
         applyChapters(plugin);
         applyChapters18(plugin);
         applyCoop19(plugin);
+        applySeasons110(plugin);
+    }
+
+    /** 1.10.0: the tutorial quest and seasonal daily quests (season_*). */
+    private static void applySeasons110(CQuestsPlugin plugin) {
+        File marker = new File(plugin.getDataFolder(), ".content-1.10.0");
+        if (marker.exists()) return;
+        try {
+            merge(plugin, "quests.yml", "quests", (id, value) -> id.equals("tutorial") || id.startsWith("season_"), ".before-1.10.0", List.of());
+            Files.writeString(marker.toPath(), "Tutorial and seasonal quests added. Existing IDs and progress preserved.\n");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not add the 1.10.0 quests; existing files kept: " + e.getMessage());
+        }
     }
 
     /** 1.9.0: co-op daily quests (coop_*) for groups of 2 to 4 players. */

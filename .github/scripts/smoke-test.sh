@@ -90,7 +90,7 @@ PY
   grep -q "\[Finished the Journey\]" server.log || { echo "Ending achievement was not given"; exit 1; }
 fi
 for cmd in "cq npc rename jerry Farmer Jerold" "cq npc list" "cq character jerry reset" "cq quest story_bob" "cq quest side_stephan_1" "cq reload" "cq npc list" \
-           "cq chapter" "cq chapter 6 on" "cq quest story_garrick" "cq test targets" "cq chapter 6 off" \
+           "cq chapter" "cq chapter 6 on" "cq quest story_garrick" "cq test targets" "cq chapter 6 off" "cq worldboss list" "cq season" "cq season halloween on" "cq season halloween off" \
            "cq backup" "cq backups" "cq restore latest 00000000-0000-0000-0000-000000000001"; do
   echo "$cmd" >> console
   sleep 4
@@ -110,6 +110,8 @@ grep -q "Farmer Jerold" server.log || { echo "The renamed NPC did not show in /c
 grep -q "Chapter 6 (The Iron Tusk) is on" server.log || { echo "/cq chapter 6 on failed"; exit 1; }
 grep -qE "Checked [0-9]+ objectives" server.log || { echo "/cq test targets did not run"; exit 1; }
 grep -E "Checked [0-9]+ objectives" server.log || true
+grep -qE "World bosses .?\(24\)" server.log || { echo "/cq worldboss list did not list 24 bosses"; exit 1; }
+grep -q "Halloween is now on" server.log || { echo "/cq season halloween on failed"; exit 1; }
 grep -q "Chapter 6 is off" server.log || { echo "/cq chapter 6 off failed"; exit 1; }
 grep -qE "Registered [0-9]+ achievements" server.log || { echo "Achievements were not registered"; exit 1; }
 grep -qE "Backed up [0-9]+ players? to" server.log || { echo "Backup did not run"; exit 1; }

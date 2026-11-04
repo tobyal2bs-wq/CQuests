@@ -2237,6 +2237,124 @@ quests:
       - "Everybody eats tonight."
     rewards:
       money: 70000
+  tutorial:
+    name: "First Steps"
+    category: SIDE
+    giver: ""
+    objectives:
+      - "MINE *_LOG 4 logs"
+      - "CRAFT CRAFTING_TABLE 1 crafting table"
+      - "CRAFT WOODEN_PICKAXE|STONE_PICKAXE 1 pickaxe"
+      - "MINE STONE|COBBLESTONE|DEEPSLATE|COBBLED_DEEPSLATE 8 stone"
+    description: "Chop a few logs, make a crafting table and a pickaxe, and mine some stone. Pays out as soon as you're done."
+    complete:
+      - "You're ready for anything now."
+    rewards:
+      money: 5000
+      items:
+        - "STONE_SWORD 1"
+        - "COOKED_BEEF 16"
+        - "TORCH 16"
+  season_halloween_haunt:
+    name: "Night of the Restless"
+    category: DAILY
+    giver: marigold
+    season: halloween
+    objectives:
+      - "KILL ZOMBIE|SKELETON|WITCH|SPIDER 30 monsters"
+    description: "The dead walk on Halloween. Put 30 of them back to rest."
+    complete:
+      - "Spooky work. Have a treat."
+    rewards:
+      money: 60000
+      items:
+        - "PUMPKIN_PIE 8"
+  season_halloween_pumpkins:
+    name: "Pumpkin Patch"
+    category: DAILY
+    giver: marigold
+    season: halloween
+    objectives:
+      - "CRAFT JACK_O_LANTERN 8 jack o'lanterns"
+    description: "Light up the village for Halloween with eight jack o'lanterns."
+    complete:
+      - "The whole village is glowing!"
+    rewards:
+      money: 50000
+  season_winter_frost:
+    name: "Frostbite Patrol"
+    category: DAILY
+    giver: marigold
+    season: winter
+    objectives:
+      - "KILL STRAY|SKELETON|ZOMBIE 30 monsters"
+    description: "Keep the roads safe for Winterfest travellers."
+    complete:
+      - "Warm up by the fire, you've earned it."
+    rewards:
+      money: 60000
+      items:
+        - "COOKIE 16"
+  season_winter_treats:
+    name: "Winterfest Treats"
+    category: DAILY
+    giver: marigold
+    season: winter
+    objectives:
+      - "CRAFT COOKIE|PUMPKIN_PIE|CAKE 16 treats"
+    description: "Bake treats for the Winterfest feast."
+    complete:
+      - "Smells wonderful!"
+    rewards:
+      money: 50000
+  season_spring_flowers:
+    name: "Spring Bloom"
+    category: DAILY
+    giver: marigold
+    season: spring
+    objectives:
+      - "PLACE POPPY|DANDELION|AZURE_BLUET|OXEYE_DAISY|CORNFLOWER|ALLIUM|LILY_OF_THE_VALLEY|BLUE_ORCHID 16 flowers"
+    description: "Plant flowers around the village for Spring Bloom."
+    complete:
+      - "It's beautiful out here now."
+    rewards:
+      money: 50000
+  season_spring_lambs:
+    name: "New Life"
+    category: DAILY
+    giver: marigold
+    season: spring
+    objectives:
+      - "BREED SHEEP|COW|PIG|CHICKEN|RABBIT 10 animals"
+    description: "Spring is here. Help ten pairs of animals have young."
+    complete:
+      - "So many little ones!"
+    rewards:
+      money: 60000
+  season_summer_fishing:
+    name: "Summer Catch"
+    category: DAILY
+    giver: marigold
+    season: summer
+    objectives:
+      - "FISH ANY 16 fish"
+    description: "Long summer days are perfect for fishing. Catch sixteen."
+    complete:
+      - "A fine haul!"
+    rewards:
+      money: 50000
+  season_summer_melons:
+    name: "Melon Season"
+    category: DAILY
+    giver: marigold
+    season: summer
+    objectives:
+      - "CRAFT MELON|GLISTERING_MELON_SLICE 8 melons"
+    description: "Make melon blocks or glistering melons for the summer festival."
+    complete:
+      - "Refreshing!"
+    rewards:
+      money: 60000
 # >>> chapters 6-10 (tools/story/chapters_6_10.py)
   story_pip_scout:
     name: "The Road Home"

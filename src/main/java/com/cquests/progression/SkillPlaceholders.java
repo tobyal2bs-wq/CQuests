@@ -34,9 +34,14 @@ public final class SkillPlaceholders extends PlaceholderExpansion {
             case "chapters" -> {return Integer.toString(chapterCount());}
             case "story_total" -> {return Integer.toString(plugin.quests().story().size());}
             case "bosses_enabled" -> {return yesNo(plugin.adventures()!=null&&plugin.adventures().bossesEnabled());}
+            case "worldboss_next" -> {return plugin.worldBosses()==null?"":plugin.worldBosses().nextText();}
+            case "worldboss_next_name" -> {return plugin.worldBosses()==null?"":plugin.worldBosses().upcomingName();}
+            case "worldboss_alive" -> {return yesNo(plugin.worldBosses()!=null&&plugin.worldBosses().alive());}
+            case "season" -> {return plugin.seasons()==null?"":plugin.seasons().activeNames();}
             default -> {}
         }
         if(player==null)return "";
+        if(key.equals("invites"))return Integer.toString(plugin.invites()==null?0:plugin.invites().count(player.getUniqueId()));
         PlayerData data=plugin.store().cached(player.getUniqueId());
         if(key.endsWith("_formatted")||key.endsWith("_short")){
             boolean shortForm=key.endsWith("_short");

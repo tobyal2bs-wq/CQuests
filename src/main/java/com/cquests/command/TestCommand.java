@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 final class TestCommand {
 
     static final List<String> ACTIONS = List.of("messages", "welcome", "celebrate", "chapter", "ending", "achievement",
-            "finish", "unfinish", "roam", "book", "boss", "bossphase", "bossstop", "bossevent", "discord", "where", "pip", "companion", "bossnext", "coop", "daily", "cost", "targets", "all");
+            "finish", "unfinish", "roam", "book", "boss", "bossphase", "bossstop", "bossevent", "discord", "where", "pip", "companion", "bossnext", "coop", "daily", "cost", "targets", "worldboss", "worldbossnext", "worldbossphase", "worldbossstop", "tutorial", "season", "invite", "all");
 
     /** What /cq test finish changed, so /cq test unfinish can put it back exactly. */
     private record Undo(List<String> completed, int sideDone) {
@@ -36,6 +36,7 @@ final class TestCommand {
     private final CQuestsPlugin plugin;
     private final Map<String, Undo> undo = new ConcurrentHashMap<>();
     private final Map<java.util.UUID, Integer> nextBoss = new ConcurrentHashMap<>();
+    private final Map<java.util.UUID, Integer> nextWorldBoss = new ConcurrentHashMap<>();
 
     TestCommand(CQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -57,6 +58,12 @@ final class TestCommand {
                 <yellow>/cq test boss <quest></yellow> <gray>start that boss fight next to you (any game mode, nothing counts; creative to just watch)
                 <yellow>/cq test bossnext</yellow> <gray>stop the current fight and start the next boss, one by one through all of them
                 <yellow>/cq test companion</yellow> <gray>Pip follows you for a minute like on an escort quest
+                <yellow>/cq test worldboss <boss></yellow> <gray>a world boss in front of you inside a 25 block circle, nothing paid
+                <yellow>/cq test worldbossnext</yellow> <gray>go through all world bosses one by one
+                <yellow>/cq test worldbossphase</yellow> <gray>drop your test world boss to half health; <yellow>worldbossstop</yellow> <gray>ends it
+                <yellow>/cq test tutorial</yellow> <gray>start the tutorial quest again
+                <yellow>/cq test season <id></yellow> <gray>see a season and try its daily and boss
+                <yellow>/cq test invite</yellow> <gray>see what invite rewards both players get
                 <yellow>/cq test bossphase</yellow> <gray>jump your test boss to half health: rage, minions and events
                 <yellow>/cq test bossstop</yellow> <gray>end your boss fight
                 <yellow>/cq test bossevent <lightning|darkness|slowness|levitate|roar></yellow> <gray>feel one boss event
@@ -116,6 +123,13 @@ final class TestCommand {
                         ? "<gray>Pip follows you for a minute, like on an escort quest. <yellow>/cq test bossstop</yellow> sends Pip home."
                         : "<yellow>Pip could not come. Stand on open, solid ground.");
                 case "bossnext" -> bossNext(player);
+                case "worldboss" -> plugin.worldBosses().test(player, arg);
+                case "worldbossnext" -> worldBossNext(player);
+                case "worldbossphase" -> plugin.send(player, plugin.worldBosses().testPhase(player) ? "<gray>Your test world boss drops to half health: rage, minions and faster abilities." : "<yellow>Start one first with /cq test worldboss <boss>.");
+                case "worldbossstop" -> plugin.send(player, plugin.worldBosses().testStop(player) ? "<gray>Test world boss ended." : "<gray>No test world boss is running for you.");
+                case "tutorial" -> tutorial(player);
+                case "season" -> season(player, arg);
+                case "invite" -> plugin.invites().test(player);
                 case "coop" -> coop(player);
                 case "daily" -> daily(player);
                 case "cost" -> cost(player, arg);
@@ -127,7 +141,7 @@ final class TestCommand {
                         player.sendMessage(Text.mm("<yellow><click:run_command:'/cq test boss " + id + "'><hover:show_text:'Start this test fight'> ▶ " + id
                                 + "</hover></click> <gray>" + (q == null ? "(chapter switched off)" : "Chapter " + q.chapter() + ": " + Text.escape(q.name()))));
                     }
-                    plugin.send(player, "<gray>Also: /cq test bossnext, companion, pip <bow|sword>, celebrate, chapter <n>, ending, bossevent <event>, discord <event>, where, welcome.");
+                    plugin.send(player, "<gray>Also: /cq test worldbossnext, worldboss <id>, tutorial, season <id>, invite, bossnext, companion, pip <bow|sword>, celebrate, chapter <n>, ending, bossevent <event>, discord <event>, where, welcome.");
                 }
                 default -> help(player);
             }
@@ -143,6 +157,44 @@ final class TestCommand {
         String id = ids.get(index);
         plugin.send(player, "<gold>Boss " + (index + 1) + "/" + ids.size() + ":</gold> <white>" + id + " <gray>(run /cq test bossnext again for the next one)");
         if (!plugin.adventures().testBoss(player, id)) plugin.send(player, "<yellow>The boss could not start. Stand on open, solid ground with space around you, not in Peaceful.");
+    }
+
+    /** Each call ends your test world boss and starts the next one, so all of them can be seen in turn. */
+    private void worldBossNext(Player player) {
+        List<String> ids = plugin.worldBosses().ids();
+        if (ids.isEmpty()) { plugin.send(player, "<yellow>No bosses in worldbosses.yml."); return; }
+        int index = Math.floorMod(nextWorldBoss.merge(player.getUniqueId(), 1, Integer::sum) - 1, ids.size());
+        plugin.worldBosses().testStop(player);
+        plugin.send(player, "<gold>World boss " + (index + 1) + "/" + ids.size() + ":</gold> <white>" + ids.get(index) + " <gray>(run /cq test worldbossnext again for the next one)");
+        plugin.worldBosses().test(player, ids.get(index));
+    }
+
+    /** Starts the tutorial quest again for you, so you can play it through. */
+    private void tutorial(Player player) {
+        String id = plugin.getConfig().getString("quests.tutorial-quest", "tutorial");
+        Quest quest = id == null || id.isBlank() ? null : plugin.quests().get(id);
+        if (quest == null) { plugin.send(player, "<yellow>No tutorial quest (quests.tutorial-quest in config.yml)."); return; }
+        var data = plugin.questManager().data(player);
+        synchronized (data) { data.remove(quest.id()); data.uncomplete(quest.id()); }
+        plugin.questManager().forceAccept(player, quest);
+        plugin.send(player, "<gray>Tutorial started: <white>" + Text.escape(quest.name()) + "</white>. It pays out when every step is done.");
+    }
+
+    /** Shows whether a season is on and gives you one of its daily quests to try. */
+    private void season(Player player, String id) {
+        if (id.isBlank()) { plugin.send(player, "<yellow>/cq test season <id></yellow> <gray>Seasons: " + String.join(", ", plugin.seasons().ids())); return; }
+        String season = id.toLowerCase(java.util.Locale.ROOT);
+        plugin.send(player, plugin.seasons().name(season) + " <gray>is <white>" + plugin.seasons().mode(season) + "</white>" + (plugin.seasons().active(season) ? " <green>(running)" : " <dark_gray>(not running)"));
+        Quest pick = null;
+        for (Quest q : plugin.quests().dailyPool()) if (season.equals(plugin.quests().season(q.id()))) { pick = q; break; }
+        if (pick == null) plugin.send(player, "<gray>No seasonal dailies for " + Text.escape(season) + " in quests.yml.");
+        else {
+            var data = plugin.questManager().data(player);
+            if (!data.isActive(pick.id())) plugin.questManager().forceAccept(player, pick);
+            plugin.send(player, "<gray>Gave you the seasonal daily <white>" + Text.escape(pick.name()) + "</white>. <gray>Abandon it with /quests abandon " + pick.id());
+        }
+        for (var def : plugin.worldBosses().defs().values()) if (season.equals(def.season()))
+            player.sendMessage(Text.mm("<yellow><click:run_command:'/cq test worldboss " + def.id() + "'><hover:show_text:'Try this boss'> ▶ Seasonal boss: </hover></click>" + def.name()));
     }
 
     private void coop(Player player) {

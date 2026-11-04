@@ -83,7 +83,7 @@ public final class CQuestsPlugin extends JavaPlugin {
                 getConfig().set("money-command","economy give %player% %amount%");saveConfig();
             } catch(java.io.IOException e){getLogger().warning("Reward command migration deferred: "+e.getMessage());}
         }
-        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml", "letters.yml", "characters.yml", "ai-mail.yml", "bob-character.txt", "bosses.yml"}) {
+        for (String resource : new String[]{"messages.yml", "npcs.yml", "quests.yml", "generator.yml", "farming.yml", "merchants.yml", "twists.yml", "memories.yml", "letters.yml", "characters.yml", "ai-mail.yml", "bob-character.txt", "bosses.yml", "worldbosses.yml"}) {
             if (!new File(getDataFolder(), resource).exists()) {
                 saveResource(resource, false);
             }
@@ -115,6 +115,9 @@ public final class CQuestsPlugin extends JavaPlugin {
         merchants = new com.cquests.merchant.MerchantService(this);
         memories = new com.cquests.adventure.NpcMemory(this);
         adventures = new com.cquests.adventure.QuestAdventures(this);
+        seasons = new com.cquests.season.SeasonService(this);
+        worldBosses = new com.cquests.worldboss.WorldBossService(this);
+        invites = new com.cquests.invite.InviteService(this);
 
         loadData();
         Platform.init();
@@ -130,12 +133,14 @@ public final class CQuestsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new com.cquests.farm.FarmAnvils(this), this);
         getServer().getPluginManager().registerEvents(new com.cquests.merchant.MerchantListener(this), this);
         getServer().getPluginManager().registerEvents(adventures, this);
+        getServer().getPluginManager().registerEvents(worldBosses, this);
         register("quests", new QuestsCommand(this));
         register("cquests", new AdminCommand(this));
 
         spawns.load();
         spawns.start();
         merchants.start();
+        worldBosses.start();
         autosave = Sched.asyncTimer(() -> {
             store.saveDirtyAsync();
             store.evictOffline(id -> getServer().getPlayer(id) != null);
@@ -162,6 +167,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         if(discord!=null)discord.shutdown();
         if(characters!=null)characters.shutdown();
         if(adventures!=null)adventures.shutdown();
+        if(worldBosses!=null)worldBosses.shutdown();
         if(merchants!=null)merchants.shutdown();
         if (farmSave != null) farmSave.cancel();
         if (farm != null) farm.shutdown();
@@ -213,6 +219,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         spawns.load();
         progression.reload(); farm.reload();
         merchants.reload();
+        worldBosses.stopAll(); worldBosses.reload();
         spawns.start();
         backups.start();
         finale.achievements().register();
@@ -283,6 +290,13 @@ public final class CQuestsPlugin extends JavaPlugin {
     public com.cquests.npc.NpcCustomization characters(){return characters;}
     public com.cquests.adventure.NpcMemory memories(){return memories;}
     public com.cquests.adventure.QuestAdventures adventures(){return adventures;}
+    private com.cquests.season.SeasonService seasons;
+    private com.cquests.worldboss.WorldBossService worldBosses;
+    private com.cquests.invite.InviteService invites;
+    /** Seasonal events; null only in unit tests. */
+    public com.cquests.season.SeasonService seasons(){return seasons;}
+    public com.cquests.worldboss.WorldBossService worldBosses(){return worldBosses;}
+    public com.cquests.invite.InviteService invites(){return invites;}
     private com.cquests.integration.DiscordWebhook discord;
     /** Discord announcements; null only in unit tests. */
     public com.cquests.integration.DiscordWebhook discord(){return discord;}

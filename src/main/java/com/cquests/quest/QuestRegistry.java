@@ -64,6 +64,7 @@ public final class QuestRegistry {
         storyByGiver.clear();
         dailyPool.clear();
         together.clear();
+        seasons.clear();
 
         generation++;
         chapterNames.clear();
@@ -98,6 +99,8 @@ public final class QuestRegistry {
                     add(quest);
                     int party = Math.max(1, Math.min(4, s.getInt("together", 1)));
                     if (party > 1) together.put(quest.id(), party);
+                    String season = s.getString("season", "").trim().toLowerCase(Locale.ROOT);
+                    if (!season.isEmpty()) seasons.put(quest.id(), season);
                     if (quest.category() == QuestCategory.STORY) {
                         previousStory = quest.id();
                     }
@@ -414,6 +417,12 @@ public final class QuestRegistry {
     }
 
     private final Map<String, Integer> together = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, String> seasons = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** The season a seasonal daily belongs to (quests.yml "season: halloween"), or "" for an all-year quest. */
+    public String season(String questId) {
+        return seasons.getOrDefault(questId, "");
+    }
 
     /** Players needed at the same time for a co-op quest (quests.yml "together: 2" to 4); 1 for normal quests. */
     public int together(String questId) {

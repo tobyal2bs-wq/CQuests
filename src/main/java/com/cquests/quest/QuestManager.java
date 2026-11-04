@@ -123,7 +123,7 @@ public final class QuestManager {
 
     /** Side quests are numbered per NPC and done in order, so "done" means its number is within the NPC's count. */
     public boolean isDone(PlayerData data, Quest quest) {
-        if (quest.category() == QuestCategory.SIDE) {
+        if (quest.category() == QuestCategory.SIDE && !quest.giver().isEmpty()) {
             return quest.order() <= data.sideDone(quest.giver());
         }
         return data.isCompleted(quest.id());
@@ -252,9 +252,18 @@ public final class QuestManager {
         Random rnd = new Random(player.getUniqueId().getLeastSignificantBits() ^ day * 1_000_003L);
         // Every player gets their own daily. Co-op dailies are only offered when enough friends stand nearby.
         int friends = nearbyPlayers(player);
+        // Seasonal dailies only exist while their season is on (/cq season).
+        List<Quest> inSeason = new ArrayList<>();
+        for (Quest quest : pool) {
+            String season = quests().season(quest.id());
+            if (season.isEmpty() || (plugin.seasons() != null && plugin.seasons().active(season))) inSeason.add(quest);
+        }
+        if (inSeason.isEmpty()) return Offer.none("nothing");
         List<Quest> fitting = new ArrayList<>();
-        for (Quest quest : pool) if (quests().together(quest.id()) - 1 <= friends) fitting.add(quest);
-        if (fitting.isEmpty()) fitting = pool;
+        for (Quest quest : inSeason) if (quests().together(quest.id()) - 1 <= friends) fitting.add(quest);
+        if (fitting.isEmpty()) fitting = inSeason;
+        List<Quest> seasonal = fitting.stream().filter(q -> !quests().season(q.id()).isEmpty()).toList();
+        if (!seasonal.isEmpty() && rnd.nextInt(2) == 0) return Offer.of(seasonal.get(rnd.nextInt(seasonal.size())));
         List<Quest> coop = fitting.stream().filter(q -> quests().together(q.id()) > 1).toList();
         if (!coop.isEmpty() && rnd.nextInt(3) == 0) return Offer.of(coop.get(rnd.nextInt(coop.size())));
         return Offer.of(fitting.get(rnd.nextInt(fitting.size())));
@@ -691,8 +700,9 @@ public final class QuestManager {
                     streak = data.recordDailyStreak(java.time.LocalDate.now().toEpochDay());
                 }
                 case SIDE -> {
-                    data.complete(quest.id(), false);
-                    data.addSideDone(quest.giver());
+                    // A hand-written quest without a giver (the tutorial) is remembered by id.
+                    data.complete(quest.id(), quest.giver().isEmpty());
+                    if (!quest.giver().isEmpty()) data.addSideDone(quest.giver());
                 }
                 case STORY -> {
                     data.complete(quest.id(), true);
@@ -723,6 +733,7 @@ public final class QuestManager {
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
         plugin.visibility().refresh(player);
         plugin.tracker().update(player);
+        startTutorialAfter(player, quest);
         if (isFinalQuest(quest)) {
             plugin.finale().play(player);
         } else if (quests().endsChapter(quest)) {
@@ -730,6 +741,20 @@ public final class QuestManager {
         } else if (quest.big()) {
             plugin.finale().celebrate(player, quest);
         }
+    }
+
+    /** The tutorial quest (quests.tutorial-quest) starts as soon as the welcome quest is done; finishing it pays the player's inviter. */
+    private void startTutorialAfter(Player player, Quest done) {
+        var config = plugin.getConfig();
+        String id = config == null ? "" : config.getString("quests.tutorial-quest", "tutorial");
+        Quest tutorial = id == null || id.isBlank() ? null : quests().get(id);
+        if (done.id().equals(settings().welcomeQuest)) {
+            if (tutorial != null && !data(player).isCompleted(tutorial.id()) && !data(player).isActive(tutorial.id())) {
+                accept(player, tutorial, true, true);
+                plugin.send(player, "<gold>Tutorial:</gold> <white>" + Text.escape(tutorial.name()) + " <gray>Quick steps that pay out in a few minutes. Type <yellow>/quests</yellow> to see them.");
+            } else if (tutorial == null && plugin.invites() != null) plugin.invites().onTutorialDone(player);
+        }
+        if (tutorial != null && done.id().equals(tutorial.id()) && plugin.invites() != null) plugin.invites().onTutorialDone(player);
     }
 
     /**

@@ -61,6 +61,9 @@ public final class QuestsCommand implements TabExecutor {
                 }
             }
             case "where", "next" -> plugin.directions().explain(player, true);
+            case "worldboss", "boss" -> plugin.worldBosses().info(player);
+            case "invitedby" -> plugin.invites().claim(player, args.length > 1 ? args[1] : "");
+            case "invite", "invites" -> plugin.invites().show(player);
             case "directions" -> plugin.send(player, "<white>Villager directions: <aqua>" + (plugin.directions().toggle(player) ? "on" : "off"));
             case "achievements" -> plugin.finale().achievements().show(player);
             case "farm" -> plugin.send(player,"<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe.");
@@ -135,7 +138,7 @@ public final class QuestsCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("book", "menu", "settings", "mode", "directions", "where", "achievements", "list", "track", "story", "accept", "abandon", "encounter", "mail", "discoveries"), args[0]);
+            return filter(List.of("book", "menu", "settings", "mode", "directions", "where", "achievements", "list", "track", "story", "accept", "abandon", "encounter", "mail", "discoveries", "worldboss", "invites", "invitedby"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("mode")) return filter(List.of("book", "menu", "chat"), args[1]);
         if (args.length == 2 && args[0].equalsIgnoreCase("abandon") && sender instanceof Player player) {

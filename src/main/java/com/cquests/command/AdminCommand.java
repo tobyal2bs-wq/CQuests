@@ -69,9 +69,67 @@ public final class AdminCommand implements TabExecutor {
             case "backup" -> backup(sender);
             case "backups" -> backups(sender);
             case "restore" -> restore(sender, args);
+            case "worldboss", "wb" -> worldBoss(sender, args);
+            case "season", "seasons" -> plugin.seasons().command(sender, args);
             default -> help(sender);
         }
         return true;
+    }
+
+    private void worldBoss(CommandSender sender, String[] args) {
+        var wb = plugin.worldBosses();
+        String action = args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : "help";
+        String arena = args.length > 2 ? args[2] : "main";
+        Player player = sender instanceof Player p ? p : null;
+        switch (action) {
+            case "list" -> wb.listBosses(sender);
+            case "arenas" -> wb.listArenas(sender);
+            case "next", "info" -> wb.info(sender);
+            case "stop" -> plugin.send(sender, (args.length > 2 ? wb.stop(arena) : stopAll(wb)) ? "<gray>World boss sent away." : "<gray>No world boss is alive there.");
+            case "schedule" -> {
+                if (args.length > 2 && List.of("on", "off").contains(args[2].toLowerCase(Locale.ROOT))) wb.scheduleToggle(sender, args[2].equalsIgnoreCase("on"));
+                else wb.info(sender);
+            }
+            case "setspawn", "wand", "border", "radius", "spawn" -> {
+                if (player == null) { plugin.send(sender, "<red>Run this in game."); return; }
+                switch (action) {
+                    case "setspawn" -> wb.setSpawn(player, arena);
+                    case "wand" -> wb.giveWand(player, arena);
+                    case "border" -> {
+                        String what = args.length > 3 ? args[3].toLowerCase(Locale.ROOT) : "show";
+                        if (what.equals("clear")) wb.clearBorder(player, arena);
+                        else {
+                            var a = wb.arenaFor(arena);
+                            if (a == null) plugin.send(player, "<red>No arena " + Text.escape(arena)); else wb.show(player, a);
+                        }
+                    }
+                    case "radius" -> {
+                        int r;
+                        try { r = Integer.parseInt(args.length > 3 ? args[3] : ""); } catch (NumberFormatException e) { plugin.send(player, "<yellow>/cq worldboss radius <arena> <blocks>"); return; }
+                        wb.setRadius(player, arena, r);
+                    }
+                    default -> { // spawn <boss> [arena]
+                        if (args.length < 3) { plugin.send(player, "<yellow>/cq worldboss spawn <boss> [arena]"); return; }
+                        wb.spawnAt(player, args[2], args.length > 3 ? args[3] : "main");
+                    }
+                }
+            }
+            default -> plugin.send(sender, """
+                    <gold><bold>World bosses</bold></gold> <gray>(one wakes every week, see config.yml world-bosses)
+                    <yellow>/cq worldboss setspawn <arena></yellow> <gray>the boss appears where you stand (arena "main" is used by the weekly schedule)
+                    <yellow>/cq worldboss wand <arena></yellow> <gray>border stick: left-click blocks for corners, right-click undo, sneak+right-click show
+                    <yellow>/cq worldboss border <arena> [show|clear]</yellow> <gray>see or remove the outline
+                    <yellow>/cq worldboss radius <arena> <blocks></yellow> <gray>circle border when there is no outline
+                    <yellow>/cq worldboss list</yellow> <gray>every boss; <yellow>arenas</yellow> <gray>every arena; <yellow>next</yellow> <gray>next weekly boss
+                    <yellow>/cq worldboss spawn <boss> [arena]</yellow> <gray>start one now (real fight, real rewards)
+                    <yellow>/cq worldboss stop [arena]</yellow> <gray>send it away
+                    <yellow>/cq worldboss schedule on|off</yellow> <gray>turn the weekly boss on or off
+                    <yellow>/cq test worldboss <boss></yellow> <gray>try one in front of you, nothing is paid""");
+        }
+    }
+
+    private static boolean stopAll(com.cquests.worldboss.WorldBossService wb) {
+        boolean any = wb.alive(); wb.stopAll(); return any;
     }
 
     private void help(CommandSender s) {
@@ -95,6 +153,8 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq player <name> reset|complete <quest>|give <quest>|resetdaily</yellow>
                 <yellow>/cq quest <id></yellow> <gray>show a quest's details
                 <yellow>/cq finale [player]</yellow> <gray>preview the ending cinematic
+                <yellow>/cq worldboss</yellow> <gray>weekly world bosses: spawn point, border stick, list, spawn, stop
+                <yellow>/cq season [id] [on|off|auto]</yellow> <gray>seasonal events (Halloween, Winter, Spring, Summer)
                 <yellow>/cq test</yellow> <gray>try messages, animations, achievements and disappearing villagers
                 <yellow>/cq backup</yellow> <gray>back up all quest data now
                 <yellow>/cq backups</yellow> <gray>list backups
@@ -496,13 +556,32 @@ public final class AdminCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore", "worldboss", "season"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         if(first.equals("merchant")){
             if(!(sender instanceof Player p)||!p.isOp())return List.of();
             if(args.length==2)return QuestsCommand.filter(List.of("test","list","spawn","point","shop","end","wand","undo","routeclear","walk","despawn","edit"),args[1]);
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
+        }
+        if (first.equals("worldboss") || first.equals("wb")) {
+            if (args.length == 2) return QuestsCommand.filter(List.of("setspawn", "wand", "border", "radius", "list", "arenas", "next", "spawn", "stop", "schedule"), args[1]);
+            String action = args[1].toLowerCase(Locale.ROOT);
+            if (args.length == 3) {
+                if (action.equals("spawn")) return QuestsCommand.filter(plugin.worldBosses().ids(), args[2]);
+                if (action.equals("schedule")) return QuestsCommand.filter(List.of("on", "off"), args[2]);
+                List<String> arenas = new ArrayList<>(plugin.worldBosses().arenaIds());
+                if (!arenas.contains("main")) arenas.add("main");
+                return QuestsCommand.filter(arenas, args[2]);
+            }
+            if (args.length == 4 && action.equals("border")) return QuestsCommand.filter(List.of("show", "clear"), args[3]);
+            if (args.length == 4 && action.equals("spawn")) return QuestsCommand.filter(plugin.worldBosses().arenaIds(), args[3]);
+            return List.of();
+        }
+        if (first.equals("season") || first.equals("seasons")) {
+            if (args.length == 2) return QuestsCommand.filter(plugin.seasons().ids(), args[1]);
+            if (args.length == 3) return QuestsCommand.filter(com.cquests.season.SeasonService.MODES, args[2]);
+            return List.of();
         }
         if(first.equals("farm")&&args.length==2)return QuestsCommand.filter(List.of("wand","outside","save","anvil","bind"),args[1]);
         if(first.equals("character")){
@@ -530,6 +609,8 @@ public final class AdminCommand implements TabExecutor {
                 if (action.equals("boss")) return QuestsCommand.filter(new ArrayList<>(plugin.adventures().bossIds()), args[2]);
                 if (action.equals("bossevent")) return QuestsCommand.filter(com.cquests.adventure.QuestAdventures.EVENTS, args[2]);
                 if (action.equals("pip")) return QuestsCommand.filter(List.of("bow", "sword"), args[2]);
+                if (action.equals("worldboss")) return QuestsCommand.filter(plugin.worldBosses().ids(), args[2]);
+                if (action.equals("season")) return QuestsCommand.filter(plugin.seasons().ids(), args[2]);
                 if (action.equals("discord")) return QuestsCommand.filter(List.of("chapter", "boss", "streak", "journey"), args[2]);
                 if (action.equals("achievement")) {
                     List<String> options = new ArrayList<>(List.of("end", "reset"));

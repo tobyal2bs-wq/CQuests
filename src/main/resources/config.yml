@@ -46,6 +46,8 @@ quests:
   max-active-side: 3
   # Given to every player on first join. "" turns it off.
   welcome-quest: welcome
+  # Starts right after the welcome quest: a few quick steps that pay out within minutes. Empty turns it off.
+  tutorial-quest: tutorial
   # Breaking or harvesting blocks you placed yourself does not count.
   ignore-player-placed-blocks: true
   # Mobs from spawners and spawn eggs do not count for KILL objectives (stops mob farm skipping).
@@ -264,3 +266,81 @@ progression:
     8: 460
     9: 480
     10: 500
+
+# ----------------------------------------------------------- WORLD BOSSES
+# A big public boss wakes every week at an arena you set up. Bosses are in worldbosses.yml (20 + 4 seasonal).
+#   /cq worldboss setspawn main    where the boss appears
+#   /cq worldboss wand main        stick: left-click blocks to draw the border it can never cross
+# World bosses only attack players, never break or burn blocks, drop nothing and have a boss bar.
+world-bosses:
+  enabled: true
+  schedule:
+    enabled: true
+    # Days and time the weekly boss wakes (MONDAY ... SUNDAY). Add more days for more fights a week.
+    days: [SATURDAY]
+    time: "20:00"
+    # Time zone, e.g. Europe/London or America/New_York. Empty uses the server's clock.
+    zone: ""
+    # Chat warning this many minutes before (0 for none).
+    warn-minutes: 10
+    # The arena the weekly boss uses.
+    arena: main
+    # rotate: a different boss each week in order; random: a random one each week.
+    order: rotate
+  # Circle border (blocks around the spawn) for arenas without a drawn outline.
+  default-radius: 40
+  # The boss leaves when nobody is in its arena for this long, and after max-minutes.
+  idle-minutes: 5
+  max-minutes: 30
+  # Players must stand inside the border to hurt the boss (stops shooting it from outside).
+  only-hurt-from-inside: true
+  # Damage needed (percent of its health) to earn a reward.
+  min-damage-percent: 2
+  max-active: 4
+
+# ----------------------------------------------------------- SEASONS
+# Seasonal events: seasonal daily quests and a seasonal world boss. mode: "on", "off" or "auto"
+# (auto runs between from and to every year, month-day). Change with /cq season <id> on|off|auto.
+seasons:
+  halloween:
+    name: "<gold>Halloween"
+    mode: "off"
+    from: "10-15"
+    to: "11-05"
+  winter:
+    name: "<aqua>Winterfest"
+    mode: "off"
+    from: "12-10"
+    to: "01-05"
+  spring:
+    name: "<green>Spring Bloom"
+    mode: "off"
+    from: "04-01"
+    to: "04-21"
+  summer:
+    name: "<yellow>Summer Blaze"
+    mode: "off"
+    from: "07-01"
+    to: "07-31"
+
+# ----------------------------------------------------------- INVITES
+# New players type /quests invitedby <name> in their first hours. They are paid straight away; the friend
+# who invited them is paid when they finish the tutorial. Players on the same connection don't count.
+invites:
+  enabled: true
+  window-hours: 48
+  allow-same-ip: false
+  new-player:
+    money: 5000
+    items: ["BREAD 16"]
+    commands: []
+  inviter:
+    money: 25000
+    items: ["DIAMOND 2"]
+    commands: []
+  # Commands run when a player reaches this many invited friends (%player% is the inviter).
+  milestones:
+    3: []
+    5: []
+    10: []
+

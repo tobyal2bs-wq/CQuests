@@ -370,4 +370,15 @@ class QuestDataTest {
         }
         assertEquals(1, quests.together(quests.dailyPool().stream().filter(q -> !q.id().startsWith("coop_")).findFirst().orElseThrow().id()));
     }
+
+    @Test
+    void tutorialAndSeasonalQuestsLoad() {
+        Quest tutorial = quests.get("tutorial");
+        assertNotNull(tutorial);
+        assertTrue(tutorial.autoComplete(), "the tutorial pays out without walking back to anyone");
+        assertTrue(tutorial.reward().money() > 0);
+        for (String season : List.of("halloween", "winter", "spring", "summer"))
+            assertTrue(quests.dailyPool().stream().anyMatch(q -> quests.season(q.id()).equals(season)), season + " dailies");
+        assertEquals("", quests.season("coop_feast"));
+    }
 }
