@@ -199,6 +199,10 @@ public final class CQuestsPlugin extends JavaPlugin {
 
     private void loadData() {
         reloadConfig();
+        // New keys (world bosses, seasons, invites) fall back to the bundled config.yml when a server's own file predates them.
+        try (var in = getResource("config.yml")) {
+            if (in != null) getConfig().setDefaults(YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)));
+        } catch (java.io.IOException ignored) { }
         settings = new Settings(getConfig(), YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml")));
         String give = getConfig().getString("economy.give-command", "");
         com.cquests.farm.EconomyBridge.configure(getConfig().getString("economy.balance-placeholder", ""),

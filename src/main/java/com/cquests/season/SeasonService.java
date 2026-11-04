@@ -36,14 +36,19 @@ public final class SeasonService {
         return new ArrayList<>(out);
     }
 
+    /** getString(path) falls back to the bundled config.yml; getString(path, def) would skip it. */
+    private static String or(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
     public String mode(String id) {
         // YAML reads a bare on/off as true/false.
-        String mode = String.valueOf(plugin.getConfig().get("seasons." + id + ".mode", "off")).toLowerCase(Locale.ROOT);
+        String mode = String.valueOf(or(plugin.getConfig().getString("seasons." + id + ".mode"), "off")).toLowerCase(Locale.ROOT);
         return mode.equals("true") ? "on" : mode.equals("false") ? "off" : mode;
     }
 
     public String name(String id) {
-        return plugin.getConfig().getString("seasons." + id + ".name", id);
+        return or(plugin.getConfig().getString("seasons." + id + ".name"), id);
     }
 
     public boolean active(String id) {
@@ -52,8 +57,8 @@ public final class SeasonService {
         if (mode.equals("on")) return true;
         if (!mode.equals("auto")) return false;
         try {
-            MonthDay from = MonthDay.parse("--" + plugin.getConfig().getString("seasons." + id + ".from", "01-01"));
-            MonthDay to = MonthDay.parse("--" + plugin.getConfig().getString("seasons." + id + ".to", "01-01"));
+            MonthDay from = MonthDay.parse("--" + or(plugin.getConfig().getString("seasons." + id + ".from"), "01-01"));
+            MonthDay to = MonthDay.parse("--" + or(plugin.getConfig().getString("seasons." + id + ".to"), "01-01"));
             return inWindow(from, to, LocalDate.now());
         } catch (RuntimeException e) {
             return false;
@@ -85,8 +90,8 @@ public final class SeasonService {
             plugin.send(sender, "<gold>Seasons</gold> <gray>(/cq season <id> on|off|auto)");
             for (String id : ids())
                 sender.sendMessage(Text.mm(" <dark_gray>-</dark_gray> <white>" + id + "</white> " + name(id) + " <gray>mode <white>" + mode(id)
-                        + "</white>" + (mode(id).equals("auto") ? " (" + plugin.getConfig().getString("seasons." + id + ".from", "?") + " to "
-                        + plugin.getConfig().getString("seasons." + id + ".to", "?") + ")" : "") + (active(id) ? " <green>● on now" : " <dark_gray>○ off")));
+                        + "</white>" + (mode(id).equals("auto") ? " (" + or(plugin.getConfig().getString("seasons." + id + ".from"), "?") + " to "
+                        + or(plugin.getConfig().getString("seasons." + id + ".to"), "?") + ")" : "") + (active(id) ? " <green>● on now" : " <dark_gray>○ off")));
             return;
         }
         String id = args[1].toLowerCase(Locale.ROOT);
