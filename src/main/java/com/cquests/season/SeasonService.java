@@ -27,8 +27,13 @@ public final class SeasonService {
     }
 
     public List<String> ids() {
-        ConfigurationSection s = plugin.getConfig().getConfigurationSection("seasons");
-        return s == null ? List.of() : new ArrayList<>(s.getKeys(false));
+        // Keys from the bundled defaults too, so servers whose config.yml predates seasons still have them.
+        java.util.Set<String> out = new java.util.LinkedHashSet<>();
+        var defaults = plugin.getConfig().getDefaults();
+        ConfigurationSection d = defaults == null ? null : defaults.getConfigurationSection("seasons");
+        if (d != null) out.addAll(d.getKeys(false));
+        if (plugin.getConfig().isConfigurationSection("seasons")) out.addAll(plugin.getConfig().getConfigurationSection("seasons").getKeys(false));
+        return new ArrayList<>(out);
     }
 
     public String mode(String id) {
