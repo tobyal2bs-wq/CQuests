@@ -721,19 +721,19 @@ public final class BossModel {
         try { return Color.fromRGB(Integer.parseInt(hex.replace("#", ""), 16) & 0xFFFFFF); } catch (RuntimeException e) { return Color.WHITE; }
     }
 
-    private static final Map<String, Sound> SOUNDS = new java.util.concurrent.ConcurrentHashMap<>();
-    /** ConcurrentHashMap takes no nulls: a sound this server does not have maps to this. */
-    private static final Sound MISSING = Sound.UI_BUTTON_CLICK;
+    /** Empty when this server version does not have the sound. Kept lazy so the class loads without a server. */
+    private static final Map<String, java.util.Optional<Sound>> SOUNDS = new java.util.concurrent.ConcurrentHashMap<>();
 
     /** Sound by its constant name (ENTITY_WITHER_SPAWN); one missing on this server version is skipped. */
     public static void sound(World world, Location at, String name, float pitch) { sound(world, at, name, pitch, 2f); }
 
     public static void sound(World world, Location at, String name, float pitch, float volume) {
         if (name == null || name.isEmpty() || world == null) return;
-        Sound sound = SOUNDS.computeIfAbsent(name, n -> {
-            try { return (Sound) Sound.class.getField(n).get(null); } catch (ReflectiveOperationException | RuntimeException e) { return MISSING; }
+        java.util.Optional<Sound> sound = SOUNDS.computeIfAbsent(name, n -> {
+            try { return java.util.Optional.ofNullable((Sound) Sound.class.getField(n).get(null)); }
+            catch (ReflectiveOperationException | RuntimeException e) { return java.util.Optional.empty(); }
         });
-        if (sound != MISSING) Privacy.sound(world, at, sound, volume, pitch);
+        sound.ifPresent(s -> Privacy.sound(world, at, s, volume, pitch));
     }
 
     // ------------------------------------------------------------------ ending
