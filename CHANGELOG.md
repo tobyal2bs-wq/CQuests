@@ -2,6 +2,8 @@
 
 Full notes for each release are in the RELEASE-x.y.z.md files and on the GitHub releases page.
 
+CQuests **1.9.1**: `/cq test bossnext` to see every boss in turn and `/cq test companion` for Pip. See [RELEASE-1.9.1.md](RELEASE-1.9.1.md).
+
 CQuests **1.9.0**: chapter costs from 5M that read your own balance placeholder, co-op dailies, Pip in boss fights, recipe tips from the server itself, daily money rolls and an elytra for chapter 5. See [RELEASE-1.9.0.md](RELEASE-1.9.0.md).
 
 CQuests **1.8.1** raises chapter costs to 25k (chapter 2) up to 2.5M (chapter 10). See [RELEASE-1.8.1.md](RELEASE-1.8.1.md).

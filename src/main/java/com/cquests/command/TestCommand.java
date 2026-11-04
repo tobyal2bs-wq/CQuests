@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 final class TestCommand {
 
     static final List<String> ACTIONS = List.of("messages", "welcome", "celebrate", "chapter", "ending", "achievement",
-            "finish", "unfinish", "roam", "book", "boss", "bossphase", "bossstop", "bossevent", "discord", "where", "pip", "coop", "daily", "cost", "targets", "all");
+            "finish", "unfinish", "roam", "book", "boss", "bossphase", "bossstop", "bossevent", "discord", "where", "pip", "companion", "bossnext", "coop", "daily", "cost", "targets", "all");
 
     /** What /cq test finish changed, so /cq test unfinish can put it back exactly. */
     private record Undo(List<String> completed, int sideDone) {
@@ -35,6 +35,7 @@ final class TestCommand {
 
     private final CQuestsPlugin plugin;
     private final Map<String, Undo> undo = new ConcurrentHashMap<>();
+    private final Map<java.util.UUID, Integer> nextBoss = new ConcurrentHashMap<>();
 
     TestCommand(CQuestsPlugin plugin) {
         this.plugin = plugin;
@@ -54,6 +55,8 @@ final class TestCommand {
                 <yellow>/cq test roam <npc></yellow> <gray>move a scattered villager to a new spot now
                 <yellow>/cq test book</yellow> <gray>read your Your Story book as it is so far
                 <yellow>/cq test boss <quest></yellow> <gray>start that boss fight next to you (any game mode, nothing counts; creative to just watch)
+                <yellow>/cq test bossnext</yellow> <gray>stop the current fight and start the next boss, one by one through all of them
+                <yellow>/cq test companion</yellow> <gray>Pip follows you for a minute like on an escort quest
                 <yellow>/cq test bossphase</yellow> <gray>jump your test boss to half health: rage, minions and events
                 <yellow>/cq test bossstop</yellow> <gray>end your boss fight
                 <yellow>/cq test bossevent <lightning|darkness|slowness|levitate|roar></yellow> <gray>feel one boss event
@@ -109,6 +112,10 @@ final class TestCommand {
                 case "bossevent" -> { if (!plugin.adventures().testEvent(player, arg)) plugin.send(player, "<yellow>Events: " + String.join(", ", com.cquests.adventure.QuestAdventures.EVENTS)); }
                 case "discord" -> discord(player, arg);
                 case "pip" -> { if (!plugin.adventures().testPip(player, arg)) plugin.send(player, "<yellow>The test fight could not start. Stand on open, solid ground, not in Peaceful."); }
+                case "companion" -> plugin.send(player, plugin.adventures().testCompanion(player)
+                        ? "<gray>Pip follows you for a minute, like on an escort quest. <yellow>/cq test bossstop</yellow> sends Pip home."
+                        : "<yellow>Pip could not come. Stand on open, solid ground.");
+                case "bossnext" -> bossNext(player);
                 case "coop" -> coop(player);
                 case "daily" -> daily(player);
                 case "cost" -> cost(player, arg);
@@ -120,11 +127,22 @@ final class TestCommand {
                         player.sendMessage(Text.mm("<yellow><click:run_command:'/cq test boss " + id + "'><hover:show_text:'Start this test fight'> ▶ " + id
                                 + "</hover></click> <gray>" + (q == null ? "(chapter switched off)" : "Chapter " + q.chapter() + ": " + Text.escape(q.name()))));
                     }
-                    plugin.send(player, "<gray>Also: /cq test celebrate, chapter <n>, ending, bossevent <event>, discord <event>, where, welcome.");
+                    plugin.send(player, "<gray>Also: /cq test bossnext, companion, pip <bow|sword>, celebrate, chapter <n>, ending, bossevent <event>, discord <event>, where, welcome.");
                 }
                 default -> help(player);
             }
         });
+    }
+
+    /** Each call stops the current test fight and starts the next boss, so every boss and mini boss can be seen in turn. */
+    private void bossNext(Player player) {
+        List<String> ids = new java.util.ArrayList<>(plugin.adventures().bossIds());
+        if (ids.isEmpty()) { plugin.send(player, "<yellow>No bosses in bosses.yml."); return; }
+        int index = Math.floorMod(nextBoss.merge(player.getUniqueId(), 1, Integer::sum) - 1, ids.size());
+        plugin.adventures().testStop(player);
+        String id = ids.get(index);
+        plugin.send(player, "<gold>Boss " + (index + 1) + "/" + ids.size() + ":</gold> <white>" + id + " <gray>(run /cq test bossnext again for the next one)");
+        if (!plugin.adventures().testBoss(player, id)) plugin.send(player, "<yellow>The boss could not start. Stand on open, solid ground with space around you, not in Peaceful.");
     }
 
     private void coop(Player player) {

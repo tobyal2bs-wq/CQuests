@@ -96,28 +96,34 @@ public final class QuestAdventures implements Listener {
         UUID id=player.getUniqueId();if(!running||!plugin.getConfig().getBoolean("adventures.enabled",true))return;
         Session boss=bosses.get(id),helper=companions.get(id);
         if(boss!=null){if(!player.isOnline()||player.isDead()||(!boss.test&&(!playable(player)||!active(player,boss.quest)))||!same(boss.origin,player.getLocation(),48))stop(bosses,id,boss);else boss.playerAt=player.getLocation();}
-        if(helper!=null){if(!playable(player)||!active(player,helper.quest)||!helper.origin.getWorld().equals(player.getWorld()))stop(companions,id,helper);else helper.playerAt=player.getLocation();return;}
+        if(helper!=null){if(!player.isOnline()||player.isDead()||(helper.test&&System.nanoTime()-helper.born>60_000_000_000L)||(!helper.test&&(!playable(player)||!active(player,helper.quest)))||!helper.origin.getWorld().equals(player.getWorld()))stop(companions,id,helper);else helper.playerAt=player.getLocation();return;}
         if(!plugin.getConfig().getBoolean("adventures.companions",true)||!playable(player)||companions.size()>=32||System.nanoTime()<retry.getOrDefault(id,0L))return;
         for(String quest:ESCORTS)if(active(player,quest)){
             retry.put(id,System.nanoTime()+10_000_000_000L);
-            Location at=ground(player.getLocation(),2);if(at==null)return;
-            if(!helperSlots.tryAcquire())return;
-            Villager villager;
-            try{villager=at.getWorld().spawn(at,Villager.class,v->{
-                mark(v,player,"companion");v.customName(null);
-                v.setCustomNameVisible(false);v.setInvulnerable(true);v.setCollidable(false);v.setSilent(true);v.setVisibleByDefault(false);
-                v.setRemoveWhenFarAway(false);v.setCanPickupItems(false);v.setProfession(Villager.Profession.WEAPONSMITH);v.setAdult();v.setBreed(false);
-            });}catch(RuntimeException error){helperSlots.release();plugin.getLogger().warning("Companion spawn declined: "+error.getMessage());return;}
-            if(!villager.isValid()){helperSlots.release();return;}
-            var session=new Session(player,quest,villager);companions.put(id,session);player.showEntity(plugin,villager);
-            String label="companion_"+id;
-            plugin.nameplates().spawn(new NpcDef(label,"<gold>Pip</gold>","Your companion","WEAPONSMITH","PLAINS",
-                    plugin.progression().level(plugin.questManager().data(player)),1,true,false,false,"",List.of(),List.of()),villager,at);
-            plugin.nameplates().show(player,label,true);
-            plugin.send(player,plugin.characters().label("pip","<gold>Pip")+" <gray>jogs up beside you. <white>"+plugin.characters().text("pip","arrival",plugin.memories().companionLine(plugin.questManager().data(player))));
-            villager.getScheduler().runAtFixedRate(plugin,t->{if(!tick(session,false)){t.cancel();return;}},()->retired(companions,id,session),5,5);
+            spawnCompanion(player,quest,false);
             return;
         }
+    }
+    /** Pip the escort companion: follows the player, invisible to everyone else. */
+    private boolean spawnCompanion(Player player,String quest,boolean test){
+        UUID id=player.getUniqueId();
+        Location at=ground(player.getLocation(),2);if(at==null)return false;
+        if(!helperSlots.tryAcquire())return false;
+        Villager villager;
+        try{villager=at.getWorld().spawn(at,Villager.class,v->{
+            mark(v,player,"companion");v.customName(null);
+            v.setCustomNameVisible(false);v.setInvulnerable(true);v.setCollidable(false);v.setSilent(true);v.setVisibleByDefault(false);
+            v.setRemoveWhenFarAway(false);v.setCanPickupItems(false);v.setProfession(Villager.Profession.WEAPONSMITH);v.setAdult();v.setBreed(false);
+        });}catch(RuntimeException error){helperSlots.release();plugin.getLogger().warning("Companion spawn declined: "+error.getMessage());return false;}
+        if(!villager.isValid()){helperSlots.release();return false;}
+        var session=new Session(player,quest,villager);session.test=test;companions.put(id,session);player.showEntity(plugin,villager);
+        String label="companion_"+id;
+        plugin.nameplates().spawn(new NpcDef(label,"<gold>Pip</gold>","Your companion","WEAPONSMITH","PLAINS",
+                plugin.progression().level(plugin.questManager().data(player)),1,true,false,false,"",List.of(),List.of()),villager,at);
+        plugin.nameplates().show(player,label,true);
+        plugin.send(player,plugin.characters().label("pip","<gold>Pip")+" <gray>jogs up beside you. <white>"+plugin.characters().text("pip","arrival",plugin.memories().companionLine(plugin.questManager().data(player))));
+        villager.getScheduler().runAtFixedRate(plugin,t->{if(!tick(session,false)){t.cancel();return;}},()->retired(companions,id,session),5,5);
+        return true;
     }
     private static boolean same(Location a,Location b,double radius){return a.getWorld().equals(b.getWorld())&&a.distanceSquared(b)<=radius*radius;}
     private Location ground(Location from,int offset){
@@ -193,11 +199,17 @@ public final class QuestAdventures implements Listener {
         return Math.max(0,max-plugin.questManager().data(player).pipHelped());
     }
     /** Jumps the test boss to half health so the phase, minions and events play now. */
+    /** /cq test companion: Pip the escort follows you for a minute or until /cq test bossstop, nothing counts. */
+    public boolean testCompanion(Player player){
+        if(!running)return false;
+        var old=companions.get(player.getUniqueId());if(old!=null)stop(companions,player.getUniqueId(),old);
+        return spawnCompanion(player,ESCORTS.iterator().next(),true);
+    }
     public boolean testPhase(Player player){
         var session=bosses.get(player.getUniqueId());if(session==null||!session.test)return false;
         Sched.entity(session.mob,()->{if(session.mob.isValid())session.mob.setHealth(Math.max(1,maxHealthOf(session.mob)/2-1));});return true;
     }
-    public boolean testStop(Player player){var session=bosses.get(player.getUniqueId());if(session==null)return false;stop(bosses,player.getUniqueId(),session);return true;}
+    public boolean testStop(Player player){var helper=companions.get(player.getUniqueId());if(helper!=null&&helper.test)stop(companions,player.getUniqueId(),helper);var session=bosses.get(player.getUniqueId());if(session==null)return helper!=null&&helper.test;stop(bosses,player.getUniqueId(),session);return true;}
     /** Plays one boss event on the player alone. */
     public boolean testEvent(Player player,String event){
         String e=event.toLowerCase(Locale.ROOT);if(!EVENTS.contains(e))return false;
