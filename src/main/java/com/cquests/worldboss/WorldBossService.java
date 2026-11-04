@@ -292,7 +292,7 @@ public final class WorldBossService implements Listener {
 
     /** First day/time slot at or after {@code now} that has not run yet. Static for tests. */
     static ZonedDateTime nextAfter(ZonedDateTime now, List<DayOfWeek> days, LocalTime time, String lastRun) {
-        for (int i = 0; i <= 7; i++) {
+        for (int i = 0; i <= 14; i++) {
             LocalDate date = now.toLocalDate().plusDays(i);
             if (!days.contains(date.getDayOfWeek()) || date.toString().equals(lastRun)) continue;
             ZonedDateTime slot = date.atTime(time).atZone(now.getZone());
