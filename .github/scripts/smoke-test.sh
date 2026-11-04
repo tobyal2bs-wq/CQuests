@@ -94,6 +94,8 @@ for cmd in "cq npc rename jerry Farmer Jerold" "cq npc list" "cq character jerry
            "cq backup" "cq backups" "cq restore latest 00000000-0000-0000-0000-000000000001"; do
   echo "$cmd" >> console
   sleep 4
+  # The self-test plays every entrance, attack animation and death, which takes about 20 seconds.
+  if [ "$cmd" = "cq worldboss selftest" ]; then sleep 24; fi
 done
 echo "stop" >> console
 wait "$SERVER" || true
@@ -112,7 +114,7 @@ grep -qE "Checked [0-9]+ objectives" server.log || { echo "/cq test targets did 
 grep -E "Checked [0-9]+ objectives" server.log || true
 sed 's/\x1b\[[0-9;]*m//g' server.log > plain.log
 grep -qE "World bosses \(24\)" plain.log || { echo "/cq worldboss list did not list 24 bosses"; exit 1; }
-grep -qE "World boss self-test: 24/24 appeared, 384 attacks ran" plain.log || { echo "World boss self-test failed"; grep -E "World boss|self-test" plain.log | tail -20; exit 1; }
+grep -qE "World boss self-test: 24/24 appeared, 384 attacks ran, 24 drawn with [0-9]+ blocks, [0-9]+ animations, 24 deaths played" plain.log && ! grep -q "World boss self-test.*Problems" plain.log || { echo "World boss self-test failed"; grep -E "World boss|self-test" plain.log | tail -20; exit 1; }
 grep -E "World boss self-test" plain.log || true
 grep -q "Halloween is now on" plain.log || { echo "/cq season halloween on failed"; grep -iE "season|halloween" plain.log | tail -20; exit 1; }
 grep -q "Chapter 6 is off" server.log || { echo "/cq chapter 6 off failed"; exit 1; }

@@ -25,8 +25,6 @@ import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EvokerFangs;
 import org.bukkit.entity.Hoglin;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.PiglinAbstract;
@@ -64,10 +62,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,6 +107,8 @@ public final class WorldBossService implements Listener {
         Particle particle = Particle.FLAME; Particle.DustOptions auraDust, ringDust;
         volatile boolean over;
         int chunkX, chunkZ; String chunkWorld;
+        /** The block model drawn over the invisible mob, or null for a plain mob boss. */
+        volatile BossModel model;
 
         Fight(String key, WorldBossDef def, Arena arena, boolean test, UUID tester, Mob boss, double max, BossBar bar) {
             this.key = key; this.def = def; this.arena = arena; this.test = test; this.tester = tester;
@@ -124,6 +121,7 @@ public final class WorldBossService implements Listener {
     private final NamespacedKey kindKey, fightKey, wandKey;
     private final File arenasFile;
     private volatile Map<String, WorldBossDef> defs = Map.of();
+    private volatile Map<String, ModelRig.Model> models = Map.of();
     private final Map<String, Arena> arenas = new ConcurrentHashMap<>();
     private final Map<String, Fight> fights = new ConcurrentHashMap<>();
     private final Map<UUID, Fight> byEntity = new ConcurrentHashMap<>();
@@ -144,6 +142,12 @@ public final class WorldBossService implements Listener {
 
     public void reload() {
         defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "worldbosses.yml")), plugin.getLogger());
+        try (var in = plugin.getResource("worldboss-models.json")) {
+            models = in == null ? Map.of() : ModelRig.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+        } catch (IOException | RuntimeException e) {
+            models = Map.of();
+            plugin.getLogger().warning("Could not read the world boss models, bosses use plain mobs: " + e);
+        }
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(arenasFile);
         arenas.clear();
         var section = yaml.getConfigurationSection("arenas");
@@ -179,6 +183,12 @@ public final class WorldBossService implements Listener {
     private int radius() { return Math.max(8, plugin.getConfig().getInt("world-bosses.default-radius", 40)); }
     public boolean enabled() { return plugin.getConfig().getBoolean("world-bosses.enabled", true); }
     public Map<String, WorldBossDef> defs() { return defs; }
+
+    /** The block model a boss is drawn with, or null (models off, "model: none", or no model by that name). */
+    ModelRig.Model modelFor(WorldBossDef def) {
+        if (!plugin.getConfig().getBoolean("world-bosses.models", true) || def.model().equals("none")) return null;
+        return models.get(def.model());
+    }
     public List<String> ids() { return new ArrayList<>(defs.keySet()); }
     public List<String> arenaIds() { return new ArrayList<>(arenas.keySet()); }
     public boolean alive() { return fights.values().stream().anyMatch(f -> !f.test); }
@@ -404,18 +414,21 @@ public final class WorldBossService implements Listener {
         Location base = world.getSpawnLocation();
         List<WorldBossDef> list = new ArrayList<>(defs.values());
         java.util.concurrent.atomic.AtomicInteger appeared = new java.util.concurrent.atomic.AtomicInteger(), attacks = new java.util.concurrent.atomic.AtomicInteger(),
-                done = new java.util.concurrent.atomic.AtomicInteger();
+                done = new java.util.concurrent.atomic.AtomicInteger(), drawn = new java.util.concurrent.atomic.AtomicInteger(),
+                blocks = new java.util.concurrent.atomic.AtomicInteger(), animations = new java.util.concurrent.atomic.AtomicInteger(),
+                deaths = new java.util.concurrent.atomic.AtomicInteger();
         List<String> broken = new CopyOnWriteArrayList<>();
         Runnable finish = () -> {
             if (done.incrementAndGet() < list.size()) return;
-            String report = "World boss self-test: " + appeared.get() + "/" + list.size() + " appeared, " + attacks.get() + " attacks ran"
+            String report = "World boss self-test: " + appeared.get() + "/" + list.size() + " appeared, " + attacks.get() + " attacks ran, "
+                    + drawn.get() + " drawn with " + blocks.get() + " blocks, " + animations.get() + " animations, " + deaths.get() + " deaths played"
                     + (broken.isEmpty() ? "" : ". Problems: " + String.join("; ", broken));
             if (broken.isEmpty()) plugin.getLogger().info(report); else plugin.getLogger().warning(report);
             if (to instanceof Player) plugin.send(to, "<gray>" + Text.escape(report));
         };
         for (int i = 0; i < list.size(); i++) {
             WorldBossDef def = list.get(i);
-            Location at = base.clone().add(30 + (i % 6) * 7, 0, 30 + (i / 6) * 7);
+            Location at = base.clone().add(30 + (i % 6) * 9, 0, 30 + (i / 6) * 9);
             Sched.at(at, () -> ritual(at, def, () -> {
                 at.setY(at.getWorld().getHighestBlockYAt(at) + 1);
                 Arena arena = new Arena("selftest-" + def.id(), 20);
@@ -425,14 +438,32 @@ public final class WorldBossService implements Listener {
                 catch (RuntimeException | LinkageError e) { broken.add(def.id() + ": " + e); finish.run(); return; }
                 if (f == null) { broken.add(def.id() + ": did not appear"); finish.run(); return; }
                 appeared.incrementAndGet();
-                Sched.entityLater(f.boss, 20, () -> {
+                BossModel model = f.model;
+                if (model != null) { model.force = true; drawn.incrementAndGet(); blocks.addAndGet(model.blocks()); }
+                else if (modelFor(def) != null) broken.add(def.id() + ": model missing");
+                int entrance = 0;
+                if (model != null) for (ModelRig.Step s : model.model.spawn) entrance = Math.max(entrance, s.end());
+                Sched.entityLater(f.boss, 20 + entrance, () -> {
                     for (String ability : WorldBossDef.ABILITIES) {
                         try { ability(f, ability, List.of()); attacks.incrementAndGet(); }
                         catch (RuntimeException | LinkageError e) { broken.add(def.id() + " " + ability + ": " + e); }
                     }
-                    try { aura(f, f.boss.getLocation()); spinHalo(f); deathAnimation(f.boss.getLocation(), def, f.boss.getHeight()); }
+                    try { aura(f, f.boss.getLocation()); if (model == null) deathAnimation(f.boss.getLocation(), def, f.boss.getHeight()); }
                     catch (RuntimeException | LinkageError e) { broken.add(def.id() + " effects: " + e); }
-                    Sched.entityLater(f.boss, 40, () -> { end(f, "stopped"); finish.run(); });
+                    if (model == null) { Sched.entityLater(f.boss, 40, () -> { end(f, "stopped"); finish.run(); }); return; }
+                    // Every attack animation in turn, then the death.
+                    List<String> anims = new ArrayList<>(model.model.attackAnimations());
+                    for (int k = 0; k < anims.size(); k++) {
+                        String name = anims.get(k);
+                        Sched.entityLater(f.boss, 1 + k * 24L, () -> model.attack(name));
+                    }
+                    Sched.entityLater(f.boss, 2 + anims.size() * 24L, () -> {
+                        animations.addAndGet(model.animationsPlayed);
+                        try {
+                            model.die(() -> { deaths.incrementAndGet(); finish.run(); });
+                        } catch (RuntimeException | LinkageError e) { broken.add(def.id() + " death: " + e); finish.run(); }
+                        end(f, "stopped");
+                    });
                 });
             }));
         }
@@ -479,8 +510,9 @@ public final class WorldBossService implements Listener {
 
     private Fight spawnFight(WorldBossDef def, Arena arena, String key, Location at, Player tester, boolean test) {
         Mob mob;
+        ModelRig.Model look = modelFor(def);
         try {
-            mob = (Mob) at.getWorld().spawn(at, def.entity().getEntityClass(), e -> dress((Mob) e, def, key));
+            mob = (Mob) at.getWorld().spawn(at, def.entity().getEntityClass(), e -> dress((Mob) e, def, key, look));
         } catch (RuntimeException e) {
             if (tester != null) plugin.send(tester, "<yellow>" + def.name() + " <yellow>could not appear here: " + Text.escape(String.valueOf(e.getMessage())));
             else plugin.getLogger().warning("World boss " + def.id() + " could not appear: " + e);
@@ -503,33 +535,39 @@ public final class WorldBossService implements Listener {
         byEntity.put(mob.getUniqueId(), fight);
         fight.chunkWorld = at.getWorld().getName(); fight.chunkX = at.getBlockX() >> 4; fight.chunkZ = at.getBlockZ() >> 4;
         at.getWorld().addPluginChunkTicket(fight.chunkX, fight.chunkZ, plugin);
-        if (def.mount() != null) try {
+        if (look != null) {
+            // Drawn with blocks: the mob waits, unhurt, until its entrance has played.
+            BossModel model = new BossModel(plugin, look, mob);
+            try {
+                model.build(kindKey, fightKey, key);
+                fight.model = model;
+                mob.setAI(false);
+                mob.setInvulnerable(true);
+                int entrance = 0;
+                for (ModelRig.Step s : look.spawn) entrance = Math.max(entrance, s.end());
+                fight.nextAbility = System.currentTimeMillis() + 6000 + entrance * 50L;
+                model.appear(() -> { if (mob.isValid() && !fight.over) { mob.setInvulnerable(false); mob.setAI(true); } });
+            } catch (RuntimeException | LinkageError e) {
+                model.remove();
+                fight.model = null;
+                mob.setInvisible(false);
+                plugin.getLogger().warning("World boss " + def.id() + " could not build its model, using the plain mob: " + e);
+            }
+        }
+        if (look == null && def.mount() != null) try {
             Entity mount = at.getWorld().spawn(at, def.mount().getEntityClass(), e -> part(e, key));
             mount.addPassenger(mob); fight.parts.add(mount); byEntity.put(mount.getUniqueId(), fight);
         } catch (RuntimeException ignored) { }
-        if (def.rider() != null) try {
+        if (look == null && def.rider() != null) try {
             Entity rider = at.getWorld().spawn(at, def.rider().getEntityClass(), e -> part(e, key));
             mob.addPassenger(rider); fight.parts.add(rider); byEntity.put(rider.getUniqueId(), fight);
         } catch (RuntimeException ignored) { }
-        Material haloItem = def.halo() == null ? null : Material.matchMaterial(def.halo());
-        if (haloItem != null && haloItem.isItem() && def.rider() == null) try {
-            ItemDisplay halo = at.getWorld().spawn(at, ItemDisplay.class, d -> {
-                part(d, key);
-                d.setItemStack(new ItemStack(haloItem));
-                d.setBillboard(Display.Billboard.FIXED);
-                d.setBrightness(new Display.Brightness(15, 15));
-                d.setGlowing(true);
-                d.setGlowColorOverride(color(def.color()));
-                d.setViewRange(1.5f);
-                float size = (float) (0.55 * Math.max(1, def.scale()));
-                d.setTransformation(new Transformation(new Vector3f(0, (float) (0.35 * def.scale()), 0), new Quaternionf(), new Vector3f(size, size, size), new Quaternionf()));
-            });
-            mob.addPassenger(halo); fight.parts.add(halo); byEntity.put(halo.getUniqueId(), fight);
-        } catch (RuntimeException ignored) { }
-        at.getWorld().strikeLightningEffect(at);
-        at.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, at.clone().add(0, 1, 0), 2);
-        at.getWorld().spawnParticle(Particle.END_ROD, at.clone().add(0, 1, 0), 80, 0.5, 2, 0.5, 0.15);
-        at.getWorld().playSound(at, Sound.ENTITY_WITHER_SPAWN, 1.2f, 0.9f);
+        if (fight.model == null) {
+            at.getWorld().strikeLightningEffect(at);
+            at.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, at.clone().add(0, 1, 0), 2);
+            at.getWorld().spawnParticle(Particle.END_ROD, at.clone().add(0, 1, 0), 80, 0.5, 2, 0.5, 0.15);
+            at.getWorld().playSound(at, Sound.ENTITY_WITHER_SPAWN, 1.2f, 0.9f);
+        }
         mob.getScheduler().runAtFixedRate(plugin, t -> { if (!tick(fight)) t.cancel(); }, () -> end(fight, "gone"), 2, 10);
         if (test) {
             if (tester != null) plugin.send(tester, "<gray>Test world boss: " + def.name() + " <gray>(" + def.id() + "). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.");
@@ -541,27 +579,32 @@ public final class WorldBossService implements Listener {
         return fight;
     }
 
-    private void dress(Mob m, WorldBossDef def, String key) {
+    private void dress(Mob m, WorldBossDef def, String key, ModelRig.Model look) {
         m.getPersistentDataContainer().set(kindKey, PersistentDataType.STRING, "boss");
         m.getPersistentDataContainer().set(fightKey, PersistentDataType.STRING, key);
         m.setPersistent(false); m.setRemoveWhenFarAway(false); m.setCanPickupItems(false);
-        m.customName(Text.mm(def.name())); m.setCustomNameVisible(true); m.setGlowing(def.glow());
+        m.customName(Text.mm(def.name())); m.setCustomNameVisible(true); m.setGlowing(def.glow() && look == null);
         if (m instanceof Ageable a) a.setAdult();
         if (m instanceof PiglinAbstract p) p.setImmuneToZombification(true);
         if (m instanceof Hoglin h) h.setImmuneToZombification(true);
         if (m instanceof Creeper c) { c.setPowered(true); c.setMaxFuseTicks(Integer.MAX_VALUE / 4); }
-        if (m instanceof Slime s) s.setSize(def.size());
+        double baseHeight = Math.max(0.2, m.getHeight());
+        if (m instanceof Slime s) s.setSize(look == null ? def.size() : Math.max(1, Math.min(16, (int) Math.round(look.blocks() / 0.52))));
         if (m instanceof Wolf w) w.setAngry(true);
         if (m instanceof Rabbit r) r.setRabbitType(Rabbit.Type.THE_KILLER_BUNNY);
         attr(m, "max_health", Math.min(1024, def.health()));
         m.setHealth(Math.max(1, Math.min(1024, def.health())));
-        if (!(m instanceof Slime)) attr(m, "scale", def.scale());
+        // A drawn boss gets a hitbox as tall as its model; the mob itself is invisible.
+        if (!(m instanceof Slime)) attr(m, "scale", look == null ? def.scale() : Math.max(0.3, Math.min(12, look.blocks() / baseHeight)));
+        if (look != null) { m.setInvisible(true); if (m instanceof Creeper c) c.setPowered(false); }
         if (def.damage() > 0) attr(m, "attack_damage", def.damage());
         if (def.speed() > 0) attr(m, "movement_speed", def.speed());
         if (def.armor() > 0) attr(m, "armor", def.armor());
         attr(m, "knockback_resistance", 0.8);
         attr(m, "follow_range", 48);
-        EntityEquipment eq = m.getEquipment();
+        EntityEquipment eq = look == null ? null : m.getEquipment();
+        if (eq != null) eq.clear();
+        eq = look == null ? m.getEquipment() : null;
         if (eq != null) for (var entry : def.equipment().entrySet()) {
             Material material = Material.matchMaterial(entry.getValue());
             if (material == null) continue;
@@ -669,7 +712,7 @@ public final class WorldBossService implements Listener {
             f.bar.name(Text.mm(f.def.name() + " <gray>❤ <white>" + String.format(Locale.ROOT, "%,d", shown) + "<gray>/" + String.format(Locale.ROOT, "%,d", Math.round(f.max * f.ratio))));
         }
         // Effects are only drawn when someone can see them.
-        if (!close.isEmpty()) { aura(f, loc); spinHalo(f); }
+        if (!close.isEmpty()) aura(f, loc);
         if (!inside.isEmpty()) {
             f.lastPlayer = now;
             Player target = inside.get(0);
@@ -736,17 +779,6 @@ public final class WorldBossService implements Listener {
         }
     }
 
-    /** The floating item above the boss turns a quarter each half second; the client smooths it. */
-    private void spinHalo(Fight f) {
-        for (Entity part : f.parts) if (part instanceof ItemDisplay halo && halo.isValid()) {
-            float angle = (float) (f.ticks * Math.PI / 4);
-            Transformation t = halo.getTransformation();
-            halo.setInterpolationDelay(0);
-            halo.setInterpolationDuration(10);
-            halo.setTransformation(new Transformation(t.getTranslation(), new Quaternionf().rotateY(angle), t.getScale(), t.getRightRotation()));
-        }
-    }
-
     private static void ring(Location center, double radius, Color color, int points) {
         Particle.DustOptions dust = new Particle.DustOptions(color, 1.6f);
         for (int i = 0; i < points; i++) {
@@ -792,7 +824,7 @@ public final class WorldBossService implements Listener {
         Location at = boss.getLocation();
         var world = at.getWorld();
         Player main = boss.getTarget() instanceof Player p && targets.contains(p) ? p : targets.isEmpty() ? null : targets.get(0);
-        boss.swingMainHand();
+        if (f.model != null) f.model.attack(f.model.model.attackFor(ability)); else boss.swingMainHand();
         Color warn = Color.fromRGB(0xff2020);
         switch (ability) {
             case "lightning" -> {
@@ -1012,6 +1044,11 @@ public final class WorldBossService implements Listener {
         byEntity.remove(f.boss.getUniqueId());
         for (UUID id : f.viewers) { Player p = Bukkit.getPlayer(id); if (p != null) p.hideBossBar(f.bar); }
         f.viewers.clear();
+        BossModel model = f.model;
+        if (model != null) {
+            if (reason.equals("shutdown")) model.remove();
+            else if (!model.dying()) model.vanish();
+        }
         List<Entity> leftovers = new ArrayList<>(f.parts);
         leftovers.addAll(f.minions);
         if (!reason.equals("defeated")) leftovers.add(f.boss);
@@ -1042,8 +1079,10 @@ public final class WorldBossService implements Listener {
     private void victory(Fight f) {
         List<Map.Entry<UUID, Double>> ranked = new ArrayList<>(f.damage.entrySet());
         ranked.sort(Map.Entry.<UUID, Double>comparingByValue().reversed());
+        Location fell = f.boss.getLocation();
+        if (f.model != null) f.model.die(() -> fanfare(fell));
         end(f, "defeated");
-        deathAnimation(f.boss.getLocation(), f.def, f.boss.getHeight());
+        if (f.model == null) deathAnimation(fell, f.def, f.boss.getHeight());
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
             if (tester != null) plugin.send(tester, "<green>Test boss beaten. <gray>Top damage: " + top(f, ranked));
@@ -1091,6 +1130,14 @@ public final class WorldBossService implements Listener {
             Player best = Bukkit.getPlayer(ranked.get(0).getKey());
             if (best != null) plugin.discord().bossDefeated(best, Text.plain(Text.mm(f.def.name())) + " (world boss)");
         }
+    }
+
+    /** The victory sound and a burst of light once a drawn boss has finished falling apart. */
+    private void fanfare(Location at) {
+        var world = at.getWorld();
+        if (world == null) return;
+        world.spawnParticle(Particle.TOTEM_OF_UNDYING, at.clone().add(0, 1, 0), 120, 1.5, 1.5, 1.5, 0.5);
+        world.playSound(at, Sound.UI_TOAST_CHALLENGE_COMPLETE, 2f, 1f);
     }
 
     /**
@@ -1273,6 +1320,7 @@ public final class WorldBossService implements Listener {
         Fight f = byEntity.get(event.getEntity().getUniqueId());
         if (f == null) return;
         f.damage.merge(player.getUniqueId(), event.getFinalDamage() * f.ratio, Double::sum);
+        if (f.model != null) f.model.hurt();
         f.names.put(player.getUniqueId(), player.getName());
     }
 

@@ -19,7 +19,7 @@ public record WorldBossDef(String id, String name, String title, EntityType enti
                            double damage, double speed, double armor, String bar, boolean glow, String particle,
                            String color, Map<String, String> equipment, EntityType mount, EntityType rider,
                            EntityType minion, int minions, List<String> abilities, int abilitySeconds,
-                           String season, Rewards rewards, int size, String halo) {
+                           String season, Rewards rewards, int size, String model) {
 
     public record Rewards(long money, long topMoney, List<String> items, List<String> topItems, List<String> commands, List<String> topCommands) {
         static final Rewards NONE = new Rewards(0, 0, List.of(), List.of(), List.of(), List.of());
@@ -94,6 +94,6 @@ public record WorldBossDef(String id, String name, String title, EntityType enti
                 s.getString("color", "#ff5500"), Map.copyOf(equipment), type(s.getString("mount"), false), type(s.getString("rider"), false),
                 minion, Math.max(0, Math.min(8, s.getInt("minions", 3))), List.copyOf(abilities),
                 Math.max(3, s.getInt("ability-seconds", 8)), s.getString("season", "").toLowerCase(Locale.ROOT), rewards,
-                Math.max(1, Math.min(16, s.getInt("size", 1))), s.getString("halo", null));
+                Math.max(1, Math.min(16, s.getInt("size", 1))), s.getString("model", id).toLowerCase(Locale.ROOT));
     }
 }

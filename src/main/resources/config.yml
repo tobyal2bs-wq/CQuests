@@ -274,6 +274,8 @@ progression:
 # World bosses only attack players, never break or burn blocks, drop nothing and have a boss bar.
 world-bosses:
   enabled: true
+  # Draw the bosses with block models (worldboss-models.json). false uses the plain mobs with their armour.
+  models: true
   schedule:
     enabled: true
     # Days and time the weekly boss wakes (MONDAY ... SUNDAY). Add more days for more fights a week.
