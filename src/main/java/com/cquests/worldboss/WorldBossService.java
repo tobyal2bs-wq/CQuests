@@ -108,6 +108,8 @@ public final class WorldBossService implements Listener {
         Particle particle = Particle.FLAME; Particle.DustOptions auraDust, ringDust;
         volatile boolean over;
         volatile String endReason;
+        /** Who landed the killing blow. */
+        volatile String killer;
         int chunkX, chunkZ, chunkR; String chunkWorld;
         /** The block model drawn over the invisible mob, or null for a plain mob boss. */
         volatile BossModel model;
@@ -192,6 +194,19 @@ public final class WorldBossService implements Listener {
         return models.get(def.model());
     }
     public List<String> ids() { return new ArrayList<>(defs.keySet()); }
+    public java.util.Collection<WorldBossDef> defs() { return defs.values(); }
+    public boolean scheduleOn() { return scheduleOn; }
+    /** True while a real (not test) fight with this boss is on. */
+    public boolean alive(String bossId) {
+        for (Fight f : fights.values()) if (!f.test && !f.over && f.def.id().equals(bossId)) return true;
+        return false;
+    }
+    /** Ends every real fight with this boss. */
+    public boolean stopBoss(String bossId) {
+        boolean any = false;
+        for (Fight f : new ArrayList<>(fights.values())) if (!f.test && f.def.id().equals(bossId)) { end(f, "stopped"); any = true; }
+        return any;
+    }
     public List<String> arenaIds() { return new ArrayList<>(arenas.keySet()); }
     public boolean alive() { return fights.values().stream().anyMatch(f -> !f.test); }
 
@@ -595,8 +610,12 @@ public final class WorldBossService implements Listener {
         if (test) {
             if (tester != null) plugin.send(tester, "<gray>Test world boss: " + def.name() + " <gray>(" + def.id() + "). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.");
         } else {
-            broadcast("<gold><bold>⚔ WORLD BOSS</bold></gold> " + def.name() + (def.title().isBlank() ? "" : " <gray>" + Text.escape(def.title())) + " <gold>has risen" + where(arena)
-                    + " <gray>Everyone who helps gets a reward.");
+            broadcast("<dark_gray><st>                                        </st>\n"
+                    + "<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  " + def.name() + "\n"
+                    + (def.title().isBlank() ? "" : "<gray><italic>" + Text.escape(def.title()) + "</italic>\n")
+                    + "<gold>has risen" + where(arena) + "\n"
+                    + "<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n"
+                    + "<dark_gray><st>                                        </st>");
             Sched.global(() -> { for (Player p : Bukkit.getOnlinePlayers()) Sched.entity(p, () -> p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.5f, 0.8f)); });
         }
         return fight;
@@ -1165,7 +1184,7 @@ public final class WorldBossService implements Listener {
                 plugin.send(p, "<gold>World boss reward: <white>#" + rank + "</white> in damage" + (paid > 0 ? ", <green>+" + String.format(Locale.ROOT, "%,d", paid) + "</green> money" : "") + (items.isEmpty() ? "" : ", plus items") + ".");
             });
         }
-        broadcast("<gold><bold>⚔ WORLD BOSS DEFEATED</bold></gold> " + f.def.name() + " <gray>has fallen! Top damage: " + top(f, ranked));
+        broadcast(defeatMessage(f, ranked));
         if (!ranked.isEmpty() && plugin.discord() != null) {
             Player best = Bukkit.getPlayer(ranked.get(0).getKey());
             if (best != null) plugin.discord().bossDefeated(best, Text.plain(Text.mm(f.def.name())) + " (world boss)");
@@ -1212,6 +1231,26 @@ public final class WorldBossService implements Listener {
                 for (double y = 0; y < 12; y += 0.75) world.spawnParticle(Particle.END_ROD, at.clone().add(0, y, 0), 1, 0.05, 0.1, 0.05, 0);
             } else t.cancel();
         }, 1, 4);
+    }
+
+    /** The defeat announcement: who landed the last blow and the top 3 with their damage and share. */
+    String defeatMessage(Fight f, List<Map.Entry<UUID, Double>> ranked) {
+        double total = 0;
+        for (var e : ranked) total += e.getValue();
+        StringBuilder out = new StringBuilder("<dark_gray><st>                                        </st>\n");
+        out.append("<gold><bold>⚔ WORLD BOSS DEFEATED ⚔</bold></gold>\n");
+        out.append(f.def.name()).append(" <gray>was slain")
+                .append(f.killer == null ? "" : " by <white>" + Text.escape(f.killer) + "</white>").append("<gray>!\n");
+        String[] medal = {"<#ffd700><bold>#1</bold>", "<#c0c0c0><bold>#2</bold>", "<#cd7f32><bold>#3</bold>"};
+        for (int i = 0; i < Math.min(3, ranked.size()); i++) {
+            double dmg = ranked.get(i).getValue();
+            out.append(medal[i]).append(" <white>").append(Text.escape(f.names.getOrDefault(ranked.get(i).getKey(), "?")))
+                    .append(" <gray>").append(String.format(Locale.ROOT, "%,d", Math.round(dmg))).append(" damage")
+                    .append(total > 0 ? " <dark_gray>(" + Math.round(dmg * 100 / total) + "%)" : "").append("\n");
+        }
+        if (ranked.isEmpty()) out.append("<gray>Nobody hurt it.\n");
+        out.append("<dark_gray><st>                                        </st>");
+        return out.toString();
     }
 
     private String top(Fight f, List<Map.Entry<UUID, Double>> ranked) {
@@ -1434,7 +1473,11 @@ public final class WorldBossService implements Listener {
         event.getDrops().clear();
         event.setDroppedExp(0);
         Fight f = byEntity.remove(event.getEntity().getUniqueId());
-        if (f != null && "boss".equals(k) && !f.over) victory(f);
+        if (f != null && "boss".equals(k) && !f.over) {
+            Player killer = event.getEntity().getKiller();
+            if (killer != null) f.killer = killer.getName();
+            victory(f);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
