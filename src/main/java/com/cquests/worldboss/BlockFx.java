@@ -155,7 +155,7 @@ public final class BlockFx {
                 Location to = from.clone().add(-sx * ease, -sy * ease, -sz * ease);
                 int s = step;
                 later(d, step * 4L, () -> {
-                    d.teleport(to);
+                    d.teleportAsync(to);
                     move(d, 4, new Vector3f(), d == rockD ? 1.7f : 1.0f, new Quaternionf().rotateXYZ(s * 0.7f, s * 0.4f, s * 0.2f));
                     if (d == rockD) {
                         w.spawnParticle(Particle.FLAME, to.clone().add(0, 0.8, 0), 8, 0.3, 0.3, 0.3, 0.02);
