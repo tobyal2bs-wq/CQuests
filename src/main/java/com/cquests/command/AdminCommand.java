@@ -42,7 +42,6 @@ public final class AdminCommand implements TabExecutor {
         this.test = new TestCommand(plugin);
     }
 
-    @Override
     /** Controlling bosses is for operators, and for anyone given bosses.use (the same rule as CBosses). */
     public static boolean canControlBosses(CommandSender sender) {
         return sender.isOp() || sender.hasPermission("bosses.use") || sender.hasPermission("cquests.admin");

@@ -1633,13 +1633,13 @@ public final class WorldBossService implements Listener {
                     player.spawnParticle(Particle.DUST, new Location(world, z[1] + Math.cos(ang) * z[3], y, z[2] + Math.sin(ang) * z[3]), 1, noPass);
                 } else {
                     double x1 = Math.min(z[1], z[3]), x2 = Math.max(z[1], z[3]) + 1, z1 = Math.min(z[2], z[4]), z2 = Math.max(z[2], z[4]) + 1;
-                    for (double t = 0; t <= 1.0001; t += 1.0 / Math.max(4, Math.min(60, (x2 - x1)))) {
+                    for (double u = 0; u <= 1.0001; u += 1.0 / Math.max(4, Math.min(60, (x2 - x1)))) {
                         player.spawnParticle(Particle.DUST, new Location(world, x1 + (x2 - x1) * t, y, z1), 1, noPass);
                         player.spawnParticle(Particle.DUST, new Location(world, x1 + (x2 - x1) * t, y, z2), 1, noPass);
                     }
-                    for (double t = 0; t <= 1.0001; t += 1.0 / Math.max(4, Math.min(60, (z2 - z1)))) {
-                        player.spawnParticle(Particle.DUST, new Location(world, x1, y, z1 + (z2 - z1) * t), 1, noPass);
-                        player.spawnParticle(Particle.DUST, new Location(world, x2, y, z1 + (z2 - z1) * t), 1, noPass);
+                    for (double u = 0; u <= 1.0001; u += 1.0 / Math.max(4, Math.min(60, (z2 - z1)))) {
+                        player.spawnParticle(Particle.DUST, new Location(world, x1, y, z1 + (z2 - z1) * u), 1, noPass);
+                        player.spawnParticle(Particle.DUST, new Location(world, x2, y, z1 + (z2 - z1) * u), 1, noPass);
                     }
                 }
             }
