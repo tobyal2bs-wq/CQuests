@@ -413,6 +413,17 @@ public final class QuestAdventures implements Listener {
         });
     }
     private final Map<UUID,Long> helpCooldown=new ConcurrentHashMap<>();
+    /** Splash and lingering potions from anyone else never touch a private boss or its minions (no allies). */
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void splash(org.bukkit.event.entity.PotionSplashEvent event){
+        UUID thrower=event.getPotion().getShooter() instanceof Entity e?e.getUniqueId():null;
+        for(var hit:List.copyOf(event.getAffectedEntities())){UUID own=owner(hit);if(own!=null&&!own.equals(thrower)&&!own.equals(hit.getUniqueId()))event.setIntensity(hit,0);}
+    }
+    @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
+    public void cloud(org.bukkit.event.entity.AreaEffectCloudApplyEvent event){
+        UUID thrower=event.getEntity().getSource() instanceof Entity e?e.getUniqueId():null;
+        event.getAffectedEntities().removeIf(hit->{UUID own=owner(hit);return own!=null&&!own.equals(thrower)&&!own.equals(hit.getUniqueId());});
+    }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void target(EntityTargetLivingEntityEvent event){UUID id=owner(event.getEntity());if(id!=null&&(event.getTarget()==null||!id.equals(event.getTarget().getUniqueId())))event.setCancelled(true);}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)

@@ -15,16 +15,20 @@ commands:
   cquests:
     description: CQuests admin commands.
     aliases: [cq]
-    permission: cquests.admin
     usage: /cq help
 
 permissions:
   quests.use:
     description: Use /quests (menu, journal, tracker). Give this to your default group.
     default: false
+  bosses.use:
+    description: Control world bosses (/cq worldboss, /cq test worldboss, the boss panel and border stick). Operators have it; give it to anyone else who should. Same permission as CBosses.
+    default: op
   cquests.admin:
     description: Manage CQuests NPCs, spawns and player data.
     default: op
+    children:
+      bosses.use: true
   cquests.bypass:
     description: Build and fight inside the protected area around villagers. Nobody has it unless you give it.
     default: false

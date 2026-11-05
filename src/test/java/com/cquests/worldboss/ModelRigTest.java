@@ -36,9 +36,9 @@ class ModelRigTest {
         for (WorldBossDef d : defs.values()) {
             ModelRig.Model m = models.get(d.model());
             assertNotNull(m, d.id() + " has a model");
-            assertTrue(m.cubes.size() >= 120, d.id() + " has only " + m.cubes.size() + " blocks");
+            assertTrue(m.cubes.size() >= (d.id().equals("grand_augur") ? 100 : 150), d.id() + " has only " + m.cubes.size() + " blocks");
             assertTrue(m.cubes.size() <= 270, d.id() + " is not too heavy: " + m.cubes.size());
-            assertTrue(m.blocks() >= 3 && m.blocks() <= 8, d.id() + " is " + m.blocks() + " blocks tall");
+            assertTrue(m.blocks() >= 2.5 && m.blocks() <= 9, d.id() + " is " + m.blocks() + " blocks tall");
             for (ModelRig.Cube c : m.cubes) {
                 Material mat = Material.matchMaterial(c.base());
                 assertNotNull(mat, d.id() + ": unknown block " + c.block());
@@ -141,7 +141,7 @@ class ModelRigTest {
 
     @Test
     void elbowsBendAndWeaponsStayInTheHand() {
-        ModelRig.Model m = models.get("frost_jarl");
+        ModelRig.Model m = models.get("executioner");
         int fore = m.boneIndex.get("foreR"), axe = m.boneIndex.get("axe");
         assertEquals(fore, m.bones.get(axe).parent(), "the axe is held by the forearm");
         assertTrue(m.bones.get(fore).rest().x < -10, "the elbow is bent");

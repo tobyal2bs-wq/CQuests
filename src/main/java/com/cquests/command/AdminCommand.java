@@ -43,7 +43,23 @@ public final class AdminCommand implements TabExecutor {
     }
 
     @Override
+    /** Controlling bosses is for operators, and for anyone given bosses.use (the same rule as CBosses). */
+    public static boolean canControlBosses(CommandSender sender) {
+        return sender.isOp() || sender.hasPermission("bosses.use") || sender.hasPermission("cquests.admin");
+    }
+
+    private static boolean bossCommand(String[] args) {
+        if (args.length == 0) return false;
+        String a = args[0].toLowerCase(Locale.ROOT);
+        return a.equals("worldboss") || a.equals("wb") || (a.equals("test") && args.length > 1 && args[1].toLowerCase(Locale.ROOT).startsWith("worldboss"));
+    }
+
+    @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (bossCommand(args) ? !canControlBosses(sender) : !sender.hasPermission("cquests.admin")) {
+            plugin.send(sender, T.t("admin-command.no-permission", "<red>You can't use that."));
+            return true;
+        }
         if (args.length == 0) {
             help(sender);
             return true;
@@ -87,6 +103,12 @@ public final class AdminCommand implements TabExecutor {
                 if (player == null) plugin.send(sender, T.t("admin-command.run-this-in-game", "<red>Run this in game.")); else com.cquests.worldboss.BossPanel.open(plugin, player);
             }
             case "arenas" -> wb.listArenas(sender);
+            case "spots" -> wb.spots(sender);
+            case "interval", "every" -> {
+                if (args.length < 4) { plugin.send(sender, T.t("admin-command.cq-worldboss-interval", "<yellow>/cq worldboss interval <arena> <2h|400h|90m|off>")); return; }
+                wb.setInterval(sender, arena, args[3]);
+            }
+            case "nopass", "block" -> wb.nopass(sender, player, arena, java.util.Arrays.copyOfRange(args, Math.min(args.length, 3), args.length));
             case "next", "info" -> wb.info(sender);
             case "selftest" -> { plugin.send(sender, T.t("admin-command.spawning-every-world-boss-near", "<gray>Spawning every world boss near the world spawn to check it works...")); wb.selfTest(sender); }
             case "stop" -> plugin.send(sender, (args.length > 2 ? wb.stop(arena) : stopAll(wb)) ? "<gray>World boss sent away." : "<gray>No world boss is alive there.");
@@ -124,6 +146,9 @@ public final class AdminCommand implements TabExecutor {
                     <yellow>/cq worldboss wand <arena></yellow> <gray>border stick: left-click blocks for corners, right-click undo, sneak+right-click show
                     <yellow>/cq worldboss border <arena> [show|clear]</yellow> <gray>see or remove the outline
                     <yellow>/cq worldboss radius <arena> <blocks></yellow> <gray>circle border when there is no outline
+                    <yellow>/cq worldboss interval <arena> <2h|400h|off></yellow> <gray>make it a spot: a boss wakes there that often, a different one each time
+                    <yellow>/cq worldboss spots</yellow> <gray>every timed spot and when its next boss wakes
+                    <yellow>/cq worldboss nopass <arena> here [radius]|corner|list|remove <n>|clear</yellow> <gray>areas the boss can never enter
                     <yellow>/cq worldboss menu</yellow> <gray>the operators' panel: spawn, try or send away any boss
                     <yellow>/cq worldboss list</yellow> <gray>every boss; <yellow>arenas</yellow> <gray>every arena; <yellow>next</yellow> <gray>next weekly boss
                     <yellow>/cq worldboss spawn <boss> [arena]</yellow> <gray>start one now (real fight, real rewards)
@@ -560,6 +585,12 @@ public final class AdminCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission("cquests.admin")) {
+            if (!canControlBosses(sender)) return List.of();
+            if (args.length == 1) return QuestsCommand.filter(List.of("worldboss", "test"), args[0]);
+            if (!bossCommand(args) && !(args.length == 2 && args[0].equalsIgnoreCase("test"))) return List.of();
+            if (args.length == 2 && args[0].equalsIgnoreCase("test")) return QuestsCommand.filter(List.of("worldboss"), args[1]);
+        }
         if (args.length == 1) {
             return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore", "worldboss", "season"), args[0]);
         }
@@ -570,7 +601,7 @@ public final class AdminCommand implements TabExecutor {
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
         }
         if (first.equals("worldboss") || first.equals("wb")) {
-            if (args.length == 2) return QuestsCommand.filter(List.of("menu", "setspawn", "wand", "border", "radius", "list", "arenas", "next", "spawn", "stop", "schedule", "selftest"), args[1]);
+            if (args.length == 2) return QuestsCommand.filter(List.of("menu", "setspawn", "wand", "border", "radius", "interval", "spots", "nopass", "list", "arenas", "next", "spawn", "stop", "schedule", "selftest"), args[1]);
             String action = args[1].toLowerCase(Locale.ROOT);
             if (args.length == 3) {
                 if (action.equals("spawn")) return QuestsCommand.filter(plugin.worldBosses().ids(), args[2]);
@@ -579,6 +610,8 @@ public final class AdminCommand implements TabExecutor {
                 if (!arenas.contains("main")) arenas.add("main");
                 return QuestsCommand.filter(arenas, args[2]);
             }
+            if (args.length == 4 && action.equals("interval")) return QuestsCommand.filter(List.of("2h", "6h", "24h", "400h", "off"), args[3]);
+            if (args.length == 4 && action.equals("nopass")) return QuestsCommand.filter(List.of("here", "corner", "list", "remove", "clear", "show"), args[3]);
             if (args.length == 4 && action.equals("border")) return QuestsCommand.filter(List.of("show", "clear"), args[3]);
             if (args.length == 4 && action.equals("spawn")) return QuestsCommand.filter(plugin.worldBosses().arenaIds(), args[3]);
             return List.of();

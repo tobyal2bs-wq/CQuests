@@ -42,7 +42,7 @@ public final class BossPanel implements LockedMenu {
     }
 
     public static void open(CQuestsPlugin plugin, Player player) {
-        if (!player.hasPermission("cquests.admin")) { plugin.send(player, T.t("boss-panel.only-operators-can-open-the", "<red>Only operators can open the boss controls.")); return; }
+        if (!com.cquests.command.AdminCommand.canControlBosses(player)) { plugin.send(player, T.t("boss-panel.only-operators-can-open-the", "<red>Only operators can open the boss controls.")); return; }
         Sched.entity(player, () -> {
             BossPanel panel = new BossPanel(plugin, player);
             panel.fill();

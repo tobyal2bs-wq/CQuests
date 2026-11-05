@@ -106,7 +106,7 @@ public final class QuestMenu implements LockedMenu {
         inventory.setItem(52, item(Material.WRITABLE_BOOK, "<white>NPC fallback view: " + data.menuMode(plugin.settings().defaultMenu),
                 List.of("<gray>Used when native NPC dialogue is unavailable.", "<yellow>Click to change.")));
         inventory.setItem(47, item(Material.EMERALD, "<white>Milestones", List.of("<gray>View your next achievement.", "<yellow>Click to open.")));
-        if (player.hasPermission("cquests.admin"))
+        if (com.cquests.command.AdminCommand.canControlBosses(player))
             inventory.setItem(53, item(Material.COMMAND_BLOCK, "<gold>World boss controls <dark_gray>(operators)",
                     List.of("<gray>Spawn, try or send away any boss,", "<gray>the weekly schedule and the self-test.", "<yellow>Click to open.")));
     }
@@ -282,7 +282,7 @@ public final class QuestMenu implements LockedMenu {
             }
             case SLOT_CLOSE -> player.closeInventory();
             case 53 -> {
-                if (player.hasPermission("cquests.admin")) { player.closeInventory(); com.cquests.worldboss.BossPanel.open(plugin, player); }
+                if (com.cquests.command.AdminCommand.canControlBosses(player)) { player.closeInventory(); com.cquests.worldboss.BossPanel.open(plugin, player); }
             }
             case SLOT_TRACKER -> {
                 plugin.tracker().toggle(player);
