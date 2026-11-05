@@ -101,6 +101,7 @@ public final class BossModel {
         at.setYaw(0); at.setPitch(0);
         // view range 1 is about 64 blocks; a boss is seen a little further than a normal mob, no more
         float range = Math.max(0.75f, Math.min(1.5f, model.blocks() / 5f));
+        float cull = model.blocks() + 2f;
         Transformation hidden = new Transformation(new Vector3f(), new Quaternionf(), new Vector3f(), new Quaternionf());
         for (int i = 0; i < model.cubes.size(); i++) {
             ModelRig.Cube c = model.cubes.get(i);
@@ -119,6 +120,10 @@ public final class BossModel {
                 e.setBlock(d0);
                 e.setTransformation(hidden);
                 e.setViewRange(range);
+                // the client hides a display whose box is off screen; a box as big as the boss keeps the head
+                // and every far piece drawn when you look up at it, not only while its feet are in view
+                e.setDisplayWidth(cull * 2f);
+                e.setDisplayHeight(cull + 1f);
                 e.setShadowRadius(0);
                 if (c.light()) e.setBrightness(new Display.Brightness(15, 15));
             });

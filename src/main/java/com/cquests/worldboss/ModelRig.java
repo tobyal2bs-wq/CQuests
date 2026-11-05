@@ -216,6 +216,12 @@ public final class ModelRig {
             Map<String, String> attacks = new LinkedHashMap<>();
             if (m.has("attacks")) for (var a : m.getAsJsonObject("attacks").entrySet()) attacks.put(a.getKey(), a.getValue().getAsString());
             String melee = m.has("melee") && !m.get("melee").isJsonNull() ? m.get("melee").getAsString() : null;
+            // A model can bring its own animations: its attacks and moves are its own, the rig's fill the rest.
+            if (m.has("anims")) {
+                Map<String, Anim> own = new HashMap<>(anims);
+                for (var a : m.getAsJsonObject("anims").entrySet()) own.put(a.getKey(), anim(a.getKey(), a.getValue().getAsJsonObject()));
+                anims = Collections.unmodifiableMap(own);
+            }
             Model model = new Model(e.getKey(), rig, m.get("scale").getAsFloat(), m.get("height").getAsFloat(), List.copyOf(bones),
                     List.copyOf(cubes), Collections.unmodifiableMap(attacks), melee, steps(m.getAsJsonArray("spawn")), steps(m.getAsJsonArray("death")), anims);
             if (m.has("hitbox")) model.hitbox = Math.max(0.2f, Math.min(1f, m.get("hitbox").getAsFloat()));
