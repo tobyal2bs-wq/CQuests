@@ -5,7 +5,7 @@ A villager quest plugin for Paper and Folia. Players follow a linked story told 
 * **Story**: 101 story quests over chapters 1 to 5, plus chapters 6 to 10 (100 more villagers) that you switch on with `/cq chapter 6 on`. Each chapter costs money to start, and finishing chapter 5 gives an elytra.
 * **Bosses**: private fights at the end of chapters 5 to 10 and mini bosses halfway through 6 to 10. Only the player sees them, they only hurt that player and they never break blocks. Pip can fight next to you with a bow or a sword in 3 boss fights.
 * **Side, daily and co-op quests**: over a million generated side quests, a daily quest that differs for every player and pays a little or a lot, daily streaks, and co-op dailies for 2 to 4 friends working at the same time.
-* **Weekly world bosses**: 20 unique public bosses (plus 8 funny seasonal ones, two per season) with boss bars, special attacks and rewards for everyone who helps. You set the spawn and draw a border they can never cross with a stick. They only attack players and never break blocks.
+* **World bosses and boss spots**: 25 public bosses, 4 legends (the Warden, Wither, Ender Dragon and Breeze bosses) and 12 seasonal ones (three per season), each a hand-built block model of 150+ blocks with its own entrance, attacks and death. One wakes every week, and any arena can be a spot that wakes a different boss on its own timer (every 2h, every 400h, anything). You draw a border they can never cross and no-pass areas they can never enter. They attack any player, never break blocks, and their shockwaves and falling meteors are block effects that leave no trace.
 * **Seasons, tutorial and invites**: Halloween, Winterfest, Spring and Summer events you switch on with a command, a first quest that pays out within minutes, and rewards for inviting friends.
 * **Finding your way**: every player's compass points to their next villager, with an arrow and distance above the hotbar and `/quests where`.
 * **Villagers know your server**: tips for how an item is crafted, smelted or mined come from the server's own recipes, so new blocks and items on newer Minecraft versions just work.
@@ -200,6 +200,16 @@ One world boss wakes every week (`world-bosses.schedule`, Saturday 20:00 by defa
 1. Stand where it should appear and run `/cq worldboss setspawn main`.
 2. Run `/cq worldboss wand main` and left-click blocks around the arena to draw its border, corner by corner. Right-click removes the last corner, sneak + right-click shows the border. Without a border the boss stays inside a circle (`/cq worldboss radius main 40`).
 3. `/cq worldboss next` shows which boss comes next and when. `/cq worldboss spawn <boss>` starts one now, `/cq worldboss stop` sends it away.
+
+#### Boss spots
+
+Any arena can wake bosses on its own timer, separate from the weekly boss:
+
+- `/cq worldboss interval <arena> 2h` (or `400h`, `90m`, `1d12h`, `off`). Each time a different boss wakes, and each fight picks its own patrol pattern (orbit, figure eight, zigzag, wander or star), turning direction, size and speed, so no two fights move alike.
+- `/cq worldboss nopass <arena> here [radius]` adds a circle the boss can never enter; `corner` (run it at two opposite corners) adds a box. `list`, `remove <n>`, `clear` and `show` manage them. Minions are kept out too.
+- `/cq worldboss spots` lists every spot, its next boss time and its no-pass areas. Options are under `world-bosses.spots` in `config.yml`.
+
+Controlling bosses (every `/cq worldboss` and `/cq test worldboss` command, the boss panel and the border stick) is for operators and anyone with the `bosses.use` permission, the same permission CBosses uses.
 
 A world boss only attacks players, is pulled back the moment it reaches its border, never breaks, burns or changes blocks, drops nothing and is never saved into the world. Players have to stand inside the border to hurt it. Everyone who did at least 2% of its health is paid; the top 3 get more. Bosses, their looks, attacks and rewards are in `worldbosses.yml`. Try any of them with `/cq test worldboss <id>` or go through all of them with `/cq test worldbossnext`. Players see the next one with `/quests worldboss`.
 

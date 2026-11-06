@@ -1,5 +1,7 @@
 package com.cquests.command;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.ActiveQuest;
 import com.cquests.data.PlayerData;
@@ -35,7 +37,7 @@ public final class QuestsCommand implements TabExecutor {
         String sub = args.length == 0 ? "journal" : args[0].toLowerCase(Locale.ROOT);
         // NPC response buttons remain usable without journal permission, as direct NPC clicks were.
         if (!List.of("accept", "respond", "mode").contains(sub) && !player.hasPermission("quests.use")) {
-            plugin.send(player, "<red>You need quests.use to open the journal or change tracking.");
+            plugin.send(player, T.t("quests-command.you-need-quests-use-to", "<red>You need quests.use to open the journal or change tracking."));
             return true;
         }
         switch (sub) {
@@ -43,30 +45,30 @@ public final class QuestsCommand implements TabExecutor {
             case "mail" -> plugin.mail().command(player,args);
             case "discoveries" -> plugin.mail().discoveries(player);
             case "encounter" -> {
-                if(!plugin.adventures().summon(player))plugin.send(player,"<yellow>You need an open boss quest, Survival or Adventure mode, clear ground and to stand near the quest giver. Only one boss can be active for you.");
+                if(!plugin.adventures().summon(player))plugin.send(player,T.t("quests-command.you-need-an-open-boss", "<yellow>You need an open boss quest, Survival or Adventure mode, clear ground and to stand near the quest giver. Only one boss can be active for you."));
             }
             case "respond" -> {
                 if (args.length != 2 || !plugin.dialogue().respond(player, args[1]))
-                    plugin.send(player, "<gray>This conversation has expired. Speak to the villager again.");
+                    plugin.send(player, T.t("quests-command.this-conversation-has-expired-speak", "<gray>This conversation has expired. Speak to the villager again."));
             }
             case "mode" -> {
                 if (args.length != 2 || !List.of("book", "menu", "chat").contains(args[1].toLowerCase(Locale.ROOT))) {
-                    plugin.send(player, "<white>/quests mode book | menu | chat");
+                    plugin.send(player, T.t("quests-command.quests-mode-book-menu-chat", "<white>/quests mode book | menu | chat"));
                 } else {
                     PlayerData data = plugin.questManager().data(player);
                     data.setMenuMode(args[1].toLowerCase(Locale.ROOT));
                     plugin.store().saveNow(data);
                     plugin.dialogue().forget(player);
-                    plugin.send(player, "<white>Fallback NPC conversations: <aqua>" + data.menuMode("book"));
+                    plugin.send(player, T.t("quests-command.fallback-npc-conversations", "<white>Fallback NPC conversations: <aqua><book>", "book", data.menuMode("book")));
                 }
             }
             case "where", "next" -> plugin.directions().explain(player, true);
             case "worldboss", "boss" -> plugin.worldBosses().info(player);
             case "invitedby" -> plugin.invites().claim(player, args.length > 1 ? args[1] : "");
             case "invite", "invites" -> plugin.invites().show(player);
-            case "directions" -> plugin.send(player, "<white>Villager directions: <aqua>" + (plugin.directions().toggle(player) ? "on" : "off"));
+            case "directions" -> plugin.send(player, T.t("quests-command.villager-directions", "<white>Villager directions: <aqua><off>", "off", (plugin.directions().toggle(player) ? "on" : "off")));
             case "achievements" -> plugin.finale().achievements().show(player);
-            case "farm" -> plugin.send(player,"<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe.");
+            case "farm" -> plugin.send(player,T.t("quests-command.right-click-the-fieldsmith-anvil", "<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe."));
             case "settings" -> com.cquests.gui.QuestJournal.command(plugin,player,new String[]{"journal","settings"});
             case "menu" -> QuestMenu.open(plugin, player);
             case "chat" -> list(player);
@@ -100,9 +102,9 @@ public final class QuestsCommand implements TabExecutor {
         QuestManager qm = plugin.questManager();
         PlayerData data = qm.data(player);
         List<Quest> active = qm.activeQuests(data);
-        plugin.send(player, "<gold><bold>Your quests</bold></gold> <gray>(" + data.completedCount() + " done)");
+        plugin.send(player, T.t("quests-command.your-quests-done", "<gold><bold>Your quests</bold></gold> <gray>(<completedcount> done)", "completedcount", data.completedCount()));
         if (active.isEmpty()) {
-            plugin.send(player, "<gray>No active quests. Talk to a villager at spawn.");
+            plugin.send(player, T.t("quests-command.no-active-quests-talk-to", "<gray>No active quests. Talk to a villager at spawn."));
         }
         for (Quest quest : active) {
             ActiveQuest progress = data.active(quest.id());
@@ -120,16 +122,16 @@ public final class QuestsCommand implements TabExecutor {
 
     private void abandon(Player player, String[] args) {
         if (args.length < 2) {
-            plugin.send(player, "<red>Usage: /quests abandon <quest id>");
+            plugin.send(player, T.t("quests-command.usage-quests-abandon", "<red>Usage: /quests abandon <quest id>"));
             return;
         }
         Quest quest = plugin.quests().get(args[1]);
         if (quest == null || !plugin.questManager().data(player).isActive(quest.id())) {
-            plugin.send(player, "<red>You don't have that quest.");
+            plugin.send(player, T.t("quests-command.you-don-t-have-that", "<red>You don't have that quest."));
             return;
         }
         if (!plugin.questManager().abandon(player, quest)) {
-            plugin.send(player, "<red>Story quests can't be abandoned.");
+            plugin.send(player, T.t("quests-command.story-quests-can-t-be", "<red>Story quests can't be abandoned."));
             return;
         }
         plugin.send(player, plugin.settings().msg("abandoned", "<gray>Abandoned <white><quest></white>.").replace("<quest>", Text.escape(quest.name())));

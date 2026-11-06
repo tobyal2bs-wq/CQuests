@@ -1,5 +1,7 @@
 package com.cquests.invite;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.util.Sched;
 import com.cquests.util.Text;
@@ -78,28 +80,27 @@ public final class InviteService {
 
     /** /quests invitedby <name>, run by the new player. */
     public void claim(Player player, String name) {
-        if (!enabled()) { plugin.send(player, "<gray>Invites are switched off on this server."); return; }
-        if (name == null || name.isBlank()) { plugin.send(player, "<yellow>/quests invitedby <name></yellow> <gray>Tell us who brought you here and you both get a reward."); return; }
+        if (!enabled()) { plugin.send(player, T.t("invite-service.invites-are-switched-off-on", "<gray>Invites are switched off on this server.")); return; }
+        if (name == null || name.isBlank()) { plugin.send(player, T.t("invite-service.quests-invitedby-tell-us-who", "<yellow>/quests invitedby <name></yellow> <gray>Tell us who brought you here and you both get a reward.")); return; }
         long hours = Math.max(1, plugin.getConfig().getLong("invites.window-hours", 48));
         long first = player.getFirstPlayed();
-        if (first > 0 && System.currentTimeMillis() - first > hours * 3_600_000L) { plugin.send(player, "<gray>Invites can only be claimed in your first " + hours + " hours on the server."); return; }
+        if (first > 0 && System.currentTimeMillis() - first > hours * 3_600_000L) { plugin.send(player, T.t("invite-service.invites-can-only-be-claimed", "<gray>Invites can only be claimed in your first <hours> hours on the server.", "hours", hours)); return; }
         OfflinePlayer friend = Bukkit.getOfflinePlayerIfCached(name);
-        if (friend == null || (!friend.hasPlayedBefore() && !friend.isOnline())) { plugin.send(player, "<red>Nobody called " + Text.escape(name) + " has played here."); return; }
-        if (friend.getUniqueId().equals(player.getUniqueId())) { plugin.send(player, "<red>You can't invite yourself."); return; }
+        if (friend == null || (!friend.hasPlayedBefore() && !friend.isOnline())) { plugin.send(player, T.t("invite-service.nobody-called-has-played-here", "<red>Nobody called <name> has played here.", "name", Text.escape(name))); return; }
+        if (friend.getUniqueId().equals(player.getUniqueId())) { plugin.send(player, T.t("invite-service.you-can-t-invite-yourself", "<red>You can't invite yourself.")); return; }
         Player online = friend.getPlayer();
         if (online != null && !ip(online).isEmpty() && ip(online).equals(ip(player)) && !plugin.getConfig().getBoolean("invites.allow-same-ip", false)) {
-            plugin.send(player, "<red>You and " + Text.escape(name) + " are on the same connection, so this invite doesn't count."); return;
+            plugin.send(player, T.t("invite-service.you-and-are-on-the", "<red>You and <name> are on the same connection, so this invite doesn't count.", "name", Text.escape(name))); return;
         }
         synchronized (this) {
-            if (invited.containsKey(player.getUniqueId())) { plugin.send(player, "<gray>You already said " + Text.escape(invited.get(player.getUniqueId()).name()) + " invited you."); return; }
+            if (invited.containsKey(player.getUniqueId())) { plugin.send(player, T.t("invite-service.you-already-said-invited-you", "<gray>You already said <name> invited you.", "name", Text.escape(invited.get(player.getUniqueId()).name()))); return; }
             invited.put(player.getUniqueId(), new Invite(friend.getUniqueId(), friend.getName() == null ? name : friend.getName(), System.currentTimeMillis(), false));
         }
         save();
         pay(player, player.getName(), "invites.new-player");
         String tutorial = plugin.getConfig().getString("quests.tutorial-quest", "tutorial");
-        plugin.send(player, "<gold>Welcome! <white>" + Text.escape(name) + "</white> <gray>will get their reward when you finish "
-                + (tutorial == null || tutorial.isBlank() || plugin.quests().get(tutorial) == null ? "your first quest." : "the tutorial."));
-        if (online != null) Sched.entity(online, () -> plugin.send(online, "<gold>" + Text.escape(player.getName()) + " <gray>says you invited them! You get your reward when they finish the tutorial."));
+        plugin.send(player, T.t("invite-service.welcome-will-get-their-reward", "<gold>Welcome! <white><name></white> <gray>will get their reward when you finish <tutorial>", "name", Text.escape(name), "tutorial", (tutorial == null || tutorial.isBlank() || plugin.quests().get(tutorial) == null ? "your first quest." : "the tutorial.")));
+        if (online != null) Sched.entity(online, () -> plugin.send(online, T.t("invite-service.says-you-invited-them-you", "<gold><player> <gray>says you invited them! You get your reward when they finish the tutorial.", "player", Text.escape(player.getName()))));
         if (alreadyDone(player)) onTutorialDone(player);
     }
 
@@ -122,13 +123,13 @@ public final class InviteService {
         save();
         pay(Bukkit.getPlayer(invite.by()), invite.name(), "invites.inviter");
         Player friend = Bukkit.getPlayer(invite.by());
-        if (friend != null) Sched.entity(friend, () -> plugin.send(friend, "<gold>★ " + Text.escape(player.getName()) + " <gray>finished the tutorial. Thanks for inviting them! <white>Friends invited: " + total));
+        if (friend != null) Sched.entity(friend, () -> plugin.send(friend, T.t("invite-service.finished-the-tutorial-thanks-for", "<gold>★ <player> <gray>finished the tutorial. Thanks for inviting them! <white>Friends invited: <total>", "player", Text.escape(player.getName()), "total", total)));
         for (String raw : plugin.getConfig().getStringList("invites.milestones." + total)) {
             String command = raw.replace("%player%", invite.name()).replace("<player>", invite.name());
             Sched.global(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.startsWith("/") ? command.substring(1) : command));
         }
         if (!plugin.getConfig().getStringList("invites.milestones." + total).isEmpty())
-            Sched.global(() -> Bukkit.broadcast(Text.mm("<gold>★ " + Text.escape(invite.name()) + " <gray>has invited <white>" + total + "</white> friends to the server!")));
+            Sched.global(() -> Bukkit.broadcast(Text.mm(T.t("invite-service.has-invited-friends-to-the", "<gold>★ <name> <gray>has invited <white><total></white> friends to the server!", "name", Text.escape(invite.name()), "total", total))));
     }
 
     /** Money by name (works offline with most economy plugins); items only when the player is online. */
@@ -153,15 +154,14 @@ public final class InviteService {
                 try { if (parts.length > 1) amount = Math.max(1, Math.min(64, Integer.parseInt(parts[1]))); } catch (NumberFormatException ignored) { }
                 if (m != null && m.isItem()) online.getInventory().addItem(new ItemStack(m, amount)).values().forEach(left -> online.getWorld().dropItemNaturally(online.getLocation(), left));
             }
-            if (money > 0) plugin.send(online, "<green>+" + String.format(Locale.ROOT, "%,d", money) + "</green> <gray>invite reward.");
+            if (money > 0) plugin.send(online, T.t("invite-service.invite-reward", "<green>+<amount></green> <gray>invite reward.", "amount", String.format(Locale.ROOT, "%,d", money)));
         });
     }
 
     public void show(Player player) {
         String by = invitedBy(player.getUniqueId());
-        plugin.send(player, "<gold>Invites</gold> <gray>Friends you invited who finished the tutorial: <white>" + count(player.getUniqueId())
-                + (by == null ? "" : "</white> <gray>Invited by: <white>" + Text.escape(by)));
-        plugin.send(player, "<gray>New players type <yellow>/quests invitedby " + Text.escape(player.getName()) + "</yellow> and you both get rewards.");
+        plugin.send(player, T.t("invite-service.invites-friends-you-invited-who", "<gold>Invites</gold> <gray>Friends you invited who finished the tutorial: <white><getuniqueid><by>", "getuniqueid", count(player.getUniqueId()), "by", (by == null ? "" : "</white> <gray>Invited by: <white>" + Text.escape(by))));
+        plugin.send(player, T.t("invite-service.new-players-type-quests-invitedby", "<gray>New players type <yellow>/quests invitedby <player></yellow> and you both get rewards.", "player", Text.escape(player.getName())));
     }
 
     private java.util.Set<String> milestones() {
@@ -174,9 +174,8 @@ public final class InviteService {
 
     /** /cq test invite: shows both sides' messages and rewards without saving anything. */
     public void test(Player player) {
-        plugin.send(player, "<gray>New player sees: <gold>Welcome! <white>" + Text.escape(player.getName()) + "</white> <gray>will get their reward when they finish the tutorial.");
-        plugin.send(player, "<gray>New player gets: <white>" + plugin.getConfig().getLong("invites.new-player.money") + " money " + plugin.getConfig().getStringList("invites.new-player.items"));
-        plugin.send(player, "<gray>Inviter gets: <white>" + plugin.getConfig().getLong("invites.inviter.money") + " money " + plugin.getConfig().getStringList("invites.inviter.items")
-                + " <gray>after the tutorial. Milestones: <white>" + String.join(", ", milestones()));
+        plugin.send(player, T.t("invite-service.new-player-sees-welcome-will", "<gray>New player sees: <gold>Welcome! <white><player></white> <gray>will get their reward when they finish the tutorial.", "player", Text.escape(player.getName())));
+        plugin.send(player, T.t("invite-service.new-player-gets-money", "<gray>New player gets: <white><money> money <items>", "money", plugin.getConfig().getLong("invites.new-player.money"), "items", plugin.getConfig().getStringList("invites.new-player.items")));
+        plugin.send(player, T.t("invite-service.inviter-gets-money-after-the", "<gray>Inviter gets: <white><money> money <items> <gray>after the tutorial. Milestones: <white><milestones>", "money", plugin.getConfig().getLong("invites.inviter.money"), "items", plugin.getConfig().getStringList("invites.inviter.items"), "milestones", String.join(", ", milestones())));
     }
 }

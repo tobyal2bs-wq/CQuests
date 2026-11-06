@@ -1,5 +1,7 @@
 package com.cquests.finale;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.PlayerData;
 import com.cquests.model.Quest;
@@ -174,7 +176,7 @@ public final class Achievements {
         Advancement advancement = Bukkit.getAdvancement(key);
         if (advancement == null) {
             if (announceFallback) {
-                plugin.send(player, "<gold>★ Achievement unlocked: <yellow>[" + Text.escape(key.getKey().replace('_', ' ')) + "]");
+                plugin.send(player, T.t("achievements.achievement-unlocked", "<gold>★ Achievement unlocked: <yellow>[<place>]", "place", Text.escape(key.getKey().replace('_', ' '))));
             }
             return;
         }
@@ -222,9 +224,9 @@ public final class Achievements {
 
     public void show(Player player) {
         PlayerData data = plugin.questManager().data(player);
-        plugin.send(player, "<gold><bold>Your milestones</bold> <white>• Optional goals, earned at your pace");
+        plugin.send(player, T.t("achievements.your-milestones-optional-goals-earned", "<gold><bold>Your milestones</bold> <white>• Optional goals, earned at your pace"));
         int level=plugin.progression().level(data);
-        plugin.send(player,"<aqua>Wayfarer level "+level+" <gray>• "+Text.formatMoney(plugin.progression().curve().remaining(data.skillXp()))+" XP to the next level");
+        plugin.send(player,T.t("achievements.wayfarer-level-xp-to-the", "<aqua>Wayfarer level <level> <gray>• <skillxp> XP to the next level", "level", level, "skillxp", Text.formatMoney(plugin.progression().curve().remaining(data.skillXp()))));
         for (Milestones.Goal goal : Milestones.ALL) {
             long value = Math.min(goal.target(), goal.value(data));
             plugin.send(player, (value == goal.target() ? "<green>✔ " : "<white>○ ") + Text.escape(goal.title())

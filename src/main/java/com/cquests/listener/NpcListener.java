@@ -1,5 +1,7 @@
 package com.cquests.listener;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.model.NpcDef;
 import com.cquests.npc.NpcTag;
@@ -69,7 +71,7 @@ public final class NpcListener implements Listener {
             boolean merchant=plugin.quests().storyFrom(npc.id()).isEmpty();
             boolean sneak=com.cquests.merchant.MerchantService.editGesture(player);
             if(role!=null&&(merchant?!sneak:sneak)){
-                plugin.send(player,"<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe. Enter the fields to collect your stored tool.");
+                plugin.send(player,T.t("npc-listener.right-click-the-fieldsmith-anvil", "<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe. Enter the fields to collect your stored tool."));
                 return;
             }
             plugin.dialogue().onClick(event.getPlayer(), npc, clicked);

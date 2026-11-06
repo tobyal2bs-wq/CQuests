@@ -1,5 +1,7 @@
 package com.cquests.worldboss;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.util.Sched;
 import com.cquests.util.Text;
@@ -113,6 +115,11 @@ public final class WorldBossService implements Listener {
         int chunkX, chunkZ, chunkR; String chunkWorld;
         /** The block model drawn over the invisible mob, or null for a plain mob boss. */
         volatile BossModel model;
+        /** How it moves this time: the pattern (orbit, figure eight, zigzag, wander, star), its turning
+         *  direction, size, speed and starting angle are picked fresh for every fight. */
+        int pattern, turn = 1; double patternSize = 0.6, patternSpeed = 1, phase; long wanderSeed;
+        /** The last place it stood that was not in a no-pass area. */
+        Location lastSafe;
 
         Fight(String key, WorldBossDef def, Arena arena, boolean test, UUID tester, Mob boss, double max, BossBar bar) {
             this.key = key; this.def = def; this.arena = arena; this.test = test; this.tester = tester;
@@ -139,10 +146,14 @@ public final class WorldBossService implements Listener {
         fightKey = new NamespacedKey(plugin, "worldboss_fight");
         wandKey = new NamespacedKey(plugin, "worldboss_wand");
         arenasFile = new File(plugin.getDataFolder(), "worldboss-arenas.yml");
+        Privacy.init(plugin);
         reload();
     }
 
     // ------------------------------------------------------------------ setup
+
+    /** World bosses an update replaced; their models no longer exist. */
+    static final Set<String> RETIRED = Set.of("molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign");
 
     /** Bosses added in a new version are copied into an older worldbosses.yml; existing ones are left alone. */
     private void addNewBosses(File file, YamlConfiguration yaml) {
@@ -152,6 +163,8 @@ public final class WorldBossService implements Listener {
             var from = bundled.getConfigurationSection("bosses");
             if (from == null) return;
             java.util.List<String> added = new ArrayList<>();
+            // Bosses that were replaced by new ones (their models are gone) leave the file.
+            for (String id : RETIRED) if (yaml.contains("bosses." + id)) { yaml.set("bosses." + id, null); added.add("-" + id); }
             for (String id : from.getKeys(false)) {
                 if (yaml.contains("bosses." + id)) continue;
                 var sec = from.getConfigurationSection(id);
@@ -161,7 +174,7 @@ public final class WorldBossService implements Listener {
             }
             if (added.isEmpty()) return;
             yaml.save(file);
-            plugin.getLogger().info("Added new world bosses to worldbosses.yml: " + String.join(", ", added));
+            plugin.getLogger().info("Updated the world bosses in worldbosses.yml (- means retired): " + String.join(", ", added));
         } catch (Exception e) {
             plugin.getLogger().warning("Could not add new world bosses to worldbosses.yml: " + e.getMessage());
         }
@@ -172,12 +185,47 @@ public final class WorldBossService implements Listener {
         YamlConfiguration bossYaml = YamlConfiguration.loadConfiguration(bossFile);
         addNewBosses(bossFile, bossYaml);
         defs = WorldBossDef.load(bossYaml, plugin.getLogger());
+        var cfg = plugin.getConfig();
+        ModelRig.detail = switch (cfg.getString("world-bosses.model-detail", "high").toLowerCase(java.util.Locale.ROOT)) {
+            case "low" -> 0;
+            case "medium" -> 1;
+            default -> 2;
+        };
+        BossModel.period = Math.max(1, Math.min(10, cfg.getInt("world-bosses.model-update-ticks", 3)));
+        BossModel.maxShards = Math.max(0, cfg.getInt("world-bosses.max-shards-per-death", 48));
+        BossModel.viewDistance = Math.max(32, cfg.getInt("world-bosses.model-view-distance", 96));
+        BossModel.particles = Math.max(0, Math.min(2, cfg.getDouble("world-bosses.particle-multiplier", 1.0)));
+        BlockFx.max = Math.max(0, Math.min(64, cfg.getInt("world-bosses.max-block-effects", 48)));
+        Map<String, ModelRig.Model> loaded = new java.util.HashMap<>();
         try (var in = plugin.getResource("worldboss-models.json")) {
-            models = in == null ? Map.of() : ModelRig.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+            if (in != null) loaded.putAll(ModelRig.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)));
         } catch (IOException | RuntimeException e) {
-            models = Map.of();
             plugin.getLogger().warning("Could not read the world boss models, bosses use plain mobs: " + e);
         }
+        // plugins/CQuests/models/*.json replace or add models by id; updates never touch that folder and no
+        // player progress lives there, so edited models and player data both survive a new jar
+        java.io.File dir = new java.io.File(plugin.getDataFolder(), "models");
+        if (!dir.isDirectory() && dir.mkdirs()) {
+            try {
+                java.nio.file.Files.writeString(new java.io.File(dir, "README.txt").toPath(), String.join("\n",
+                        "Put boss model files here to change models without touching the jar.",
+                        "Each .json file uses the same format as worldboss-models.json inside the jar.",
+                        "A model here replaces the built-in model with the same id; new ids add new models.",
+                        "Updating the plugin never changes this folder, and no player progress is stored in it.", ""));
+            } catch (IOException ignored) { }
+        }
+        java.io.File[] extra = dir.listFiles((d, n) -> n.toLowerCase(java.util.Locale.ROOT).endsWith(".json"));
+        if (extra != null) {
+            java.util.Arrays.sort(extra);
+            for (java.io.File f : extra) {
+                try (var r = java.nio.file.Files.newBufferedReader(f.toPath(), java.nio.charset.StandardCharsets.UTF_8)) {
+                    loaded.putAll(ModelRig.load(r));
+                } catch (IOException | RuntimeException e) {
+                    plugin.getLogger().warning("Could not read models/" + f.getName() + ": " + e.getMessage());
+                }
+            }
+        }
+        models = loaded;
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(arenasFile);
         arenas.clear();
         var section = yaml.getConfigurationSection("arenas");
@@ -193,6 +241,11 @@ public final class WorldBossService implements Listener {
                 if (xz.length == 2) try { a.points.add(new int[]{Integer.parseInt(xz[0].trim()), Integer.parseInt(xz[1].trim())}); } catch (NumberFormatException ignored) { }
             }
             a.rebuild();
+            a.intervalMinutes = Math.max(0, yaml.getLong("arenas." + id + ".interval-minutes", 0));
+            a.nextAt = yaml.getLong("arenas." + id + ".next-at", 0);
+            a.lastBoss = yaml.getString("arenas." + id + ".last-boss", "");
+            a.lastPattern = yaml.getInt("arenas." + id + ".last-pattern", -1);
+            for (String z : yaml.getStringList("arenas." + id + ".no-pass")) { double[] v = Arena.nopassParse(z); if (v != null) a.nopass.add(v); }
             arenas.put(a.id, a);
         }
         lastRun = yaml.getString("schedule.last-run", "");
@@ -202,6 +255,8 @@ public final class WorldBossService implements Listener {
 
     public void start() {
         if (timer != null) timer.cancel();
+        // CBosses loads after CQuests (it soft-depends on it), so check once the server is up
+        Sched.global(() -> { if (deferred()) plugin.getLogger().info("CBosses is installed: CQuests leaves the world bosses to it (world-bosses.defer-to-cbosses)."); });
         timer = Sched.globalTimer(t -> scheduleTick(), 20 * 30, 20 * 30);
     }
 
@@ -211,7 +266,12 @@ public final class WorldBossService implements Listener {
     }
 
     private int radius() { return Math.max(8, plugin.getConfig().getInt("world-bosses.default-radius", 40)); }
-    public boolean enabled() { return plugin.getConfig().getBoolean("world-bosses.enabled", true); }
+    public boolean enabled() { return plugin.getConfig().getBoolean("world-bosses.enabled", true) && !deferred(); }
+
+    /** With CBosses installed the world bosses are its job (world-bosses.defer-to-cbosses). */
+    public boolean deferred() {
+        return plugin.getConfig().getBoolean("world-bosses.defer-to-cbosses", true) && Bukkit.getPluginManager().isPluginEnabled("CBosses");
+    }
     public Map<String, WorldBossDef> defs() { return defs; }
 
     /** The block model a boss is drawn with, or null (models off, "model: none", or no model by that name). */
@@ -244,6 +304,10 @@ public final class WorldBossService implements Listener {
             List<String> border = new ArrayList<>();
             for (int[] p : a.points()) border.add(p[0] + "," + p[1]);
             yaml.set(base + "border", border);
+            if (a.intervalMinutes > 0) { yaml.set(base + "interval-minutes", a.intervalMinutes); yaml.set(base + "next-at", a.nextAt); }
+            if (!a.lastBoss.isEmpty()) yaml.set(base + "last-boss", a.lastBoss);
+            if (a.lastPattern >= 0) yaml.set(base + "last-pattern", a.lastPattern);
+            if (!a.nopass.isEmpty()) yaml.set(base + "no-pass", a.nopass.stream().map(Arena::nopassText).toList());
         }
         yaml.set("schedule.last-run", lastRun);
         yaml.set("schedule.last-warn", lastWarn);
@@ -267,48 +331,46 @@ public final class WorldBossService implements Listener {
         Arena a = arena(arenaId, true);
         a.spawn(player.getLocation());
         save();
-        plugin.send(player, "<green>World boss spawn for arena <white>" + a.id + "</white> set here. <gray>Border: " + a.describe()
-                + ". Use <yellow>/cq worldboss wand " + a.id + "</yellow> to draw the border.");
+        plugin.send(player, T.t("world-boss-service.world-boss-spawn-for-arena", "<green>World boss spawn for arena <white><arena></white> set here. <gray>Border: <border>. Use <yellow>/cq worldboss wand <arena></yellow> to draw the border.", "arena", a.id, "border", a.describe()));
     }
 
     public void giveWand(Player player, String arenaId) {
         Arena a = arena(arenaId, true);
         ItemStack stick = new ItemStack(Material.STICK);
         stick.editMeta(meta -> {
-            meta.displayName(Text.mm("<gold><bold>Boss Border Stick</bold></gold> <gray>(" + a.id + ")").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
-            meta.lore(List.of(Text.mm("<yellow>Left-click a block</yellow><gray>: add a corner"), Text.mm("<yellow>Right-click</yellow><gray>: remove the last corner"),
-                    Text.mm("<yellow>Sneak + right-click</yellow><gray>: show the border")));
+            meta.displayName(Text.mm(T.t("world-boss-service.boss-border-stick", "<gold><bold>Boss Border Stick</bold></gold> <gray>(<arena>)", "arena", a.id)).decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+            meta.lore(List.of(Text.mm(T.t("world-boss-service.left-click-a-block-add", "<yellow>Left-click a block</yellow><gray>: add a corner")), Text.mm(T.t("world-boss-service.right-click-remove-the-last", "<yellow>Right-click</yellow><gray>: remove the last corner")),
+                    Text.mm(T.t("world-boss-service.sneak-right-click-show-the", "<yellow>Sneak + right-click</yellow><gray>: show the border"))));
             meta.setEnchantmentGlintOverride(true);
             meta.getPersistentDataContainer().set(wandKey, PersistentDataType.STRING, a.id);
         });
         player.getInventory().addItem(stick).values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
-        plugin.send(player, "<gold>Border stick for arena <white>" + a.id + "</white>. <gray>Left-click blocks around the arena to add corners in order. The boss can never walk past this outline.");
+        plugin.send(player, T.t("world-boss-service.border-stick-for-arena-left", "<gold>Border stick for arena <white><arena></white>. <gray>Left-click blocks around the arena to add corners in order. The boss can never walk past this outline.", "arena", a.id));
     }
 
     public void clearBorder(Player player, String arenaId) {
         Arena a = arena(arenaId, false);
-        if (a == null) { plugin.send(player, "<red>No arena " + Text.escape(arenaId)); return; }
+        if (a == null) { plugin.send(player, T.t("world-boss-service.no-arena", "<red>No arena <arenaid>", "arenaid", Text.escape(arenaId))); return; }
         a.clear(); save();
-        plugin.send(player, "<gray>Border cleared. Arena <white>" + a.id + "</white> now uses a circle of " + a.radius + " blocks around its spawn.");
+        plugin.send(player, T.t("world-boss-service.border-cleared-arena-now-uses", "<gray>Border cleared. Arena <white><arena></white> now uses a circle of <radius> blocks around its spawn.", "arena", a.id, "radius", a.radius));
     }
 
     public void setRadius(Player player, String arenaId, int radius) {
         Arena a = arena(arenaId, true);
         a.radius = Math.max(8, Math.min(500, radius)); save();
-        plugin.send(player, "<gray>Arena <white>" + a.id + "</white> circle radius: " + a.radius + " (used when there is no outline).");
+        plugin.send(player, T.t("world-boss-service.arena-circle-radius-used-when", "<gray>Arena <white><arena></white> circle radius: <radius> (used when there is no outline).", "arena", a.id, "radius", a.radius));
     }
 
     public void listArenas(org.bukkit.command.CommandSender to) {
-        if (arenas.isEmpty()) { plugin.send(to, "<yellow>No arenas yet. Stand where the boss should appear and run /cq worldboss setspawn main."); return; }
+        if (arenas.isEmpty()) { plugin.send(to, T.t("world-boss-service.no-arenas-yet-stand-where", "<yellow>No arenas yet. Stand where the boss should appear and run /cq worldboss setspawn main.")); return; }
         for (Arena a : arenas.values()) {
             Location s = a.spawn();
-            plugin.send(to, "<white>" + a.id + " <gray>" + (s == null ? "no spawn set" : s.getWorld().getName() + " " + s.getBlockX() + " " + s.getBlockY() + " " + s.getBlockZ())
-                    + ", border: " + a.describe() + (fights.containsKey(a.id) ? " <red>(boss alive)" : ""));
+            plugin.send(to, T.t("world-boss-service.border", "<white><arena> <gray><player>, border: <border><alive>", "arena", a.id, "player", (s == null ? "no spawn set" : s.getWorld().getName() + " " + s.getBlockX() + " " + s.getBlockY() + " " + s.getBlockZ()), "border", a.describe(), "alive", (fights.containsKey(a.id) ? " <red>(boss alive)" : "")));
         }
     }
 
     public void listBosses(org.bukkit.command.CommandSender to) {
-        plugin.send(to, "<gold>World bosses</gold> <gray>(" + defs.size() + ")");
+        plugin.send(to, T.t("world-boss-service.world-bosses", "<gold>World bosses</gold> <gray>(<count>)", "count", defs.size()));
         for (WorldBossDef d : defs.values())
             to.sendMessage(Text.mm(" <dark_gray>-</dark_gray> <white>" + d.id() + "</white> " + d.name() + " <gray>" + Text.escape(d.title())
                     + (d.seasonal() ? " <light_purple>(" + d.season() + ")" : "")));
@@ -326,7 +388,7 @@ public final class WorldBossService implements Listener {
         scheduleOn = on;
         plugin.getConfig().set("world-bosses.schedule.enabled", on);
         plugin.saveConfig();
-        plugin.send(to, "<gray>Weekly world boss: <white>" + (on ? "on" : "off"));
+        plugin.send(to, T.t("world-boss-service.weekly-world-boss", "<gray>Weekly world boss: <white><off>", "off", (on ? "on" : "off")));
     }
 
     // ------------------------------------------------------------------ schedule
@@ -377,6 +439,7 @@ public final class WorldBossService implements Listener {
     }
 
     private void scheduleTick() {
+        spotTick();
         ZonedDateTime slot = next();
         if (slot == null) return;
         ZonedDateTime now = ZonedDateTime.now(zone());
@@ -399,6 +462,141 @@ public final class WorldBossService implements Listener {
         }
     }
 
+    // ------------------------------------------------------------------ spots
+
+    /** Every spot with an interval wakes its next boss when its time comes, a different boss each time. */
+    private void spotTick() {
+        // Spots are CQuests' own: they run even when CBosses has taken over the weekly boss.
+        if (!plugin.getConfig().getBoolean("world-bosses.enabled", true)) return;
+        long now = System.currentTimeMillis();
+        int warn = Math.max(0, plugin.getConfig().getInt("world-bosses.spots.warn-minutes", 5));
+        for (Arena a : arenas.values()) {
+            if (a.intervalMinutes <= 0 || a.spawn() == null) continue;
+            if (a.nextAt <= 0) { a.nextAt = now + a.intervalMinutes * 60_000L; save(); continue; }
+            if (fights.containsKey(a.id)) continue;
+            WorldBossDef def = spotBoss(a);
+            if (def == null) continue;
+            if (warn > 0 && a.intervalMinutes > warn * 2L && a.warned != a.nextAt && now >= a.nextAt - warn * 60_000L && now < a.nextAt) {
+                a.warned = a.nextAt;
+                broadcast(T.t("world-boss-service.spot-warning", "<gold><bold>⚔ WORLD BOSS</bold></gold> <gray>Something stirs at <white><arena></white>: a boss wakes in <white><minutes> minutes</white><where>", "arena", a.id, "minutes", warn, "where", where(a)));
+            }
+            if (now < a.nextAt) continue;
+            a.nextAt = now + a.intervalMinutes * 60_000L;
+            a.lastBoss = def.id();
+            save();
+            spawn(def, a, null, false);
+        }
+    }
+
+    /** The boss a spot wakes next: a seasonal one while its season is on, never the same as last time. */
+    WorldBossDef spotBoss(Arena a) {
+        List<WorldBossDef> pool = new ArrayList<>();
+        boolean seasons = plugin.getConfig().getBoolean("world-bosses.spots.seasonal", true);
+        if (seasons) for (WorldBossDef d : defs.values()) if (d.seasonal() && plugin.seasons() != null && plugin.seasons().active(d.season())) pool.add(d);
+        if (pool.size() < 2) for (WorldBossDef d : defs.values()) if (!d.seasonal()) pool.add(d);
+        List<String> only = plugin.getConfig().getStringList("world-bosses.spots.bosses");
+        if (!only.isEmpty()) pool.removeIf(d -> !only.contains(d.id()));
+        if (pool.size() > 1) pool.removeIf(d -> d.id().equals(a.lastBoss));
+        if (pool.isEmpty()) return null;
+        return pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+    }
+
+    public void setInterval(org.bukkit.command.CommandSender to, String arenaId, String text) {
+        Arena a = arena(arenaId, false);
+        if (a == null) { plugin.send(to, T.t("admin-command.no-arena", "<red>No arena <arena>", "arena", Text.escape(arenaId))); return; }
+        long minutes = Arena.parseInterval(text);
+        if (minutes < 0) { plugin.send(to, T.t("world-boss-service.interval-usage", "<red>Use a time like <yellow>2h</yellow>, <yellow>400h</yellow>, <yellow>90m</yellow> or <yellow>1d12h</yellow> (at least 5 minutes), or <yellow>off</yellow>.")); return; }
+        a.intervalMinutes = minutes;
+        a.nextAt = minutes > 0 ? System.currentTimeMillis() + minutes * 60_000L : 0;
+        save();
+        if (minutes == 0) plugin.send(to, T.t("world-boss-service.interval-off", "<gray>Arena <white><arena></white> is no longer a timed spot.", "arena", a.id));
+        else plugin.send(to, T.t("world-boss-service.interval-set", "<green>A boss wakes at <white><arena></white> every <white><every></white>, a different one each time. <gray>First one in <every>.", "arena", a.id, "every", Arena.intervalText(minutes)));
+    }
+
+    public void spots(org.bukkit.command.CommandSender to) {
+        long now = System.currentTimeMillis();
+        boolean any = false;
+        for (Arena a : arenas.values()) {
+            if (a.intervalMinutes <= 0) continue;
+            any = true;
+            long left = Math.max(0, a.nextAt - now) / 60_000L;
+            plugin.send(to, T.t("world-boss-service.spot-line", "<gold><arena></gold> <gray>every <white><every></white>, next in <white><left></white>, last boss <white><last></white>, <white><zones></white> no-pass areas",
+                    "arena", a.id, "every", Arena.intervalText(a.intervalMinutes), "left", fights.containsKey(a.id) ? "(fighting now)" : Arena.intervalText(Math.max(1, left)), "last", a.lastBoss.isEmpty() ? "none" : a.lastBoss, "zones", a.nopass.size()));
+        }
+        if (!any) plugin.send(to, T.t("world-boss-service.no-spots", "<gray>No timed spots. <yellow>/cq worldboss interval <arena> 2h</yellow> makes one."));
+    }
+
+    /** /cq worldboss nopass <arena> here [radius] | corner | list | remove <n> | clear | show */
+    public void nopass(org.bukkit.command.CommandSender to, Player player, String arenaId, String[] rest) {
+        Arena a = arena(arenaId, false);
+        if (a == null) { plugin.send(to, T.t("admin-command.no-arena", "<red>No arena <arena>", "arena", Text.escape(arenaId))); return; }
+        String what = rest.length > 0 ? rest[0].toLowerCase(Locale.ROOT) : "list";
+        switch (what) {
+            case "here", "circle" -> {
+                if (player == null) { plugin.send(to, T.t("admin-command.run-this-in-game", "<red>Run this in game.")); return; }
+                double r;
+                try { r = rest.length > 1 ? Double.parseDouble(rest[1]) : 5; } catch (NumberFormatException e) { r = 5; }
+                r = Math.max(1, Math.min(64, r));
+                Location l = player.getLocation();
+                a.nopass.add(new double[]{0, l.getBlockX() + 0.5, l.getBlockZ() + 0.5, r});
+                save();
+                plugin.send(to, T.t("world-boss-service.nopass-circle", "<green>No-pass area <white>#<n></white> added: a circle of <white><r></white> blocks around you. The boss can never step in it.", "n", a.nopass.size(), "r", (int) r));
+                show(player, a);
+            }
+            case "corner", "box" -> {
+                if (player == null) { plugin.send(to, T.t("admin-command.run-this-in-game", "<red>Run this in game.")); return; }
+                Location l = player.getLocation();
+                double[] c = a.corner;
+                if (c == null) {
+                    a.corner = new double[]{l.getBlockX(), l.getBlockZ()};
+                    plugin.send(to, T.t("world-boss-service.nopass-corner1", "<yellow>First corner set.</yellow> <gray>Walk to the opposite corner and run the same command again."));
+                } else {
+                    a.corner = null;
+                    a.nopass.add(new double[]{1, c[0], c[1], l.getBlockX(), l.getBlockZ()});
+                    save();
+                    plugin.send(to, T.t("world-boss-service.nopass-box", "<green>No-pass area <white>#<n></white> added: the box between your two corners.", "n", a.nopass.size()));
+                    show(player, a);
+                }
+            }
+            case "remove" -> {
+                int n;
+                try { n = Integer.parseInt(rest.length > 1 ? rest[1] : "") - 1; } catch (NumberFormatException e) { n = -1; }
+                if (n < 0 || n >= a.nopass.size()) { plugin.send(to, T.t("world-boss-service.nopass-remove-usage", "<red>/cq worldboss nopass <arena> remove <number> <gray>(see list)", "arena", a.id)); return; }
+                a.nopass.remove(n);
+                save();
+                plugin.send(to, T.t("world-boss-service.nopass-removed", "<gray>No-pass area #<n> removed.", "n", n + 1));
+            }
+            case "clear" -> { a.nopass.clear(); a.corner = null; save(); plugin.send(to, T.t("world-boss-service.nopass-cleared", "<gray>Every no-pass area of <arena> removed.", "arena", a.id)); }
+            case "show" -> { if (player != null) show(player, a); }
+            default -> {
+                if (a.nopass.isEmpty()) { plugin.send(to, T.t("world-boss-service.nopass-none", "<gray><arena> has no no-pass areas. <yellow>/cq worldboss nopass <arena> here [radius]</yellow> or <yellow>corner</yellow> (twice) adds one.", "arena", a.id)); return; }
+                int k = 1;
+                for (double[] z : a.nopass)
+                    plugin.send(to, T.t("world-boss-service.nopass-line", "<gray>#<n> <white><what>", "n", k++, "what", z[0] == 0 ? "circle r" + (int) z[3] + " at " + (int) z[1] + ", " + (int) z[2] : "box " + (int) z[1] + ", " + (int) z[2] + " to " + (int) z[3] + ", " + (int) z[4]));
+            }
+        }
+    }
+
+    /** A point of the fight's movement pattern at time {@code t} (in ticks of half a second), inside the arena. */
+    Location patternPoint(Fight f, Location home, int t) {
+        double span = Math.max(4, Math.min(f.arena.radius, 40) * f.patternSize);
+        double a = f.phase + f.turn * t * 0.09 * f.patternSpeed;
+        double x, z;
+        switch (f.pattern) {
+            case 0 -> { x = Math.cos(a) * span; z = Math.sin(a) * span; }                                  // orbit
+            case 1 -> { x = Math.sin(a) * span; z = Math.sin(a * 2) * span * 0.5; }                         // figure eight
+            case 2 -> { double k = (t * 0.05 * f.patternSpeed) % 4; double leg = k < 2 ? k - 1 : 3 - k;      // zigzag back and forth
+                        x = leg * span; z = ((t / 6) % 2 == 0 ? 1 : -1) * span * 0.35 * f.turn; }
+            case 3 -> { java.util.Random r = new java.util.Random(f.wanderSeed + t / 12);                   // wander between random points
+                        double b = r.nextDouble() * Math.PI * 2, d = span * (0.3 + r.nextDouble() * 0.7); x = Math.cos(b) * d; z = Math.sin(b) * d; }
+            default -> { int point = (int) Math.floor(a / (Math.PI * 4 / 5)); double b = f.phase + point * Math.PI * 4 / 5 * f.turn; // a five pointed star
+                        x = Math.cos(b) * span; z = Math.sin(b) * span; }
+        }
+        Location p = home.clone().add(x, 0, z);
+        if (!f.arena.contains(p) || f.arena.blocked(p.getX(), p.getZ())) return home;
+        return p;
+    }
+
     public Arena arenaFor(String id) { return arena(id, false); }
 
     private Arena arenaFor() { return arena(plugin.getConfig().getString("world-bosses.schedule.arena", "main"), false); }
@@ -412,32 +610,32 @@ public final class WorldBossService implements Listener {
 
     /** Starts a fight. {@code tester} non-null makes it a test: at the tester, nothing is paid, and the tester is told why if it fails. */
     public boolean spawn(WorldBossDef def, Arena arena, Player tester, boolean test) {
-        if (!enabled()) { if (tester != null) plugin.send(tester, "<yellow>World bosses are off (world-bosses.enabled)."); return false; }
+        if (!plugin.getConfig().getBoolean("world-bosses.enabled", true)) { if (tester != null) plugin.send(tester, T.t("world-boss-service.world-bosses-are-off-world", "<yellow>World bosses are off (world-bosses.enabled).")); return false; }
         String key = test ? "test:" + tester.getUniqueId() : arena.id;
         Fight old = fights.get(key);
-        if (old != null) { if (!test) { if (tester != null) plugin.send(tester, "<yellow>A boss is already alive in " + arena.id + ". /cq worldboss stop " + arena.id); return false; } end(old, "stopped"); }
+        if (old != null) { if (!test) { if (tester != null) plugin.send(tester, T.t("world-boss-service.a-boss-is-already-alive", "<yellow>A boss is already alive in <arena>. /cq worldboss stop <arena>", "arena", arena.id)); return false; } end(old, "stopped"); }
         if (fights.size() >= Math.max(1, plugin.getConfig().getInt("world-bosses.max-active", 4))) {
-            if (tester != null) plugin.send(tester, "<yellow>Too many world bosses are alive at once."); return false;
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.too-many-world-bosses-are", "<yellow>Too many world bosses are alive at once.")); return false;
         }
         Location at = arena.spawn();
-        if (at == null) { if (tester != null) plugin.send(tester, "<yellow>Arena " + arena.id + " has no spawn. /cq worldboss setspawn " + arena.id); return false; }
-        if (at.getWorld().getDifficulty() == org.bukkit.Difficulty.PEACEFUL) { if (tester != null) plugin.send(tester, "<yellow>Bosses cannot appear in a Peaceful world."); return false; }
+        if (at == null) { if (tester != null) plugin.send(tester, T.t("world-boss-service.arena-has-no-spawn-cq", "<yellow>Arena <arena> has no spawn. /cq worldboss setspawn <arena>", "arena", arena.id)); return false; }
+        if (at.getWorld().getDifficulty() == org.bukkit.Difficulty.PEACEFUL) { if (tester != null) plugin.send(tester, T.t("world-boss-service.bosses-cannot-appear-in-a", "<yellow>Bosses cannot appear in a Peaceful world.")); return false; }
         Sched.at(at, () -> ritual(at, def, () -> doSpawn(def, arena, key, at, tester, test)));
         return true;
     }
 
     public boolean spawnAt(Player player, String bossId, String arenaId) {
         WorldBossDef def = defs.get(bossId.toLowerCase(Locale.ROOT));
-        if (def == null) { plugin.send(player, "<red>No world boss " + Text.escape(bossId) + ". <gray>/cq worldboss list"); return false; }
+        if (def == null) { plugin.send(player, T.t("world-boss-service.no-world-boss-cq-worldboss", "<red>No world boss <bossid>. <gray>/cq worldboss list", "bossid", Text.escape(bossId))); return false; }
         Arena a = arena(arenaId, false);
-        if (a == null) { plugin.send(player, "<red>No arena " + Text.escape(arenaId) + ". <gray>/cq worldboss setspawn " + Text.escape(arenaId)); return false; }
+        if (a == null) { plugin.send(player, T.t("world-boss-service.no-arena-cq-worldboss-setspawn", "<red>No arena <arenaid>. <gray>/cq worldboss setspawn <arenaid>", "arenaid", Text.escape(arenaId))); return false; }
         return spawn(def, a, player, false);
     }
 
     /** /cq test worldboss: the boss appears a few blocks in front of you inside a 25 block circle; nothing is paid. */
     public boolean test(Player player, String bossId) {
         WorldBossDef def = bossId == null || bossId.isBlank() ? null : defs.get(bossId.toLowerCase(Locale.ROOT));
-        if (def == null) { plugin.send(player, "<yellow>/cq test worldboss <boss></yellow> <gray>Bosses: <white>" + String.join(", ", defs.keySet())); return false; }
+        if (def == null) { plugin.send(player, T.t("world-boss-service.cq-test-worldboss-bosses", "<yellow>/cq test worldboss <boss></yellow> <gray>Bosses: <white><list>", "list", String.join(", ", defs.keySet()))); return false; }
         Arena a = new Arena("test-" + player.getName().toLowerCase(Locale.ROOT), 25);
         Vector look = player.getLocation().getDirection().setY(0);
         if (look.lengthSquared() < 0.01) look = new Vector(1, 0, 0);
@@ -575,12 +773,12 @@ public final class WorldBossService implements Listener {
         try {
             mob = (Mob) at.getWorld().spawn(at, def.entity().getEntityClass(), e -> dress((Mob) e, def, key, look));
         } catch (RuntimeException e) {
-            if (tester != null) plugin.send(tester, "<yellow>" + def.name() + " <yellow>could not appear here: " + Text.escape(String.valueOf(e.getMessage())));
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.could-not-appear-here", "<yellow><boss> <yellow>could not appear here: <getmessage>", "boss", def.name(), "getmessage", Text.escape(String.valueOf(e.getMessage()))));
             else plugin.getLogger().warning("World boss " + def.id() + " could not appear: " + e);
             return null;
         }
         if (!mob.isValid()) {
-            if (tester != null) plugin.send(tester, "<yellow>Something stopped the boss from appearing (another plugin or a protected area).");
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.something-stopped-the-boss-from", "<yellow>Something stopped the boss from appearing (another plugin or a protected area)."));
             else plugin.getLogger().warning("World boss " + def.id() + " was removed right after spawning (protected area, Peaceful or another plugin).");
             return null;
         }
@@ -592,6 +790,18 @@ public final class WorldBossService implements Listener {
         if (fight.particle.getDataType() == Particle.DustOptions.class) fight.auraDust = new Particle.DustOptions(color(def.color()), 1.6f);
         else if (fight.particle.getDataType() != Void.class) fight.particle = Particle.FLAME;
         fight.ringDust = new Particle.DustOptions(color(def.color()), 1.2f);
+        {
+            ThreadLocalRandom r = ThreadLocalRandom.current();
+            int pattern = r.nextInt(5);
+            if (pattern == arena.lastPattern) pattern = (pattern + 1 + r.nextInt(4)) % 5;
+            fight.pattern = pattern; arena.lastPattern = pattern;
+            fight.turn = r.nextBoolean() ? 1 : -1;
+            fight.patternSize = 0.35 + r.nextDouble() * 0.4;
+            fight.patternSpeed = 0.7 + r.nextDouble() * 0.7;
+            fight.phase = r.nextDouble() * Math.PI * 2;
+            fight.wanderSeed = r.nextLong();
+            fight.lastSafe = at.clone();
+        }
         fights.put(key, fight);
         byEntity.put(mob.getUniqueId(), fight);
         fight.chunkWorld = at.getWorld().getName(); fight.chunkX = at.getBlockX() >> 4; fight.chunkZ = at.getBlockZ() >> 4;
@@ -633,7 +843,7 @@ public final class WorldBossService implements Listener {
         }
         mob.getScheduler().runAtFixedRate(plugin, t -> { if (!tick(fight)) t.cancel(); }, () -> end(fight, "gone"), 2, 10);
         if (test) {
-            if (tester != null) plugin.send(tester, "<gray>Test world boss: " + def.name() + " <gray>(" + def.id() + "). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.");
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.test-world-boss-nothing-is", "<gray>Test world boss: <boss> <gray>(<id>). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.", "boss", def.name(), "id", def.id()));
         } else {
             broadcast("<dark_gray><st>                                        </st>\n"
                     + "<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  " + def.name() + "\n"
@@ -753,6 +963,22 @@ public final class WorldBossService implements Listener {
             }
             return true;
         }
+        // No-pass areas: the boss (and its minions) are put back where they last stood outside them.
+        if (!f.arena.nopass.isEmpty()) {
+            if (f.arena.blocked(loc.getX(), loc.getZ())) {
+                Location back = f.lastSafe != null ? f.lastSafe : f.arena.spawn();
+                if (back != null) {
+                    boss.setTarget(null);
+                    root(boss).teleportAsync(back, PlayerTeleportEvent.TeleportCause.PLUGIN, TeleportFlag.EntityState.RETAIN_PASSENGERS);
+                    loc.getWorld().spawnParticle(Particle.REVERSE_PORTAL, loc.clone().add(0, 1, 0), 30, 0.5, 1, 0.5, 0.1);
+                }
+                return true;
+            }
+            if (f.ticks % 2 == 0) f.lastSafe = loc.clone();
+            if (f.ticks % 4 == 0) for (Mob minion : f.minions)
+                if (minion.isValid() && Bukkit.isOwnedByCurrentRegion(minion) && f.arena.blocked(minion.getX(), minion.getZ()) && f.lastSafe != null)
+                    minion.teleportAsync(f.lastSafe);
+        } else if (f.ticks % 2 == 0) f.lastSafe = loc.clone();
         // One nearby-player query per tick: the bar uses everyone within 56 blocks, the fight only those inside the border.
         List<Player> close = new ArrayList<>();
         List<Player> inside = new ArrayList<>();
@@ -786,6 +1012,18 @@ public final class WorldBossService implements Listener {
             double best = Double.MAX_VALUE;
             for (Player p : inside) { double d = p.getLocation().distanceSquared(loc); if (d < best) { best = d; target = p; } }
             if (!(boss.getTarget() instanceof Player current) || !inside.contains(current)) boss.setTarget(target);
+            // Its own way of closing in this fight: some circle their target one way, some the other, some weave.
+            {
+                Player t = boss.getTarget() instanceof Player cur ? cur : target;
+                if (f.pattern != 3 && f.ticks % 6 == 3 && t.getLocation().distanceSquared(loc) > 16) {
+                    Vector to = t.getLocation().toVector().subtract(loc.toVector()).setY(0);
+                    if (to.lengthSquared() > 0.01) {
+                        Vector side = new Vector(-to.getZ(), 0, to.getX()).normalize().multiply(f.turn * (f.pattern == 2 ? ((f.ticks / 6) % 2 == 0 ? 3 : -3) : 2.5));
+                        Location aim = t.getLocation().clone().add(side);
+                        if (f.arena.contains(aim) && !f.arena.blocked(aim.getX(), aim.getZ())) boss.getPathfinder().moveTo(aim, 1.0 + 0.15 * f.patternSpeed);
+                    }
+                }
+            }
             if (f.ticks % 2 == 0) {
                 for (Mob minion : f.minions) {
                     if (!minion.isValid()) { f.minions.remove(minion); byEntity.remove(minion.getUniqueId()); continue; }
@@ -796,7 +1034,8 @@ public final class WorldBossService implements Listener {
         } else {
             if (boss.getTarget() != null) boss.setTarget(null);
             Location home = f.arena.spawn();
-            if (home != null && f.ticks % 10 == 0 && home.distanceSquared(loc) > 16) boss.getPathfinder().moveTo(home);
+            // Nobody to fight: it patrols its spot in this fight's own pattern.
+            if (home != null && f.ticks % 3 == 0) boss.getPathfinder().moveTo(patternPoint(f, home, f.ticks), 0.8 + 0.2 * f.patternSpeed);
         }
         // Rage at half health.
         if (!f.raged && health <= f.max / 2) {
@@ -806,7 +1045,7 @@ public final class WorldBossService implements Listener {
             loc.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc.clone().add(0, 1, 0), 1);
             ring(loc, Math.max(3, boss.getWidth() * 2), Color.fromRGB(0xaa00ff), 40);
             for (Player p : close) {
-                p.showTitle(Title.title(Text.mm(f.def.name()), Text.mm("<red><bold>is enraged!")));
+                p.showTitle(Title.title(Text.mm(f.def.name()), Text.mm(T.t("world-boss-service.is-enraged", "<red><bold>is enraged!"))));
                 p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.8f, 0.7f);
             }
             if (f.def.minion() != null) summonMinions(f, f.def.minions());
@@ -921,6 +1160,7 @@ public final class WorldBossService implements Listener {
                         double a = Math.PI * 2 * i / 36;
                         for (double r = 2; r <= 8; r += 3) world.spawnParticle(Particle.SWEEP_ATTACK, here.clone().add(Math.cos(a) * r, 0.3, Math.sin(a) * r), 1);
                     }
+                    BlockFx.shockwave(here, 8, 32, Material.COARSE_DIRT);
                     for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 64) { p.damage(4, boss); knock(p, here, 1.4, 0.6); }
                 });
             }
@@ -1042,7 +1282,7 @@ public final class WorldBossService implements Listener {
                     boss.setHealth(Math.min(f.max, boss.getHealth() + f.max * 0.12));
                     world.spawnParticle(Particle.HAPPY_VILLAGER, at.clone().add(0, boss.getHeight() / 2, 0), 60, 1, 1, 1, 0.1);
                     world.playSound(at, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.8f);
-                    for (Player p : targets) p.sendActionBar(Text.mm(f.def.name() + " <green>heals itself!"));
+                    for (Player p : targets) p.sendActionBar(Text.mm(T.t("world-boss-service.heals-itself", "<boss> <green>heals itself!", "boss", f.def.name())));
                 } else ability(f, "shockwave", targets);
             }
             case "quake" -> {
@@ -1052,6 +1292,7 @@ public final class WorldBossService implements Listener {
                     Location here = boss.getLocation();
                     world.playSound(here, Sound.ENTITY_IRON_GOLEM_HURT, 1f, 0.4f);
                     world.spawnParticle(Particle.EXPLOSION, here, 6, 3, 0.2, 3, 0);
+                    BlockFx.shockwave(here, 10, 28, Material.COARSE_DIRT);
                     for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 100 && p.isOnGround()) {
                         p.damage(4, boss); effect(p, "slowness", 40, 1);
                         p.setVelocity(new Vector(0, 0.6, 0));
@@ -1068,12 +1309,48 @@ public final class WorldBossService implements Listener {
                     for (Player p : fighters(f)) if (p.getLocation().distanceSquared(here) <= 49) { p.damage(7, boss); knock(p, here, 1.6, 0.8); }
                 });
             }
+            case "meteor" -> {
+                // Real falling rocks: marked on the ground first, they crash a second later and leave broken pieces.
+                List<Location> spots = new ArrayList<>();
+                for (Player p : targets.subList(0, Math.min(3, targets.size()))) spots.add(p.getLocation());
+                ThreadLocalRandom r = ThreadLocalRandom.current();
+                while (spots.size() < (f.raged ? 4 : 3)) {
+                    Location s = at.clone().add(r.nextDouble(-9, 9), 0, r.nextDouble(-9, 9));
+                    if (f.arena.contains(s)) spots.add(s); else if (spots.isEmpty()) spots.add(at.clone()); else break;
+                }
+                Material[] look = meteorBlocks(f.def);
+                world.playSound(at, Sound.ENTITY_BLAZE_SHOOT, 1.2f, 0.5f);
+                int k = 0;
+                for (Location spot : spots) {
+                    ring(spot, 2.5, warn, 20);
+                    world.spawnParticle(Particle.FLAME, spot.clone().add(0, 0.2, 0), 10, 1, 0, 1, 0.01);
+                    long delay = 8 + k++ * 7L;
+                    Sched.entityLater(boss, delay, () -> Sched.at(spot, () -> BlockFx.meteor(spot, look[0], look[1], 140, () -> {
+                        for (Player p : targets) Sched.entity(p, () -> {
+                            if (!f.over && p.isValid() && p.getWorld() == spot.getWorld() && p.getLocation().distanceSquared(spot) <= 9) {
+                                p.damage(6 + (f.raged ? 2 : 0), boss); p.setFireTicks(40); knock(p, spot, 0.9, 0.5);
+                            }
+                        });
+                    })));
+                }
+            }
             default -> { // roar
                 world.playSound(at, Sound.ENTITY_WARDEN_ROAR, 1.2f, 0.8f);
                 world.spawnParticle(Particle.SONIC_BOOM, at.clone().add(0, boss.getHeight() * 0.7, 0), 1);
                 for (Player p : targets) effect(p, "weakness", 100, 0);
             }
         }
+    }
+
+    /** Rock and glowing core of a boss's meteors, from the colour of its particles. */
+    static Material[] meteorBlocks(WorldBossDef def) {
+        String p = def.particle() == null ? "" : def.particle().toUpperCase(Locale.ROOT);
+        if (p.contains("SOUL")) return new Material[]{Material.SOUL_SOIL, Material.SHROOMLIGHT};
+        if (p.contains("SNOW") || p.contains("CLOUD")) return new Material[]{Material.PACKED_ICE, Material.BLUE_ICE};
+        if (p.contains("PORTAL") || p.contains("DRAGON") || p.contains("WITCH")) return new Material[]{Material.OBSIDIAN, Material.CRYING_OBSIDIAN};
+        if (p.contains("SCULK")) return new Material[]{Material.SCULK, Material.SEA_LANTERN};
+        if (p.contains("SLIME") || p.contains("VILLAGER") || p.contains("SPORE")) return new Material[]{Material.MOSS_BLOCK, Material.OCHRE_FROGLIGHT};
+        return new Material[]{Material.BLACKSTONE, Material.MAGMA_BLOCK};
     }
 
     private void summonMinions(Fight f, int count) {
@@ -1149,7 +1426,7 @@ public final class WorldBossService implements Listener {
         }
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
-            if (tester != null && !reason.equals("shutdown") && !reason.equals("stopped") && !reason.equals("defeated")) plugin.send(tester, "<gray>Test world boss ended (" + reason + ").");
+            if (tester != null && !reason.equals("shutdown") && !reason.equals("stopped") && !reason.equals("defeated")) plugin.send(tester, T.t("world-boss-service.test-world-boss-ended", "<gray>Test world boss ended (<reason>).", "reason", reason));
             return;
         }
         switch (reason) {
@@ -1169,7 +1446,7 @@ public final class WorldBossService implements Listener {
         if (f.model == null) deathAnimation(fell, f.def, f.boss.getHeight());
         if (f.test) {
             Player tester = f.tester == null ? null : Bukkit.getPlayer(f.tester);
-            if (tester != null) plugin.send(tester, "<green>Test boss beaten. <gray>Top damage: " + top(f, ranked));
+            if (tester != null) plugin.send(tester, T.t("world-boss-service.test-boss-beaten-top-damage", "<green>Test boss beaten. <gray>Top damage: <ranked>", "ranked", top(f, ranked)));
             return;
         }
         double minimum = f.max * f.ratio * Math.max(0, plugin.getConfig().getDouble("world-bosses.min-damage-percent", 2)) / 100.0;
@@ -1205,8 +1482,8 @@ public final class WorldBossService implements Listener {
                     try { if (parts.length > 1) amount = Math.max(1, Math.min(64, Integer.parseInt(parts[1]))); } catch (NumberFormatException ignored) { }
                     if (m != null && m.isItem()) p.getInventory().addItem(new ItemStack(m, amount)).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left));
                 }
-                p.showTitle(Title.title(Text.mm("<gold><bold>VICTORY"), Text.mm(f.def.name() + " <gray>is defeated. You placed <white>#" + rank)));
-                plugin.send(p, "<gold>World boss reward: <white>#" + rank + "</white> in damage" + (paid > 0 ? ", <green>+" + String.format(Locale.ROOT, "%,d", paid) + "</green> money" : "") + (items.isEmpty() ? "" : ", plus items") + ".");
+                p.showTitle(Title.title(Text.mm(T.t("world-boss-service.victory", "<gold><bold>VICTORY")), Text.mm(T.t("world-boss-service.is-defeated-you-placed", "<boss> <gray>is defeated. You placed <white>#<rank>", "boss", f.def.name(), "rank", rank))));
+                plugin.send(p, T.t("world-boss-service.world-boss-reward-in-damage", "<gold>World boss reward: <white>#<rank></white> in damage<amount><items>.", "rank", rank, "amount", (paid > 0 ? ", <green>+" + String.format(Locale.ROOT, "%,d", paid) + "</green> money" : ""), "items", (items.isEmpty() ? "" : ", plus items")));
             });
         }
         broadcast(defeatMessage(f, ranked));
@@ -1301,14 +1578,13 @@ public final class WorldBossService implements Listener {
     public void info(org.bukkit.command.CommandSender to) {
         Fight live = fights.values().stream().filter(f -> !f.test).findFirst().orElse(null);
         if (live != null) {
-            plugin.send(to, "<gold>⚔ " + live.def.name() + " <gold>is alive now" + where(live.arena));
+            plugin.send(to, T.t("world-boss-service.is-alive-now", "<gold>⚔ <boss> <gold>is alive now<where>", "boss", live.def.name(), "where", where(live.arena)));
             return;
         }
         WorldBossDef def = upcoming();
         ZonedDateTime next = next();
-        if (def == null || next == null) { plugin.send(to, "<gray>No world boss is scheduled."); return; }
-        plugin.send(to, "<gold>Next world boss: </gold>" + def.name() + " <gray>" + Text.escape(def.title()) + " <gray>in <white>" + nextText() + "</white>"
-                + " <dark_gray>(" + next.getDayOfWeek().toString().charAt(0) + next.getDayOfWeek().toString().substring(1).toLowerCase(Locale.ROOT) + " " + next.toLocalTime() + ")" + where(arenaFor()));
+        if (def == null || next == null) { plugin.send(to, T.t("world-boss-service.no-world-boss-is-scheduled", "<gray>No world boss is scheduled.")); return; }
+        plugin.send(to, T.t("world-boss-service.next-world-boss-in", "<gold>Next world boss: </gold><boss> <gray><title> <gray>in <white><time></white> <dark_gray>(<charat><root> <tolocaltime>)<where>", "boss", def.name(), "title", Text.escape(def.title()), "time", nextText(), "charat", next.getDayOfWeek().toString().charAt(0), "root", next.getDayOfWeek().toString().substring(1).toLowerCase(Locale.ROOT), "tolocaltime", next.toLocalTime(), "where", where(arenaFor())));
     }
 
     public String upcomingName() {
@@ -1327,19 +1603,19 @@ public final class WorldBossService implements Listener {
         event.setCancelled(true);
         if (event.getHand() != EquipmentSlot.HAND) return;
         Player player = event.getPlayer();
-        if (!player.hasPermission("cquests.admin")) return;
+        if (!com.cquests.command.AdminCommand.canControlBosses(player)) return;
         Arena a = arena(id, true);
         if (event.getAction() == Action.LEFT_CLICK_BLOCK && event.getClickedBlock() != null) {
             var b = event.getClickedBlock();
-            if (a.world != null && !a.world.equals(b.getWorld().getName()) && !a.points().isEmpty()) { plugin.send(player, "<red>The border must be in the same world as the arena spawn."); return; }
+            if (a.world != null && !a.world.equals(b.getWorld().getName()) && !a.points().isEmpty()) { plugin.send(player, T.t("world-boss-service.the-border-must-be-in", "<red>The border must be in the same world as the arena spawn.")); return; }
             if (a.world == null) a.world = b.getWorld().getName();
             String problem = a.add(b.getX(), b.getZ());
             save();
             int n = a.points().size();
-            plugin.send(player, "<green>Corner " + n + "</green> <gray>at " + b.getX() + ", " + b.getZ() + (n < 3 ? ". Add " + (3 - n) + " more." : problem == null ? ". Border saved." : ". <red>" + Text.escape(problem)));
+            plugin.send(player, T.t("world-boss-service.corner-at", "<green>Corner <n></green> <gray>at <getx>, <getz><problem>", "n", n, "getx", b.getX(), "getz", b.getZ(), "problem", (n < 3 ? ". Add " + (3 - n) + " more." : problem == null ? ". Border saved." : ". <red>" + Text.escape(problem))));
             show(player, a);
         } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) {
-            if (player.isSneaking()) { show(player, a); plugin.send(player, "<gray>Arena <white>" + a.id + "</white>: " + a.describe() + "."); return; }
+            if (player.isSneaking()) { show(player, a); plugin.send(player, T.t("world-boss-service.arena", "<gray>Arena <white><arena></white>: <border>.", "arena", a.id, "border", a.describe())); return; }
             plugin.send(player, a.undo() ? "<yellow>Removed the last corner. <gray>" + a.points().size() + " left." : "<gray>No corners to remove.");
             save();
             show(player, a);
@@ -1352,6 +1628,7 @@ public final class WorldBossService implements Listener {
         double y = player.getLocation().getY() + 0.5;
         Particle.DustOptions edge = new Particle.DustOptions(Color.fromRGB(0xff3355), 1.5f);
         Particle.DustOptions spawnDust = new Particle.DustOptions(Color.fromRGB(0xffcc00), 2f);
+        Particle.DustOptions noPass = new Particle.DustOptions(Color.fromRGB(0x3399ff), 1.5f);
         int[] runs = {0};
         player.getScheduler().runAtFixedRate(plugin, t -> {
             if (++runs[0] > 10 || !player.isOnline()) { t.cancel(); return; }
@@ -1373,6 +1650,23 @@ public final class WorldBossService implements Listener {
             for (int[] p : pts) player.spawnParticle(Particle.END_ROD, new Location(world, p[0] + 0.5, y + 0.5, p[1] + 0.5), 3, 0, 0.5, 0, 0);
             Location s = a.spawn();
             if (s != null && s.getWorld().equals(world)) player.spawnParticle(Particle.DUST, s.clone().add(0, 1, 0), 20, 0.2, 1, 0.2, 0, spawnDust);
+            // no-pass areas in blue
+            for (double[] z : a.nopass) {
+                if (z[0] == 0) for (int i = 0; i < 48; i++) {
+                    double ang = Math.PI * 2 * i / 48;
+                    player.spawnParticle(Particle.DUST, new Location(world, z[1] + Math.cos(ang) * z[3], y, z[2] + Math.sin(ang) * z[3]), 1, noPass);
+                } else {
+                    double x1 = Math.min(z[1], z[3]), x2 = Math.max(z[1], z[3]) + 1, z1 = Math.min(z[2], z[4]), z2 = Math.max(z[2], z[4]) + 1;
+                    for (double u = 0; u <= 1.0001; u += 1.0 / Math.max(4, Math.min(60, (x2 - x1)))) {
+                        player.spawnParticle(Particle.DUST, new Location(world, x1 + (x2 - x1) * u, y, z1), 1, noPass);
+                        player.spawnParticle(Particle.DUST, new Location(world, x1 + (x2 - x1) * u, y, z2), 1, noPass);
+                    }
+                    for (double u = 0; u <= 1.0001; u += 1.0 / Math.max(4, Math.min(60, (z2 - z1)))) {
+                        player.spawnParticle(Particle.DUST, new Location(world, x1, y, z1 + (z2 - z1) * u), 1, noPass);
+                        player.spawnParticle(Particle.DUST, new Location(world, x2, y, z1 + (z2 - z1) * u), 1, noPass);
+                    }
+                }
+            }
         }, null, 1, 20);
     }
 
@@ -1403,7 +1697,7 @@ public final class WorldBossService implements Listener {
         if (f == null) return;
         if ("boss".equals(victimKind) && plugin.getConfig().getBoolean("world-bosses.only-hurt-from-inside", true) && !f.arena.contains(player.getLocation())) {
             event.setCancelled(true);
-            player.sendActionBar(Text.mm("<red>Step inside the arena to hurt " + f.def.name()));
+            player.sendActionBar(Text.mm(T.t("world-boss-service.step-inside-the-arena-to", "<red>Step inside the arena to hurt <boss>", "boss", f.def.name())));
             return;
         }
         if ("boss".equals(victimKind)) {

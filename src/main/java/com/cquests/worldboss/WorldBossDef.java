@@ -26,7 +26,7 @@ public record WorldBossDef(String id, String name, String title, EntityType enti
     }
 
     public static final Set<String> ABILITIES = Set.of("lightning", "shockwave", "minions", "fire_ring", "pull", "leap",
-            "poison", "blink", "frost", "volley", "darkness", "levitate", "heal", "quake", "detonate", "roar");
+            "poison", "blink", "frost", "volley", "darkness", "levitate", "heal", "quake", "detonate", "roar", "meteor");
     public static final Set<String> SLOTS = Set.of("head", "chest", "legs", "feet", "hand", "offhand");
 
     public boolean seasonal() {

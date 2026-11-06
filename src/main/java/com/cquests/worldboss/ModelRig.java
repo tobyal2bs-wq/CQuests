@@ -18,22 +18,24 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The block models of the world bosses (worldboss-models.json, written by tools/worldboss). A model is
+ * The block models of the bosses (worldboss-models.json, written by tools/worldboss). A model is
  * bones (pivots in model pixels, 16 = one block at scale 1) and cubes (a block stretched between two
  * corners). Animations are keyframes per bone, shared by every boss on the same rig. Pure data and
  * maths, so it is checked without a server.
  *
  * Spawn and death are lists of steps played on the cubes. Each step has an op, a start tick (at), a
  * blend time (dur) and can be spread over the cubes (stagger, order up/down/out/in/random) or limited
- * to some of them (only: lit, unlit, a block id or a bone name prefix). Ops: pose (back to the model's
+ * to some of them (only: lit, unlit, a block id, a bone name prefix, or a detail tag: vein, trim, detail, or plain for the untagged blocks). Ops: pose (back to the model's
  * shape), move, drop (fall to the floor), burst (fly outward), toward (pull to a point), shrink, scale,
- * spin, tilt, swap (change block, "" = the original), light, anim (play a rig animation) and fx
- * (particles, sound, lightning).
+ * spin, tilt, swap (change block, "" = the original), light, anim (play a rig animation), fx
+ * (particles, sound, lightning), fling (thrown in an arc that lands and bounces), shatter (the block
+ * breaks into flying shards), flash (every block turns white or red for a moment) and shake (the whole
+ * model trembles). "only" can start with ! to mean everything except.
  */
 public final class ModelRig {
 
     public static final Set<String> OPS = Set.of("pose", "move", "drop", "burst", "toward", "shrink", "scale", "spin", "tilt",
-            "swap", "light", "anim", "fx");
+            "swap", "light", "anim", "fx", "fling", "shatter", "flash", "shake");
     public static final Set<String> ORDERS = Set.of("none", "up", "down", "out", "in", "random");
 
     /** Keyframes: times and xyz values, eased between keys like the preview does. */
@@ -68,7 +70,17 @@ public final class ModelRig {
     public record Bone(String name, int parent, Vector3f pivot, Vector3f rest) {}
 
     /** One block of the model; {@code local} places a unit block in its bone, in model pixels. */
-    public record Cube(int bone, String block, String base, Matrix4f local, boolean light, float centerY) {}
+    public record Cube(int bone, String block, String base, Matrix4f local, boolean light, float centerY, String tag) {}
+
+    /** How much fine detail the models keep (effects.model-detail): 2 = everything, 1 = no surface
+     * patches, 0 = no patches, trims or fringes either. Glowing veins always stay. Set before load. */
+    public static volatile int detail = 2;
+
+    static boolean keep(String tag) {
+        if (tag.equals("detail")) return detail >= 2;
+        if (tag.equals("trim")) return detail >= 1;
+        return true;
+    }
 
     public record Step(String op, int at, int dur, int stagger, String order, String only, JsonObject params) {
         public float num(String key, float def) {
@@ -108,6 +120,8 @@ public final class ModelRig {
         /** Hit zones, and how tall the real mob's hitbox is next to the model (0..1). */
         public List<Zone> zones = List.of();
         public float hitbox = 1f;
+        /** Cubes on a bone named shell...: only shown during the entrance (an egg, a crate, a cocoon). */
+        public boolean[] entranceOnly = new boolean[0];
 
         Model(String id, String rig, float scale, float height, List<Bone> bones, List<Cube> cubes, Map<String, String> attacks,
               String melee, List<Step> spawn, List<Step> death, Map<String, Anim> anims) {
@@ -134,10 +148,13 @@ public final class ModelRig {
         /** Does a step's "only" filter include this cube. */
         public boolean matches(String only, int cube) {
             if (only == null || only.isEmpty() || only.equals("all")) return true;
+            if (only.startsWith("!")) return !matches(only.substring(1), cube);
             Cube c = cubes.get(cube);
             if (only.equals("lit")) return c.light();
             if (only.equals("unlit")) return !c.light();
             if (c.base().equals(only)) return true;
+            if (!c.tag().isEmpty() && c.tag().equals(only)) return true;
+            if (only.equals("plain")) return c.tag().isEmpty();
             return bones.get(c.bone()).name().startsWith(only);
         }
     }
@@ -192,11 +209,19 @@ public final class ModelRig {
                 }
                 local.translate(f).scale(t.x - f.x, t.y - f.y, t.z - f.z);
                 String block = o.get("k").getAsString();
-                cubes.add(new Cube(bone, block, base(block), local, o.has("l"), (f.y + t.y) / 2));
+                String tag = o.has("g") ? o.get("g").getAsString() : "";
+                if (!keep(tag)) continue;
+                cubes.add(new Cube(bone, block, base(block), local, o.has("l"), (f.y + t.y) / 2, tag));
             }
             Map<String, String> attacks = new LinkedHashMap<>();
             if (m.has("attacks")) for (var a : m.getAsJsonObject("attacks").entrySet()) attacks.put(a.getKey(), a.getValue().getAsString());
             String melee = m.has("melee") && !m.get("melee").isJsonNull() ? m.get("melee").getAsString() : null;
+            // A model can bring its own animations: its attacks and moves are its own, the rig's fill the rest.
+            if (m.has("anims")) {
+                Map<String, Anim> own = new HashMap<>(anims);
+                for (var a : m.getAsJsonObject("anims").entrySet()) own.put(a.getKey(), anim(a.getKey(), a.getValue().getAsJsonObject()));
+                anims = Collections.unmodifiableMap(own);
+            }
             Model model = new Model(e.getKey(), rig, m.get("scale").getAsFloat(), m.get("height").getAsFloat(), List.copyOf(bones),
                     List.copyOf(cubes), Collections.unmodifiableMap(attacks), melee, steps(m.getAsJsonArray("spawn")), steps(m.getAsJsonArray("death")), anims);
             if (m.has("hitbox")) model.hitbox = Math.max(0.2f, Math.min(1f, m.get("hitbox").getAsFloat()));
@@ -208,6 +233,12 @@ public final class ModelRig {
                 zones.add(new Zone(o.get("kind").getAsString(), bone, vec3(o.getAsJsonArray("c")), o.get("w").getAsFloat(), o.get("h").getAsFloat(), o.get("mult").getAsFloat()));
             }
             model.zones = List.copyOf(zones);
+            boolean[] only = new boolean[cubes.size()];
+            for (int i = 0; i < cubes.size(); i++) {
+                int b = cubes.get(i).bone();
+                while (b >= 0 && !only[i]) { if (bones.get(b).name().startsWith("shell")) only[i] = true; b = bones.get(b).parent(); }
+            }
+            model.entranceOnly = only;
             out.put(e.getKey(), model);
         }
         return out;

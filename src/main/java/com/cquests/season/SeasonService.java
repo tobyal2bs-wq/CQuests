@@ -1,5 +1,7 @@
 package com.cquests.season;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.util.Sched;
 import com.cquests.util.Text;
@@ -87,26 +89,25 @@ public final class SeasonService {
 
     public void command(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            plugin.send(sender, "<gold>Seasons</gold> <gray>(/cq season <id> on|off|auto)");
+            plugin.send(sender, T.t("season-service.seasons-cq-season-on-off", "<gold>Seasons</gold> <gray>(/cq season <id> on|off|auto)"));
             for (String id : ids())
-                sender.sendMessage(Text.mm(" <dark_gray>-</dark_gray> <white>" + id + "</white> " + name(id) + " <gray>mode <white>" + mode(id)
-                        + "</white>" + (mode(id).equals("auto") ? " (" + or(plugin.getConfig().getString("seasons." + id + ".from"), "?") + " to "
-                        + or(plugin.getConfig().getString("seasons." + id + ".to"), "?") + ")" : "") + (active(id) ? " <green>● on now" : " <dark_gray>○ off")));
+                sender.sendMessage(Text.mm(T.t("season-service.mode", " <dark_gray>-</dark_gray> <white><id></white> <id2> <gray>mode <white><id3></white><to><off>", "id", id, "id2", name(id), "id3", mode(id), "to", (mode(id).equals("auto") ? " (" + or(plugin.getConfig().getString("seasons." + id + ".from"), "?") + " to "
+                        + or(plugin.getConfig().getString("seasons." + id + ".to"), "?") + ")" : ""), "off", (active(id) ? " <green>● on now" : " <dark_gray>○ off"))));
             return;
         }
         String id = args[1].toLowerCase(Locale.ROOT);
-        if (!ids().contains(id)) { plugin.send(sender, "<red>No season " + Text.escape(id) + ". <gray>Seasons: " + String.join(", ", ids())); return; }
-        if (args.length < 3 || !MODES.contains(args[2].toLowerCase(Locale.ROOT))) { plugin.send(sender, "<yellow>/cq season " + id + " on|off|auto"); return; }
+        if (!ids().contains(id)) { plugin.send(sender, T.t("season-service.no-season-seasons", "<red>No season <id>. <gray>Seasons: <list>", "id", Text.escape(id), "list", String.join(", ", ids()))); return; }
+        if (args.length < 3 || !MODES.contains(args[2].toLowerCase(Locale.ROOT))) { plugin.send(sender, T.t("season-service.cq-season-on-off-auto", "<yellow>/cq season <id> on|off|auto", "id", id)); return; }
         boolean was = active(id);
         plugin.getConfig().set("seasons." + id + ".mode", args[2].toLowerCase(Locale.ROOT));
         plugin.saveConfig();
         boolean now = active(id);
-        plugin.send(sender, "<gray>" + name(id) + " <gray>is now <white>" + mode(id) + "</white>" + (now ? " <green>(running)" : " <dark_gray>(not running)"));
+        plugin.send(sender, T.t("season-service.is-now", "<gray><id> <gray>is now <white><id2></white><running>", "id", name(id), "id2", mode(id), "running", (now ? " <green>(running)" : " <dark_gray>(not running)")));
         if (now && !was) {
             String text = plugin.getConfig().getString("seasons." + id + ".announce", "<gold><bold>✦ " + name(id) + " <gold>has begun!</bold> <gray>Seasonal dailies and a seasonal world boss are here for a limited time.");
             Sched.global(() -> Bukkit.broadcast(Text.mm(text)));
         } else if (was && !now) {
-            Sched.global(() -> Bukkit.broadcast(Text.mm("<gray>" + name(id) + " <gray>has ended. See you next time!")));
+            Sched.global(() -> Bukkit.broadcast(Text.mm(T.t("season-service.has-ended-see-you-next", "<gray><id> <gray>has ended. See you next time!", "id", name(id)))));
         }
     }
 }

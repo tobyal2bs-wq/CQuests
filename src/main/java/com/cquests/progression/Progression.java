@@ -1,5 +1,7 @@
 package com.cquests.progression;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.PlayerData;
 import com.cquests.util.Text;
@@ -41,8 +43,8 @@ public final class Progression {
         int after = level(data);
         if (showHud) hud(player, amount);
         if (after > before) {
-            plugin.send(player, "<gold><bold>WAYFARER LEVEL " + after + "</bold> <white>Your next chapter is closer.");
-            player.sendMessage(Text.mm("<gray>Next level: <aqua>" + Text.formatMoney(curve.remaining(data.skillXp())) + " skill XP</aqua>."));
+            plugin.send(player, T.t("progression.wayfarer-level-your-next-chapter", "<gold><bold>WAYFARER LEVEL <after></bold> <white>Your next chapter is closer.", "after", after));
+            player.sendMessage(Text.mm(T.t("progression.next-level-skill-xp", "<gray>Next level: <aqua><skillxp> skill XP</aqua>.", "skillxp", Text.formatMoney(curve.remaining(data.skillXp())))));
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, .6f, 1.25f);
             plugin.finale().achievements().sync(player);
         }
@@ -50,8 +52,6 @@ public final class Progression {
     public void hud(Player player, long gain) {
         PlayerData data = plugin.questManager().data(player);
         int filled = (int) Math.round(curve.progress(data.skillXp()) * 12);
-        player.sendActionBar(Text.mm("<gold>+" + gain + " skill XP</gold> <dark_gray>│</dark_gray> <aqua>"
-                + "▰".repeat(filled) + "<gray>" + "▱".repeat(12 - filled) + "</gray> <white>"
-                + Math.round(curve.progress(data.skillXp()) * 100) + "%</white> <dark_gray>│</dark_gray> <yellow>Lv " + level(data)));
+        player.sendActionBar(Text.mm(T.t("progression.skill-xp-lv", "<gold>+<gain> skill XP</gold> <dark_gray>│</dark_gray> <aqua><filled><gray><filled2></gray> <white><skillxp>%</white> <dark_gray>│</dark_gray> <yellow>Lv <data>", "gain", gain, "filled", "▰".repeat(filled), "filled2", "▱".repeat(12 - filled), "skillxp", Math.round(curve.progress(data.skillXp()) * 100), "data", level(data))));
     }
 }

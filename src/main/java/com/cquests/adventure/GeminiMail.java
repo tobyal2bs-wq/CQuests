@@ -1,5 +1,7 @@
 package com.cquests.adventure;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.MailEntry;
 import com.cquests.util.Sched;
@@ -44,9 +46,9 @@ public final class GeminiMail {
     }
     public boolean reply(Player player,QuestMail.Letter letter,String message){
         String reason=unavailable();if(reason!=null){plugin.send(player,"<gray>"+reason);return false;}
-        var id=player.getUniqueId();if(!pending.add(id)){plugin.send(player,"<gray>"+bob()+" is still writing your previous answer.");return false;}
+        var id=player.getUniqueId();if(!pending.add(id)){plugin.send(player,T.t("gemini-mail.is-still-writing-your-previous", "<gray><bob> is still writing your previous answer.", "bob", bob()));return false;}
         var data=plugin.questManager().data(player);long now=System.currentTimeMillis();
-        if(!data.reserveAi(now,perPlayer)){pending.remove(id);plugin.send(player,"<gray>Give "+bob()+" 30 seconds between letters. There is also a daily reply limit.");return false;}
+        if(!data.reserveAi(now,perPlayer)){pending.remove(id);plugin.send(player,T.t("gemini-mail.give-30-seconds-between-letters", "<gray>Give <bob> 30 seconds between letters. There is also a daily reply limit.", "bob", bob()));return false;}
         data.addMail(new MailEntry(letter.id(),player.getName(),message,now,true));plugin.store().saveNow(data);
         String request=request(character,letter.body(),data.mailThread().stream().filter(e->e.source().equals(letter.id())).toList(),data.decisions(),data.completedCount());
         String requestModel=model,requestKey=key;
@@ -63,15 +65,15 @@ public final class GeminiMail {
                 if(!running)return;
                 var current=plugin.store().get(id);current.addMail(new MailEntry(letter.id(),"B.O.B",answer,System.currentTimeMillis(),false));
                 if(plugin.isEnabled())plugin.store().saveNow(current);
-                if(plugin.isEnabled())Sched.entity(player,()->{plugin.send(player,"<gold>"+bob()+" has answered your letter. <white>/quest mail");});
+                if(plugin.isEnabled())Sched.entity(player,()->{plugin.send(player,T.t("gemini-mail.has-answered-your-letter-quest", "<gold><bob> has answered your letter. <white>/quest mail", "bob", bob()));});
             }catch(Exception e){
                 // Never include request, API key, response body or character prompt in logs.
                 String category=Objects.toString(e.getMessage(),"");
                 if(running)plugin.getLogger().warning("Gemini mail failed: "+(category.matches("http-[0-9]{3}|daily-limit|response-limit|empty|invalid-response")?category:e.getClass().getSimpleName()));
-                if(running&&plugin.isEnabled())Sched.entity(player,()->plugin.send(player,"<gray>"+bob()+" couldn't send an answer this time. Your letter is saved; try again later."));
+                if(running&&plugin.isEnabled())Sched.entity(player,()->plugin.send(player,T.t("gemini-mail.couldn-t-send-an-answer", "<gray><bob> couldn't send an answer this time. Your letter is saved; try again later.", "bob", bob())));
             }finally{pending.remove(id);}
-        });}catch(RejectedExecutionException e){pending.remove(id);plugin.send(player,"<gray>The courier is busy. Your letter is saved; try again later.");return false;}
-        plugin.send(player,"<gray>Your letter is on its way to "+bob()+". Only this conversation and your quest memories are sent to Gemini.");return true;
+        });}catch(RejectedExecutionException e){pending.remove(id);plugin.send(player,T.t("gemini-mail.the-courier-is-busy-your", "<gray>The courier is busy. Your letter is saved; try again later."));return false;}
+        plugin.send(player,T.t("gemini-mail.your-letter-is-on-its", "<gray>Your letter is on its way to <bob>. Only this conversation and your quest memories are sent to Gemini.", "bob", bob()));return true;
     }
     private synchronized boolean reserveGlobal()throws IOException{
         long day=Math.floorDiv(System.currentTimeMillis(),86_400_000L);if(day>budgetDay){budgetDay=day;budgetCount=0;}

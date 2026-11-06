@@ -1,5 +1,7 @@
 package com.cquests.farm;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.npc.NpcTag;
 import com.cquests.util.Sched;
@@ -79,7 +81,7 @@ public final class FarmListener implements Listener {
             String[] command=e.getMessage().split(" ");
             if(command.length==3&&command[0].equalsIgnoreCase("/quests")&&command[1].equalsIgnoreCase("respond")
                     &&plugin.dialogue().hasResponse(e.getPlayer(),command[2]))return;
-            e.setCancelled(true);plugin.send(e.getPlayer(),"<yellow>Leave the harvest grounds before using commands.");
+            e.setCancelled(true);plugin.send(e.getPlayer(),T.t("farm-listener.leave-the-harvest-grounds-before", "<yellow>Leave the harvest grounds before using commands."));
         }
     }
     @EventHandler(priority=EventPriority.HIGHEST)

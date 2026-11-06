@@ -1,5 +1,7 @@
 package com.cquests.farm;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.util.Sched;
 import org.bukkit.entity.FallingBlock;
@@ -16,10 +18,10 @@ public final class FarmAnvils implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
     public void place(BlockPlaceEvent event){
         if(!plugin.farm().anvilItem(event.getItemInHand()))return;
-        if(!event.getPlayer().isOp()){event.setCancelled(true);plugin.send(event.getPlayer(),"<red>Only OPs can place a Fieldsmith Anvil.");return;}
-        if(!event.getBlock().getRelative(0,-1,0).getType().isSolid()){event.setCancelled(true);plugin.send(event.getPlayer(),"<yellow>Place the Fieldsmith Anvil on a solid floor.");return;}
-        try{plugin.farm().addUpgrader(event.getBlock().getLocation());plugin.send(event.getPlayer(),"<green>Fieldsmith Anvil placed. Right-click to open hoe upgrades.");}
-        catch(RuntimeException failure){event.setCancelled(true);plugin.getLogger().warning("Could not save Fieldsmith Anvil placement.");plugin.send(event.getPlayer(),"<red>The anvil could not be saved. Placement cancelled.");}
+        if(!event.getPlayer().isOp()){event.setCancelled(true);plugin.send(event.getPlayer(),T.t("farm-anvils.only-ops-can-place-a", "<red>Only OPs can place a Fieldsmith Anvil."));return;}
+        if(!event.getBlock().getRelative(0,-1,0).getType().isSolid()){event.setCancelled(true);plugin.send(event.getPlayer(),T.t("farm-anvils.place-the-fieldsmith-anvil-on", "<yellow>Place the Fieldsmith Anvil on a solid floor."));return;}
+        try{plugin.farm().addUpgrader(event.getBlock().getLocation());plugin.send(event.getPlayer(),T.t("farm-anvils.fieldsmith-anvil-placed-right-click", "<green>Fieldsmith Anvil placed. Right-click to open hoe upgrades."));}
+        catch(RuntimeException failure){event.setCancelled(true);plugin.getLogger().warning("Could not save Fieldsmith Anvil placement.");plugin.send(event.getPlayer(),T.t("farm-anvils.the-anvil-could-not-be", "<red>The anvil could not be saved. Placement cancelled."));}
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void interact(PlayerInteractEvent event){
@@ -29,7 +31,7 @@ public final class FarmAnvils implements Listener {
         if(plugin.farm().validUpgrader(player,point))Sched.entity(player,()->FarmMenu.open(plugin,player));
     }
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)
-    public void protect(BlockBreakEvent event){if(plugin.farm().upgrader(event.getBlock())&&!event.getPlayer().isOp()){event.setCancelled(true);plugin.send(event.getPlayer(),"<yellow>Only an OP can remove this Fieldsmith Anvil.");}}
+    public void protect(BlockBreakEvent event){if(plugin.farm().upgrader(event.getBlock())&&!event.getPlayer().isOp()){event.setCancelled(true);plugin.send(event.getPlayer(),T.t("farm-anvils.only-an-op-can-remove", "<yellow>Only an OP can remove this Fieldsmith Anvil."));}}
     @EventHandler(priority=EventPriority.MONITOR,ignoreCancelled=true)
     public void removed(BlockBreakEvent event){if(plugin.farm().upgrader(event.getBlock()))try{plugin.farm().removeUpgrader(event.getBlock().getLocation());}catch(RuntimeException failure){plugin.getLogger().warning("Fieldsmith Anvil removed from memory, but its configuration could not be saved.");}}
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=true)

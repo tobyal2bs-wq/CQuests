@@ -24,6 +24,11 @@ public final class Sched {
         plugin = owner;
     }
 
+    /** The plugin that owns every task. */
+    public static Plugin owner() {
+        return plugin;
+    }
+
     /** Runs on the global region thread (main thread on Paper). Console commands must go here. */
     public static void global(Runnable task) {
         Bukkit.getGlobalRegionScheduler().execute(plugin, task);

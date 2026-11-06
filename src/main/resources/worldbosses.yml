@@ -4,7 +4,7 @@
 # into the world. Everyone who did at least world-bosses.min-damage-percent of its health gets rewards;
 # the top 3 by damage get top-money (split 1/1, 1/2, 1/3) and top-items, and the best gets top-commands.
 # abilities: lightning, shockwave, minions, fire_ring, pull, leap, poison, blink, frost, volley, darkness,
-#            levitate, heal, quake, detonate, roar
+#            levitate, heal, quake, detonate, roar, meteor (falling rocks that leave broken pieces for a while)
 # particle: any Bukkit particle name without extra data (FLAME, SNOWFLAKE, PORTAL, ...). bar: boss bar colour.
 # season: halloween, winter, spring or summer. Seasonal bosses take the weekly slot while that season is on.
 # Each boss is drawn with block displays from worldboss-models.json (its own shape, three attack animations,
@@ -12,102 +12,27 @@
 # 'equipment' only matter with 'model: none' or world-bosses.models: false in config.yml.
 # Try any of them with /cq test worldboss <id>, or all of them with /cq worldboss selftest.
 bosses:
-  gravelord:
-    name: "<gradient:#6a1b9a:#e040fb><bold>The Gravelord</bold></gradient>"
-    title: "Lord of the Restless Dead"
-    entity: WITHER_SKELETON
-    health: 1600
-    scale: 2.2
-    damage: 13
-    armor: 10
-    bar: PURPLE
-    glow: true
-    particle: SOUL_FIRE_FLAME
-    color: "#7b1fa2"
-    equipment:
-      head: NETHERITE_HELMET
-      chest: NETHERITE_CHESTPLATE
-      hand: NETHERITE_SWORD
-    minion: SKELETON
-    minions: 4
-    ability-seconds: 8
-    abilities: [minions, darkness, shockwave, blink]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["NETHERITE_SCRAP 1", "GOLDEN_APPLE 4"]
-      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
-      commands: []
-      top-commands: []
-  molten_colossus:
-    name: "<gradient:#ff6f00:#ffd54f><bold>The Molten Colossus</bold></gradient>"
-    title: "Heart of the Forge"
+  slagheart:
+    name: "<gradient:#3d3d3d:#ff6a00><bold>Slagheart</bold></gradient>"
+    title: "The Molten Colossus"
     entity: IRON_GOLEM
-    health: 2200
-    scale: 2.4
-    damage: 16
-    armor: 12
+    health: 2000
+    scale: 1.6
+    damage: 12
+    armor: 10
     bar: RED
     glow: true
-    particle: LAVA
-    color: "#ff6f00"
-    ability-seconds: 8
-    abilities: [fire_ring, quake, leap, shockwave]
+    particle: FLAME
+    color: "#ff6a00"
+    minion: MAGMA_CUBE
+    minions: 3
+    ability-seconds: 7
+    abilities: [shockwave, quake, meteor, leap, fire_ring]
     rewards:
-      money: 50000
-      top-money: 150000
-      items: ["IRON_BLOCK 4", "GOLDEN_APPLE 3"]
-      top-items: ["NETHERITE_INGOT 1"]
-      commands: []
-      top-commands: []
-  broodmother:
-    name: "<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"
-    title: "Queen of the Deep Webs"
-    entity: SPIDER
-    health: 1400
-    scale: 3.0
-    damage: 10
-    speed: 0.34
-    bar: GREEN
-    glow: true
-    particle: SPORE_BLOSSOM_AIR
-    color: "#558b2f"
-    minion: CAVE_SPIDER
-    minions: 5
-    ability-seconds: 8
-    abilities: [poison, minions, leap, pull]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["STRING 32", "GOLDEN_APPLE 3"]
-      top-items: ["DIAMOND 6"]
-      commands: []
-      top-commands: []
-  frost_jarl:
-    name: "<gradient:#4fc3f7:#e1f5fe><bold>Jarl Hrimfrost</bold></gradient>"
-    title: "The Winter That Walks"
-    entity: STRAY
-    health: 1500
-    scale: 2.1
-    damage: 11
-    armor: 8
-    bar: BLUE
-    glow: true
-    particle: SNOWFLAKE
-    color: "#81d4fa"
-    equipment:
-      head: DIAMOND_HELMET
-      chest: LEATHER_CHESTPLATE
-      hand: BOW
-    minion: STRAY
-    minions: 4
-    ability-seconds: 8
-    abilities: [frost, volley, minions, shockwave]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["BLUE_ICE 16", "GOLDEN_APPLE 3"]
-      top-items: ["DIAMOND 8"]
+      money: 45000
+      top-money: 140000
+      items: ["IRON_BLOCK 3", "MAGMA_BLOCK 16", "DIAMOND 2"]
+      top-items: ["NETHERITE_SCRAP 1"]
       commands: []
       top-commands: []
   warlord_gruk:
@@ -130,12 +55,257 @@ bosses:
     minion: PIGLIN_BRUTE
     minions: 3
     ability-seconds: 8
-    abilities: [leap, shockwave, minions, roar]
+    abilities: [shockwave, leap, minions, quake]
     rewards:
       money: 50000
       top-money: 150000
       items: ["GOLD_BLOCK 4", "GOLDEN_CARROT 16"]
       top-items: ["GOLD_BLOCK 16"]
+      commands: []
+      top-commands: []
+  grand_augur:
+    name: "<gradient:#4a5a8a:#ffd54f><bold>The Grand Augur</bold></gradient>"
+    title: "King of the Illagers"
+    entity: EVOKER
+    health: 1700
+    scale: 1.6
+    damage: 11
+    armor: 6
+    bar: BLUE
+    glow: true
+    particle: WITCH
+    color: "#ffd54f"
+    minion: VINDICATOR
+    minions: 3
+    ability-seconds: 7
+    abilities: [blink, minions, roar, quake, levitate, darkness]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["EMERALD 24", "TOTEM_OF_UNDYING 1"]
+      top-items: ["DIAMOND 4"]
+      commands: []
+      top-commands: []
+  crimson_ronin:
+    name: "<gradient:#8b0000:#ff6b6b><bold>The Crimson Oni</bold></gradient>"
+    title: "Warlord of the Red Mountain"
+    entity: VINDICATOR
+    health: 1800
+    scale: 1.6
+    damage: 13
+    armor: 8
+    bar: RED
+    glow: true
+    particle: CRIMSON_SPORE
+    color: "#ff6b6b"
+    minion: VINDICATOR
+    minions: 2
+    ability-seconds: 7
+    abilities: [shockwave, leap, quake, roar, fire_ring]
+    rewards:
+      money: 45000
+      top-money: 140000
+      items: ["IRON_INGOT 16", "GOLD_INGOT 8", "DIAMOND 2"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      commands: []
+      top-commands: []
+  thunderback:
+    name: "<gradient:#5d3a1a:#ffe14d><bold>Thunderback</bold></gradient>"
+    title: "The Storm Ape"
+    entity: RAVAGER
+    health: 2100
+    scale: 1.6
+    damage: 12
+    armor: 8
+    bar: YELLOW
+    glow: true
+    particle: ELECTRIC_SPARK
+    color: "#ffe14d"
+    ability-seconds: 7
+    abilities: [shockwave, quake, lightning, leap]
+    rewards:
+      money: 45000
+      top-money: 140000
+      items: ["COPPER_BLOCK 8", "LIGHTNING_ROD 4", "DIAMOND 2"]
+      top-items: ["TRIDENT 1"]
+      commands: []
+      top-commands: []
+  gorehorn:
+    name: "<gradient:#3e2723:#ffcc80><bold>Gorehorn</bold></gradient>"
+    title: "Champion of the Pit"
+    entity: RAVAGER
+    health: 2000
+    scale: 1.6
+    damage: 13
+    armor: 8
+    bar: WHITE
+    glow: true
+    particle: CAMPFIRE_COSY_SMOKE
+    color: "#ffcc80"
+    ability-seconds: 7
+    abilities: [leap, shockwave, quake, roar]
+    rewards:
+      money: 45000
+      top-money: 140000
+      items: ["LEATHER 16", "IRON_INGOT 16", "DIAMOND 2"]
+      top-items: ["NETHERITE_SCRAP 1"]
+      commands: []
+      top-commands: []
+  abyssal_eye:
+    name: "<gradient:#003b46:#66fcf1><bold>The Abyssal Eye</bold></gradient>"
+    title: "Sentinel of the Drowned Temple"
+    entity: BLAZE
+    health: 1700
+    scale: 1.6
+    damage: 11
+    armor: 10
+    bar: BLUE
+    glow: true
+    particle: BUBBLE_POP
+    color: "#66fcf1"
+    minion: DROWNED
+    minions: 2
+    ability-seconds: 7
+    abilities: [volley, pull, leap, roar, frost, shockwave]
+    rewards:
+      money: 45000
+      top-money: 140000
+      items: ["PRISMARINE_SHARD 24", "SPONGE 4", "DIAMOND 2"]
+      top-items: ["HEART_OF_THE_SEA 1"]
+      commands: []
+      top-commands: []
+  overgrowth:
+    name: "<gradient:#2d6a4f:#d8a657><bold>Overgrowth</bold></gradient>"
+    title: "The Guardian the Jungle Took"
+    entity: IRON_GOLEM
+    health: 1900
+    scale: 1.6
+    damage: 11
+    armor: 10
+    bar: GREEN
+    glow: true
+    particle: HAPPY_VILLAGER
+    color: "#d8a657"
+    minion: CAVE_SPIDER
+    minions: 3
+    ability-seconds: 7
+    abilities: [shockwave, quake, minions, pull, poison]
+    rewards:
+      money: 42000
+      top-money: 130000
+      items: ["MOSS_BLOCK 16", "GOLDEN_APPLE 3", "DIAMOND 2"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      commands: []
+      top-commands: []
+  prism_sentinel:
+    name: "<gradient:#7b2ff7:#4ef0ff><bold>The Prism Sentinel</bold></gradient>"
+    title: "Cut From the Heart of the Mountain"
+    entity: IRON_GOLEM
+    health: 1900
+    scale: 1.6
+    damage: 11
+    armor: 14
+    bar: PURPLE
+    glow: true
+    particle: WITCH
+    color: "#4ef0ff"
+    ability-seconds: 7
+    abilities: [shockwave, roar, volley, heal, levitate]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["AMETHYST_SHARD 32", "DIAMOND 4"]
+      top-items: ["DIAMOND_BLOCK 1"]
+      commands: []
+      top-commands: []
+  tiki_warden:
+    name: "<gradient:#bf360c:#ffb300><bold>The Tiki Warden</bold></gradient>"
+    title: "Idol of the Burning Isle"
+    entity: ZOMBIE
+    health: 1800
+    scale: 1.6
+    damage: 12
+    armor: 8
+    bar: YELLOW
+    glow: true
+    particle: FLAME
+    color: "#ffb300"
+    minion: BLAZE
+    minions: 2
+    ability-seconds: 7
+    abilities: [meteor, shockwave, leap, quake, fire_ring]
+    rewards:
+      money: 42000
+      top-money: 130000
+      items: ["GOLD_INGOT 12", "BLAZE_ROD 6", "DIAMOND 2"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      commands: []
+      top-commands: []
+  broodmother:
+    name: "<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"
+    title: "Queen of the Deep Webs"
+    entity: SPIDER
+    health: 1400
+    scale: 3.0
+    damage: 10
+    armor: 0
+    bar: GREEN
+    glow: true
+    particle: SPORE_BLOSSOM_AIR
+    color: "#558b2f"
+    minion: CAVE_SPIDER
+    minions: 5
+    ability-seconds: 8
+    abilities: [minions, leap, pull, poison, quake]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["STRING 32", "GOLDEN_APPLE 3"]
+      top-items: ["DIAMOND 6"]
+      commands: []
+      top-commands: []
+  ironhide_behemoth:
+    name: "<gradient:#5d4037:#bcaaa4><bold>The Ironhide Behemoth</bold></gradient>"
+    title: "War Beast of the Raid"
+    entity: RAVAGER
+    health: 2400
+    scale: 1.7
+    damage: 15
+    armor: 12
+    bar: RED
+    glow: true
+    particle: CAMPFIRE_COSY_SMOKE
+    color: "#6d4c41"
+    ability-seconds: 8
+    abilities: [leap, quake, roar, shockwave]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["EMERALD 24", "GOLDEN_APPLE 3"]
+      top-items: ["EMERALD_BLOCK 6"]
+      commands: []
+      top-commands: []
+  fenrir:
+    name: "<gradient:#424242:#e0e0e0><bold>Fenrir</bold></gradient>"
+    title: "The Wolf That Swallows the Moon"
+    entity: WOLF
+    health: 1500
+    scale: 3.0
+    damage: 13
+    armor: 8
+    bar: WHITE
+    glow: true
+    particle: WHITE_ASH
+    color: "#9e9e9e"
+    minion: WOLF
+    minions: 4
+    ability-seconds: 8
+    abilities: [frost, minions, leap, shockwave, roar]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["BONE 32", "GOLDEN_APPLE 3"]
+      top-items: ["DIAMOND 8"]
       commands: []
       top-commands: []
   tide_tyrant:
@@ -156,12 +326,33 @@ bosses:
     minion: DROWNED
     minions: 4
     ability-seconds: 8
-    abilities: [pull, volley, frost, minions]
+    abilities: [volley, pull, leap, shockwave, frost, minions]
     rewards:
       money: 50000
       top-money: 150000
       items: ["PRISMARINE_SHARD 16", "GOLDEN_APPLE 3"]
       top-items: ["HEART_OF_THE_SEA 1"]
+      commands: []
+      top-commands: []
+  void_walker:
+    name: "<gradient:#311b92:#b388ff><bold>The Void Walker</bold></gradient>"
+    title: "It Was Never Really Here"
+    entity: ENDERMAN
+    health: 1400
+    scale: 1.6
+    damage: 13
+    armor: 6
+    bar: PURPLE
+    glow: true
+    particle: REVERSE_PORTAL
+    color: "#651fff"
+    ability-seconds: 6
+    abilities: [blink, volley, darkness, pull, roar, levitate]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["ENDER_PEARL 16", "GOLDEN_APPLE 3"]
+      top-items: ["SHULKER_SHELL 4"]
       commands: []
       top-commands: []
   storm_herald:
@@ -177,152 +368,11 @@ bosses:
     particle: ELECTRIC_SPARK
     color: "#5c6bc0"
     ability-seconds: 7
-    abilities: [lightning, levitate, blink, pull]
+    abilities: [lightning, volley, pull, blink, meteor, levitate]
     rewards:
       money: 50000
       top-money: 150000
       items: ["LAPIS_BLOCK 4", "GOLDEN_APPLE 3"]
-      top-items: ["TOTEM_OF_UNDYING 1"]
-      commands: []
-      top-commands: []
-  ironhide_behemoth:
-    name: "<gradient:#5d4037:#bcaaa4><bold>The Ironhide Behemoth</bold></gradient>"
-    title: "War Beast of the Raid"
-    entity: RAVAGER
-    rider: PILLAGER
-    health: 2400
-    scale: 1.7
-    damage: 15
-    armor: 12
-    bar: RED
-    glow: true
-    particle: CAMPFIRE_COSY_SMOKE
-    color: "#6d4c41"
-    ability-seconds: 8
-    abilities: [leap, shockwave, roar, quake]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["EMERALD 24", "GOLDEN_APPLE 3"]
-      top-items: ["EMERALD_BLOCK 6"]
-      commands: []
-      top-commands: []
-  bloodtusk:
-    name: "<gradient:#b71c1c:#ff8a80><bold>Bloodtusk</bold></gradient>"
-    title: "The Crimson Charger"
-    entity: HOGLIN
-    health: 1800
-    scale: 2.0
-    damage: 14
-    speed: 0.36
-    armor: 8
-    bar: RED
-    glow: true
-    particle: CRIMSON_SPORE
-    color: "#c62828"
-    minion: HOGLIN
-    minions: 2
-    ability-seconds: 8
-    abilities: [leap, shockwave, minions, roar]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["COOKED_PORKCHOP 32", "GOLDEN_APPLE 3"]
-      top-items: ["NETHERITE_SCRAP 2"]
-      commands: []
-      top-commands: []
-  cinder_sovereign:
-    name: "<gradient:#ff3d00:#ffea00><bold>The Cinder Sovereign</bold></gradient>"
-    title: "Crowned in Living Flame"
-    entity: BLAZE
-    health: 1300
-    scale: 2.3
-    damage: 10
-    armor: 6
-    bar: YELLOW
-    glow: true
-    particle: FLAME
-    color: "#ff9100"
-    minion: BLAZE
-    minions: 3
-    ability-seconds: 8
-    abilities: [fire_ring, minions, blink, levitate]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["BLAZE_ROD 12", "GOLDEN_APPLE 3"]
-      top-items: ["NETHER_STAR 1"]
-      commands: []
-      top-commands: []
-  volatile_colossus:
-    name: "<gradient:#00e676:#ccff90><bold>The Volatile Colossus</bold></gradient>"
-    title: "It Hisses. It Never Stops."
-    entity: CREEPER
-    health: 1400
-    scale: 2.6
-    damage: 0
-    speed: 0.3
-    armor: 6
-    bar: GREEN
-    glow: true
-    particle: HAPPY_VILLAGER
-    color: "#00e676"
-    ability-seconds: 6
-    abilities: [detonate, detonate, leap, pull]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["TNT 8", "GOLDEN_APPLE 3"]
-      top-items: ["MUSIC_DISC_PIGSTEP 1"]
-      commands: []
-      top-commands: []
-  king_gloop:
-    name: "<gradient:#7cb342:#dce775><bold>King Gloop</bold></gradient>"
-    title: "Monarch of the Swamp"
-    entity: SLIME
-    size: 10
-    health: 1600
-    scale: 1
-    damage: 12
-    armor: 6
-    bar: GREEN
-    glow: true
-    particle: ITEM_SLIME
-    color: "#9ccc65"
-    minion: SLIME
-    minions: 4
-    ability-seconds: 8
-    abilities: [leap, quake, minions, poison]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["SLIME_BLOCK 8", "GOLDEN_APPLE 3"]
-      top-items: ["DIAMOND 8"]
-      commands: []
-      top-commands: []
-  executioner:
-    name: "<gradient:#263238:#90a4ae><bold>The Executioner</bold></gradient>"
-    title: "Axe of the Woodland Mansion"
-    entity: VINDICATOR
-    health: 1500
-    scale: 1.9
-    damage: 17
-    armor: 10
-    bar: WHITE
-    glow: true
-    particle: SMOKE
-    color: "#455a64"
-    equipment:
-      head: NETHERITE_HELMET
-      hand: NETHERITE_AXE
-    minion: VINDICATOR
-    minions: 3
-    ability-seconds: 8
-    abilities: [leap, shockwave, minions, roar]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["EMERALD 24", "GOLDEN_APPLE 3"]
       top-items: ["TOTEM_OF_UNDYING 1"]
       commands: []
       top-commands: []
@@ -345,7 +395,7 @@ bosses:
     minion: HUSK
     minions: 4
     ability-seconds: 8
-    abilities: [darkness, poison, minions, blink]
+    abilities: [minions, blink, darkness, quake, poison, volley]
     rewards:
       money: 50000
       top-money: 150000
@@ -353,166 +403,264 @@ bosses:
       top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
       commands: []
       top-commands: []
-  ruinmaw:
-    name: "<gradient:#ad1457:#f48fb1><bold>Ruinmaw</bold></gradient>"
-    title: "The Rotting Juggernaut"
-    entity: ZOGLIN
-    health: 2000
-    scale: 2.2
-    damage: 15
-    speed: 0.35
-    armor: 10
-    bar: PINK
-    glow: true
-    particle: DAMAGE_INDICATOR
-    color: "#d81b60"
-    ability-seconds: 8
-    abilities: [leap, quake, shockwave, roar]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["LEATHER 24", "GOLDEN_APPLE 3"]
-      top-items: ["NETHERITE_SCRAP 2"]
-      commands: []
-      top-commands: []
-  hexmother:
-    name: "<gradient:#6a1b9a:#ce93d8><bold>Hexmother Morwen</bold></gradient>"
-    title: "Brewer of a Thousand Curses"
-    entity: WITCH
-    health: 1200
+  executioner:
+    name: "<gradient:#263238:#90a4ae><bold>The Executioner</bold></gradient>"
+    title: "Axe of the Woodland Mansion"
+    entity: VINDICATOR
+    health: 1500
     scale: 1.9
-    damage: 8
-    armor: 4
-    bar: PURPLE
-    glow: true
-    particle: WITCH
-    color: "#8e24aa"
-    ability-seconds: 7
-    abilities: [levitate, poison, blink, heal, darkness]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["BREWING_STAND 1", "GLOWSTONE_DUST 32", "GOLDEN_APPLE 3"]
-      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
-      commands: []
-      top-commands: []
-  void_walker:
-    name: "<gradient:#311b92:#b388ff><bold>The Void Walker</bold></gradient>"
-    title: "It Was Never Really Here"
-    entity: ENDERMAN
-    health: 1400
-    scale: 1.6
-    damage: 13
-    armor: 6
-    bar: PURPLE
-    glow: true
-    particle: REVERSE_PORTAL
-    color: "#651fff"
-    ability-seconds: 6
-    abilities: [blink, darkness, levitate, pull]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["ENDER_PEARL 16", "GOLDEN_APPLE 3"]
-      top-items: ["SHULKER_SHELL 4"]
-      commands: []
-      top-commands: []
-  fenrir:
-    name: "<gradient:#424242:#e0e0e0><bold>Fenrir</bold></gradient>"
-    title: "The Wolf That Swallows the Moon"
-    entity: WOLF
-    health: 1500
-    scale: 3.0
-    damage: 13
-    speed: 0.42
-    armor: 8
-    bar: WHITE
-    glow: true
-    particle: WHITE_ASH
-    color: "#9e9e9e"
-    minion: WOLF
-    minions: 4
-    ability-seconds: 8
-    abilities: [leap, frost, minions, roar]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["BONE 32", "GOLDEN_APPLE 3"]
-      top-items: ["DIAMOND 8"]
-      commands: []
-      top-commands: []
-  tempest:
-    name: "<gradient:#80deea:#ffffff><bold>Tempest</bold></gradient>"
-    title: "The Storm Given Form"
-    entity: BREEZE
-    health: 1200
-    scale: 2.5
-    damage: 10
-    armor: 6
-    bar: WHITE
-    glow: true
-    particle: GUST
-    color: "#b2ebf2"
-    minion: BREEZE
-    minions: 2
-    ability-seconds: 7
-    abilities: [levitate, pull, shockwave, lightning]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["BREEZE_ROD 8", "GOLDEN_APPLE 3"]
-      top-items: ["HEAVY_CORE 1"]
-      commands: []
-      top-commands: []
-  pale_watcher:
-    name: "<gradient:#757575:#ff6d00><bold>The Pale Watcher</bold></gradient>"
-    title: "Don't Look Away"
-    entity: CREAKING
-    health: 1500
-    scale: 2.0
-    damage: 14
+    damage: 17
     armor: 10
     bar: WHITE
     glow: true
-    particle: WHITE_ASH
-    color: "#ff6d00"
+    particle: SMOKE
+    color: "#455a64"
+    equipment:
+      head: NETHERITE_HELMET
+      hand: NETHERITE_AXE
+    minion: VINDICATOR
+    minions: 3
     ability-seconds: 8
-    abilities: [darkness, blink, quake, roar]
+    abilities: [shockwave, leap, quake, pull, minions]
     rewards:
       money: 50000
       top-money: 150000
-      items: ["PALE_OAK_LOG 32", "GOLDEN_APPLE 3"]
-      top-items: ["RESIN_BLOCK 8"]
+      items: ["EMERALD 24", "GOLDEN_APPLE 3"]
+      top-items: ["TOTEM_OF_UNDYING 1"]
       commands: []
       top-commands: []
-  headless_horseman:
-    name: "<gradient:#e65100:#ffab40><bold>The Headless Horseman</bold></gradient>"
-    title: "Rider of All Hallows' Eve"
-    entity: SKELETON
-    mount: SKELETON_HORSE
-    health: 1600
-    scale: 1.8
-    damage: 12
+  ember_queen:
+    name: "<gradient:#9d0208:#ffba08><bold>The Ember Queen</bold></gradient>"
+    title: "Queen of the Ember Court"
+    entity: BLAZE
+    health: 2000
+    scale: 1.6
+    damage: 11
     armor: 8
     bar: RED
     glow: true
     particle: FLAME
-    color: "#ff6d00"
+    color: "#ffba08"
+    minion: BLAZE
+    minions: 2
+    ability-seconds: 6
+    abilities: [meteor, minions, blink, fire_ring, volley]
+    rewards:
+      money: 40000
+      top-money: 120000
+      items: ["BLAZE_ROD 8", "DIAMOND 3"]
+      top-items: []
+      commands: []
+      top-commands: []
+  gravelord:
+    name: "<gradient:#6a1b9a:#e040fb><bold>The Gravelord</bold></gradient>"
+    title: "Lord of the Restless Dead"
+    entity: WITHER_SKELETON
+    health: 1600
+    scale: 2.2
+    damage: 13
+    armor: 10
+    bar: PURPLE
+    glow: true
+    particle: SOUL_FIRE_FLAME
+    color: "#7b1fa2"
     equipment:
-      head: JACK_O_LANTERN
-      chest: LEATHER_CHESTPLATE
-      legs: LEATHER_LEGGINGS
-      hand: BOW
+      head: NETHERITE_HELMET
+      chest: NETHERITE_CHESTPLATE
+      hand: NETHERITE_SWORD
     minion: SKELETON
-    minions: 3
+    minions: 4
     ability-seconds: 8
-    abilities: [volley, fire_ring, darkness, minions]
-    season: halloween
+    abilities: [minions, darkness, pull, volley, quake, shockwave]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["NETHERITE_SCRAP 1", "GOLDEN_APPLE 4"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      commands: []
+      top-commands: []
+  captain_brine:
+    name: "<gradient:#005f73:#94d2bd><bold>Captain Brine</bold></gradient>"
+    title: "Captain of the Drowned"
+    entity: DROWNED
+    health: 1900
+    scale: 1.6
+    damage: 10
+    armor: 8
+    bar: BLUE
+    glow: true
+    particle: BUBBLE_POP
+    color: "#94d2bd"
+    minion: DROWNED
+    minions: 3
+    ability-seconds: 7
+    abilities: [minions, leap, pull, meteor, shockwave, frost]
+    rewards:
+      money: 34000
+      top-money: 102000
+      items: ["PRISMARINE_SHARD 16", "DIAMOND 2", "HEART_OF_THE_SEA 1"]
+      top-items: []
+      commands: []
+      top-commands: []
+  keywarden:
+    name: "<gradient:#b8860b:#fff3b0><bold>The Keywarden</bold></gradient>"
+    title: "Guardian of the Five Keys"
+    entity: IRON_GOLEM
+    health: 1800
+    scale: 1.6
+    damage: 9
+    armor: 12
+    bar: YELLOW
+    glow: true
+    particle: WAX_ON
+    color: "#fff3b0"
+    minion: SILVERFISH
+    minions: 3
+    ability-seconds: 7
+    abilities: [shockwave, leap, minions, darkness, volley]
+    rewards:
+      money: 20000
+      top-money: 60000
+      items: ["GOLD_INGOT 16", "DIAMOND 1"]
+      top-items: []
+      commands: []
+      top-commands: []
+  bloodtusk:
+    name: "<gradient:#b71c1c:#ff8a80><bold>Bloodtusk</bold></gradient>"
+    title: "The Crimson Charger"
+    entity: HOGLIN
+    health: 1800
+    scale: 2.0
+    damage: 14
+    armor: 8
+    bar: RED
+    glow: true
+    particle: CRIMSON_SPORE
+    color: "#c62828"
+    minion: HOGLIN
+    minions: 2
+    ability-seconds: 8
+    abilities: [leap, quake, roar, shockwave, minions]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["COOKED_PORKCHOP 32", "GOLDEN_APPLE 3"]
+      top-items: ["NETHERITE_SCRAP 2"]
+      commands: []
+      top-commands: []
+  king_gloop:
+    name: "<gradient:#7cb342:#dce775><bold>King Gloop</bold></gradient>"
+    title: "Monarch of the Swamp"
+    entity: SLIME
+    health: 1600
+    scale: 1
+    damage: 12
+    armor: 6
+    bar: GREEN
+    glow: true
+    particle: ITEM_SLIME
+    color: "#9ccc65"
+    minion: SLIME
+    minions: 4
+    ability-seconds: 8
+    abilities: [leap, quake, minions, poison, shockwave]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["SLIME_BLOCK 8", "GOLDEN_APPLE 3"]
+      top-items: ["DIAMOND 8"]
+      commands: []
+      top-commands: []
+  the_listener:
+    name: "<gradient:#052e33:#4ae3e3><bold>THE LISTENER BELOW</bold></gradient>"
+    title: "It Hears Your Heartbeat"
+    entity: IRON_GOLEM
+    health: 3600
+    scale: 1.6
+    damage: 15
+    armor: 14
+    bar: BLUE
+    glow: true
+    particle: SCULK_SOUL
+    color: "#4ae3e3"
+    ability-seconds: 5
+    abilities: [shockwave, darkness, quake, roar, pull, leap]
+    rewards:
+      money: 100000
+      top-money: 300000
+      items: ["DIAMOND 8", "NETHERITE_INGOT 1", "ECHO_SHARD 4"]
+      top-items: []
+      commands: []
+      top-commands: []
+  withered_tyrant:
+    name: "<gradient:#2b2b2b:#8b0000><bold>The Withered Tyrant</bold></gradient>"
+    title: "Three Skulls, One Hunger"
+    entity: WITHER_SKELETON
+    health: 2600
+    scale: 1.6
+    damage: 14
+    armor: 12
+    bar: PURPLE
+    glow: true
+    particle: SMOKE
+    color: "#8b0000"
+    minion: WITHER_SKELETON
+    minions: 3
+    ability-seconds: 6
+    abilities: [volley, minions, leap, shockwave, darkness, meteor, blink]
+    rewards:
+      money: 80000
+      top-money: 250000
+      items: ["NETHER_STAR 1", "GOLDEN_APPLE 6"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 2"]
+      commands: []
+      top-commands: []
+  killer_claus:
+    name: "<gradient:#b30000:#ffffff><bold>Killer Claus</bold></gradient>"
+    title: "He Knows If You've Been Bad"
+    entity: ZOMBIE
+    health: 2000
+    scale: 1.6
+    damage: 12
+    armor: 6
+    bar: RED
+    glow: true
+    particle: SNOWFLAKE
+    color: "#ffffff"
+    minion: STRAY
+    minions: 4
+    season: winter
+    ability-seconds: 6
+    abilities: [minions, quake, meteor, pull, volley, frost]
+    rewards:
+      money: 60000
+      top-money: 180000
+      items: ["COOKIE 32", "DIAMOND 3"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      commands: []
+      top-commands: []
+  frostbottom:
+    name: "<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"
+    title: "The Snowman With a Grudge"
+    entity: STRAY
+    health: 1600
+    scale: 2.0
+    damage: 12
+    armor: 8
+    bar: WHITE
+    glow: true
+    particle: SNOWFLAKE
+    color: "#b3e5fc"
+    minion: STRAY
+    minions: 4
+    season: winter
+    ability-seconds: 8
+    abilities: [frost, minions, volley, leap, shockwave]
     rewards:
       money: 60000
       top-money: 200000
-      items: ["PUMPKIN_PIE 16", "JACK_O_LANTERN 4"]
-      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      items: ["SNOW_BLOCK 16", "CARROT 32"]
+      top-items: ["DIAMOND 8"]
       commands: []
       top-commands: []
   old_man_winter:
@@ -533,9 +681,9 @@ bosses:
       hand: BOW
     minion: STRAY
     minions: 4
-    ability-seconds: 8
-    abilities: [frost, volley, shockwave, minions]
     season: winter
+    ability-seconds: 8
+    abilities: [frost, quake, minions, levitate, volley, shockwave]
     rewards:
       money: 60000
       top-money: 200000
@@ -543,36 +691,10 @@ bosses:
       top-items: ["DIAMOND 12"]
       commands: []
       top-commands: []
-  killer_bunny:
-    name: "<gradient:#ffffff:#ff1744><bold>The Killer Bunny</bold></gradient>"
-    title: "Small, Fluffy, Merciless"
-    entity: RABBIT
-    health: 900
-    scale: 3.5
-    damage: 12
-    speed: 0.5
-    armor: 4
-    bar: PINK
-    glow: true
-    particle: CHERRY_LEAVES
-    color: "#ff80ab"
-    minion: RABBIT
-    minions: 4
-    ability-seconds: 8
-    abilities: [leap, leap, minions, shockwave]
-    season: spring
-    rewards:
-      money: 60000
-      top-money: 200000
-      items: ["RABBIT_STEW 4", "GOLDEN_CARROT 16"]
-      top-items: ["RABBIT_FOOT 4"]
-      commands: []
-      top-commands: []
   sunscorch:
     name: "<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>"
     title: "Melting On Holiday"
     entity: MAGMA_CUBE
-    size: 10
     health: 1500
     scale: 1
     damage: 12
@@ -583,14 +705,134 @@ bosses:
     color: "#ffab00"
     minion: MAGMA_CUBE
     minions: 3
-    ability-seconds: 8
-    abilities: [fire_ring, leap, quake, volley]
     season: summer
+    ability-seconds: 8
+    abilities: [leap, quake, fire_ring, volley, meteor]
     rewards:
       money: 60000
       top-money: 200000
       items: ["MAGMA_BLOCK 16", "MELON_SLICE 32"]
       top-items: ["NETHERITE_SCRAP 2"]
+      commands: []
+      top-commands: []
+  admiral_pinchworth:
+    name: "<gradient:#ff5252:#ffd180><bold>Admiral Pinchworth</bold></gradient>"
+    title: "Lord of the Sandcastle"
+    entity: SPIDER
+    health: 1500
+    scale: 2.0
+    damage: 12
+    armor: 10
+    bar: RED
+    glow: true
+    particle: SPLASH
+    color: "#ff5252"
+    minion: SILVERFISH
+    minions: 5
+    season: summer
+    ability-seconds: 8
+    abilities: [leap, minions, pull, volley, levitate]
+    rewards:
+      money: 60000
+      top-money: 200000
+      items: ["SAND 32", "TROPICAL_FISH 8"]
+      top-items: ["HEART_OF_THE_SEA 1"]
+      commands: []
+      top-commands: []
+  brain_freeze:
+    name: "<gradient:#ff8fc8:#9fffd0><bold>Brain Freeze</bold></gradient>"
+    title: "The Sundae Supreme"
+    entity: ZOMBIE
+    health: 1800
+    scale: 1.6
+    damage: 10
+    armor: 4
+    bar: PINK
+    glow: true
+    particle: CHERRY_LEAVES
+    color: "#9fffd0"
+    minion: SLIME
+    minions: 4
+    season: summer
+    ability-seconds: 6
+    abilities: [volley, minions, frost, shockwave, levitate]
+    rewards:
+      money: 55000
+      top-money: 160000
+      items: ["COOKIE 16", "MELON_SLICE 32", "DIAMOND 2"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      commands: []
+      top-commands: []
+  clucksworth:
+    name: "<gradient:#ffffff:#ff5252><bold>Clucksworth</bold></gradient>"
+    title: "The Chicken That Came First"
+    entity: ZOMBIE
+    health: 1400
+    scale: 2.0
+    damage: 12
+    armor: 6
+    bar: WHITE
+    glow: true
+    particle: CLOUD
+    color: "#ffeb3b"
+    minion: ZOMBIE
+    minions: 4
+    season: spring
+    ability-seconds: 8
+    abilities: [volley, shockwave, minions, leap]
+    rewards:
+      money: 60000
+      top-money: 200000
+      items: ["EGG 16", "COOKED_CHICKEN 16"]
+      top-items: ["DIAMOND 8"]
+      commands: []
+      top-commands: []
+  killer_bunny:
+    name: "<gradient:#ffffff:#ff1744><bold>The Killer Bunny</bold></gradient>"
+    title: "Small, Fluffy, Merciless"
+    entity: RABBIT
+    health: 900
+    scale: 3.5
+    damage: 12
+    armor: 4
+    bar: PINK
+    glow: true
+    particle: CHERRY_LEAVES
+    color: "#ff80ab"
+    minion: RABBIT
+    minions: 4
+    season: spring
+    ability-seconds: 8
+    abilities: [volley, leap, minions, shockwave, quake]
+    rewards:
+      money: 60000
+      top-money: 200000
+      items: ["RABBIT_STEW 4", "GOLDEN_CARROT 16"]
+      top-items: ["RABBIT_FOOT 4"]
+      commands: []
+      top-commands: []
+  cocoa_colossus:
+    name: "<gradient:#4e2a1e:#ffcf6b><bold>The Cocoa Colossus</bold></gradient>"
+    title: "The Egg That Fought Back"
+    entity: IRON_GOLEM
+    health: 1700
+    scale: 1.6
+    damage: 11
+    armor: 10
+    bar: YELLOW
+    glow: true
+    particle: CHERRY_LEAVES
+    color: "#ffcf6b"
+    minion: RABBIT
+    minions: 3
+    season: spring
+    ability-seconds: 7
+    abilities: [shockwave, quake, minions, volley]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["COCOA_BEANS 32", "COOKIE 32", "DIAMOND 2"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
       commands: []
       top-commands: []
   great_gourd:
@@ -607,9 +849,9 @@ bosses:
     color: "#ff9100"
     minion: ZOMBIE
     minions: 4
-    ability-seconds: 8
-    abilities: [fire_ring, minions, poison, leap]
     season: halloween
+    ability-seconds: 8
+    abilities: [minions, volley, leap, fire_ring, meteor, shockwave]
     rewards:
       money: 60000
       top-money: 200000
@@ -617,77 +859,56 @@ bosses:
       top-items: ["DIAMOND 8"]
       commands: []
       top-commands: []
-  frostbottom:
-    name: "<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"
-    title: "The Snowman With a Grudge"
-    entity: STRAY
+  headless_horseman:
+    name: "<gradient:#e65100:#ffab40><bold>The Headless Horseman</bold></gradient>"
+    title: "Rider of All Hallows' Eve"
+    entity: SKELETON
     health: 1600
-    scale: 2.0
+    scale: 1.8
     damage: 12
     armor: 8
-    bar: WHITE
-    glow: true
-    particle: SNOWFLAKE
-    color: "#b3e5fc"
-    minion: STRAY
-    minions: 4
-    ability-seconds: 8
-    abilities: [frost, volley, quake, minions]
-    season: winter
-    rewards:
-      money: 60000
-      top-money: 200000
-      items: ["SNOW_BLOCK 16", "CARROT 32"]
-      top-items: ["DIAMOND 8"]
-      commands: []
-      top-commands: []
-  clucksworth:
-    name: "<gradient:#ffffff:#ff5252><bold>Clucksworth</bold></gradient>"
-    title: "The Chicken That Came First"
-    entity: ZOMBIE
-    health: 1400
-    scale: 2.0
-    damage: 12
-    speed: 0.3
-    armor: 6
-    bar: WHITE
-    glow: true
-    particle: CLOUD
-    color: "#ffeb3b"
-    minion: ZOMBIE
-    minions: 4
-    ability-seconds: 8
-    abilities: [leap, minions, shockwave, volley]
-    season: spring
-    rewards:
-      money: 60000
-      top-money: 200000
-      items: ["EGG 16", "COOKED_CHICKEN 16"]
-      top-items: ["DIAMOND 8"]
-      commands: []
-      top-commands: []
-  admiral_pinchworth:
-    name: "<gradient:#ff5252:#ffd180><bold>Admiral Pinchworth</bold></gradient>"
-    title: "Lord of the Sandcastle"
-    entity: SPIDER
-    health: 1500
-    scale: 2.0
-    damage: 12
-    speed: 0.32
-    armor: 10
     bar: RED
     glow: true
-    particle: SPLASH
-    color: "#ff5252"
-    minion: SILVERFISH
-    minions: 5
+    particle: FLAME
+    color: "#ff6d00"
+    equipment:
+      head: JACK_O_LANTERN
+      chest: LEATHER_CHESTPLATE
+      legs: LEATHER_LEGGINGS
+      hand: BOW
+    minion: SKELETON
+    minions: 3
+    season: halloween
     ability-seconds: 8
-    abilities: [leap, minions, pull, volley]
-    season: summer
+    abilities: [leap, minions, fire_ring, meteor, shockwave, pull]
     rewards:
       money: 60000
       top-money: 200000
-      items: ["SAND 32", "TROPICAL_FISH 8"]
-      top-items: ["HEART_OF_THE_SEA 1"]
+      items: ["PUMPKIN_PIE 16", "JACK_O_LANTERN 4"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
+      commands: []
+      top-commands: []
+  hexmother:
+    name: "<gradient:#6a1b9a:#ce93d8><bold>Hexmother Morwen</bold></gradient>"
+    title: "Brewer of a Thousand Curses"
+    entity: WITCH
+    health: 1200
+    scale: 1.9
+    damage: 8
+    armor: 4
+    bar: PURPLE
+    glow: true
+    particle: WITCH
+    color: "#8e24aa"
+    minion: VEX
+    minions: 3
+    season: halloween
+    ability-seconds: 7
+    abilities: [minions, blink, darkness, volley, levitate, heal]
+    rewards:
+      money: 50000
+      top-money: 150000
+      items: ["BREWING_STAND 1", "GLOWSTONE_DUST 32", "GOLDEN_APPLE 3"]
+      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
       commands: []
       top-commands: []
