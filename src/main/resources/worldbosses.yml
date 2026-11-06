@@ -241,29 +241,6 @@ bosses:
       top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
       commands: []
       top-commands: []
-  hollow_king:
-    name: "<gradient:#1b263b:#7fd1ff><bold>THE HOLLOW KING</bold></gradient>"
-    title: "The King Wakes"
-    entity: WITHER_SKELETON
-    health: 2200
-    scale: 1.6
-    damage: 13
-    armor: 12
-    bar: BLUE
-    glow: true
-    particle: SOUL_FIRE_FLAME
-    color: "#7fd1ff"
-    minion: WITHER_SKELETON
-    minions: 3
-    ability-seconds: 6
-    abilities: [shockwave, minions, leap, volley, darkness]
-    rewards:
-      money: 60000
-      top-money: 180000
-      items: ["DIAMOND 4", "GOLDEN_APPLE 4", "NETHERITE_SCRAP 1"]
-      top-items: []
-      commands: []
-      top-commands: []
   broodmother:
     name: "<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"
     title: "Queen of the Deep Webs"
@@ -636,52 +613,6 @@ bosses:
       top-money: 250000
       items: ["NETHER_STAR 1", "GOLDEN_APPLE 6"]
       top-items: ["ENCHANTED_GOLDEN_APPLE 2"]
-      commands: []
-      top-commands: []
-  ender_wyrm:
-    name: "<gradient:#1a0033:#d14bff><bold>Vorthax the Ender Wyrm</bold></gradient>"
-    title: "Dragon of the Outer Dark"
-    entity: PHANTOM
-    health: 3000
-    scale: 1.6
-    damage: 13
-    armor: 8
-    bar: PINK
-    glow: true
-    particle: PORTAL
-    color: "#d14bff"
-    minion: ENDERMITE
-    minions: 4
-    ability-seconds: 6
-    abilities: [fire_ring, leap, minions, shockwave, blink, volley, meteor, levitate]
-    rewards:
-      money: 90000
-      top-money: 300000
-      items: ["DRAGON_BREATH 4", "ENDER_PEARL 8", "SHULKER_SHELL 2"]
-      top-items: ["ELYTRA 1"]
-      commands: []
-      top-commands: []
-  gale_sovereign:
-    name: "<gradient:#5fb3a8:#e0f7fa><bold>The Gale Sovereign</bold></gradient>"
-    title: "Lord of the Trial Winds"
-    entity: BREEZE
-    health: 2800
-    scale: 1.6
-    damage: 13
-    armor: 10
-    bar: WHITE
-    glow: true
-    particle: CLOUD
-    color: "#e0f7fa"
-    minion: BREEZE
-    minions: 2
-    ability-seconds: 5
-    abilities: [pull, shockwave, volley, leap, levitate, blink]
-    rewards:
-      money: 85000
-      top-money: 280000
-      items: ["BREEZE_ROD 8", "WIND_CHARGE 32", "DIAMOND 4"]
-      top-items: ["HEAVY_CORE 1"]
       commands: []
       top-commands: []
   killer_claus:
