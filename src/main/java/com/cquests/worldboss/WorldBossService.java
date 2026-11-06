@@ -196,12 +196,36 @@ public final class WorldBossService implements Listener {
         BossModel.viewDistance = Math.max(32, cfg.getInt("world-bosses.model-view-distance", 96));
         BossModel.particles = Math.max(0, Math.min(2, cfg.getDouble("world-bosses.particle-multiplier", 1.0)));
         BlockFx.max = Math.max(0, Math.min(64, cfg.getInt("world-bosses.max-block-effects", 48)));
+        Map<String, ModelRig.Model> loaded = new java.util.HashMap<>();
         try (var in = plugin.getResource("worldboss-models.json")) {
-            models = in == null ? Map.of() : ModelRig.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+            if (in != null) loaded.putAll(ModelRig.load(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)));
         } catch (IOException | RuntimeException e) {
-            models = Map.of();
             plugin.getLogger().warning("Could not read the world boss models, bosses use plain mobs: " + e);
         }
+        // plugins/CQuests/models/*.json replace or add models by id; updates never touch that folder and no
+        // player progress lives there, so edited models and player data both survive a new jar
+        java.io.File dir = new java.io.File(plugin.getDataFolder(), "models");
+        if (!dir.isDirectory() && dir.mkdirs()) {
+            try {
+                java.nio.file.Files.writeString(new java.io.File(dir, "README.txt").toPath(), String.join("\n",
+                        "Put boss model files here to change models without touching the jar.",
+                        "Each .json file uses the same format as worldboss-models.json inside the jar.",
+                        "A model here replaces the built-in model with the same id; new ids add new models.",
+                        "Updating the plugin never changes this folder, and no player progress is stored in it.", ""));
+            } catch (IOException ignored) { }
+        }
+        java.io.File[] extra = dir.listFiles((d, n) -> n.toLowerCase(java.util.Locale.ROOT).endsWith(".json"));
+        if (extra != null) {
+            java.util.Arrays.sort(extra);
+            for (java.io.File f : extra) {
+                try (var r = java.nio.file.Files.newBufferedReader(f.toPath(), java.nio.charset.StandardCharsets.UTF_8)) {
+                    loaded.putAll(ModelRig.load(r));
+                } catch (IOException | RuntimeException e) {
+                    plugin.getLogger().warning("Could not read models/" + f.getName() + ": " + e.getMessage());
+                }
+            }
+        }
+        models = loaded;
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(arenasFile);
         arenas.clear();
         var section = yaml.getConfigurationSection("arenas");
