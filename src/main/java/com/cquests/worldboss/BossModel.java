@@ -307,24 +307,14 @@ public final class BossModel {
     }
 
     /** translation x rotation x scale, without the shear a general matrix could have. */
-    static Transformation transformation(Matrix4f m) {
-        Vector3f t = m.getTranslation(new Vector3f());
-        Vector3f s = m.getScale(new Vector3f());
-        // rotation from the columns divided by their lengths: JOML's getNormalizedRotation normalises rows, which turns
-        // every stretched, rotated block to the wrong angle in game
-        Quaternionf q = s.x < 1e-4f || s.y < 1e-4f || s.z < 1e-4f ? new Quaternionf()
-                : new Quaternionf().setFromNormalized(new org.joml.Matrix3f(
-                        m.m00() / s.x, m.m01() / s.x, m.m02() / s.x,
-                        m.m10() / s.y, m.m11() / s.y, m.m12() / s.y,
-                        m.m20() / s.z, m.m21() / s.z, m.m22() / s.z));
-        if (!Float.isFinite(q.x) || !Float.isFinite(q.w)) q = new Quaternionf();
-        return new Transformation(t, q, s, new Quaternionf());
-    }
+    static Transformation transformation(Matrix4f m) { return Displays.transformation(m); }
 
     private static boolean same(Transformation a, Transformation b) {
         if (b == null) return false;
         // Plain arithmetic: the JOML bundled with each server version differs, so avoid newer helpers.
         Vector3f ta = a.getTranslation(), tb = b.getTranslation(), sa = a.getScale(), sb = b.getScale();
+        Quaternionf ra = a.getRightRotation(), rb = b.getRightRotation();
+        if (Math.abs(ra.x * rb.x + ra.y * rb.y + ra.z * rb.z + ra.w * rb.w) < 0.99999f) return false;
         Quaternionf qa = a.getLeftRotation(), qb = b.getLeftRotation();
         float dt = sq(ta.x - tb.x) + sq(ta.y - tb.y) + sq(ta.z - tb.z);
         float ds = sq(sa.x - sb.x) + sq(sa.y - sb.y) + sq(sa.z - sb.z);
