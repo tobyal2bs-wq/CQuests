@@ -1,0 +1,78 @@
+name: Publish CQuests 1.16.3
+
+on:
+  push:
+    branches: [claude/project-thread-yrwq2w]
+    paths: [.github/workflows/release-1.16.3.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-cquests-1.16.3
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE_SHA: 582d607e49ef6a94458a9a2b77d6cc6ac1ea0641
+      CHECKED_RUN: '42231744452'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Verify checked commit and collect its tested JAR
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.head_sha')" = "$SOURCE_SHA"
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN --jq '.conclusion')" = success
+          test "$(gh api repos/$GH_REPO/actions/runs/$CHECKED_RUN/jobs --jq '[.jobs[] | select(.conclusion != "success")] | length')" = 0
+          if gh release view v1.16.3 >/dev/null 2>&1; then
+            echo 'Release v1.16.3 already exists; refusing to replace it.' >&2
+            exit 1
+          fi
+          gh run download "$CHECKED_RUN" --name CQuests --dir tested
+          test -f tested/CQuests-1.16.3.jar
+          grep -Fq 'version = "1.16.3"' build.gradle.kts
+      - name: Package source, guides and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out/bundle
+          cp tested/CQuests-1.16.3.jar out/
+          git archive --format=zip --prefix=CQuests/ --output=out/CQuests-1.16.3-source.zip HEAD
+          cp out/CQuests-1.16.3.jar out/CQuests-1.16.3-source.zip RELEASE-1.16.3.md RELEASE-1.16.2.md RELEASE-1.16.1.md RELEASE-1.16.0.md RELEASE-1.15.0.md RELEASE-1.14.1.md RELEASE-1.14.0.md RELEASE-1.13.0.md RELEASE-1.12.0.md RELEASE-1.11.0.md RELEASE-1.10.1.md RELEASE-1.10.0.md RELEASE-1.9.1.md RELEASE-1.9.0.md RELEASE-1.8.1.md RELEASE-1.8.0.md RELEASE-1.7.2.md RELEASE-1.7.1.md RELEASE-1.7.0.md README.md CHANGELOG.md RELEASE-1.6.6.md ANVIL-AND-COMMANDS-1.6.5.md QUEST-HOME-1.6.4.md OPTIMISATION-1.6.3.md MAIL-DIALOGUE-1.6.2.md MERCHANTS-AND-AI-MAIL-1.6.0.md FARM-TESTING.md out/bundle/
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,os,zipfile
+          out=Path('out');bundle=out/'bundle'
+          def digest(p,kind='sha256'):return hashlib.new(kind,p.read_bytes()).hexdigest()
+          manifest={'version':'1.16.3','commit':os.environ['SOURCE_SHA'],'tested_jar_from_run':int(os.environ['CHECKED_RUN']),'github_actions':'https://github.com/'+os.environ['GH_REPO']+'/actions/runs/'+os.environ['CHECKED_RUN'],'unit_tests':160,'note':'JAR is downloaded unchanged from the successful build and server test run (Paper 1.21.4, Paper 26.2, Paper latest, Folia latest).','files':{p.name:{'bytes':p.stat().st_size,'sha256':digest(p),'sha1':digest(p,'sha1')} for p in sorted(bundle.iterdir())}}
+          (bundle/'MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          with zipfile.ZipFile(out/'CQuests-1.16.3-release.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for p in sorted(bundle.iterdir()):z.write(p,'CQuests-1.16.3/'+p.name)
+          files=sorted(p for p in out.iterdir() if p.is_file())
+          (out/'CQuests-1.16.3-CHECKSUMS.txt').write_text(''.join(f'SHA256 {digest(p)}  {p.name}\nSHA1   {digest(p,"sha1")}  {p.name}\n' for p in files))
+          PY
+          { tail -n +3 RELEASE-1.16.3.md; printf '\n## Files\n\n'
+            printf -- '- `CQuests-1.16.3.jar`: the plugin. Put it in `plugins/`.\n'
+            printf -- '- `CQuests-1.16.3-release.zip`: the jar, the source, these notes, the README, `MANIFEST.json` with checksums.\n'
+            printf -- '- `CQuests-1.16.3-source.zip`: the full source code.\n'
+            printf -- '- `CQuests-1.16.3-CHECKSUMS.txt`: SHA256 and SHA1 of every file.\n'
+            printf '\nTested build: https://github.com/%s/actions/runs/%s\n' "$GH_REPO" "$CHECKED_RUN"; } > out/notes.md
+      - name: Create, verify and publish release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create v1.16.3 out/CQuests-1.16.3.jar out/CQuests-1.16.3-source.zip out/CQuests-1.16.3-release.zip out/CQuests-1.16.3-CHECKSUMS.txt --target "$SOURCE_SHA" --title 'CQuests 1.16.3 - every block drawn exactly in game' --notes-file out/notes.md --draft
+          test "$(gh release view v1.16.3 --json assets --jq '.assets | length')" = 4
+          gh release edit v1.16.3 --draft=false --latest
+          gh release view v1.16.3 --json url,isDraft,tagName,assets >> "$GITHUB_STEP_SUMMARY"
