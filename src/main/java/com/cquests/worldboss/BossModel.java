@@ -64,6 +64,7 @@ public final class BossModel {
     private final BlockData[] original, current;
     private final Matrix4f[] pose, op;
     private final Transformation[] sent;
+    private final boolean[] outsideCull;
     private final Random random = new Random();
 
     private final Vector3f attach = new Vector3f();
@@ -86,7 +87,7 @@ public final class BossModel {
         this.plugin = plugin; this.model = model; this.mob = mob;
         int n = model.cubes.size();
         original = new BlockData[n]; current = new BlockData[n];
-        pose = new Matrix4f[n]; op = new Matrix4f[n]; sent = new Transformation[n];
+        pose = new Matrix4f[n]; op = new Matrix4f[n]; sent = new Transformation[n]; outsideCull = new boolean[n];
         for (int i = 0; i < n; i++) op[i] = new Matrix4f();
     }
 
@@ -360,7 +361,14 @@ public final class BossModel {
     private void send(int i, Matrix4f w, int duration) {
         BlockDisplay d = parts.get(i);
         if (!d.isValid()) return;
-        Transformation t = transformation(new Matrix4f(w).mul(op[i]).mul(pose[i]));
+        Matrix4f posed = new Matrix4f(w).mul(op[i]).mul(pose[i]);
+        Transformation t = transformation(posed);
+        boolean outside = Displays.outsideDisplayBox(posed, model.blocks()+2, model.blocks()+3);
+        // Keep the old pose visible throughout interpolation too. Normal parts
+        // retain frustum culling; only displaced parts need its zero-height opt-out.
+        float cullHeight = outside || outsideCull[i] ? 0 : model.blocks()+3;
+        outsideCull[i] = outside;
+        if (d.getDisplayHeight() != cullHeight) d.setDisplayHeight(cullHeight);
         // The carrier may update passenger yaw even when the pose did not change.
         if (d.getYaw() != 0 || d.getPitch() != 0) d.setRotation(0, 0);
         if (same(t, sent[i])) return;

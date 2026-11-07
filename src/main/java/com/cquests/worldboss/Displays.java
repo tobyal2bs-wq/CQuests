@@ -14,6 +14,18 @@ import org.joml.Vector3f;
 public final class Displays {
     private Displays() {}
 
+    /** Vanilla's culling box starts at the passenger origin, not at the
+     * transformed cube. Test all eight corners without allocating vectors. */
+    public static boolean outsideDisplayBox(Matrix4f m, float halfWidth, float height) {
+        float x0=m.m30()+Math.min(0,m.m00())+Math.min(0,m.m10())+Math.min(0,m.m20());
+        float x1=m.m30()+Math.max(0,m.m00())+Math.max(0,m.m10())+Math.max(0,m.m20());
+        float y0=m.m31()+Math.min(0,m.m01())+Math.min(0,m.m11())+Math.min(0,m.m21());
+        float y1=m.m31()+Math.max(0,m.m01())+Math.max(0,m.m11())+Math.max(0,m.m21());
+        float z0=m.m32()+Math.min(0,m.m02())+Math.min(0,m.m12())+Math.min(0,m.m22());
+        float z1=m.m32()+Math.max(0,m.m02())+Math.max(0,m.m12())+Math.max(0,m.m22());
+        return x0 < -halfWidth || x1 > halfWidth || y0 < 0 || y1 > height || z0 < -halfWidth || z1 > halfWidth;
+    }
+
     public static Transformation transformation(Matrix4f m) {
         Vector3f t = m.getTranslation(new Vector3f());
         Vector3f c0 = new Vector3f(m.m00(), m.m01(), m.m02()), c1 = new Vector3f(m.m10(), m.m11(), m.m12()), c2 = new Vector3f(m.m20(), m.m21(), m.m22());

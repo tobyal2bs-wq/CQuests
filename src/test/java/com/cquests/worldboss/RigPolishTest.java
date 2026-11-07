@@ -45,6 +45,12 @@ class RigPolishTest {
             }
         }
     }
+    @Test void passengerCullingCannotHideDisplacedParts() {
+        assertTrue(Displays.outsideDisplayBox(new Matrix4f().translation(0,-2,0),5,6), "feet below a ravager passenger");
+        assertTrue(Displays.outsideDisplayBox(new Matrix4f().translation(0,8,0),5,6), "flying death pieces");
+        assertTrue(Displays.outsideDisplayBox(new Matrix4f().translation(5,1,0).rotateY(.7f),5,6), "turned parts beyond the side");
+        assertFalse(Displays.outsideDisplayBox(new Matrix4f().translation(0,1,0),5,6), "ordinary parts keep culling");
+    }
     @Test void eachBossHasItsOwnOpeningWithoutDecorativeRings() throws Exception {
         Set<String> performances=new HashSet<>();
         for(var m:models().values()) {
@@ -56,4 +62,3 @@ class RigPolishTest {
         }
     }
 }
-
