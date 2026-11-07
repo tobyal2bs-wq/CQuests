@@ -206,13 +206,52 @@ public final class BossModel {
         bones = ModelRig.pose(model, List.of(new ModelRig.Layer(idle, 0, 1)));
         Matrix4f[] cubes = ModelRig.cubes(model, bones);
         System.arraycopy(cubes, 0, pose, 0, cubes.length);
+        if (model.faceOf != null) model.showFace(pose, "idle");
         placeZones();
     }
 
     private Matrix4f world() {
         float r = ModelRig.rad(yaw);
         Vector3f off = new Matrix4f().rotationY(-r).transformDirection(new Vector3f(attach));
-        return new Matrix4f().translation(-off.x, -off.y, -off.z).rotateY(-r);
+        return new Matrix4f().translation(-off.x, -off.y + drop, -off.z).rotateY(-r);
+    }
+
+    private float[] footGround;
+    private float drop;
+
+    /**
+     * Looks at the ground under each foot a few times a second: steps up to one block are climbed by the
+     * leg bending (IK in ModelRig), and when every foot is lower the body sinks with them, up to 0.6 blocks.
+     * At most three block reads a foot, only blocks this region owns.
+     */
+    private void sampleGround(Location at) {
+        int n = model.feet.length;
+        if (n == 0) return;
+        if (footGround == null) footGround = new float[n];
+        if (flying || !mob.isOnGround()) { java.util.Arrays.fill(footGround, 0); drop = 0; return; }
+        float s = model.scale / 16f, r = ModelRig.rad(yaw);
+        Matrix4f turn = new Matrix4f().rotationY(-r);
+        org.bukkit.World w = at.getWorld();
+        float low = 0;
+        for (int i = 0; i < n; i++) {
+            Vector3f p = model.bones.get(model.feet[i]).pivot();
+            Vector3f o = turn.transformDirection(new Vector3f(p.x * s - attach.x, 0, p.z * s - attach.z));
+            Location spot = new Location(w, at.getX() + o.x, at.getY(), at.getZ() + o.z);
+            if (!Bukkit.isOwnedByCurrentRegion(spot)) { footGround[i] = 0; continue; }
+            int bx = spot.getBlockX(), by = spot.getBlockY(), bz = spot.getBlockZ();
+            double top;
+            org.bukkit.block.Block b0 = w.getBlockAt(bx, by, bz);
+            if (!b0.isPassable()) top = b0.getBoundingBox().getMaxY();
+            else {
+                org.bukkit.block.Block b1 = w.getBlockAt(bx, by - 1, bz);
+                top = !b1.isPassable() ? b1.getBoundingBox().getMaxY() : by - 1;
+            }
+            float g = (float) Math.max(-0.6, Math.min(1.0, top - at.getY()));
+            low = Math.min(low, g);
+            footGround[i] = g;
+        }
+        drop = low;
+        for (int i = 0; i < n; i++) footGround[i] = (footGround[i] - low) / s;
     }
 
     // ------------------------------------------------------------------ live
@@ -230,6 +269,23 @@ public final class BossModel {
     }
 
     public void hurt() { if (hurtT > 0.25f) hurtT = 0; }
+
+    private static final class HealthAttribute {
+        static final org.bukkit.attribute.Attribute MAX_HEALTH = maxHealth();
+    }
+    private static org.bukkit.attribute.Attribute maxHealth() {
+        var a = org.bukkit.Registry.ATTRIBUTE.get(org.bukkit.NamespacedKey.minecraft("max_health"));
+        return a != null ? a : org.bukkit.Registry.ATTRIBUTE.get(org.bukkit.NamespacedKey.minecraft("generic.max_health"));
+    }
+
+    /** Which face a face-changing model shows right now: hurt when hit, angry while attacking, rage below half health. */
+    private String face() {
+        if (hurtT < 0.5f) return "hurt";
+        if (attack != null) return "angry";
+        var max = HealthAttribute.MAX_HEALTH == null ? null : mob.getAttribute(HealthAttribute.MAX_HEALTH);
+        if (max != null && mob.getHealth() < max.getValue() * 0.5) return "rage";
+        return "idle";
+    }
 
     /** One live frame. False stops the loop. */
     private boolean update() {
@@ -261,8 +317,12 @@ public final class BossModel {
                 if (d > 1.8 * 1.8 && d < reach * reach && Bukkit.isOwnedByCurrentRegion(target2)) target2.damage(meleeDamage, mob);
             }, null, Math.max(1, Math.round(swing.hit() * 20)));
         }
-        float turn = now.getYaw() - yaw;
-        yaw = now.getYaw();
+        // Follow the shortest arc through +/-180 rather than spinning a whole turn.
+        float heading = !flying && speed > 0.025
+                ? (float) Math.toDegrees(Math.atan2(-dx, dz)) : now.getYaw();
+        float turn = (float) Math.IEEEremainder(heading - yaw, 360);
+        turn = Math.max(-45, Math.min(45, turn));
+        yaw += turn;
         if (++viewerCheck % 7 == 1) {
             double near = Double.MAX_VALUE;
             for (var p : now.getNearbyPlayers(Math.max(32, viewDistance))) near = Math.min(near, p.getLocation().distanceSquared(now));
@@ -281,10 +341,12 @@ public final class BossModel {
             layers.add(new ModelRig.Layer(attack, attackT, Math.max(0, w)));
         }
         if (hurtT < 0.35f) layers.add(new ModelRig.Layer(model.anim("hurt"), hurtT, 1));
-        bones = ModelRig.pose(model, layers);
+        if (model.feet.length > 0 && frame % 4 == 0) sampleGround(now);
+        bones = ModelRig.pose(model, layers, footGround);
         Matrix4f[] cubes = ModelRig.cubes(model, bones);
         System.arraycopy(cubes, 0, pose, 0, cubes.length);
         for (int i = 0; i < model.entranceOnly.length && i < pose.length; i++) if (model.entranceOnly[i]) pose[i] = new Matrix4f().scale(0);
+        if (model.faceOf != null) model.showFace(pose, face());
         send(Math.abs(turn) > 90 ? 1 : PERIOD * stride);
         if (frame % 2 == 0 || stride == 1) placeZones();
         return true;
@@ -299,11 +361,21 @@ public final class BossModel {
         BlockDisplay d = parts.get(i);
         if (!d.isValid()) return;
         Transformation t = transformation(new Matrix4f(w).mul(op[i]).mul(pose[i]));
+        // The carrier may update passenger yaw even when the pose did not change.
+        if (d.getYaw() != 0 || d.getPitch() != 0) d.setRotation(0, 0);
         if (same(t, sent[i])) return;
         sent[i] = t;
         d.setInterpolationDelay(0);
-        d.setInterpolationDuration(duration);
+        boolean visibilityCut = sentVisibilityChanged(t, d.getTransformation());
+        d.setInterpolationDuration(visibilityCut ? 0 : duration);
+        // Some carriers rotate their passengers. All yaw belongs to world(), exactly once.
         d.setTransformation(t);
+    }
+
+    private static boolean sentVisibilityChanged(Transformation a, Transformation b) {
+        boolean hiddenA = a.getScale().lengthSquared() < 1e-10f;
+        boolean hiddenB = b.getScale().lengthSquared() < 1e-10f;
+        return hiddenA != hiddenB;
     }
 
     /** translation x rotation x scale, without the shear a general matrix could have. */
@@ -376,6 +448,7 @@ public final class BossModel {
                 List<ModelRig.Layer> layers = List.of(new ModelRig.Layer(model.anim("idle"), idleT, 1), new ModelRig.Layer(anim[0], t, 1));
                 Matrix4f[] cubes = ModelRig.cubes(model, ModelRig.pose(model, layers));
                 System.arraycopy(cubes, 0, pose, 0, cubes.length);
+                if (model.faceOf != null) model.showFace(pose, dying ? "dead" : "idle");
                 for (int i = 0; i < pose.length; i++) dirty.merge(i, 2, Math::max);
                 if (k >= animEnd[0]) anim[0] = null;
             }

@@ -180,10 +180,29 @@ public final class WorldBossService implements Listener {
         }
     }
 
+    /** Apply the requested health tiers once; retain every reward and other custom field. */
+    private void migratePolishHealth(java.io.File file, YamlConfiguration yaml) {
+        if (yaml.getInt("polish-health-version", 0) >= 1) return;
+        try (var in = plugin.getResource("worldbosses.yml")) {
+            if (in == null) return;
+            var bundled = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+            var bosses = bundled.getConfigurationSection("bosses");
+            if (bosses == null) return;
+            for (String id : bosses.getKeys(false)) {
+                String path = "bosses." + id + ".health";
+                if (yaml.contains("bosses." + id)) yaml.set(path, bundled.getDouble(path));
+            }
+            yaml.set("polish-health-version", 1);
+            java.nio.file.Files.copy(file.toPath(), file.toPath().resolveSibling(file.getName() + ".bak"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            yaml.save(file);
+        } catch (Exception e) { plugin.getLogger().warning("Could not migrate boss health: " + e.getMessage()); }
+    }
+
     public void reload() {
         File bossFile = new File(plugin.getDataFolder(), "worldbosses.yml");
         YamlConfiguration bossYaml = YamlConfiguration.loadConfiguration(bossFile);
         addNewBosses(bossFile, bossYaml);
+        migratePolishHealth(bossFile, bossYaml);
         defs = WorldBossDef.load(bossYaml, plugin.getLogger());
         var cfg = plugin.getConfig();
         ModelRig.detail = switch (cfg.getString("world-bosses.model-detail", "high").toLowerCase(java.util.Locale.ROOT)) {
@@ -752,13 +771,14 @@ public final class WorldBossService implements Listener {
             int i = step[0]++;
             var world = at.getWorld();
             if (i >= 8) { t.cancel(); then.run(); return; }
-            double r = 6 - i * 0.6;
-            ring(at, r, c, 36);
-            ring(at, r * 0.55, Color.WHITE, 18);
-            world.spawnParticle(Particle.END_ROD, at.clone().add(0, 0.5 + i * 0.4, 0), 6, 0.3, 0.3, 0.3, 0.02);
-            world.spawnParticle(Particle.LARGE_SMOKE, at, 8, r / 2, 0.1, r / 2, 0.01);
-            if (i == 0) world.playSound(at, Sound.BLOCK_BEACON_ACTIVATE, 2f, 0.5f);
-            if (i % 2 == 0) world.playSound(at, Sound.BLOCK_DEEPSLATE_BREAK, 1.5f, 0.5f);
+            int variant = Math.floorMod(def.id().hashCode(), 7);
+            double spread = (.4 + variant * .12) * (1 - i / 9.0);
+            Location glow = at.clone().add(0, .3 + i * (.12 + variant * .025), 0);
+            Particle motif;
+            try { motif = Particle.valueOf(def.particle()); } catch (IllegalArgumentException e) { motif = Particle.DUST; }
+            if (motif.getDataType() == Void.class) world.spawnParticle(motif, glow, 4 + variant, spread, .2, spread, .015);
+            else world.spawnParticle(Particle.DUST, glow, 4 + variant, spread, .2, spread, 0, new Particle.DustOptions(c, 1.2f));
+            if (i == 0) world.playSound(at, Sound.BLOCK_BEACON_ACTIVATE, 1.2f, .6f + variant * .06f);
             if (i == 6) world.playSound(at, Sound.ENTITY_EVOKER_PREPARE_SUMMON, 2f, 0.6f);
         }, 1, 5);
     }
@@ -1074,15 +1094,7 @@ public final class WorldBossService implements Listener {
         double w = Math.max(0.4, f.boss.getWidth() / 1.5), h = Math.max(0.5, f.boss.getHeight() / 2);
         if (f.auraDust != null) at.getWorld().spawnParticle(Particle.DUST, at, 10, w, h, w, 0, f.auraDust);
         else at.getWorld().spawnParticle(f.particle, at, 8, w, h, w, 0.02);
-        if (f.ticks % 4 == 0) {
-            // A slow turning ring on the ground around the boss.
-            Location base = feet.clone().add(0, 0.15, 0);
-            double r = Math.max(1.5, f.boss.getWidth() * 1.3);
-            for (int i = 0; i < 20; i++) {
-                double a = Math.PI * 2 * i / 20 + f.ticks * 0.1;
-                base.getWorld().spawnParticle(Particle.DUST, base.clone().add(Math.cos(a) * r, 0, Math.sin(a) * r), 1, f.ringDust);
-            }
-        }
+
     }
 
     private static void ring(Location center, double radius, Color color, int points) {

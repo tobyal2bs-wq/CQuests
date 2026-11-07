@@ -16,7 +16,7 @@ bosses:
     name: "<gradient:#3d3d3d:#ff6a00><bold>Slagheart</bold></gradient>"
     title: "The Molten Colossus"
     entity: IRON_GOLEM
-    health: 2000
+    health: 5000
     scale: 1.6
     damage: 12
     armor: 10
@@ -39,7 +39,7 @@ bosses:
     name: "<gradient:#ffb300:#fff176><bold>Warlord Gruk</bold></gradient>"
     title: "Gold-Hungry Tyrant of the Bastion"
     entity: PIGLIN_BRUTE
-    health: 1700
+    health: 5000
     scale: 2.0
     damage: 15
     armor: 10
@@ -67,7 +67,7 @@ bosses:
     name: "<gradient:#4a5a8a:#ffd54f><bold>The Grand Augur</bold></gradient>"
     title: "King of the Illagers"
     entity: EVOKER
-    health: 1700
+    health: 5000
     scale: 1.6
     damage: 11
     armor: 6
@@ -90,7 +90,7 @@ bosses:
     name: "<gradient:#8b0000:#ff6b6b><bold>The Crimson Oni</bold></gradient>"
     title: "Warlord of the Red Mountain"
     entity: VINDICATOR
-    health: 1800
+    health: 5000
     scale: 1.6
     damage: 13
     armor: 8
@@ -113,7 +113,7 @@ bosses:
     name: "<gradient:#5d3a1a:#ffe14d><bold>Thunderback</bold></gradient>"
     title: "The Storm Ape"
     entity: RAVAGER
-    health: 2100
+    health: 5000
     scale: 1.6
     damage: 12
     armor: 8
@@ -134,7 +134,7 @@ bosses:
     name: "<gradient:#3e2723:#ffcc80><bold>Gorehorn</bold></gradient>"
     title: "Champion of the Pit"
     entity: RAVAGER
-    health: 2000
+    health: 5000
     scale: 1.6
     damage: 13
     armor: 8
@@ -155,7 +155,7 @@ bosses:
     name: "<gradient:#003b46:#66fcf1><bold>The Abyssal Eye</bold></gradient>"
     title: "Sentinel of the Drowned Temple"
     entity: BLAZE
-    health: 1700
+    health: 5000
     scale: 1.6
     damage: 11
     armor: 10
@@ -178,7 +178,7 @@ bosses:
     name: "<gradient:#2d6a4f:#d8a657><bold>Overgrowth</bold></gradient>"
     title: "The Guardian the Jungle Took"
     entity: IRON_GOLEM
-    health: 1900
+    health: 5000
     scale: 1.6
     damage: 11
     armor: 10
@@ -201,7 +201,7 @@ bosses:
     name: "<gradient:#7b2ff7:#4ef0ff><bold>The Prism Sentinel</bold></gradient>"
     title: "Cut From the Heart of the Mountain"
     entity: IRON_GOLEM
-    health: 1900
+    health: 5000
     scale: 1.6
     damage: 11
     armor: 14
@@ -222,7 +222,7 @@ bosses:
     name: "<gradient:#bf360c:#ffb300><bold>The Tiki Warden</bold></gradient>"
     title: "Idol of the Burning Isle"
     entity: ZOMBIE
-    health: 1800
+    health: 5000
     scale: 1.6
     damage: 12
     armor: 8
@@ -245,7 +245,7 @@ bosses:
     name: "<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"
     title: "Queen of the Deep Webs"
     entity: SPIDER
-    health: 1400
+    health: 5000
     scale: 3.0
     damage: 10
     armor: 0
@@ -268,7 +268,7 @@ bosses:
     name: "<gradient:#5d4037:#bcaaa4><bold>The Ironhide Behemoth</bold></gradient>"
     title: "War Beast of the Raid"
     entity: RAVAGER
-    health: 2400
+    health: 5000
     scale: 1.7
     damage: 15
     armor: 12
@@ -289,7 +289,7 @@ bosses:
     name: "<gradient:#424242:#e0e0e0><bold>Fenrir</bold></gradient>"
     title: "The Wolf That Swallows the Moon"
     entity: WOLF
-    health: 1500
+    health: 5000
     scale: 3.0
     damage: 13
     armor: 8
@@ -312,7 +312,7 @@ bosses:
     name: "<gradient:#00838f:#80deea><bold>The Tide Tyrant</bold></gradient>"
     title: "Drowned King of the Sunken Fleet"
     entity: DROWNED
-    health: 1500
+    health: 5000
     scale: 2.2
     damage: 12
     armor: 8
@@ -338,7 +338,7 @@ bosses:
     name: "<gradient:#311b92:#b388ff><bold>The Void Walker</bold></gradient>"
     title: "It Was Never Really Here"
     entity: ENDERMAN
-    health: 1400
+    health: 5000
     scale: 1.6
     damage: 13
     armor: 6
@@ -359,7 +359,7 @@ bosses:
     name: "<gradient:#3949ab:#b3e5fc><bold>The Storm Herald</bold></gradient>"
     title: "Voice of the Thunderhead"
     entity: EVOKER
-    health: 1200
+    health: 5000
     scale: 2.0
     damage: 10
     armor: 6
@@ -380,7 +380,7 @@ bosses:
     name: "<gradient:#f9a825:#fff59d><bold>Pharaoh Ankhamun</bold></gradient>"
     title: "Risen from the Buried Temple"
     entity: HUSK
-    health: 1600
+    health: 5000
     scale: 2.2
     damage: 12
     armor: 8
@@ -407,7 +407,7 @@ bosses:
     name: "<gradient:#263238:#90a4ae><bold>The Executioner</bold></gradient>"
     title: "Axe of the Woodland Mansion"
     entity: VINDICATOR
-    health: 1500
+    health: 5000
     scale: 1.9
     damage: 17
     armor: 10
@@ -433,7 +433,7 @@ bosses:
     name: "<gradient:#9d0208:#ffba08><bold>The Ember Queen</bold></gradient>"
     title: "Queen of the Ember Court"
     entity: BLAZE
-    health: 2000
+    health: 5000
     scale: 1.6
     damage: 11
     armor: 8
@@ -456,7 +456,7 @@ bosses:
     name: "<gradient:#6a1b9a:#e040fb><bold>The Gravelord</bold></gradient>"
     title: "Lord of the Restless Dead"
     entity: WITHER_SKELETON
-    health: 1600
+    health: 5000
     scale: 2.2
     damage: 13
     armor: 10
@@ -483,7 +483,7 @@ bosses:
     name: "<gradient:#005f73:#94d2bd><bold>Captain Brine</bold></gradient>"
     title: "Captain of the Drowned"
     entity: DROWNED
-    health: 1900
+    health: 5000
     scale: 1.6
     damage: 10
     armor: 8
@@ -506,7 +506,7 @@ bosses:
     name: "<gradient:#b8860b:#fff3b0><bold>The Keywarden</bold></gradient>"
     title: "Guardian of the Five Keys"
     entity: IRON_GOLEM
-    health: 1800
+    health: 5000
     scale: 1.6
     damage: 9
     armor: 12
@@ -529,7 +529,7 @@ bosses:
     name: "<gradient:#b71c1c:#ff8a80><bold>Bloodtusk</bold></gradient>"
     title: "The Crimson Charger"
     entity: HOGLIN
-    health: 1800
+    health: 5000
     scale: 2.0
     damage: 14
     armor: 8
@@ -552,7 +552,7 @@ bosses:
     name: "<gradient:#7cb342:#dce775><bold>King Gloop</bold></gradient>"
     title: "Monarch of the Swamp"
     entity: SLIME
-    health: 1600
+    health: 5000
     scale: 1
     damage: 12
     armor: 6
@@ -575,7 +575,7 @@ bosses:
     name: "<gradient:#052e33:#4ae3e3><bold>THE LISTENER BELOW</bold></gradient>"
     title: "It Hears Your Heartbeat"
     entity: IRON_GOLEM
-    health: 3600
+    health: 5000
     scale: 1.6
     damage: 15
     armor: 14
@@ -596,7 +596,7 @@ bosses:
     name: "<gradient:#2b2b2b:#8b0000><bold>The Withered Tyrant</bold></gradient>"
     title: "Three Skulls, One Hunger"
     entity: WITHER_SKELETON
-    health: 2600
+    health: 5000
     scale: 1.6
     damage: 14
     armor: 12
@@ -619,7 +619,7 @@ bosses:
     name: "<gradient:#b30000:#ffffff><bold>Killer Claus</bold></gradient>"
     title: "He Knows If You've Been Bad"
     entity: ZOMBIE
-    health: 2000
+    health: 5000
     scale: 1.6
     damage: 12
     armor: 6
@@ -643,7 +643,7 @@ bosses:
     name: "<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"
     title: "The Snowman With a Grudge"
     entity: STRAY
-    health: 1600
+    health: 5000
     scale: 2.0
     damage: 12
     armor: 8
@@ -667,7 +667,7 @@ bosses:
     name: "<gradient:#b3e5fc:#ffffff><bold>Old Man Winter</bold></gradient>"
     title: "The Blizzard Returns"
     entity: STRAY
-    health: 1700
+    health: 5000
     scale: 2.6
     damage: 12
     armor: 8
@@ -695,7 +695,7 @@ bosses:
     name: "<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>"
     title: "Melting On Holiday"
     entity: MAGMA_CUBE
-    health: 1500
+    health: 5000
     scale: 1
     damage: 12
     armor: 8
@@ -719,7 +719,7 @@ bosses:
     name: "<gradient:#ff5252:#ffd180><bold>Admiral Pinchworth</bold></gradient>"
     title: "Lord of the Sandcastle"
     entity: SPIDER
-    health: 1500
+    health: 5000
     scale: 2.0
     damage: 12
     armor: 10
@@ -743,7 +743,7 @@ bosses:
     name: "<gradient:#ff8fc8:#9fffd0><bold>Brain Freeze</bold></gradient>"
     title: "The Sundae Supreme"
     entity: ZOMBIE
-    health: 1800
+    health: 5000
     scale: 1.6
     damage: 10
     armor: 4
@@ -767,7 +767,7 @@ bosses:
     name: "<gradient:#ffffff:#ff5252><bold>Clucksworth</bold></gradient>"
     title: "The Chicken That Came First"
     entity: ZOMBIE
-    health: 1400
+    health: 5000
     scale: 2.0
     damage: 12
     armor: 6
@@ -791,7 +791,7 @@ bosses:
     name: "<gradient:#ffffff:#ff1744><bold>The Killer Bunny</bold></gradient>"
     title: "Small, Fluffy, Merciless"
     entity: RABBIT
-    health: 900
+    health: 5000
     scale: 3.5
     damage: 12
     armor: 4
@@ -815,7 +815,7 @@ bosses:
     name: "<gradient:#4e2a1e:#ffcf6b><bold>The Cocoa Colossus</bold></gradient>"
     title: "The Egg That Fought Back"
     entity: IRON_GOLEM
-    health: 1700
+    health: 5000
     scale: 1.6
     damage: 11
     armor: 10
@@ -839,7 +839,7 @@ bosses:
     name: "<gradient:#ff9100:#7c4dff><bold>The Great Gourd</bold></gradient>"
     title: "Trick or Treat, Mostly Trick"
     entity: ZOMBIE
-    health: 1500
+    health: 5000
     scale: 2.0
     damage: 12
     armor: 8
@@ -863,7 +863,7 @@ bosses:
     name: "<gradient:#e65100:#ffab40><bold>The Headless Horseman</bold></gradient>"
     title: "Rider of All Hallows' Eve"
     entity: SKELETON
-    health: 1600
+    health: 5000
     scale: 1.8
     damage: 12
     armor: 8
@@ -892,7 +892,7 @@ bosses:
     name: "<gradient:#6a1b9a:#ce93d8><bold>Hexmother Morwen</bold></gradient>"
     title: "Brewer of a Thousand Curses"
     entity: WITCH
-    health: 1200
+    health: 5000
     scale: 1.9
     damage: 8
     armor: 4

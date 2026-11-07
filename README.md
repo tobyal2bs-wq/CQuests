@@ -1,5 +1,7 @@
 # CQuests
 
+**Boss polish update 1.16.4:** connected joints, stable faces/turning, individual entrances, no aura rings, and 2,000/5,000 HP. [Friendly Mossback commands and update notes](RELEASE-1.16.4.md).
+
 A villager quest plugin for Paper and Folia. Players follow a linked story told by villagers across up to ten chapters, take on side quests and daily quests, fight private bosses that only they can see, farm wheat for levels, trade with travelling merchants and get letters from the villagers they met. No resource pack or datapack is needed, and Bedrock players through Geyser get matching menus.
 
 * **Story**: 101 story quests over chapters 1 to 5, plus chapters 6 to 10 (100 more villagers) that you switch on with `/cq chapter 6 on`. Each chapter costs money to start, and finishing chapter 5 gives an elytra.
