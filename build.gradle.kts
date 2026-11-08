@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.cquests"
-version = "1.13.0"
+version = "1.16.8"
 
 repositories {
     mavenCentral()

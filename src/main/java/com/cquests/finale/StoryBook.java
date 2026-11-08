@@ -1,5 +1,7 @@
 package com.cquests.finale;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.JourneyEntry;
 import com.cquests.data.PlayerData;
@@ -40,7 +42,7 @@ public final class StoryBook {
         plugin.store().saveNow(data);
         ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta meta = (BookMeta) book.getItemMeta();
-        meta.title(Text.mm("Your Story"));
+        meta.title(Text.mm(T.t("story-book.your-story", "Your Story")));
         meta.author(Text.mm(Text.escape(player.getName())));
         meta.setGeneration(BookMeta.Generation.TATTERED);
         meta.pages(pages(plugin, player, data));
@@ -53,7 +55,7 @@ public final class StoryBook {
     /** Opens the same book without giving an item, for /quests story. */
     public static void open(CQuestsPlugin plugin, Player player) {
         PlayerData data = plugin.questManager().data(player);
-        player.openBook(Book.book(Text.mm("Your Story"), Text.mm(Text.escape(player.getName())), pages(plugin, player, data)));
+        player.openBook(Book.book(Text.mm(T.t("story-book.your-story", "Your Story")), Text.mm(Text.escape(player.getName())), pages(plugin, player, data)));
     }
 
     static List<Component> pages(CQuestsPlugin plugin, Player player, PlayerData data) {
@@ -64,9 +66,7 @@ public final class StoryBook {
         String date = new SimpleDateFormat("d MMM yyyy", Locale.ROOT).format(new Date(start));
 
         List<Component> pages = new ArrayList<>();
-        pages.add(Text.mm("\n<dark_gray>    ✦ ✦ ✦\n\n<gold><bold>   Your Story</bold></gold>\n\n<black>The journey of\n<dark_blue><bold>" + Text.escape(player.getName())
-                + "</bold></dark_blue>\n<black>on " + Text.escape(plugin.settings().serverName)
-                + "\n\n<dark_gray>Began " + date + "\n" + days + (days == 1 ? " day" : " days") + " on the road\n\n<dark_gray>    ✦ ✦ ✦"));
+        pages.add(Text.mm(T.t("story-book.your-story-the-journey-of", "\n<dark_gray>    ✦ ✦ ✦\n\n<gold><bold>   Your Story</bold></gold>\n\n<black>The journey of\n<dark_blue><bold><player></bold></dark_blue>\n<black>on <servername>\n\n<dark_gray>Began <date>\n<days><days2> on the road\n\n<dark_gray>    ✦ ✦ ✦", "player", Text.escape(player.getName()), "servername", Text.escape(plugin.settings().serverName), "date", date, "days", days, "days2", (days == 1 ? " day" : " days"))));
 
         Pager pager = new Pager(pages);
         int chapter = -1;
@@ -94,10 +94,7 @@ public final class StoryBook {
             }
         }
         pager.breakPage();
-        pages.add(Text.mm("\n<gold><bold>   The End</bold></gold>\n\n<black>Story quests: <dark_blue>" + data.completedCount()
-                + "\n<black>Side quests: <dark_blue>" + String.format(Locale.ROOT, "%,d", data.totalSideDone())
-                + "\n<black>Daily quests: <dark_blue>" + data.dailiesDone()
-                + "\n\n<dark_gray><italic>Every villager remembers your name.\n\n<dark_gray>    ✦ ✦ ✦"));
+        pages.add(Text.mm(T.t("story-book.the-end-story-quests-side", "\n<gold><bold>   The End</bold></gold>\n\n<black>Story quests: <dark_blue><completedcount>\n<black>Side quests: <dark_blue><amount>\n<black>Daily quests: <dark_blue><dailiesdone>\n\n<dark_gray><italic>Every villager remembers your name.\n\n<dark_gray>    ✦ ✦ ✦", "completedcount", data.completedCount(), "amount", String.format(Locale.ROOT, "%,d", data.totalSideDone()), "dailiesdone", data.dailiesDone())));
         return pages;
     }
 

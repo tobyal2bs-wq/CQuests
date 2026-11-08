@@ -1,5 +1,7 @@
 package com.cquests.merchant;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.util.Sched;
 import com.cquests.util.Text;
@@ -25,7 +27,7 @@ public final class NativeMarket implements Listener {
     public NativeMarket(CQuestsPlugin plugin){this.plugin=plugin;ghost=new NamespacedKey(plugin,"merchant_preview");}
     public boolean ghost(ItemStack item){return item!=null&&item.hasItemMeta()&&item.getItemMeta().getPersistentDataContainer().has(ghost,PersistentDataType.STRING);}
     private ItemStack preview(ItemStack template,String key,List<String> details){
-        var item=template.clone();item.editMeta(m->{m.getPersistentDataContainer().set(ghost,PersistentDataType.STRING,key);var lore=new ArrayList<>(m.lore()==null?List.<net.kyori.adventure.text.Component>of():m.lore());details.forEach(s->lore.add(Text.mm(s)));lore.add(Text.mm("<dark_gray>Shop preview • payment comes from your inventory/pouch"));m.lore(lore);});return item;
+        var item=template.clone();item.editMeta(m->{m.getPersistentDataContainer().set(ghost,PersistentDataType.STRING,key);var lore=new ArrayList<>(m.lore()==null?List.<net.kyori.adventure.text.Component>of():m.lore());details.forEach(s->lore.add(Text.mm(s)));lore.add(Text.mm(T.t("native-market.shop-preview-payment-comes-from", "<dark_gray>Shop preview • payment comes from your inventory/pouch")));m.lore(lore);});return item;
     }
     public void open(Player player,String id){
         var d=plugin.merchants().get(id);if(d==null||!plugin.merchants().nearShop(player,id))return;
@@ -43,10 +45,10 @@ public final class NativeMarket implements Listener {
             var recipe=new MerchantRecipe(preview(offer.reward(),nonce+":"+i+":result",details),0,Integer.MAX_VALUE,false,0,0);
             recipe.setIngredients(ingredients);recipes.add(recipe);
         }
-        if(recipes.isEmpty()){plugin.send(player,"<gray>This merchant has no offers yet.");return;}
+        if(recipes.isEmpty()){plugin.send(player,T.t("native-market.this-merchant-has-no-offers", "<gray>This merchant has no offers yet."));return;}
         merchant.setRecipes(recipes);var session=new Session(player,merchant,d,slots);sessions.put(player.getUniqueId(),session);
         try{var view=(InventoryView)player.getClass().getMethod("openMerchant",Merchant.class,boolean.class).invoke(player,merchant,true);if(view==null){sessions.remove(player.getUniqueId(),session);return;}session.inventory=(MerchantInventory)view.getTopInventory();paint(session);}
-        catch(ReflectiveOperationException|RuntimeException e){sessions.remove(player.getUniqueId(),session);plugin.send(player,"<gray>The merchant window could not open. Please try again.");plugin.getLogger().warning("Merchant window could not open: "+e.getClass().getSimpleName());}
+        catch(ReflectiveOperationException|RuntimeException e){sessions.remove(player.getUniqueId(),session);plugin.send(player,T.t("native-market.the-merchant-window-could-not", "<gray>The merchant window could not open. Please try again."));plugin.getLogger().warning("Merchant window could not open: "+e.getClass().getSimpleName());}
     }
     private Session session(org.bukkit.inventory.InventoryView view){
         var s=sessions.get(view.getPlayer().getUniqueId());return s!=null&&view.getTopInventory() instanceof MerchantInventory m&&m.getMerchant().equals(s.merchant)?s:null;
@@ -69,7 +71,7 @@ public final class NativeMarket implements Listener {
         int generation=s.generation,selection=s.selected;s.queued=true;
         var task=s.player.getScheduler().run(plugin,ignored->{try{
             if(session(s.player.getOpenInventory())!=s||s.generation!=generation)return;
-            if(plugin.merchants().isDemo(s.id))plugin.send(s.player,"<aqua>Preview only. No items or payment moved.");
+            if(plugin.merchants().isDemo(s.id))plugin.send(s.player,T.t("native-market.preview-only-no-items-or", "<aqua>Preview only. No items or payment moved."));
             else plugin.merchants().trade(s.player,s.id,s.slots.get(selection),s.revision);
             s.player.closeInventory();
         }finally{s.queued=false;}},()->s.queued=false);

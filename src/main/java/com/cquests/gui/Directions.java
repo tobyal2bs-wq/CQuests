@@ -1,5 +1,7 @@
 package com.cquests.gui;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.data.ActiveQuest;
 import com.cquests.data.PlayerData;
@@ -37,20 +39,19 @@ public final class Directions {
     public void explain(Player player, boolean withHint) {
         String id = target(player);
         var npc = id == null ? null : plugin.npcs().get(id);
-        if (npc == null) { plugin.send(player, "<gray>Nobody is waiting for you right now. Open <yellow>/quests</yellow> to see your journal."); return; }
+        if (npc == null) { plugin.send(player, T.t("directions.nobody-is-waiting-for-you", "<gray>Nobody is waiting for you right now. Open <yellow>/quests</yellow> to see your journal.")); return; }
         String name = plugin.npcs().mention(npc.id());
         SpawnManager.Point point = plugin.spawns().points().get(npc.id());
-        if (point == null) { plugin.send(player, "<white>Next: " + name + " <gray>(not placed in the world yet; ask an admin)"); return; }
+        if (point == null) { plugin.send(player, T.t("directions.next-not-placed-in-the", "<white>Next: <name> <gray>(not placed in the world yet; ask an admin)", "name", name)); return; }
         if (!point.world().equals(player.getWorld().getName())) {
-            plugin.send(player, "<white>Next: " + name + " <gray>in <white>" + Text.escape(point.world()) + "</white> at <white>" + (int) point.x() + ", " + (int) point.y() + ", " + (int) point.z());
+            plugin.send(player, T.t("directions.next-in-at", "<white>Next: <name> <gray>in <white><world></white> at <white><x>, <y>, <z>", "name", name, "world", Text.escape(point.world()), "x", (int) point.x(), "y", (int) point.y(), "z", (int) point.z()));
             return;
         }
         Location from = player.getLocation();
         double dx = point.x() - from.getX(), dz = point.z() - from.getZ(), dy = point.y() - from.getY();
         long meters = Math.round(Math.sqrt(dx * dx + dy * dy + dz * dz));
-        plugin.send(player, "<white>Next: " + name + " <gray>• <aqua>" + meters + " m " + heading(dx, dz) + "</aqua> <gray>at <white>"
-                + (int) point.x() + ", " + (int) point.y() + ", " + (int) point.z() + "</white>");
-        if (withHint) plugin.send(player, "<gray>Your compass points to them" + (enabled(player) ? " and the arrow above your hotbar shows the way." : ". <yellow><click:run_command:'/quests directions'>Click here</click></yellow> for an arrow above your hotbar."));
+        plugin.send(player, T.t("directions.next-m-at", "<white>Next: <name> <gray>• <aqua><meters> m <dz></aqua> <gray>at <white><x>, <y>, <z></white>", "name", name, "meters", meters, "dz", heading(dx, dz), "x", (int) point.x(), "y", (int) point.y(), "z", (int) point.z()));
+        if (withHint) plugin.send(player, T.t("directions.your-compass-points-to-them", "<gray>Your compass points to them<hotbar>", "hotbar", (enabled(player) ? " and the arrow above your hotbar shows the way." : ". <yellow><click:run_command:'/quests directions'>Click here</click></yellow> for an arrow above your hotbar.")));
     }
 
     public boolean enabled(Player player) {
@@ -94,11 +95,11 @@ public final class Directions {
         if (npc == null || data == null || !plugin.questManager().shouldSee(data, npc)) return;
         SpawnManager.Point point = plugin.spawns().points().get(npc.id());
         if (point == null) {
-            player.sendActionBar(Text.mm("<white>" + Text.escape(npc.name()) + " • awaiting placement</white>"));
+            player.sendActionBar(Text.mm(T.t("directions.awaiting-placement", "<white><name> • awaiting placement</white>", "name", Text.escape(npc.name()))));
             return;
         }
         if (!point.world().equals(player.getWorld().getName())) {
-            player.sendActionBar(Text.mm("<white>" + Text.escape(npc.name()) + " • in " + Text.escape(point.world()) + "</white>"));
+            player.sendActionBar(Text.mm(T.t("directions.in", "<white><name> • in <world></white>", "name", Text.escape(npc.name()), "world", Text.escape(point.world()))));
             return;
         }
         Location from = player.getLocation();

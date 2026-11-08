@@ -1,5 +1,7 @@
 package com.cquests.merchant;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.util.Sched;
 import org.bukkit.entity.*;
@@ -43,7 +45,7 @@ public final class MerchantListener implements Listener {
     @EventHandler(priority=EventPriority.HIGHEST,ignoreCancelled=false)
     public void wand(PlayerInteractEvent e){
         if(e.getHand()!=EquipmentSlot.HAND)return;String id=plugin.merchants().wandId(e.getItem());if(id==null||e.getClickedBlock()==null)return;
-        e.setCancelled(true);Player p=e.getPlayer();if(!MerchantService.canEdit(p)){plugin.send(p,"<red>Only operators can edit merchant routes.");return;}
+        e.setCancelled(true);Player p=e.getPlayer();if(!MerchantService.canEdit(p)){plugin.send(p,T.t("merchant-listener.only-operators-can-edit-merchant", "<red>Only operators can edit merchant routes."));return;}
         if(!p.getWorld().equals(e.getClickedBlock().getWorld())||p.getEyeLocation().distanceSquared(e.getClickedBlock().getLocation().add(.5,.5,.5))>36)return;
         if(e.getAction()==org.bukkit.event.block.Action.LEFT_CLICK_BLOCK)plugin.merchants().undo(p,id,false);
         else if(e.getAction()==org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK)plugin.merchants().setPoint(p,id,"point",e.getClickedBlock().getLocation().add(.5,1,.5));

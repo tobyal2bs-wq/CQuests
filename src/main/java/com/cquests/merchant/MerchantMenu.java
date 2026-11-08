@@ -1,5 +1,7 @@
 package com.cquests.merchant;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.gui.*;
 import com.cquests.util.Text;
@@ -12,7 +14,7 @@ import java.util.*;
 public final class MerchantMenu implements LockedMenu {
     private final CQuestsPlugin plugin;private final Player player;private final String id;private final Inventory inventory;
     private final long revision;private final boolean demo;private Integer selected;
-    private MerchantMenu(CQuestsPlugin plugin,Player player,String id){this.plugin=plugin;this.player=player;this.id=id;demo=plugin.merchants().isDemo(id);revision=plugin.merchants().get(id).revision();inventory=Bukkit.createInventory(this,45,Text.mm("<dark_gray>Travelling market"));fill();}
+    private MerchantMenu(CQuestsPlugin plugin,Player player,String id){this.plugin=plugin;this.player=player;this.id=id;demo=plugin.merchants().isDemo(id);revision=plugin.merchants().get(id).revision();inventory=Bukkit.createInventory(this,45,Text.mm(T.t("merchant-menu.travelling-market", "<dark_gray>Travelling market")));fill();}
     public static void open(CQuestsPlugin plugin,Player player,String id){player.openInventory(new MerchantMenu(plugin,player,id).inventory);}
     public UUID viewer(){return player.getUniqueId();}public Inventory getInventory(){return inventory;}
     static String label(ItemStack item){return item==null?"None":item.getAmount()+" × "+Text.pretty(item.getType().name());}
@@ -24,10 +26,10 @@ public final class MerchantMenu implements LockedMenu {
     }
     public void click(int slot,ClickType type){
         if(slot==40){player.closeInventory();return;}
-        if(slot==31&&selected!=null&&demo){selected=null;plugin.send(player,"<aqua>Demo preview only. No items or money moved.");player.closeInventory();return;}
+        if(slot==31&&selected!=null&&demo){selected=null;plugin.send(player,T.t("merchant-menu.demo-preview-only-no-items", "<aqua>Demo preview only. No items or money moved."));player.closeInventory();return;}
         if(slot==31&&selected!=null){int offer=selected;selected=null;plugin.merchants().trade(player,id,offer,revision);player.closeInventory();return;}
         if(slot<10||slot>16)return;var d=plugin.merchants().get(id);
-        if(d==null||d.revision()!=revision||!plugin.merchants().nearShop(player,id)){player.closeInventory();plugin.send(player,"<yellow>Shop changed. Speak to the merchant again.");return;}
+        if(d==null||d.revision()!=revision||!plugin.merchants().nearShop(player,id)){player.closeInventory();plugin.send(player,T.t("merchant-menu.shop-changed-speak-to-the", "<yellow>Shop changed. Speak to the merchant again."));return;}
         var offer=d.offers().get(slot-10);if(offer==null)return;selected=slot-10;
         inventory.setItem(22,offer.reward());
         inventory.setItem(31,QuestMenu.item(Material.LIME_CONCRETE,(demo?"<aqua><bold>Preview only • no payment":"<green><bold>Confirm one trade"),List.of("<gray>Give: <white>"+label(offer.first()),"<gray>Also: <white>"+label(offer.second()),"<gray>Money: <green>$"+Text.formatMoney(offer.money()),"<gray>Sunflower Tokens: <yellow>"+offer.sunflowers(),"<gray>Receive: <white>"+label(offer.reward()),"<gray>No items move unless the whole trade fits.")));

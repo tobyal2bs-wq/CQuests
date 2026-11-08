@@ -1,5 +1,7 @@
 package com.cquests.merchant;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.farm.EconomyBridge;
 import com.cquests.npc.SafePlacement;
@@ -51,16 +53,16 @@ public final class MerchantService {
     public boolean demoAccess(Player player,String id){Demo demo=demos.get(id);return demo==null||(canEdit(player)&&demo.owner.equals(player.getUniqueId()));}
     public synchronized void test(Player player,String preset){
         if(!running||!canEdit(player))return;
-        if(preset.equalsIgnoreCase("stop")){stopDemo(player);plugin.send(player,"<gray>Merchant demo removed.");return;}
-        MerchantDefinition template=definitions.get(preset);if(template==null){plugin.send(player,"<yellow>Use /cq merchant test [rowan|brann|mira|sable|orin|stop]");return;}
-        stopDemo(player);if(demos.size()>=4){plugin.send(player,"<yellow>Four merchant demos are already running. Try again shortly.");return;}
+        if(preset.equalsIgnoreCase("stop")){stopDemo(player);plugin.send(player,T.t("merchant-service.merchant-demo-removed", "<gray>Merchant demo removed."));return;}
+        MerchantDefinition template=definitions.get(preset);if(template==null){plugin.send(player,T.t("merchant-service.use-cq-merchant-test-rowan", "<yellow>Use /cq merchant test [rowan|brann|mira|sable|orin|stop]"));return;}
+        stopDemo(player);if(demos.size()>=4){plugin.send(player,T.t("merchant-service.four-merchant-demos-are-already", "<yellow>Four merchant demos are already running. Try again shortly."));return;}
         Location start=player.getLocation().clone();var direction=start.getDirection().setY(0);if(direction.lengthSquared()<.01)direction=new org.bukkit.util.Vector(0,0,1);direction.normalize();
         start.add(direction.clone().multiply(2));Location finish=start.clone().add(direction.clone().multiply(6));finish.setYaw(start.getYaw()+180);
-        String id="demo_"+player.getUniqueId().toString().replace("-","");if(definitions.containsKey(id)){plugin.send(player,"<red>Reserved demo ID conflicts with your configuration.");return;}
+        String id="demo_"+player.getUniqueId().toString().replace("-","");if(definitions.containsKey(id)){plugin.send(player,T.t("merchant-service.reserved-demo-id-conflicts-with", "<red>Reserved demo ID conflicts with your configuration."));return;}
         Demo demo=new Demo(player.getUniqueId(),new MerchantDefinition(id,"<aqua>Demo • "+template.name(),template.profession(),MerchantPoint.at(start),List.of(),MerchantPoint.at(finish),template.offers(),false,revisions.incrementAndGet()));
         demos.put(id,demo);walk(id,player);
         demo.expiry=player.getScheduler().runDelayed(plugin,ignored->{synchronized(this){if(demos.get(id)==demo)stopDemo(player);}},null,2400);
-        plugin.send(player,"<gold>Merchant demo: watch the six-block walk, then right-click to preview trades. No items or money move. Stand on flat outdoor ground. Removes after two minutes; /cq merchant test stop removes it sooner.");
+        plugin.send(player,T.t("merchant-service.merchant-demo-watch-the-six", "<gold>Merchant demo: watch the six-block walk, then right-click to preview trades. No items or money move. Stand on flat outdoor ground. Removes after two minutes; /cq merchant test stop removes it sooner."));
     }
     private synchronized void stopDemo(Player player){String id="demo_"+player.getUniqueId().toString().replace("-","");Demo demo=demos.remove(id);if(demo!=null){if(demo.expiry!=null)demo.expiry.cancel();stop(id);}}
 
@@ -128,25 +130,25 @@ public final class MerchantService {
     }
     public void setPoint(Player player,String id,String kind,Location loc){
         MerchantDefinition before=get(id);if(isDemo(id)||!canEdit(player)||before==null||!running||!Set.of("spawn","point","shop","end").contains(kind))return;
-        if(!editing.add(player.getUniqueId())){plugin.send(player,"<yellow>Wait for the previous point to finish validating.");return;}
+        if(!editing.add(player.getUniqueId())){plugin.send(player,T.t("merchant-service.wait-for-the-previous-point", "<yellow>Wait for the previous point to finish validating."));return;}
         var future=kind.equals("spawn")?SafePlacement.validate(loc):SafePlacement.validateWalkStop(loc);
         future.whenComplete((valid,error)->Sched.entity(player,()->{try{
             synchronized(this){
-                MerchantDefinition d=get(id);if(!canEdit(player)||!running||d==null||d.revision()!=before.revision()){plugin.send(player,"<yellow>Merchant changed; select the point again.");return;}
-                if(error!=null||!Boolean.TRUE.equals(valid)){plugin.send(player,"<red>Use solid safe ground with headroom. Spawn points must be outdoors.");return;}
+                MerchantDefinition d=get(id);if(!canEdit(player)||!running||d==null||d.revision()!=before.revision()){plugin.send(player,T.t("merchant-service.merchant-changed-select-the-point", "<yellow>Merchant changed; select the point again."));return;}
+                if(error!=null||!Boolean.TRUE.equals(valid)){plugin.send(player,T.t("merchant-service.use-solid-safe-ground-with", "<red>Use solid safe ground with headroom. Spawn points must be outdoors."));return;}
                 MerchantPoint point=MerchantPoint.at(loc);MerchantPoint spawn=kind.equals("spawn")?point:d.spawn(),shop=(kind.equals("shop")||kind.equals("end"))?point:d.shop();List<MerchantPoint> route=new ArrayList<>(d.route());
-                if(kind.equals("point")){if(route.size()>=64){plugin.send(player,"<red>Maximum 64 route points.");return;}route.add(point);}
+                if(kind.equals("point")){if(route.size()>=64){plugin.send(player,T.t("merchant-service.maximum-64-route-points", "<red>Maximum 64 route points."));return;}route.add(point);}
                 List<MerchantPoint> points=new ArrayList<>();if(spawn!=null)points.add(spawn);points.addAll(route);if(shop!=null)points.add(shop);
-                if(points.stream().anyMatch(v->!v.world().equals(point.world()))){plugin.send(player,"<red>Keep one merchant's entire route in one world.");return;}
-                stop(id);save(changed(d,spawn,route,shop,d.offers(),false));if(kind.equals("point"))preview.show(player,loc);if(kind.equals("end")){preview.clear(player);walk(id,player);}plugin.send(player,"<green>Saved "+kind+" for "+id+" <gray>• "+route.size()+" trail points."+(kind.equals("end")?"":" Finish with /cq merchant end "+id+" while facing the store direction."));
+                if(points.stream().anyMatch(v->!v.world().equals(point.world()))){plugin.send(player,T.t("merchant-service.keep-one-merchant-s-entire", "<red>Keep one merchant's entire route in one world."));return;}
+                stop(id);save(changed(d,spawn,route,shop,d.offers(),false));if(kind.equals("point"))preview.show(player,loc);if(kind.equals("end")){preview.clear(player);walk(id,player);}plugin.send(player,T.t("merchant-service.saved-for-trail-points", "<green>Saved <kind> for <id> <gray>• <size> trail points.<direction>", "kind", kind, "id", id, "size", route.size(), "direction", (kind.equals("end")?"":" Finish with /cq merchant end "+id+" while facing the store direction.")));
             }
         }finally{editing.remove(player.getUniqueId());}}));
     }
     public synchronized void undo(Player player,String id,boolean clear){
         MerchantDefinition d=get(id);if(isDemo(id)||!canEdit(player)||d==null||!running)return;var route=new ArrayList<>(d.route());if(clear)route.clear();else if(!route.isEmpty())route.removeLast();
-        preview.clear(player);stop(id);save(changed(d,d.spawn(),route,d.shop(),d.offers(),false));plugin.send(player,"<green>Route now has "+route.size()+" points.");
+        preview.clear(player);stop(id);save(changed(d,d.spawn(),route,d.shop(),d.offers(),false));plugin.send(player,T.t("merchant-service.route-now-has-points", "<green>Route now has <size> points.", "size", route.size()));
     }
-    public ItemStack wand(String id){var item=new ItemStack(Material.STICK);item.editMeta(m->{m.displayName(Text.mm("<gold>Merchant route: "+Text.escape(id)));m.lore(List.of(Text.mm("<gray>Right click ground: mark trail. Left click: undo.")));m.getPersistentDataContainer().set(wand,PersistentDataType.STRING,id);});return item;}
+    public ItemStack wand(String id){var item=new ItemStack(Material.STICK);item.editMeta(m->{m.displayName(Text.mm(T.t("merchant-service.merchant-route", "<gold>Merchant route: <id>", "id", Text.escape(id))));m.lore(List.of(Text.mm(T.t("merchant-service.right-click-ground-mark-trail", "<gray>Right click ground: mark trail. Left click: undo."))));m.getPersistentDataContainer().set(wand,PersistentDataType.STRING,id);});return item;}
     public void showTrail(Player player,String id){preview.clear(player);var d=get(id);if(canEdit(player)&&d!=null)for(var point:d.route()){var loc=point.location();if(loc!=null)preview.show(player,loc);}}
     public String wandId(ItemStack item){return item==null||!item.hasItemMeta()?null:item.getItemMeta().getPersistentDataContainer().get(wand,PersistentDataType.STRING);}
     public synchronized void walk(String id,Player feedback){
@@ -218,29 +220,29 @@ public final class MerchantService {
         Location loc=walk.position.location(),shop=d.shop().location();return loc!=null&&shop!=null&&loc.getWorld().equals(shop.getWorld())&&loc.distanceSquared(shop)<=4&&loc.getWorld().equals(player.getWorld())&&loc.distanceSquared(player.getLocation())<=64;
     }
     public synchronized boolean trade(Player player,String id,int slot,long revision){
-        MerchantDefinition d=get(id);if(isDemo(id)||d==null||d.revision()!=revision||!nearShop(player,id)||slot<0||slot>=7){plugin.send(player,"<yellow>This offer changed or the merchant is out of reach. Open the shop again.");return false;}
+        MerchantDefinition d=get(id);if(isDemo(id)||d==null||d.revision()!=revision||!nearShop(player,id)||slot<0||slot>=7){plugin.send(player,T.t("merchant-service.this-offer-changed-or-the", "<yellow>This offer changed or the merchant is out of reach. Open the shop again."));return false;}
         TradeOffer offer=d.offers().get(slot);if(offer==null)return false;long now=System.nanoTime();Long due=tradeCooldown.get(player.getUniqueId());if(due!=null&&now<due)return false;
         tradeCooldown.put(player.getUniqueId(),now+200_000_000L);
         ItemStack[] before=player.getInventory().getStorageContents(),after=BarterInventory.exchange(before,offer);
-        if(after==null){plugin.send(player,"<yellow>You need the exact requested items and room for the reward. Nothing was taken.");return false;}
+        if(after==null){plugin.send(player,T.t("merchant-service.you-need-the-exact-requested", "<yellow>You need the exact requested items and room for the reward. Nothing was taken."));return false;}
         var data=plugin.questManager().data(player);
-        if(offer.sunflowers()>data.sunflowers()){plugin.send(player,"<yellow>You need "+offer.sunflowers()+" Sunflower Tokens. Your pouch has "+data.sunflowers()+".");return false;}
-        var payment=economy.charge(player,offer.money());if(payment==null){plugin.send(player,"<red>The money payment was declined or Vault is unavailable. Your items were kept.");return false;}
+        if(offer.sunflowers()>data.sunflowers()){plugin.send(player,T.t("merchant-service.you-need-sunflower-tokens-your", "<yellow>You need <sunflowers> Sunflower Tokens. Your pouch has <sunflowers2>.", "sunflowers", offer.sunflowers(), "sunflowers2", data.sunflowers()));return false;}
+        var payment=economy.charge(player,offer.money());if(payment==null){plugin.send(player,T.t("merchant-service.the-money-payment-was-declined", "<red>The money payment was declined or Vault is unavailable. Your items were kept."));return false;}
         if(!data.spendSunflowers(offer.sunflowers())){if(!payment.refund())plugin.getLogger().severe("Sunflower trade refund failed for "+player.getUniqueId());return false;}
         try{player.getInventory().setStorageContents(after);}catch(RuntimeException e){
             data.refundSunflowers(offer.sunflowers());
             try{player.getInventory().setStorageContents(before);}catch(RuntimeException rollback){plugin.getLogger().severe("Merchant inventory rollback failed for "+player.getUniqueId()+": "+rollback);}
             finally{if(!payment.refund())plugin.getLogger().severe("Merchant refund failed for "+player.getUniqueId()+" amount "+offer.money());}
-            plugin.getLogger().severe("Merchant trade commit failed for "+player.getUniqueId()+": "+e);plugin.send(player,"<red>Trade failed. Payment rollback was attempted; contact an operator if your balance is incorrect.");return false;
+            plugin.getLogger().severe("Merchant trade commit failed for "+player.getUniqueId()+": "+e);plugin.send(player,T.t("merchant-service.trade-failed-payment-rollback-was", "<red>Trade failed. Payment rollback was attempted; contact an operator if your balance is incorrect."));return false;
         }
         if(offer.sunflowers()>0)plugin.store().saveNow(data);
-        player.playSound(player.getLocation(),Sound.ENTITY_VILLAGER_YES,.7f,1.1f);plugin.send(player,"<green>Trade complete.");return true;
+        player.playSound(player.getLocation(),Sound.ENTITY_VILLAGER_YES,.7f,1.1f);plugin.send(player,T.t("merchant-service.trade-complete", "<green>Trade complete."));return true;
     }
     public void interact(Player player,String id,boolean editingGesture){
         if(get(id)==null||!demoAccess(player,id))return;
-        if(isDemo(id)){if(nearShop(player,id))plugin.market().open(player,id);else plugin.send(player,"<yellow>Watch the demo walk to its endpoint first.");return;}
+        if(isDemo(id)){if(nearShop(player,id))plugin.market().open(player,id);else plugin.send(player,T.t("merchant-service.watch-the-demo-walk-to", "<yellow>Watch the demo walk to its endpoint first."));return;}
         if(editingGesture&&canEdit(player)){MerchantEditor.open(plugin,player,id);return;}
-        if(!nearShop(player,id)){plugin.send(player,"<yellow>Meet this merchant at the store after they finish walking.");return;}
+        if(!nearShop(player,id)){plugin.send(player,T.t("merchant-service.meet-this-merchant-at-the", "<yellow>Meet this merchant at the store after they finish walking."));return;}
         var d=get(id);var lines=plugin.characters().lines(id,"idle",List.of());
         if(!lines.isEmpty()){
             var speaker=new com.cquests.model.NpcDef(id,plugin.characters().text(id,"name",d.name()),"","NONE","PLAINS",0,1,false,false,false,"",List.of(),lines);
@@ -249,7 +251,7 @@ public final class MerchantService {
         }else plugin.market().open(player,id);
     }
     public void refreshLabels(){for(var entry:live.entrySet()){var w=entry.getValue();var d=get(entry.getKey());if(w.entity!=null&&d!=null){Sched.entity(w.entity,()->w.entity.customName(plugin.characters().merchantLabel(d.id(),d.name(),w.shop?"Open":w.blocked?"Route blocked":"Travelling")));}}}
-    public synchronized void disable(Player player,String id){MerchantDefinition d=get(id);if(!canEdit(player)||d==null||!running)return;stop(id);save(changed(d,d.spawn(),d.route(),d.shop(),d.offers(),false));plugin.send(player,"<gray>Merchant disabled; route and trades retained.");}
+    public synchronized void disable(Player player,String id){MerchantDefinition d=get(id);if(!canEdit(player)||d==null||!running)return;stop(id);save(changed(d,d.spawn(),d.route(),d.shop(),d.offers(),false));plugin.send(player,T.t("merchant-service.merchant-disabled-route-and-trades", "<gray>Merchant disabled; route and trades retained."));}
     private void stop(String id){Walk walk=live.remove(id);if(walk!=null){release(walk);if(walk.entity!=null&&plugin.isEnabled())Sched.entity(walk.entity,walk.entity::remove);}}
     private void stopAll(){for(String id:List.copyOf(live.keySet()))stop(id);for(Demo demo:demos.values())if(demo.expiry!=null)demo.expiry.cancel();demos.clear();}
     private void tell(Player player,String message){if(player!=null)Sched.entity(player,()->plugin.send(player,message));else plugin.getLogger().info(Text.plain(Text.mm(message)));}

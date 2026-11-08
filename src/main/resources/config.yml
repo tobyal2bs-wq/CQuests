@@ -276,6 +276,17 @@ world-bosses:
   enabled: true
   # Draw the bosses with block models (worldboss-models.json). false uses the plain mobs with their armour.
   models: true
+  # How much fine detail the models keep: high (every plate, vein, patch and fringe), medium (no surface
+  # patches) or low (only the main shapes and glowing veins). Lower it on a busy server.
+  model-detail: high
+  # Ticks between model updates (3 is smooth, 4-5 halves the cost) and how far players see them move.
+  model-update-ticks: 3
+  model-view-distance: 96
+  # Most shards one death breaks into, and a multiplier for every entrance and death particle.
+  max-shards-per-death: 48
+  particle-multiplier: 1.0
+  # With the CBosses plugin installed, CQuests leaves the world bosses to it (no double bosses).
+  defer-to-cbosses: true
   schedule:
     enabled: true
     # Days and time the weekly boss wakes (MONDAY ... SUNDAY). Add more days for more fights a week.
@@ -299,6 +310,18 @@ world-bosses:
   # Damage needed (percent of its health) to earn a reward.
   min-damage-percent: 2
   max-active: 4
+  # Block effects (shockwave rings of ground blocks, falling meteors and their broken pieces) are block
+  # displays, never real blocks. This caps how many are alive at once on the whole server (0 = particles only).
+  max-block-effects: 48
+  # Spots: any arena can wake a boss on its own timer, e.g. /cq worldboss interval cave 2h or 400h.
+  # Each time it is a different boss with a different patrol pattern. These run even with CBosses installed.
+  spots:
+    # Chat warning this many minutes before a spot's boss wakes (0 = none).
+    warn-minutes: 5
+    # Seasonal bosses join the spots while their season is on.
+    seasonal: true
+    # Only these bosses at spots (empty = all of them).
+    bosses: []
 
 # ----------------------------------------------------------- SEASONS
 # Seasonal events: seasonal daily quests and a seasonal world boss. mode: "on", "off" or "auto"

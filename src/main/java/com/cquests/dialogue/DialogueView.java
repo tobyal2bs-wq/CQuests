@@ -1,5 +1,7 @@
 package com.cquests.dialogue;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.gui.LockedMenu;
 import com.cquests.gui.QuestMenu;
@@ -74,8 +76,7 @@ public final class DialogueView implements LockedMenu {
         }
         String action = token == null ? "" : "<click:run_command:'/quests respond " + token + "'><dark_green><bold>["
                 + Text.escape(label) + "]</bold></dark_green></click>\n\n";
-        pages.add(Text.mm("<black><bold>Your response</bold>\n\n" + action
-                + "<click:run_command:'/quests mode menu'><dark_blue>[Use menu dialogue]</dark_blue></click>\n\n<dark_gray>Close the book to take a moment. You can speak again any time.</dark_gray>"));
+        pages.add(Text.mm(T.t("dialogue-view.your-response-use-menu-dialogue", "<black><bold>Your response</bold>\n\n<action><click:run_command:'/quests mode menu'><dark_blue>[Use menu dialogue]</dark_blue></click>\n\n<dark_gray>Close the book to take a moment. You can speak again any time.</dark_gray>", "action", action)));
         player.openBook(Book.book(Text.mm(npc.name()), Component.text("The Wanderers"), pages));
     }
 

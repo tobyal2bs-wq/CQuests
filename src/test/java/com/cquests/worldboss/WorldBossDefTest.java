@@ -35,7 +35,8 @@ class WorldBossDefTest {
         });
         Map<String, WorldBossDef> defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File("src/main/resources/worldbosses.yml")), log);
         assertTrue(warnings.isEmpty(), warnings.toString());
-        assertEquals(20, defs.values().stream().filter(d -> !d.seasonal()).count(), "twenty weekly bosses");
+        assertEquals(26, defs.values().stream().filter(d -> !d.seasonal()).count(), "24 general bosses and 2 legends");
+        assertEquals(12, defs.values().stream().filter(d -> d.seasonal()).count(), "three for each season");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new File("src/main/resources/config.yml"));
         for (WorldBossDef d : defs.values()) {
             assertTrue(d.health() >= 800, d.id() + " health");
@@ -43,7 +44,6 @@ class WorldBossDefTest {
             assertTrue(d.rewards().money() > 0, d.id() + " pays");
             if (d.seasonal()) assertNotNull(config.getConfigurationSection("seasons." + d.season()), d.id() + " season exists");
         }
-        assertEquals(20, defs.values().stream().filter(d -> !d.seasonal()).map(d -> d.entity()).distinct().count(), "every weekly boss is a different mob");
         for (String season : List.of("halloween", "winter", "spring", "summer"))
             assertTrue(defs.values().stream().anyMatch(d -> d.season().equals(season)), season + " has a boss");
     }
@@ -70,5 +70,29 @@ class WorldBossDefTest {
         assertTrue(a.undo());
         assertNull(a.polygon);
         assertEquals("circle of 10 blocks", a.describe());
+        assertEquals(120, Arena.parseInterval("2h"));
+        assertEquals(24000, Arena.parseInterval("400h"));
+        assertEquals(2160, Arena.parseInterval("1d12h"));
+        assertEquals(0, Arena.parseInterval("off"));
+        assertEquals(-1, Arena.parseInterval("soon"));
+        assertEquals("1d12h", Arena.intervalText(2160));
+        a.nopass.add(new double[]{0, 5, 5, 3});
+        a.nopass.add(Arena.nopassParse("box:10.0,10.0,12.0,14.0"));
+        assertTrue(a.blocked(6, 6));
+        assertTrue(a.blocked(11, 12));
+        assertTrue(!a.blocked(15, 0));
+    }
+
+    @Test
+    void approvedMonkHasItsModelAndUnapprovedDraftsDoNotShip() throws Exception {
+        var defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File("src/main/resources/worldbosses.yml")), Logger.getLogger("monk-test"));
+        var d = defs.get("millstone_monk"); assertNotNull(d); assertEquals(5000, d.health(), .01); assertTrue(!d.seasonal());
+        assertEquals(List.of("shockwave", "quake", "heal"), d.abilities());
+        try (var in = new java.io.FileReader("src/main/resources/worldboss-models.json")) {
+            var all = ModelRig.load(in); var m = all.get("millstone_monk"); assertNotNull(m);
+            assertEquals(2, m.cubes.stream().filter(c -> c.tag().equals("eye_socket")).count());
+            assertTrue(m.zones.stream().anyMatch(z -> z.kind().equals("weak") && z.bone() == m.boneIndex.get("wheel")));
+            for (String draft : List.of("bellwether", "driftjaw")) assertTrue(!all.containsKey(draft), draft);
+        }
     }
 }

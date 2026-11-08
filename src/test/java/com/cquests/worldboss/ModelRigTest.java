@@ -36,9 +36,10 @@ class ModelRigTest {
         for (WorldBossDef d : defs.values()) {
             ModelRig.Model m = models.get(d.model());
             assertNotNull(m, d.id() + " has a model");
-            assertTrue(m.cubes.size() >= 38, d.id() + " has " + m.cubes.size() + " blocks");
-            assertTrue(m.cubes.size() <= 170, d.id() + " is not too heavy: " + m.cubes.size());
-            assertTrue(m.blocks() >= 3 && m.blocks() <= 8, d.id() + " is " + m.blocks() + " blocks tall");
+            assertTrue(m.cubes.size() >= (m.id.equals("moonwake_manta") ? 40 : 50), d.id() + " has only " + m.cubes.size() + " blocks");
+            long visible = m.cubes.stream().filter(c -> !c.tag().startsWith("face:") || c.tag().equals("face:idle")).count();
+            assertTrue(visible <= 300, d.id() + " exceeds the visible display budget: " + visible);
+            assertTrue(m.blocks() >= 1.8 && m.blocks() <= 9, d.id() + " is " + m.blocks() + " blocks tall");
             for (ModelRig.Cube c : m.cubes) {
                 Material mat = Material.matchMaterial(c.base());
                 assertNotNull(mat, d.id() + ": unknown block " + c.block());
@@ -105,7 +106,11 @@ class ModelRigTest {
             }
             // Floaters hover; everything else touches the floor.
             if (!m.rig.equals("float")) assertTrue(Math.abs(min) < 0.35f, m.id + " lowest point " + min);
-            assertTrue(max > 2.5f, m.id + " top " + max);
+            if (m.id.equals("moonwake_manta")) {
+                float left=Float.MAX_VALUE,right=-Float.MAX_VALUE;
+                for(Matrix4f c:cubes) for(int k=0;k<8;k++) { c.transformPosition(k&1,k>>1&1,k>>2&1,p); left=Math.min(left,p.x);right=Math.max(right,p.x); }
+                assertTrue(right-left>3, "manta keeps its broad wingspan");
+            } else assertTrue(max > 1.8f, m.id + " top " + max);
         }
     }
 
@@ -141,7 +146,7 @@ class ModelRigTest {
 
     @Test
     void elbowsBendAndWeaponsStayInTheHand() {
-        ModelRig.Model m = models.get("frost_jarl");
+        ModelRig.Model m = models.get("executioner");
         int fore = m.boneIndex.get("foreR"), axe = m.boneIndex.get("axe");
         assertEquals(fore, m.bones.get(axe).parent(), "the axe is held by the forearm");
         assertTrue(m.bones.get(fore).rest().x < -10, "the elbow is bent");

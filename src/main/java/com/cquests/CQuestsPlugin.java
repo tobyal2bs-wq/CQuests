@@ -203,7 +203,23 @@ public final class CQuestsPlugin extends JavaPlugin {
         try (var in = getResource("config.yml")) {
             if (in != null) getConfig().setDefaults(YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)));
         } catch (java.io.IOException ignored) { }
-        settings = new Settings(getConfig(), YamlConfiguration.loadConfiguration(new File(getDataFolder(), "messages.yml")));
+        File messagesFile = new File(getDataFolder(), "messages.yml");
+        YamlConfiguration messages = YamlConfiguration.loadConfiguration(messagesFile);
+        // lines added in an update (text: ...) are written into the server's file so they can be found and changed
+        try (var in = getResource("messages.yml")) {
+            if (in != null) {
+                YamlConfiguration jar = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+                boolean added = false;
+                for (String key : jar.getKeys(true)) {
+                    if (!key.startsWith("text.") || jar.isConfigurationSection(key) || messages.isSet(key)) continue;
+                    messages.set(key, jar.get(key));
+                    added = true;
+                }
+                if (added) messages.save(messagesFile);
+            }
+        } catch (Exception e) { getLogger().warning("Could not update messages.yml: " + e.getMessage()); }
+        T.load(messages);
+        settings = new Settings(getConfig(), messages);
         String give = getConfig().getString("economy.give-command", "");
         com.cquests.farm.EconomyBridge.configure(getConfig().getString("economy.balance-placeholder", ""),
                 getConfig().getString("economy.take-command", ""), give == null || give.isBlank() ? settings.moneyCommand : give);

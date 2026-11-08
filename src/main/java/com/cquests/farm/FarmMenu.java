@@ -1,5 +1,7 @@
 package com.cquests.farm;
 
+import com.cquests.T;
+
 import com.cquests.CQuestsPlugin;
 import com.cquests.gui.LockedMenu;
 import com.cquests.gui.QuestMenu;
@@ -14,7 +16,7 @@ import java.util.*;
 public final class FarmMenu implements LockedMenu {
     private final CQuestsPlugin plugin;private final Player player;private final Inventory inventory;private final FarmService.Spot station;
     private final Map<Integer,Integer> choices=new HashMap<>();private Integer confirm;
-    private FarmMenu(CQuestsPlugin p,Player player,FarmService.Spot station){plugin=p;this.player=player;this.station=station;inventory=Bukkit.createInventory(this,45,Text.mm("<dark_gray>Fieldsmith • Hoe upgrades"));}
+    private FarmMenu(CQuestsPlugin p,Player player,FarmService.Spot station){plugin=p;this.player=player;this.station=station;inventory=Bukkit.createInventory(this,45,Text.mm(T.t("farm-menu.fieldsmith-hoe-upgrades", "<dark_gray>Fieldsmith • Hoe upgrades")));}
     public static void open(CQuestsPlugin p,Player player){var station=p.farm().nearbyUpgrader(player);if(station==null){p.send(player,"<yellow>Right-click the Fieldsmith Anvil to upgrade your hoe.");return;}var m=new FarmMenu(p,player,station);m.fill();player.openInventory(m.inventory);}
     public UUID viewer(){return player.getUniqueId();}
     public Inventory getInventory(){return inventory;}
@@ -59,8 +61,8 @@ public final class FarmMenu implements LockedMenu {
     }
     public void click(int slot,ClickType type){
         if(slot==40){player.closeInventory();return;}
-        if(!plugin.farm().validUpgrader(player,station)){player.closeInventory();plugin.send(player,"<yellow>Stand next to the Fieldsmith Anvil to use it.");return;}
-        if(slot==31){if(plugin.farm().inFarm(player))plugin.farm().equip(player);else plugin.send(player,"<yellow>Step into the fields to collect your hoe.");return;}
+        if(!plugin.farm().validUpgrader(player,station)){player.closeInventory();plugin.send(player,T.t("farm-menu.stand-next-to-the-fieldsmith", "<yellow>Stand next to the Fieldsmith Anvil to use it."));return;}
+        if(slot==31){if(plugin.farm().inFarm(player))plugin.farm().equip(player);else plugin.send(player,T.t("farm-menu.step-into-the-fields-to", "<yellow>Step into the fields to collect your hoe."));return;}
         if(slot==34&&confirm!=null){
             int id=confirm;confirm=null;
             boolean bought=plugin.farm().purchase(player,id);fill();
