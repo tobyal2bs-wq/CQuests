@@ -870,3 +870,63 @@ bosses:
       top-items: ["NETHERITE_SCRAP 1"]
       commands: []
       top-commands: []
+
+  moonwake_manta:
+    name: <gradient:#80b9b3:#e2eadb><bold>Moonwake Manta</bold></gradient>
+    title: Warden of the Moonlit Tide
+    model: moonwake_manta
+    scale: 1.5
+    glow: false
+    particle: END_ROD
+    color: '#80b9b3'
+    entity: PHANTOM
+    health: 5000
+    damage: 11
+    armor: 6
+    bar: BLUE
+    ability-seconds: 8
+    abilities:
+    - pull
+    - volley
+    - levitate
+    rewards:
+      money: 45000
+      top-money: 135000
+      items:
+      - PRISMARINE_SHARD 32
+      - DIAMOND 2
+      top-items:
+      - NETHERITE_SCRAP 1
+      commands: []
+      top-commands: []
+    speed: 0.23
+
+  thorncoil_basilisk:
+    name: <gradient:#8fa36d:#e2eadb><bold>Thorncoil Basilisk</bold></gradient>
+    title: Fang of the Tangled Grove
+    model: thorncoil_basilisk
+    scale: 1.5
+    glow: false
+    particle: CHERRY_LEAVES
+    color: '#8fa36d'
+    entity: RAVAGER
+    health: 5000
+    damage: 13
+    armor: 8
+    bar: GREEN
+    ability-seconds: 8
+    abilities:
+    - poison
+    - roar
+    - quake
+    rewards:
+      money: 45000
+      top-money: 135000
+      items:
+      - MOSS_BLOCK 32
+      - DIAMOND 2
+      top-items:
+      - NETHERITE_SCRAP 1
+      commands: []
+      top-commands: []
+    speed: 0.21

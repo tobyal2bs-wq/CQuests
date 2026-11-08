@@ -27,8 +27,8 @@ for id,old in list(cq['models'].items()):
   if z['kind']!='weak' or any(x['kind']=='weak' for x in m.get('zones',[])):continue
   if z['b'] in {b['name'] for b in m['bones']}:m['zones'].append(copy.deepcopy(z))
  cq['models'][id]=m
-for id in ('millstone_monk',):
+for id in ('millstone_monk','moonwake_manta','thorncoil_basilisk'):
  if id not in cb['models']:raise ValueError('Approved model missing: '+id)
  cq['models'][id]=copy.deepcopy(cb['models'][id])
 cq['rigs']=cb['rigs'];target.write_text(json.dumps(cq,separators=(',',':')))
-print('Synchronized',len(set(cb['models'])&set(cq['models'])),'visual models; only the explicitly approved Monk may be added.')
+print('Synchronized',len(set(cb['models'])&set(cq['models'])),'visual models; only the three explicitly approved additions may be added.')

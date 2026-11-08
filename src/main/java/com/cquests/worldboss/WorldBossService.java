@@ -830,6 +830,7 @@ public final class WorldBossService implements Listener {
         if (look != null) {
             // Drawn with blocks: the mob waits, unhurt, until its entrance has played.
             BossModel model = new BossModel(plugin, look, mob);
+            model.flying = look.anim("fly") != null && mob instanceof org.bukkit.entity.Flying;
             try {
                 model.build(kindKey, fightKey, key);
                 model.meleeDamage = def.damage() > 0 ? def.damage() : 6;

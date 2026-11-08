@@ -35,7 +35,7 @@ class WorldBossDefTest {
         });
         Map<String, WorldBossDef> defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File("src/main/resources/worldbosses.yml")), log);
         assertTrue(warnings.isEmpty(), warnings.toString());
-        assertEquals(24, defs.values().stream().filter(d -> !d.seasonal()).count(), "22 general bosses and 2 legends");
+        assertEquals(26, defs.values().stream().filter(d -> !d.seasonal()).count(), "24 general bosses and 2 legends");
         assertEquals(12, defs.values().stream().filter(d -> d.seasonal()).count(), "three for each season");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new File("src/main/resources/config.yml"));
         for (WorldBossDef d : defs.values()) {
@@ -92,7 +92,7 @@ class WorldBossDefTest {
             var all = ModelRig.load(in); var m = all.get("millstone_monk"); assertNotNull(m);
             assertEquals(2, m.cubes.stream().filter(c -> c.tag().equals("eye_socket")).count());
             assertTrue(m.zones.stream().anyMatch(z -> z.kind().equals("weak") && z.bone() == m.boneIndex.get("wheel")));
-            for (String draft : List.of("moonwake_manta", "thorncoil_basilisk", "bellwether", "driftjaw")) assertTrue(!all.containsKey(draft), draft);
+            for (String draft : List.of("bellwether", "driftjaw")) assertTrue(!all.containsKey(draft), draft);
         }
     }
 }

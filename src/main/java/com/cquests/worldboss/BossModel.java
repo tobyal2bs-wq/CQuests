@@ -299,7 +299,7 @@ public final class BossModel {
         double speed = Math.sqrt(dx * dx + dz * dz) / PERIOD;
         last = now;
         float target = speed > 0.025 ? 1 : 0;
-        walkW += Math.max(-0.35f, Math.min(0.35f, target - walkW));
+        walkW = MotionBlend.approach(walkW, target, DT, 0.18f);
         idleT += DT;
         walkT += DT * (float) Math.max(0.6, Math.min(2.2, speed / 0.12));
         hurtT += DT;
@@ -321,8 +321,7 @@ public final class BossModel {
         // Follow the shortest arc through +/-180 rather than spinning a whole turn.
         float heading = !flying && speed > 0.025
                 ? (float) Math.toDegrees(Math.atan2(-dx, dz)) : now.getYaw();
-        float turn = (float) Math.IEEEremainder(heading - yaw, 360);
-        turn = Math.max(-45, Math.min(45, turn));
+        float turn = MotionBlend.turn(yaw, heading, DT);
         yaw += turn;
         if (++viewerCheck % 7 == 1) {
             double near = Double.MAX_VALUE;
@@ -331,24 +330,26 @@ public final class BossModel {
             stride = force || near < 28 * 28 ? 1 : 2;
         }
         if (!visible) return true;
-        if (++frame % stride != 0 && Math.abs(turn) <= 90 && attackT > DT * 2) return true;
+        if (++frame % stride != 0 && Math.abs(turn) < 6 && (attack == null || attackT > DT * 2) && hurtT > DT * 2) return true;
         List<ModelRig.Layer> layers = new ArrayList<>(4);
         layers.add(new ModelRig.Layer(model.anim("idle"), idleT, 1));
         ModelRig.Anim fly = flying ? model.anim("fly") : null;
         if (fly != null) layers.add(new ModelRig.Layer(fly, idleT, 1));
         else if (walkW > 0.01f) layers.add(new ModelRig.Layer(model.anim("walk"), walkT, walkW));
         if (attack != null) {
-            float w = Math.min(1, Math.min(attackT / 0.12f, (attack.length() - attackT) / 0.18f));
+            float w = MotionBlend.envelope(attackT, attack.length(), 0.12f, 0.18f);
             layers.add(new ModelRig.Layer(attack, attackT, Math.max(0, w)));
         }
-        if (hurtT < 0.35f) layers.add(new ModelRig.Layer(model.anim("hurt"), hurtT, 1));
+        ModelRig.Anim hurt = model.anim("hurt");
+        if (hurt != null && hurtT < hurt.length())
+            layers.add(new ModelRig.Layer(hurt, hurtT, MotionBlend.envelope(hurtT, hurt.length(), 0.04f, 0.14f)));
         if (model.feet.length > 0 && frame % 4 == 0) sampleGround(now);
         bones = ModelRig.pose(model, layers, footGround);
         Matrix4f[] cubes = ModelRig.cubes(model, bones);
         System.arraycopy(cubes, 0, pose, 0, cubes.length);
         for (int i = 0; i < model.entranceOnly.length && i < pose.length; i++) if (model.entranceOnly[i]) pose[i] = new Matrix4f().scale(0);
         if (model.faceOf != null) model.showFace(pose, face());
-        send(Math.abs(turn) > 90 ? 1 : PERIOD * stride);
+        send(PERIOD * stride);
         if (frame % 2 == 0 || stride == 1) placeZones();
         return true;
     }
