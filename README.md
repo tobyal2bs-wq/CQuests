@@ -1,5 +1,7 @@
 # CQuests
 
+**Visual refinement 1.16.6:** grounded rest poses, visible joint sockets, two-eye birds, individual reactions and deaths, and three retired designs. [Update notes](RELEASE-1.16.6.md).
+
 **Boss polish update 1.16.5:** connected joints, stable faces/turning, individual entrances, no aura rings, and 2,000/5,000 HP. [Friendly Mossback commands and update notes](RELEASE-1.16.5.md).
 
 **Boss polish update 1.16.4:** connected joints, stable faces/turning, individual entrances, no aura rings, and 2,000/5,000 HP. [Friendly Mossback commands and update notes](RELEASE-1.16.4.md).

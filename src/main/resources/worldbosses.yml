@@ -264,50 +264,6 @@ bosses:
       top-items: ["DIAMOND 6"]
       commands: []
       top-commands: []
-  ironhide_behemoth:
-    name: "<gradient:#5d4037:#bcaaa4><bold>The Ironhide Behemoth</bold></gradient>"
-    title: "War Beast of the Raid"
-    entity: RAVAGER
-    health: 5000
-    scale: 1.7
-    damage: 15
-    armor: 12
-    bar: RED
-    glow: true
-    particle: CAMPFIRE_COSY_SMOKE
-    color: "#6d4c41"
-    ability-seconds: 8
-    abilities: [leap, quake, roar, shockwave]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["EMERALD 24", "GOLDEN_APPLE 3"]
-      top-items: ["EMERALD_BLOCK 6"]
-      commands: []
-      top-commands: []
-  fenrir:
-    name: "<gradient:#424242:#e0e0e0><bold>Fenrir</bold></gradient>"
-    title: "The Wolf That Swallows the Moon"
-    entity: WOLF
-    health: 5000
-    scale: 3.0
-    damage: 13
-    armor: 8
-    bar: WHITE
-    glow: true
-    particle: WHITE_ASH
-    color: "#9e9e9e"
-    minion: WOLF
-    minions: 4
-    ability-seconds: 8
-    abilities: [frost, minions, leap, shockwave, roar]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["BONE 32", "GOLDEN_APPLE 3"]
-      top-items: ["DIAMOND 8"]
-      commands: []
-      top-commands: []
   tide_tyrant:
     name: "<gradient:#00838f:#80deea><bold>The Tide Tyrant</bold></gradient>"
     title: "Drowned King of the Sunken Fleet"
@@ -332,27 +288,6 @@ bosses:
       top-money: 150000
       items: ["PRISMARINE_SHARD 16", "GOLDEN_APPLE 3"]
       top-items: ["HEART_OF_THE_SEA 1"]
-      commands: []
-      top-commands: []
-  void_walker:
-    name: "<gradient:#311b92:#b388ff><bold>The Void Walker</bold></gradient>"
-    title: "It Was Never Really Here"
-    entity: ENDERMAN
-    health: 5000
-    scale: 1.6
-    damage: 13
-    armor: 6
-    bar: PURPLE
-    glow: true
-    particle: REVERSE_PORTAL
-    color: "#651fff"
-    ability-seconds: 6
-    abilities: [blink, volley, darkness, pull, roar, levitate]
-    rewards:
-      money: 50000
-      top-money: 150000
-      items: ["ENDER_PEARL 16", "GOLDEN_APPLE 3"]
-      top-items: ["SHULKER_SHELL 4"]
       commands: []
       top-commands: []
   storm_herald:

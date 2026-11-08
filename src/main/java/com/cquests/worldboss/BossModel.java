@@ -512,7 +512,7 @@ public final class BossModel {
             }
             case "light" -> {
                 BlockDisplay d = parts.get(e.cube());
-                if (d.isValid()) d.setBrightness(s.flag("on") || model.cubes.get(e.cube()).light() ? new Display.Brightness(15, 15) : null);
+                if (d.isValid()) d.setBrightness((s.params().has("on") ? s.flag("on") : model.cubes.get(e.cube()).light()) ? new Display.Brightness(15, 15) : null);
             }
             default -> {
                 int i = e.cube();

@@ -149,6 +149,8 @@ public final class ModelRig {
 
         /** Height in blocks. */
         public float blocks() { return height * scale / 16f; }
+        /** Constant rest-pose floor correction in model pixels; shared by skin and hit zones. */
+        float groundLift;
 
         public Anim anim(String name) { return name == null ? null : anims.get(name); }
 
@@ -272,6 +274,21 @@ public final class ModelRig {
             }
             model.feet = feet.stream().mapToInt(Integer::intValue).toArray();
             model.root = index.getOrDefault("root", -1);
+            // A rotated foot, hoof or spider leg can extend below its unrotated
+            // JSON box. Anchor the real posed geometry, not the raw f/t values.
+            Matrix4f[] baseline = rawPose(model, List.of(new Layer(model.anim("idle"), 0, 1)), null);
+            float bottom = Float.POSITIVE_INFINITY;
+            Vector3f corner = new Vector3f();
+            for (int ci = 0; ci < cubes.size(); ci++) {
+                Cube c = cubes.get(ci);
+                if (only[ci] || c.tag().startsWith("face:") && !c.tag().equals("face:idle")) continue;
+                Matrix4f matrix = new Matrix4f(baseline[c.bone()]).mul(c.local());
+                for (int k = 0; k < 8; k++) {
+                    matrix.transformPosition(k & 1, k >> 1 & 1, k >> 2 & 1, corner);
+                    bottom = Math.min(bottom, corner.y);
+                }
+            }
+            if (Float.isFinite(bottom)) model.groundLift = -bottom;
             out.put(e.getKey(), model);
         }
         return out;
@@ -337,6 +354,15 @@ public final class ModelRig {
 
     /** As above; ground (model pixels per foot, in model.feet order, may be null) lifts feet onto uneven ground. */
     public static Matrix4f[] pose(Model model, List<Layer> layers, float[] ground) {
+        Matrix4f[] out = rawPose(model, layers, ground);
+        if (Math.abs(model.groundLift) > 1e-5f) {
+            Matrix4f lift = new Matrix4f().translation(0, model.groundLift, 0);
+            for (int i = 0; i < out.length; i++) out[i] = new Matrix4f(lift).mul(out[i]);
+        }
+        return out;
+    }
+
+    private static Matrix4f[] rawPose(Model model, List<Layer> layers, float[] ground) {
         int n = model.bones.size();
         Matrix4f[] out = new Matrix4f[n];
         float[] rot = new float[3], pos = new float[3], scl = new float[3], tmp = new float[3];

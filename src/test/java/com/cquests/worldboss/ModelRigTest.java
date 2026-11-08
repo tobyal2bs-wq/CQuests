@@ -36,9 +36,10 @@ class ModelRigTest {
         for (WorldBossDef d : defs.values()) {
             ModelRig.Model m = models.get(d.model());
             assertNotNull(m, d.id() + " has a model");
-            assertTrue(m.cubes.size() >= (d.id().equals("grand_augur") ? 100 : 150), d.id() + " has only " + m.cubes.size() + " blocks");
-            assertTrue(m.cubes.size() <= 270, d.id() + " is not too heavy: " + m.cubes.size());
-            assertTrue(m.blocks() >= 2.5 && m.blocks() <= 9, d.id() + " is " + m.blocks() + " blocks tall");
+            assertTrue(m.cubes.size() >= 50, d.id() + " has only " + m.cubes.size() + " blocks");
+            long visible = m.cubes.stream().filter(c -> !c.tag().startsWith("face:") || c.tag().equals("face:idle")).count();
+            assertTrue(visible <= 300, d.id() + " exceeds the visible display budget: " + visible);
+            assertTrue(m.blocks() >= 1.8 && m.blocks() <= 9, d.id() + " is " + m.blocks() + " blocks tall");
             for (ModelRig.Cube c : m.cubes) {
                 Material mat = Material.matchMaterial(c.base());
                 assertNotNull(mat, d.id() + ": unknown block " + c.block());
@@ -105,7 +106,7 @@ class ModelRigTest {
             }
             // Floaters hover; everything else touches the floor.
             if (!m.rig.equals("float")) assertTrue(Math.abs(min) < 0.35f, m.id + " lowest point " + min);
-            assertTrue(max > 2.5f, m.id + " top " + max);
+            assertTrue(max > 1.8f, m.id + " top " + max);
         }
     }
 

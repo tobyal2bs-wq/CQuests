@@ -153,7 +153,7 @@ public final class WorldBossService implements Listener {
     // ------------------------------------------------------------------ setup
 
     /** World bosses an update replaced; their models no longer exist. */
-    static final Set<String> RETIRED = Set.of("molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign");
+    static final Set<String> RETIRED = Set.of("fenrir", "ironhide_behemoth", "void_walker", "molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign");
 
     /** Bosses added in a new version are copied into an older worldbosses.yml; existing ones are left alone. */
     private void addNewBosses(File file, YamlConfiguration yaml) {
