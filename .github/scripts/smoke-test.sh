@@ -113,8 +113,8 @@ grep -q "Chapter 6 (The Iron Tusk) is on" server.log || { echo "/cq chapter 6 on
 grep -qE "Checked [0-9]+ objectives" server.log || { echo "/cq test targets did not run"; exit 1; }
 grep -E "Checked [0-9]+ objectives" server.log || true
 sed 's/\x1b\[[0-9;]*m//g' server.log > plain.log
-grep -qE "World bosses \(35\)" plain.log || { echo "/cq worldboss list did not list 35 bosses"; exit 1; }
-grep -qE "World boss self-test: 35/35 appeared, [0-9]+ attacks ran, 35 drawn with [0-9]+ blocks and [0-9]+ hit zones, [0-9]+ animations, 35 deaths played" plain.log && ! grep -q "World boss self-test.*Problems" plain.log || { echo "World boss self-test failed"; grep -E "World boss|self-test" plain.log | tail -20; exit 1; }
+grep -qE "World bosses \(36\)" plain.log || { echo "/cq worldboss list did not list 36 bosses"; exit 1; }
+grep -qE "World boss self-test: 36/36 appeared, [0-9]+ attacks ran, 36 drawn with [0-9]+ blocks and [0-9]+ hit zones, [0-9]+ animations, 36 deaths played" plain.log && ! grep -q "World boss self-test.*Problems" plain.log || { echo "World boss self-test failed"; grep -E "World boss|self-test" plain.log | tail -20; exit 1; }
 grep -E "World boss self-test" plain.log || true
 grep -q "Halloween is now on" plain.log || { echo "/cq season halloween on failed"; grep -iE "season|halloween" plain.log | tail -20; exit 1; }
 grep -q "Chapter 6 is off" server.log || { echo "/cq chapter 6 off failed"; exit 1; }

@@ -35,7 +35,7 @@ class WorldBossDefTest {
         });
         Map<String, WorldBossDef> defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File("src/main/resources/worldbosses.yml")), log);
         assertTrue(warnings.isEmpty(), warnings.toString());
-        assertEquals(23, defs.values().stream().filter(d -> !d.seasonal()).count(), "21 general bosses and 2 legends");
+        assertEquals(24, defs.values().stream().filter(d -> !d.seasonal()).count(), "22 general bosses and 2 legends");
         assertEquals(12, defs.values().stream().filter(d -> d.seasonal()).count(), "three for each season");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new File("src/main/resources/config.yml"));
         for (WorldBossDef d : defs.values()) {
@@ -81,5 +81,18 @@ class WorldBossDefTest {
         assertTrue(a.blocked(6, 6));
         assertTrue(a.blocked(11, 12));
         assertTrue(!a.blocked(15, 0));
+    }
+
+    @Test
+    void approvedMonkHasItsModelAndUnapprovedDraftsDoNotShip() throws Exception {
+        var defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File("src/main/resources/worldbosses.yml")), Logger.getLogger("monk-test"));
+        var d = defs.get("millstone_monk"); assertNotNull(d); assertEquals(5000, d.health(), .01); assertTrue(!d.seasonal());
+        assertEquals(List.of("shockwave", "quake", "heal"), d.abilities());
+        try (var in = new java.io.FileReader("src/main/resources/worldboss-models.json")) {
+            var all = ModelRig.load(in); var m = all.get("millstone_monk"); assertNotNull(m);
+            assertEquals(2, m.cubes.stream().filter(c -> c.tag().equals("eye_socket")).count());
+            assertTrue(m.zones.stream().anyMatch(z -> z.kind().equals("weak") && z.bone() == m.boneIndex.get("wheel")));
+            for (String draft : List.of("moonwake_manta", "thorncoil_basilisk", "bellwether", "driftjaw")) assertTrue(!all.containsKey(draft), draft);
+        }
     }
 }

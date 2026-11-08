@@ -847,3 +847,26 @@ bosses:
       top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
       commands: []
       top-commands: []
+
+  millstone_monk:
+    name: "<gradient:#91b5aa:#e0d9bd><bold>Millstone Monk</bold></gradient>"
+    title: "Keeper of the Old Mill"
+    model: millstone_monk
+    scale: 1.5
+    glow: false
+    particle: ASH
+    color: "#91b5aa"
+    entity: IRON_GOLEM
+    health: 5000
+    damage: 12
+    armor: 9
+    bar: GREEN
+    ability-seconds: 8
+    abilities: [shockwave, quake, heal]
+    rewards:
+      money: 45000
+      top-money: 135000
+      items: ["STONE_BRICKS 32", "MOSS_BLOCK 16", "DIAMOND 2"]
+      top-items: ["NETHERITE_SCRAP 1"]
+      commands: []
+      top-commands: []

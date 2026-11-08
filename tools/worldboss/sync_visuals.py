@@ -1,6 +1,6 @@
 """Sync visual fixes for existing CQuests bosses without replacing gameplay.
 Run from the CQuests root: python tools/worldboss/sync_visuals.py ../CBosses
-New CBosses drafts and newly registered IDs are intentionally not auto-added.
+Only millstone_monk is approved as a new addition; all other new drafts stay excluded.
 """
 import json,sys,copy
 from pathlib import Path
@@ -27,5 +27,8 @@ for id,old in list(cq['models'].items()):
   if z['kind']!='weak' or any(x['kind']=='weak' for x in m.get('zones',[])):continue
   if z['b'] in {b['name'] for b in m['bones']}:m['zones'].append(copy.deepcopy(z))
  cq['models'][id]=m
+for id in ('millstone_monk',):
+ if id not in cb['models']:raise ValueError('Approved model missing: '+id)
+ cq['models'][id]=copy.deepcopy(cb['models'][id])
 cq['rigs']=cb['rigs'];target.write_text(json.dumps(cq,separators=(',',':')))
-print('Synchronized',len(set(cb['models'])&set(cq['models'])),'existing visual models; no new bosses added.')
+print('Synchronized',len(set(cb['models'])&set(cq['models'])),'visual models; only the explicitly approved Monk may be added.')
