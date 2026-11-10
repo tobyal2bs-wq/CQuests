@@ -305,6 +305,38 @@ def rootmaw():
 
 # ================================================================================================ redesigned bosses
 
+def hide_detail(m, skin, dark, light, body, arm_x, arm_top, arm_w, head, legx, leg_top, leg_w, seed, hair=None):
+    """Mottled hide on a big brute: blotches and scars over the chest, back and sides, warts on the arms,
+    toenails, knuckles and tufts of coarse hair. body = (x0, y0, z0, x1, y1, z1) of the upper torso,
+    head = (x0, y0, z0, x1, y1, z1)."""
+    x0, y0, z0, x1, y1, z1 = body
+    speckle(m, "body", (x0 + 1, y0, z1 + 0.02), (x1 - x0 - 2, y1 - y0, 0), "front", [dark, light], n=12, seed=seed, depth=0.12, cell=1.6)
+    speckle(m, "body", (x0 + 1, y0, z0 - 0.02), (x1 - x0 - 2, y1 - y0, 0), "back", [dark, light], n=12, seed=seed + 1, depth=0.12, cell=1.6)
+    speckle(m, "body", (x0 - 0.02, y0, z0 + 1), (0, y1 - y0, z1 - z0 - 2), "right", [dark], n=5, seed=seed + 2, depth=0.12, cell=1.6)
+    speckle(m, "body", (x1 + 0.02, y0, z0 + 1), (0, y1 - y0, z1 - z0 - 2), "left", [dark], n=5, seed=seed + 3, depth=0.12, cell=1.6)
+    hx0, hy0, hz0, hx1, hy1, hz1 = head
+    speckle(m, "head", (hx0 + 1, hy1 + 0.02, hz0 + 1), (hx1 - hx0 - 2, 0, hz1 - hz0 - 2), "top", [dark, light], n=7, seed=seed + 4, depth=0.12, cell=1.4)
+    speckle(m, "head", (hx0 + 1, hy0 + 1, hz0 - 0.02), (hx1 - hx0 - 2, hy1 - hy0 - 2, 0), "back", [dark], n=5, seed=seed + 5, depth=0.12, cell=1.4)
+    for sd, a, leg in ((1, "armL", "legL"), (-1, "armR", "legR")):
+        ax = sd * arm_x
+        speckle(m, a, (ax - arm_w / 2 + 0.5, arm_top - 24, arm_w / 2 + 0.02), (arm_w - 1, 20, 0), "front", [dark, light], n=6, seed=seed + 6 + sd, depth=0.12, cell=1.4)
+        speckle(m, a, (ax + sd * (arm_w / 2 + 0.02), arm_top - 22, -arm_w / 2 + 0.5), (0, 18, arm_w - 1), "left" if sd > 0 else "right", [dark], n=4, seed=seed + 8 + sd, depth=0.12, cell=1.4)
+        for k in range(3):                                                                   # warts
+            C(m, a, light, (ax + sd * (arm_w / 2 + 0.2), arm_top - 6 - k * 6, (k - 1) * 1.6), (0.8, 0.8, 0.8))
+        for k in range(4):                                                                   # knuckles
+            C(m, a, dark, (ax + (k - 1.5) * arm_w / 4.4, arm_top - 26 - 0.4, arm_w / 2 + 0.6), (1.2, 1.0, 0.6))
+        lx = sd * legx
+        speckle(m, leg, (lx - leg_w / 2 + 0.5, 3, leg_w / 2 + 0.02), (leg_w - 1, leg_top - 5, 0), "front", [dark, light], n=4, seed=seed + 10 + sd, depth=0.12, cell=1.4)
+        for k in range(3):                                                                   # toenails
+            C(m, leg, "bone_block", (lx + (k - 1) * leg_w / 3.2, 0.6, leg_w / 2 + 1.6), (1.2, 1.0, 0.8))
+        if hair:
+            for k in range(3):                                                               # hair on the shoulders
+                C(m, "body", hair, (sd * (x1 - 3 - k * 2.2), y1 + 0.5, z0 + 4 + k * 2), (1.0, 2.0, 1.0), (k * 8 - 8, 0, -sd * 14))
+    if hair:
+        for k in range(5):                                                                   # a ridge down the back
+            C(m, "body", hair, (0, y1 - 2 - k * 2.4, z0 - 0.4), (1.2, 1.6, 0.8), (-30, 0, 0))
+
+
 @studio("grubnose")
 def grubnose():
     """Grubnose the Troll: a hunched ochre troll that is all shoulders and long arms, with a big bulbous nose
@@ -367,6 +399,7 @@ def grubnose():
             B(m, a, SKL, (sd * 14.5 - 4 + k * 2.8, 1.6, 4.2), (2.2, 2.2, 0.6))
     m.rest("body", (12, 0, 0))
     m.rest("head", (-10, 0, 0))
+    hide_detail(m, SK, SKD, "orange_terracotta", (-11, 23, -7, 11, 35, 7), 14.5, 33, 7.5, (-7.5, 31, -2, 7.5, 43, 10), 5.5, 13, 7, 51, hair="brown_mushroom_block")
     m.bend = -16
     standard_anims(m, heavy=1.3, extra={"idle": idle_biped(4.0, 16, extra={"cloth": {"rot": wave(0, 6, 2.0, base=(4, 0, 0))}})})
     m.anims["walk"]["bones"]["cloth"] = {"rot": K((0, (14, 0, 0)), (0.55, (-6, 0, 0)), (1.1, (14, 0, 0)))}
@@ -433,6 +466,7 @@ def mudclub():
     for y, x, z in ((19, -16.0, 2), (23, -11.0, 3), (21, -13.5, 4.5), (25, -13.5, -0.5), (27, -16.0, 1)):
         C(m, "club", "iron_block", (x, y, z), (1.2, 1.2, 1.2))
     m.rest("body", (8, 0, 0)); m.rest("head", (-8, 0, 0))
+    hide_detail(m, SK, SKD, SKL, (-11.5, 23, -7, 11.5, 35, 7), 14, 34, 7.5, (-6, 33, -4, 6, 43, 6), 5.5, 14, 7.5, 77, hair="black_wool")
     m.bend = -20
     standard_anims(m, heavy=1.2, extra={"idle": idle_biped(4.0, 18, extra={"cloth": {"rot": wave(0, 5, 2.0, base=(3, 0, 0))}})})
     m.anims["walk"]["bones"]["cloth"] = {"rot": K((0, (14, 0, 0)), (0.55, (-6, 0, 0)), (1.1, (14, 0, 0)))}
