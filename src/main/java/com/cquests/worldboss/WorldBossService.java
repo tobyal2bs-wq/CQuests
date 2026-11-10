@@ -651,6 +651,21 @@ public final class WorldBossService implements Listener {
         return spawn(def, a, player, false);
     }
 
+    private final java.util.concurrent.atomic.AtomicInteger hereCount = new java.util.concurrent.atomic.AtomicInteger();
+
+    /**
+     * Ops: a real fight right where the player stands, with the same health, attacks and rewards as a scheduled
+     * one. Its border is a circle of world-bosses.here-radius blocks around that spot, and like every world boss
+     * it never breaks, burns or changes blocks.
+     */
+    public boolean spawnHere(Player player, String bossId) {
+        WorldBossDef def = defs.get(bossId.toLowerCase(Locale.ROOT));
+        if (def == null) { plugin.send(player, T.t("world-boss-service.no-world-boss-cq-worldboss", "<red>No world boss <bossid>. <gray>/cq worldboss list", "bossid", Text.escape(bossId))); return false; }
+        Arena a = new Arena("here-" + hereCount.incrementAndGet(), Math.max(10, plugin.getConfig().getInt("world-bosses.here-radius", 40)));
+        a.spawn(player.getLocation().clone());
+        return spawn(def, a, player, false);
+    }
+
     /** /cq test worldboss: the boss appears a few blocks in front of you inside a 25 block circle; nothing is paid. */
     public boolean test(Player player, String bossId) {
         WorldBossDef def = bossId == null || bossId.isBlank() ? null : defs.get(bossId.toLowerCase(Locale.ROOT));

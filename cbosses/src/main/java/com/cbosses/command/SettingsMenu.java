@@ -106,6 +106,13 @@ public final class SettingsMenu implements Listener {
                 d("mythic.health-multiplier", "Mythic health x", Material.ENCHANTED_GOLDEN_APPLE, 0.5, 5, 0.25),
                 d("mythic.damage-multiplier", "Mythic damage x", Material.NETHERITE_SWORD, 0.5, 5, 0.05),
                 b("mythic.always-evolve", "Mythic always evolve", Material.DRAGON_BREATH))));
+        out.add(new Page("minis", "Mini bosses", Material.TURTLE_EGG, List.of(
+                b("minis.enabled", "Mini bosses on", Material.LEVER),
+                c("minis.mode", "Where they wake", Material.COMPASS, "fixed", "random", "mixed"),
+                i("minis.every-minutes", "Every (minutes)", Material.CLOCK, 5, 1440, 5),
+                i("minis.per-round", "Per round", Material.SPAWNER, 1, 10, 1),
+                i("minis.max-alive", "Max alive", Material.TOTEM_OF_UNDYING, 1, 20, 1),
+                b("minis.announce", "Announce minis", Material.GOAT_HORN))));
         out.add(new Page("chapters", "Chapter bosses", Material.WRITABLE_BOOK, List.of(
                 b("chapter-bosses.enabled", "Chapter bosses on", Material.LEVER),
                 b("chapter-bosses.from-cquests", "Start from CQuests", Material.BOOK),
