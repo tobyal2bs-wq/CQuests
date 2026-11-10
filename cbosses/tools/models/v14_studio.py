@@ -1564,13 +1564,16 @@ def old_pip():
     B(m, "beard", "white_wool", (-2.0, 9.5, 3.4), (4, 1.6, 1.2))
     B(m, "beard", "light_gray_wool", (-1.0, 9.0, 3.4), (2, 0.8, 1.1))
     B(m, "beard", "white_wool", (-4.5, 17, 3.6), (9, 2.0, 1.0))
-    B(m, "head", "terracotta", (-1.6, 16.0, 4.0), (3.2, 5.6, 2.4))                                  # the nose
-    B(m, "head", "brown_terracotta", (-1.4, 15.4, 4.2), (2.8, 0.8, 2.0))
+    B(m, "head", "terracotta", (-1.6, 15.6, 4.0), (3.2, 6.0, 3.4))                                  # the nose
+    B(m, "head", "brown_terracotta", (-1.4, 15.0, 4.6), (2.8, 0.8, 2.6))
     # floppy pointed hat
     B(m, "hat", HAT, (-5, 26.5, -4.5), (10, 3, 9))
     B(m, "hat", HATD, (-5.2, 26.3, -4.7), (10.4, 1.0, 9.4))
-    chain(m, "hat", HAT, (0, 29.5, 0), [(4, (8, 7.6), (-6, 0, 0)), (3.6, (6, 5.6), (-16, 0, 0)), (3, (4.2, 4), (-34, 0, 0), HATD),
-                                       (2.6, (2.8, 2.6), (-70, 0, 0)), (2.0, (1.8, 1.6), (-110, 0, 0), HATD)])
+    # stepped like the picture: each layer smaller and set a little back, the tip leaning over
+    for i, (w, h, d, z) in enumerate(((9.0, 2.6, 8.4, -4.4), (7.4, 2.4, 6.8, -4.0), (5.6, 2.2, 5.0, -3.8), (3.8, 2.0, 3.4, -3.6), (2.2, 1.6, 2.0, -3.4))):
+        y = 29.5 + sum((2.6, 2.4, 2.2, 2.0, 1.6)[:i])
+        B(m, "hat", HAT if i % 2 == 0 else HATD, (-w / 2, y, z), (w, h, d))
+    B(m, "hat", HAT, (-1.2, 40.3, -3.0), (2.0, 1.2, 2.2))
     arms(m, 6.6, 16, 3.0, 3.2, TUN, TUN, SKIN, 9, hand_h=2.4)
     for sd, a in ((1, "armL"), (-1, "armR")):
         B(m, a, TUND, (sd * 6.6 - 1.7, 9.4, -1.8), (3.4, 1.0, 3.6))

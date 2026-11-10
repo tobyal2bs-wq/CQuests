@@ -1872,7 +1872,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "The Old Blindman: a tall hermit under a deep brown hood that hides his eyes in shadow, a big nose and a white moustache poking out, a long grey beard down to his belt, a patched brown cloak tied with a rope and a dark staff with a gold band."
+    description: "The hermit from the picture: a villager-shaped old man in a tall brown hood, a pale forehead with one black slit for eyes, a long nose resting on a huge grey beard that covers his whole front down to the hem, brown sleeves with bare hands, and a black staff with a gold band."
   king_oldbeard:
     revision: 4
     name: "<gradient:#b71c1c:#ffd54f><bold>King Oldbeard</bold></gradient>"
@@ -2173,7 +2173,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A hungry flytrap rooted in a mossy clump: a thick stem in two parts, wide leaves, and a purple-spotted head that splits into a jaw full of white teeth, with two little angry yellow eyes."
+    description: "The flytrap from the picture: a long purple head held out on a thin bending green stem, its jaws split wide to show a red mouth lined with pale teeth, a crown of purple spikes sweeping back off the top, and long spiky leaves fanning from the stem and the base."
   cap_brothers:
     revision: 3
     name: "<gradient:#b71c1c:#ffccbc><bold>Toadstool</bold></gradient>"

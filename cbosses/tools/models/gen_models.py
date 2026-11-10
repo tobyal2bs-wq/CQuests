@@ -7,6 +7,7 @@ import json, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 import anims, models, palette, roster
 import v14_kit
+import mottle_pass
 # the shared biped attacks get the studio set: a wind-up before every hit, weight through the hips and legs,
 # and a follow-through, instead of arms swinging on a stiff body
 anims.BIPED.update(v14_kit.biped_set(1.0))
@@ -179,6 +180,10 @@ def entrance(id, old):
            ([{"op": "anim", "at": 16, "dur": 24, "name": roar}] if roar else [])
 
 
+# grubnose and mudclub carry their own painted mottling (v14_studio.hide_detail)
+import v14_studio
+SKINNED_BY_HAND = {"grubnose", "mudclub"}
+
 for id, fn in roster.builders().items():
     m = fn()
     if hasattr(m, "approved"):
@@ -191,6 +196,7 @@ for id, fn in roster.builders().items():
     if m.rig in ("biped", "quad"): m.knees()
     m.zones()
     tag(m)
+    if m.id in v14_studio.STUDIO and m.id not in SKINNED_BY_HAND and not m.id.startswith("decor_"): mottle_pass.skin(m)
     texturize(m)
     m.attacks = fight_attacks(m)
     j = m.json()

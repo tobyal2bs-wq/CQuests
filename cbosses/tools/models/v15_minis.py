@@ -142,68 +142,77 @@ def apple_crab():
 
 @mini("snapjaw")
 def snapjaw():
-    """A hungry flytrap rooted in a mossy clump: a thick stem in two parts, wide leaves, and a purple-spotted
-    head that splits into a jaw full of white teeth, with two little angry yellow eyes."""
+    """The flytrap from the picture: a long purple head held out on a thin bending green stem, its jaws
+    split wide to show a red mouth lined with pale teeth, a crown of purple spikes sweeping back off the
+    top, and long spiky leaves fanning from the stem and the base."""
     m = Model("snapjaw", "biped", 1.0)
-    P, PD, PS, G, GL = "purple_concrete", "purple_terracotta", "magenta_concrete", "green_concrete", "lime_concrete"
-    m.bone("hips", "root", (0, 3, 0))
-    m.bone("body", "hips", (0, 3.4, 0))
-    m.bone("neck", "body", (0, 8.4, 0))
-    m.bone("head", "neck", (0, 14, -3))
-    m.bone("jaw", "head", (0, 14.6, -3.4))
-    m.bone("armL", "hips", (1.6, 3.6, 0)); m.bone("armR", "hips", (-1.6, 3.6, 0))
-    # the clump it grows from
-    B(m, "hips", "coarse_dirt", (-5.6, 0, -5.6), (11.2, 0.8, 11.2))
-    B(m, "hips", "moss_block", (-6.0, 0.8, -6.0), (12.0, 1.8, 12.0))
-    B(m, "hips", "moss_block", (-4.4, 2.6, -4.4), (8.8, 0.9, 8.8))
-    B(m, "hips", "cobblestone", (3.6, 2.6, 2.8), (1.8, 0.8, 1.6))
-    B(m, "hips", "cobblestone", (-4.8, 2.6, -3.6), (1.4, 0.6, 1.4))
-    # stem
-    B(m, "body", G, (-1.5, 3.4, -1.5), (3.0, 5.2, 3.0))
-    B(m, "body", GL, (-1.8, 8.0, -1.8), (3.6, 0.8, 3.6))
-    B(m, "neck", G, (-1.3, 8.6, -1.3), (2.6, 4.6, 2.6))
-    B(m, "neck", G, (-3.0, 12.8, -3.2), (6.0, 1.2, 6.0))
-    for sd in (1, -1):
-        B(m, "neck", GL, (sd * 3.0 - (1.6 if sd > 0 else 0), 12.8, -0.8), (1.6, 0.8, 1.6))
-    # head: upper jaw with spots, red mouth, a row of teeth along the rim, little eyes on the front
-    B(m, "head", P, (-5.0, 15.0, -4.0), (10, 4.6, 9.6))
-    B(m, "head", P, (-4.4, 15.4, 5.6), (8.8, 3.8, 1.0))
-    B(m, "head", P, (-4.2, 19.6, -3.4), (8.4, 0.9, 8.4))
-    B(m, "head", "red_concrete", (-4.6, 14.9, -3.6), (9.2, 0.2, 9.6))
-    for x, z, w in ((-3.0, 1.0, 1.8), (1.4, -1.6, 2.2), (2.2, 3.2, 1.4), (-1.6, -2.8, 1.4)):
-        B(m, "head", PS, (x, 20.5, z), (w, 0.1, w))
-    for sd in (1, -1):
-        B(m, "head", PS, (sd * 5.0 - (0.1 if sd > 0 else 0), 16.4, 0.4), (0.1, 1.6, 1.6))
-    teeth(m, "head", -4.0, 4.0, 15.0, 6.2, n=5, h=1.4, w=0.9, d=0.7)
-    for sd in (1, -1):
-        for z in (1.4, -1.2):
-            B(m, "head", "white_concrete", (sd * 4.3 - 0.4, 13.8, z), (0.8, 1.2, 0.8))
-        eye(m, "head", sd * 2.4, 18.0, 6.6, w=2.0, h=1.6, out=0.4, white="yellow_concrete", pw=0.9, ph=1.2)
-        brow(m, "head", sd * 2.4, 19.2, 6.6, 2.6, PD, tilt=-22 * sd, h=0.7, d=0.6)
-    # lower jaw
-    B(m, "jaw", P, (-4.6, 12.0, -3.6), (9.2, 2.8, 9.6))
-    B(m, "jaw", P, (-4.0, 12.4, 6.0), (8.0, 2.2, 0.8))
-    B(m, "jaw", PD, (-4.0, 11.4, -3.0), (8.0, 0.6, 8.6))
-    B(m, "jaw", "red_concrete", (-4.0, 14.8, -3.0), (8.0, 0.2, 8.8))
-    teeth(m, "jaw", -3.4, 3.4, 14.8, 5.6, n=4, h=1.2, w=0.9, d=0.7, down=False)
-    # leaves: two big ones that swat, two small ones fixed in the clump
+    P, PD, PL, R, RD = "purple_concrete", "purple_terracotta", "magenta_terracotta", "red_concrete", "red_terracotta"
+    G, GL, GD, T = "green_concrete", "lime_concrete", "green_terracotta", "white_terracotta"
+    m.bone("hips", "root", (0, 2, 0))
+    m.bone("body", "hips", (0, 2, 0))
+    m.bone("neck", "body", (0, 10, -1.0))
+    m.bone("stem3", "neck", (0, 17, 0.4))
+    m.bone("head", "stem3", (0, 22, 2.0))
+    m.bone("jaw", "head", (0, 22.6, 3.6))
+    m.bone("armL", "body", (0.6, 9, -0.6)); m.bone("armR", "body", (-0.6, 9, -0.6))
+    # roots and a leaf rosette at the base
+    B(m, "hips", GD, (-2.4, 0, -2.4), (4.8, 1.4, 4.8))
+    B(m, "hips", "rooted_dirt", (-3.4, 0, -3.4), (6.8, 0.6, 6.8))
+    for ry in (20, 92, 164, 236, 308):
+        chain(m, "hips", G, (0, 1.2, 0), [(3.2, (2.6, 0.6), (-74, ry, 0)), (2.6, (1.8, 0.5), (-84, ry, 0), GL),
+                                         (1.6, (0.9, 0.4), (-96, ry, 0))])
+    # the stem: three bending segments, the curve built into the pieces
+    end = chain(m, "body", G, (0, 1.6, 0), [(4.2, (1.8, 1.8), (-6, 0, 0)), (4.2, (1.6, 1.6), (-12, 0, 0), GL)])
+    B(m, "body", GD, (end[0] - 1.0, end[1] - 0.6, end[2] - 1.0), (2.0, 0.9, 2.0))
+    end = chain(m, "neck", G, (0, 10, -1.0), [(3.6, (1.6, 1.6), (10, 0, 0)), (3.6, (1.5, 1.5), (16, 0, 0), GL)])
+    B(m, "neck", GD, (end[0] - 0.9, end[1] - 0.5, end[2] - 0.9), (1.8, 0.8, 1.8))
+    chain(m, "stem3", G, (0, 17, 0.4), [(3.0, (1.5, 1.5), (24, 0, 0)), (2.4, (1.6, 1.6), (34, 0, 0), GL)])
+    # two long spiky leaves halfway up that swat
     for sd, s in side():
-        chain(m, "arm" + s, G, (sd * 1.6, 3.6, 0), [(3.4, (0.6, 3.0), (0, 0, -60 * sd)), (3.2, (0.6, 2.8), (0, 0, -76 * sd), GL),
-                                                    (1.8, (0.5, 1.4), (0, 0, -96 * sd))])
-    for rx in (62, -62):
-        chain(m, "hips", G, (0, 3.4, 0.0), [(3.0, (2.4, 0.6), (rx, 0, 0)), (1.6, (1.4, 0.5), (rx * 1.3, 0, 0), GL)])
+        chain(m, "arm" + s, G, (sd * 0.6, 9, -0.6), [(3.2, (0.6, 2.2), (0, 0, -58 * sd)), (3.0, (0.5, 1.8), (0, 0, -72 * sd), GL),
+                                                    (2.4, (0.4, 1.2), (0, 0, -86 * sd)), (1.4, (0.3, 0.6), (0, 0, -100 * sd), GL)])
+    # head: a round purple back where the stem joins, a long upper jaw tipped up, a lower jaw tipped down
+    B(m, "head", PD, (-2.6, 20.6, -0.4), (5.2, 4.4, 4.0))
+    B(m, "head", P, (-3.2, 21.2, 0.2), (6.4, 4.4, 3.8))
+    up, uo = (-22, 0, 0), (0, 23.0, 3.6)
+    B(m, "head", P, (-3.0, 23.0, 3.6), (6.0, 2.8, 9.6), up, uo)
+    B(m, "head", PL, (-2.6, 25.8, 3.8), (5.2, 0.6, 8.0), up, uo)
+    B(m, "head", PD, (-3.1, 23.0, 12.4), (6.2, 2.4, 1.4), up, uo)
+    B(m, "head", R, (-2.4, 22.6, 3.8), (4.8, 0.5, 8.6), up, uo)              # red roof of the mouth
+    B(m, "head", RD, (-1.0, 22.5, 4.4), (2.0, 0.2, 7.6), up, uo)
+    for z in (4.8, 6.8, 8.8, 10.8):
+        for sd in (1, -1):
+            B(m, "head", T, (sd * 2.6 - 0.4, 21.4, z), (0.8, 1.6, 0.8), up, uo)
+    B(m, "head", T, (-0.4, 21.6, 12.0), (0.8, 1.4, 0.8), up, uo)
+    # the crown of spikes sweeping back off the top
+    for x, rx, n in ((-2.0, -128, 4.0), (0.0, -142, 5.0), (2.0, -128, 4.0), (-1.0, -112, 3.4), (1.0, -112, 3.4)):
+        chain(m, "head", P, (x, 25.2, 1.6), [(n * 0.55, (1.0, 1.0), (rx, 0, 0)), (n * 0.45, (0.6, 0.6), (rx - 14, 0, 0), PL)])
+    for sd in (1, -1):
+        chain(m, "head", P, (sd * 3.0, 24.4, 1.6), [(2.6, (0.8, 0.8), (-120, 0, -40 * sd)), (1.8, (0.5, 0.5), (-130, 0, -56 * sd), PL)])
+    # lower jaw
+    dn, do = (18, 0, 0), (0, 22.6, 3.6)
+    B(m, "jaw", P, (-2.6, 20.4, 3.6), (5.2, 2.2, 8.8), dn, do)
+    B(m, "jaw", PD, (-2.4, 20.0, 4.0), (4.8, 0.5, 7.6), dn, do)
+    B(m, "jaw", R, (-2.0, 22.6, 3.8), (4.0, 0.4, 7.8), dn, do)
+    for z in (5.4, 7.4, 9.4):
+        for sd in (1, -1):
+            B(m, "jaw", T, (sd * 2.2 - 0.35, 23.0, z), (0.7, 1.3, 0.7), dn, do)
+    B(m, "jaw", T, (-0.35, 22.8, 11.4), (0.7, 1.2, 0.7), dn, do)
     m.no_elbows = m.no_knees = True
     snap = attack(0.9, 0.42, {
-        "neck": {"rot": K((0, Z), (0.28, (-20, 0, 0)), (0.42, (24, 0, 0)), (0.6, (22, 0, 0)), (0.9, Z))},
-        "body": {"rot": K((0, Z), (0.28, (-8, 0, 0)), (0.42, (8, 0, 0)), (0.9, Z))},
-        "head": {"rot": K((0, Z), (0.28, (-26, 0, 0)), (0.42, (-10, 0, 0)), (0.9, Z))},
-        "jaw": {"rot": K((0, Z), (0.28, (46, 0, 0)), (0.42, (0, 0, 0)), (0.5, (6, 0, 0)), (0.6, Z), (0.9, Z))}})
-    sway = {"body": {"rot": wave2((3, 4, 4), 3.0)}, "neck": {"rot": wave2((4, 6, 3), 3.0, 0.3)},
-            "head": {"rot": K((0, Z), (0.8, (0, 18, 0)), (1.4, (0, 18, 0)), (2.0, (0, -18, 0)), (2.6, (0, -18, 0)), (3.0, Z))},
-            "jaw": {"rot": K((0, (16, 0, 0)), (0.4, (30, 0, 0)), (0.55, (4, 0, 0)), (1.6, (16, 0, 0)), (1.75, (28, 0, 0)), (1.9, (4, 0, 0)), (3.0, (16, 0, 0)))},
+        "neck": {"rot": K((0, Z), (0.28, (-14, 0, 0)), (0.42, (18, 0, 0)), (0.6, (16, 0, 0)), (0.9, Z))},
+        "stem3": {"rot": K((0, Z), (0.28, (-18, 0, 0)), (0.42, (20, 0, 0)), (0.6, (16, 0, 0)), (0.9, Z))},
+        "body": {"rot": K((0, Z), (0.28, (-6, 0, 0)), (0.42, (6, 0, 0)), (0.9, Z))},
+        "head": {"rot": K((0, Z), (0.28, (-14, 0, 0)), (0.42, (8, 0, 0)), (0.9, Z))},
+        "jaw": {"rot": K((0, Z), (0.28, (22, 0, 0)), (0.42, (-16, 0, 0)), (0.55, (-14, 0, 0)), (0.7, Z), (0.9, Z))}})
+    sway = {"body": {"rot": wave2((3, 4, 4), 3.0)}, "neck": {"rot": wave2((5, 8, 4), 3.0, 0.25)},
+            "stem3": {"rot": wave2((6, 10, 5), 3.0, 0.5)},
+            "head": {"rot": K((0, Z), (0.8, (0, 16, 0)), (1.4, (0, 16, 0)), (2.0, (0, -16, 0)), (2.6, (0, -16, 0)), (3.0, Z))},
+            "jaw": {"rot": K((0, Z), (0.4, (10, 0, 0)), (0.55, (-12, 0, 0)), (1.6, Z), (1.75, (10, 0, 0)), (1.9, (-12, 0, 0)), (3.0, Z))},
             "armL": {"rot": wave(2, 8, 3.0)}, "armR": {"rot": wave(2, 8, 3.0, 0.5)}}
     walk = loop(0.8, {"hips": {"rot": K((0, (0, 0, 5)), (0.4, (0, 0, -5)), (0.8, (0, 0, 5)))},
                       "neck": {"rot": K((0, (8, 0, -5)), (0.4, (8, 0, 5)), (0.8, (8, 0, -5)))},
+                      "stem3": {"rot": K((0, (4, 0, 5)), (0.4, (4, 0, -5)), (0.8, (4, 0, 5)))},
                       "armL": {"rot": K((0, (0, 0, 12)), (0.4, (0, 0, -6)), (0.8, (0, 0, 12)))},
                       "armR": {"rot": K((0, (0, 0, 6)), (0.4, (0, 0, -12)), (0.8, (0, 0, 6)))}})
     standard_anims(m, heavy=0.4, idle=loop(3.0, sway), walk=walk, extra={"snap": snap})
@@ -527,48 +536,61 @@ def bark_ape():
 
 @mini("old_blindman")
 def old_blindman():
-    """The Old Blindman: a tall hermit under a deep brown hood that hides his eyes in shadow, a big nose and
-    a white moustache poking out, a long grey beard down to his belt, a patched brown cloak tied with a
-    rope and a dark staff with a gold band."""
+    """The hermit from the picture: a villager-shaped old man in a tall brown hood, a pale forehead with one
+    black slit for eyes, a long nose resting on a huge grey beard that covers his whole front down to the
+    hem, brown sleeves with bare hands, and a black staff with a gold band."""
     m = Model("old_blindman", "biped", 1.0)
-    CL, CD, HD = "brown_concrete", "brown_terracotta", "dark_oak_planks"
-    humanoid(m, hip=10, legx=2.2, neck=21.6, shoulder=21, armx=5.8)
-    m.bone("beard", "head", (0, 23, 4))
-    m.bone("cape", "body", (0, 21, -3.4))
-    legs(m, 2.2, 10, 3.6, 4.0, CD, foot="black_terracotta", foot_h=1.4, toe=0.6)
-    B(m, "hips", CL, (-4.6, 7.0, -3.0), (9.2, 4.0, 6.0))
-    B(m, "body", CL, (-4.6, 10.6, -3.0), (9.2, 11.0, 6.0))
-    B(m, "body", "birch_planks", (-4.8, 13.4, -3.2), (9.6, 0.8, 6.4))
-    B(m, "body", "birch_planks", (2.2, 11.4, 3.2), (0.8, 2.0, 0.4))
-    B(m, "body", "brown_wool", (-3.8, 16.0, 3.0), (2.6, 2.4, 0.1))
-    B(m, "hips", "brown_wool", (1.0, 7.8, 3.0), (2.4, 2.2, 0.1))
-    B(m, "cape", CD, (-5.4, 8.0, -4.2), (10.8, 13.6, 1.0))
-    B(m, "cape", CD, (-5.6, 20.0, -4.2), (11.2, 2.0, 7.6))
-    # the hood, its dark opening, the nose and moustache inside
-    B(m, "head", CD, (-5.0, 21.4, -4.8), (10.0, 9.2, 9.4))
-    B(m, "head", CD, (-3.6, 30.6, -4.2), (7.2, 1.2, 6.6))
-    B(m, "head", CD, (-2.4, 30.0, -6.2), (4.8, 2.0, 1.6))
-    B(m, "head", "black_concrete", (-3.6, 22.0, 4.6), (7.2, 6.4, 0.2))
+    CL, CD, SK, SKD = "brown_concrete", "brown_terracotta", "white_terracotta", "terracotta"
+    BE, BEL, BED = "light_gray_wool", "white_wool", "light_gray_concrete"
+    humanoid(m, hip=6, legx=2.0, neck=20, shoulder=20, armx=5.6)
+    m.bone("beard", "head", (0, 21, 4.4))
+    m.bone("hem", "hips", (0, 6, 0))
+    # legs hidden under the robe, only the toes poke out
+    legs(m, 2.0, 6, 3.4, 3.4, CD, foot="black_terracotta", foot_h=1.2, toe=0.8)
+    # the robe: body, a wider skirt that sways, a rope belt
+    B(m, "body", CL, (-4.4, 9.0, -3.2), (8.8, 11.4, 6.4))
+    B(m, "hem", CL, (-4.8, 2.0, -3.6), (9.6, 7.4, 7.2))
+    B(m, "hem", CD, (-5.0, 1.4, -3.8), (10.0, 1.2, 7.6))
+    for x in (-4.2, -1.4, 1.8):
+        B(m, "hem", CD, (x, 1.0, 3.6), (1.6, 0.6, 0.3))
+    B(m, "body", "stripped_oak_log", (-4.6, 9.0, -3.4), (9.2, 1.0, 6.8))
+    B(m, "body", "stripped_oak_log", (2.6, 6.6, 3.3), (0.9, 2.6, 0.4))
+    # the head: a villager head inside a tall hood
+    B(m, "head", SK, (-3.8, 20.4, -3.6), (7.6, 9.8, 7.6))
+    B(m, "head", CD, (-4.8, 20.0, -4.6), (9.6, 12.2, 1.4))                     # hood back
     for sd in (1, -1):
-        B(m, "head", CD, (sd * 4.3 - 0.7, 21.4, 4.6), (1.4, 7.4, 1.0))
-    B(m, "head", CD, (-5.0, 28.0, 4.6), (10.0, 1.6, 1.2))
-    B(m, "head", "white_terracotta", (-1.0, 23.4, 4.8), (2.0, 3.0, 2.0))
-    B(m, "head", "white_terracotta", (-0.8, 23.0, 6.8), (1.6, 1.4, 0.4))
-    B(m, "head", "white_wool", (-2.8, 22.2, 4.8), (5.6, 1.1, 1.4))
-    # the beard in steps down the chest
-    B(m, "beard", "light_gray_wool", (-3.4, 18.4, 3.6), (6.8, 4.0, 1.6))
-    B(m, "beard", "light_gray_wool", (-3.0, 22.0, 4.7), (6.0, 0.6, 1.0))
-    B(m, "beard", "light_gray_wool", (-2.8, 15.0, 3.4), (5.6, 3.4, 1.4))
-    B(m, "beard", "light_gray_wool", (-2.0, 12.2, 3.2), (4.0, 2.8, 1.2))
-    B(m, "beard", "white_wool", (-1.0, 10.8, 3.1), (2.0, 1.4, 1.0))
-    # sleeves and staff
-    arms(m, 5.8, 21, 2.8, 3.0, CL, CL, "white_terracotta", 9.0, hand_h=2.2)
+        B(m, "head", CD, (sd * 4.3 - 0.5, 20.0, -4.6), (1.0, 12.2, 9.4))       # hood sides
+        B(m, "head", CL, (sd * 4.6 - 0.25, 21.0, 2.2), (0.5, 10.0, 2.4))
+    B(m, "head", CD, (-4.8, 30.2, -4.6), (9.6, 2.0, 9.4))                       # hood crown
+    B(m, "head", CL, (-4.0, 29.4, 3.6), (8.0, 1.0, 1.2))                        # brim shadow
+    # one black slit for the eyes, a brow line, the long nose
+    B(m, "head", "black_concrete", (-3.2, 25.0, 4.0), (6.4, 1.4, 0.2))
+    B(m, "head", SKD, (-3.4, 26.4, 4.0), (6.8, 0.5, 0.15))
+    B(m, "head", SK, (-1.0, 21.4, 4.0), (2.0, 3.6, 2.8))
+    B(m, "head", SKD, (-1.0, 21.4, 6.8), (2.0, 0.8, 0.2))
+    # the beard: from under the eyes over the whole front, down to the hem, ragged at the bottom
+    B(m, "head", BE, (-3.8, 20.2, 4.0), (7.6, 4.8, 0.9))
+    B(m, "beard", BE, (-4.0, 9.0, 3.2), (8.0, 11.4, 1.4))
+    B(m, "beard", BE, (-3.6, 5.4, 3.6), (7.2, 3.8, 1.2))
+    for x, h in ((-3.6, 1.6), (-1.6, 2.4), (0.6, 1.4), (2.2, 2.2)):
+        B(m, "beard", BEL if h > 2 else BE, (x, 5.4 - h, 3.7), (1.4, h, 1.0))
+    B(m, "beard", BED, (-0.4, 12.0, 4.5), (0.8, 6.0, 0.2))
+    B(m, "beard", BED, (-2.6, 10.4, 4.5), (0.6, 3.6, 0.2))
+    B(m, "beard", BED, (2.0, 9.6, 4.5), (0.6, 4.2, 0.2))
+    B(m, "beard", BED, (-3.0, 18.4, 4.5), (1.4, 1.2, 0.2))
+    B(m, "beard", BED, (1.6, 15.6, 4.5), (1.2, 1.6, 0.2))
+    # sleeves with cuffs, bare hands
+    arms(m, 5.6, 20, 3.0, 3.2, CL, CL, SK, 10.4, hand_h=2.4)
     for sd, s in side():
-        B(m, "arm" + s, CD, (sd * 5.8 - 1.8, 12.4, -1.9), (3.6, 1.8, 3.8))
-    B(m, "armR", HD, (-6.3, 1.0, 2.0), (1.1, 26.0, 1.1))
-    B(m, "armR", "gold_block", (-6.5, 19.0, 1.8), (1.5, 1.2, 1.5), light=True)
-    chain(m, "armR", HD, (-5.75, 27.0, 2.55), [(1.6, (1.4, 1.4), (0, 0, 20)), (1.4, (1.2, 1.2), (-30, 0, 60))])
-    standard_anims(m, heavy=0.6, extra={"idle": idle_biped(4.4, 10, extra={"beard": {"rot": wave(0, 3, 2.2)}})})
+        B(m, "arm" + s, CD, (sd * 5.6 - 1.8, 12.0, -1.9), (3.6, 1.4, 3.8))
+        B(m, "arm" + s, CD, (sd * 5.6 - 1.7, 18.6, -1.8), (3.4, 1.8, 3.6))
+    # the black staff with a gold band, held in the right hand
+    B(m, "armR", "polished_blackstone", (-6.2, 0.4, 1.6), (1.4, 27.0, 1.4))
+    B(m, "armR", "blackstone", (-6.4, 25.4, 1.4), (1.8, 2.4, 1.8))
+    B(m, "armR", "gold_block", (-6.45, 13.4, 1.35), (1.9, 1.0, 1.9))
+    m.no_knees = True
+    standard_anims(m, heavy=0.6, extra={"idle": idle_biped(4.4, 10, extra={
+        "beard": {"rot": wave(0, 3, 2.2)}, "hem": {"rot": wave2((2, 0, 2), 4.4, 0.25)}})})
     m.attacks = {"pull": "cast", "darkness": "roar", "slam": "slam"}
     m.melee = "swipe"
     return m
