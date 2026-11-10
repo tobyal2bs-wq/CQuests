@@ -68,8 +68,7 @@ public final class BbModel {
             String block = parts[0].trim().toLowerCase(Locale.ROOT).replace("minecraft:", "").replace(' ', '_');
             int cut = block.lastIndexOf('.');                     // Blockbench names copies "stone.001"
             if (cut > 0 && block.substring(cut + 1).chars().allMatch(Character::isDigit)) block = block.substring(0, cut);
-            Material mat = Material.matchMaterial(ModelRig.base(block));
-            if (mat == null || !mat.isBlock() || mat.isAir()) { bad++; block = "white_concrete"; }
+            if (!isBlock(block)) { bad++; block = "white_concrete"; }
             float[] f = arr(o, "from"), t = arr(o, "to");
             JsonObject c = new JsonObject();
             c.addProperty("b", e.getValue());
@@ -335,6 +334,13 @@ public final class BbModel {
         out.add("textures", textures);
         out.add("animations", animations);
         return out;
+    }
+
+    /** A block that can be shown; without a running server (tests) the registry is missing, so a known name is enough. */
+    static boolean isBlock(String block) {
+        Material mat = Material.matchMaterial(ModelRig.base(block));
+        if (mat == null) return false;
+        try { return mat.isBlock() && !mat.isAir(); } catch (Throwable noServer) { return true; }
     }
 
     private static int colour(String block) {
