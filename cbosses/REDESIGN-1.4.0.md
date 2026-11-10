@@ -14,6 +14,20 @@ These models are in `tools/models/v14_studio.py` (helpers in `v14_kit.py`) and s
 refine passes, which were what detached King Oldbeard's crown and Grubnose's nose. Every older biped boss now uses
 the same new attack set.
 
+## No more loose blocks
+Gorehorn and Thunderback are rebuilt by hand with their fur as solid layered pieces. The old fur "tufts" (small
+tilted cubes scattered over a body, which read as random floating blocks in game) are no longer drawn on any boss,
+and the Broodmother's loose egg sacs are gone.
+
+Every older mini is rebuilt from scratch in `tools/models/v15_minis.py`: Mandrake, Applecrab, Snapjaw, Farmer
+Trotter, King Snivel, Moss Imp, Little Moo, Hoo, Bark Ape, Old Blindman, Farmer Grimbly, Gilded Mimic, Mossling,
+Mister Pebbles, Thimble, Toadstool, Puffball, The Goose, Sir Mallard, Puffneck, Pack Goblin, Floaty Frog (now with
+a swim ring), Mossy Turtle and Stumpy. Every piece belongs to something; tilted pieces only come in joined chains
+(horns, leaves, ears). Ids, attacks and abilities are unchanged, so server settings carry over.
+
+Minis can be turned off on the new Mini bosses page of `/cbosses settings`, with `/cbosses minis off`, or with
+`minis.enabled: false` in config.yml.
+
 ## New bosses
 - Big: Rootmaw (the mandrake), Brewgut (the tavern orc), and three Hollow Mage variants: The Cinder Hollow, The Rime
   Hollow and The Bramble Hollow.

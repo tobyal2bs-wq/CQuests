@@ -231,6 +231,14 @@ for model_id, data in out["models"].items():
     if model_id not in HANDMADE: refine.apply(model_id, data, out["rigs"])
 
 
+_OPENINGS = set()
+
+
+def _key(c):
+    import json
+    return str(c["length"]) + json.dumps(c["bones"], sort_keys=True)
+
+
 def studio_finish(id, m, rigs):
     """Studio models keep their own moves, entrance and death, and get what the shared engine needs on top:
     a hurt, an opening and a death clip of their own, no ring effects, no attack that slides an attached bone
@@ -273,7 +281,12 @@ def studio_finish(id, m, rigs):
         st.pop("ring", None)
     sp = next((st for st in m["spawn"] if st["op"] == "anim"), None)
     src = sp["name"] if sp and sp.get("name") in rig else "idle"
-    opening = own(rig[src], 1 + (seed // 7 % 991) / 6000)
+    f = 1 + (seed // 7 % 991) / 6000
+    opening = own(rig[src], f)
+    while _key(opening) in _OPENINGS:                               # two ids can land on the same factor
+        f += 0.00071
+        opening = own(rig[src], f)
+    _OPENINGS.add(_key(opening))
     opening.pop("loop", None)
     anims_["opening_" + id] = opening
     if sp: sp["name"] = "opening_" + id

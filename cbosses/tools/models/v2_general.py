@@ -988,9 +988,6 @@ def broodmother():
     ], {"R": ("red_concrete", 0.4, True)}, px=1.2, depth=0.3)
     for x in (-1.6, 1.6):
         m.c("abdomen", HA2, (x, 15, -29.6), (1.6, 2.4, 2), (-40, 0, 0), (0, 14, -6))
-    for (x, y, z) in ((-7.4, 25, -12), (7, 24, -23), (8.6, 18, -15)):
-        m.c("abdomen", "white_wool", (x, y, z), (3.6, 3.6, 3.6), (0, 30, 0), (0, 14, -6))
-        m.c("abdomen", MK, (x, y, z), (3.8, 0.6, 0.6), (0, 30, 0), (0, 14, -6), light=True)
     tufts(m, "abdomen", HA2, [(-6, 28, -16), (6, 28, -16), (-4, 27, -24), (4, 27, -24), (0, 28, -10)], 2)
     # head: eight eyes, two big and six small, mandibles and fangs
     bevel(m, "head", HA, (0, 13, 10.6), (9, 7, 6), 1.2)

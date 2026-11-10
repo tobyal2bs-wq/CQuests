@@ -110,7 +110,10 @@ def hem(m, bone, block, x0, x1, y, z, depth, teeth, long=2.6, short=1.0, seed=0,
 
 
 def tufts(m, bone, block, points, size=2.2, alt=None, tilt=18):
-    """Fur or feather tufts: small tilted blocks at the given points, alternating tilt so they read as fur."""
+    """Fur or feather tufts. These used to be small tilted blocks scattered at the given points; seen in game
+    they read as loose blocks floating off the body, so they are no longer drawn (v15). Kept so the older
+    builders still run unchanged."""
+    return
     for i, p in enumerate(points):
         s = size * (1.0 if i % 2 == 0 else 0.8)
         r = tilt if i % 2 == 0 else -tilt

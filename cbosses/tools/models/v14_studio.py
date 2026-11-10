@@ -1617,3 +1617,155 @@ def sproutbeak():
     m.attacks = {"charge": "lunge"}
     m.melee = "swipe"
     return m
+
+
+# ------------------------------------------------------------------------------------------------ fur done as shapes
+def mane(m, bone, block, alt, x0, x1, y, z0, z1, rows=3, step=1.6, drop=1.2):
+    """A solid fur collar: stacked slabs that step outward and down like layered hair, every piece touching the
+    one under it, so it reads as one mane and not as loose cubes."""
+    for k in range(rows):
+        g = k * step
+        B(m, bone, block if k % 2 == 0 else alt, (x0 - g * 0.6, y - k * drop, z0 - g * 0.5), (x1 - x0 + g * 1.2, drop + 0.6, z1 - z0 + g))
+
+
+@studio("gorehorn")
+def gorehorn():
+    """Gorehorn, champion of the fighting pit: a huge minotaur with a dark brown bull head, a long muzzle with a
+    gold nose ring, red eyes and two long pale horns. A thick white mane sits over his shoulders like a cape,
+    crossed leather straps meet at an iron boss on his chest, a blue loincloth hangs from a studded belt,
+    his legs end in black hooves and he swings a double-headed axe."""
+    m = Model("gorehorn", "biped", 1.6)
+    HD, HD2, FU, FU2, SK, LE, BL, IR = "brown_terracotta", "black_terracotta", "white_wool", "light_gray_wool", "terracotta", "brown_concrete", "blue_terracotta", "iron_block"
+    humanoid(m, hip=14, legx=5, neck=33, shoulder=32, armx=12.5, jaw=(0, 36, 6))
+    m.bone("axe", "armR", (-13, 11, 2))
+    m.bone("cloth", "hips", (0, 14, 5.5))
+    m.hold = {"axe": 18}
+    legs(m, 5, 14, 6.4, 6.6, HD, foot=HD2, foot_h=3.0, toe=1.0, shin=HD)
+    for sd, leg in ((1, "legL"), (-1, "legR")):
+        B(m, leg, FU2, (sd * 5 - 3.4, 9, -3.5), (6.8, 3.2, 7.0))                                 # fur at the knee
+        B(m, leg, "black_concrete", (sd * 5 - 0.4, 0, 3.0), (0.8, 3.0, 0.4))                     # the split hoof
+    # belt, loincloth front and back
+    B(m, "hips", LE, (-7.5, 12.5, -5), (15, 4, 10))
+    B(m, "hips", "brown_terracotta", (-7.7, 15.4, -5.2), (15.4, 1.6, 10.4))
+    for x in (-6, -3, 0, 3, 6): B(m, "hips", IR, (x - 0.5, 15.6, 5.25), (1.0, 1.2, 0.2))
+    B(m, "cloth", BL, (-3, 5.5, 5.2), (6, 9, 0.6))
+    B(m, "cloth", "light_blue_terracotta", (-2.2, 6.4, 5.8), (4.4, 0.6, 0.1))
+    B(m, "cloth", "light_blue_terracotta", (-0.4, 7.6, 5.8), (0.8, 4, 0.1))
+    B(m, "hips", BL, (-3.5, 6.5, -5.6), (7, 8, 0.6))
+    # torso: a deep chest, cross straps and the boss plate
+    B(m, "body", SK, (-7.5, 16, -4.5), (15, 9, 9.5))
+    B(m, "body", HD, (-9.5, 24, -5.5), (19, 9, 11.5))
+    B(m, "body", SK, (-6.5, 24.5, 5.95), (13, 6.5, 0.2))                                          # bare chest
+    B(m, "body", HD, (-0.3, 24.6, 6.15), (0.6, 6.2, 0.1))
+    B(m, "body", HD, (-6.2, 21.0, 4.95), (12.4, 0.5, 0.1))
+    for r in (38, -38):
+        C(m, "body", LE, (0, 24, 0), (2.0, 20, 12.4), (0, 0, r))
+    C(m, "body", IR, (0, 24.8, 6.6), (3.8, 3.8, 0.8))
+    C(m, "body", "polished_andesite", (0, 24.8, 7.05), (2.0, 2.0, 0.2))
+    # the mane: a solid white cape over the shoulders and down the back
+    mane(m, "body", FU, FU2, -10.5, 10.5, 33.0, -6.5, 4.0, rows=3, step=1.0, drop=1.4)
+    B(m, "body", FU, (-9.0, 22, -7.4), (18, 10, 2.0))
+    B(m, "body", FU2, (-8.0, 20.2, -7.2), (16, 2.0, 1.6))
+    B(m, "body", FU, (-5.5, 33.4, 4.0), (11, 2.2, 3.0))                                           # mane under the chin
+    # arms: big, a fur cuff, a studded bracer, dark fists
+    arms(m, 12.5, 32, 6.4, 6.4, SK, SK, HD2, 22, hand_h=5.0, hand_w=7.0)
+    for sd, a in ((1, "armL"), (-1, "armR")):
+        B(m, a, FU, (sd * 12.5 - 3.8, 28.6, -3.8), (7.6, 4.2, 7.6))
+        B(m, a, LE, (sd * 12.5 - 3.5, 13.5, -3.5), (7.0, 3.6, 7.0))
+        for k in (-1.8, 1.8): B(m, a, IR, (sd * 12.5 + k - 0.4, 14.8, 3.5), (0.8, 1.0, 0.2))
+    # head: brow, long muzzle, ring, eyes, ears and long horns built end to end
+    B(m, "head", HD, (-5, 36, -2), (10, 9.5, 8.5))
+    B(m, "head", HD, (-3.8, 36.4, 6.5), (7.6, 5.0, 3.4))                                          # muzzle
+    B(m, "head", HD2, (-3.4, 36.6, 9.9), (6.8, 3.6, 0.6))
+    B(m, "head", "black_concrete", (-2.4, 38.6, 10.5), (1.4, 1.0, 0.1)); B(m, "head", "black_concrete", (1.0, 38.6, 10.5), (1.4, 1.0, 0.1))
+    C(m, "head", "gold_block", (0, 36.6, 10.6), (3.2, 0.6, 0.6))
+    C(m, "head", "gold_block", (1.4, 37.4, 10.6), (0.6, 1.8, 0.6)); C(m, "head", "gold_block", (-1.4, 37.4, 10.6), (0.6, 1.8, 0.6))
+    B(m, "head", HD2, (-5.1, 42.0, 6.45), (10.2, 1.4, 0.2))                                        # brow
+    for sd in (1, -1):
+        B(m, "head", "black_concrete", (sd * 2.6 - 1.2, 40.2, 6.5), (2.4, 1.6, 0.2))
+        B(m, "head", "red_concrete", (sd * 2.6 - (0.4 if sd > 0 else 0.4), 40.5, 6.6), (0.8, 0.9, 0.1), light=True)
+        C(m, "head", HD, (sd * 6.4, 41, 1.5), (3.2, 1.6, 2.6), (0, 0, -22 * sd))                    # ears
+        chain(m, "head", "white_terracotta", (sd * 5.2, 43.6, 1.5), [(3.2, (2.6, 2.6), (0, 0, -80 * sd)), (3.0, (2.2, 2.2), (0, 0, -45 * sd)),
+                                                                 (2.8, (1.8, 1.8), (-10, 0, -10 * sd)), (2.0, (1.3, 1.3), (-20, 0, 15 * sd), "calcite")])
+    B(m, "head", FU, (-3.0, 45.4, -1), (6, 1.4, 5))                                               # forelock
+    B(m, "head", FU2, (-2.0, 44.6, 3.5), (4, 1.6, 1.2))
+    B(m, "jaw", HD, (-3.4, 34.6, 3), (6.8, 2.0, 7.0))
+    # the double axe
+    C(m, "axe", "stripped_spruce_log", (-13, 22, 2), (1.6, 30, 1.6))
+    C(m, "axe", LE, (-13, 11.5, 2), (2.0, 5, 2.0))
+    for y in (18, 30): C(m, "axe", IR, (-13, y, 2), (2.0, 0.8, 2.0))
+    for dz in (1, -1):
+        C(m, "axe", IR, (-13, 34, 2 + dz * 4.0), (1.2, 7, 5.0))
+        C(m, "axe", IR, (-13, 34, 2 + dz * 6.9), (1.0, 10, 1.4))
+        C(m, "axe", "light_gray_concrete", (-13, 34, 2 + dz * 7.7), (0.8, 9, 0.3))
+    C(m, "axe", IR, (-13, 38.2, 2), (1.8, 2.4, 1.8))
+    m.bend = -28
+    standard_anims(m, heavy=1.3, extra={"idle": idle_biped(4.0, 16, extra={"cloth": {"rot": wave(0, 5, 2.0, base=(3, 0, 0))}})})
+    m.attacks = {"charge": "lunge", "slam": "slam", "quake": "stomp", "roar": "roar"}
+    m.melee = "swipe"
+    return m
+
+
+@studio("thunderback")
+def thunderback():
+    """Thunderback, the storm ape: a giant gorilla that leans on its knuckles, shaggy red-brown fur done in
+    layers, a bare tan chest and face with a heavy brow and red eyes, a silver saddle of fur down its back,
+    gold arm rings with a lightning mark, and a chieftain's band of four coloured feathers."""
+    m = Model("thunderback", "biped", 1.7)
+    FU, FU2, FU3, SK, SK2, GD, DK = "brown_wool", "brown_terracotta", "red_terracotta", "white_terracotta", "terracotta", "gold_block", "black_terracotta"
+    humanoid(m, hip=12, legx=6, neck=30, shoulder=31, armx=14, jaw=(0, 29.5, 8))
+    m.bone("crown", "head", (0, 38, 4))
+    m.rest("body", (-18, 0, 0))
+    m.rest("head", (16, 0, 0))
+    for a in ("armL", "armR"): m.rest(a, (12, 0, 0))
+    legs(m, 6, 12, 7, 7, FU, foot=SK2, foot_h=2.6, toe=2.0, shin=FU)
+    for sd, leg in ((1, "legL"), (-1, "legR")):
+        B(m, leg, FU2, (sd * 6 - 3.7, 6, -3.8), (7.4, 3.0, 7.4))
+        for t in (-2.2, 0, 2.2): B(m, leg, SK, (sd * 6 + t - 0.9, 0, 4.4), (1.8, 1.8, 1.2))    # toes
+    B(m, "hips", FU, (-8, 10.5, -6), (16, 5, 11))
+    # a huge back, shaggy layers, a bare chest
+    B(m, "body", FU, (-10, 16, -7.5), (20, 14, 13))
+    B(m, "body", FU, (-12, 29, -8), (24, 7, 14))
+    mane(m, "body", FU2, FU3, -12.5, 12.5, 35.0, -8.5, 6.0, rows=3, step=0.9, drop=1.2)
+    for k, (y, w) in enumerate(((34.5, 12), (31.2, 14), (27.8, 13), (24.2, 11), (20.8, 9))):
+        B(m, "body", "light_gray_wool", (-w / 2, y, -8.9 + k * 0.1), (w, 3.0, 1.0))              # silver saddle
+    B(m, "body", SK, (-6.5, 18.5, 5.4), (13, 11, 0.8))
+    B(m, "body", SK2, (-0.3, 19, 6.2), (0.6, 10, 0.1))
+    B(m, "body", SK2, (-6.0, 24.0, 6.2), (12, 0.5, 0.1))
+    for sd in (1, -1):
+        for k in range(3):
+            B(m, "body", "light_blue_concrete", (sd * 9.5 - 1.7, 32.6 - k * 1.5, 6.05), (3.4, 0.7, 0.2))   # war paint
+    # long arms down to the knuckles, shag hanging off the forearms, gold rings
+    arms(m, 15, 31, 8, 8, FU, FU, SK2, 24, hand_h=4.2, hand_w=8.4)
+    for sd, a in ((1, "armL"), (-1, "armR")):
+        x = sd * 15
+        B(m, a, FU2, (x - 4.4, 25, -4.4), (8.8, 6, 8.8))                                           # shoulder shag
+        B(m, a, FU3, (x - 4.0, 9.5, -4.6), (8.0, 8, 1.4))                                           # hanging forearm hair
+        B(m, a, GD, (x - 4.3, 15.4, -4.3), (8.6, 2.6, 8.6))
+        for py, w in ((16.6, 0.6), (15.8, 1.4)):
+            B(m, a, "yellow_concrete", (x + sd * 4.35 - 0.1, py, -0.4 - w / 2), (0.2, 0.7, w), light=True)
+        for t in (-2.6, 0, 2.6): B(m, a, SK, (x + t - 1.0, 7.0, 4.3), (2.0, 2.0, 1.2))            # knuckles
+    # the head: tan face plate, deep brow, red eyes, wide nose, roaring jaw
+    B(m, "head", FU, (-6, 30, 1.5), (12, 9.5, 9))
+    B(m, "head", SK, (-4.5, 30.5, 10.5), (9, 6.5, 1.0))
+    B(m, "head", DK, (-5, 36.0, 11.0), (10, 1.6, 1.0))
+    for sd in (1, -1):
+        B(m, "head", "red_concrete", (sd * 2.4 - 0.6, 34.6, 11.5), (1.2, 1.0, 0.1), light=True)
+        C(m, "head", FU, (sd * 6.4, 34, 5), (1.6, 3, 2.6))                                         # ears
+    B(m, "head", SK2, (-2, 32.4, 11.5), (4, 1.8, 0.6))
+    B(m, "head", DK, (-1.4, 32.8, 12.1), (0.8, 0.8, 0.1)); B(m, "head", DK, (0.6, 32.8, 12.1), (0.8, 0.8, 0.1))
+    B(m, "jaw", SK2, (-4.5, 27.4, 6), (9, 3, 5.4))
+    B(m, "jaw", DK, (-3.5, 29.6, 11.45), (7, 0.8, 0.1))
+    for x in (-3.5, 2.5): B(m, "jaw", "calcite", (x, 29.2, 11.0), (1.0, 1.4, 0.6))               # fangs
+    # chieftain's band and feathers
+    B(m, "crown", GD, (-6.2, 38.0, 1.3), (12.4, 1.6, 9.4))
+    for x, blk in ((-4.4, "red_concrete"), (-1.5, "lapis_block"), (1.5, "lapis_block"), (4.4, "red_concrete")):
+        B(m, "crown", blk, (x - 0.6, 38.2, 10.75), (1.2, 1.2, 0.2))
+    for x, rz, col in ((-4, 22, "red_concrete"), (-1.4, 7, "yellow_concrete"), (1.4, -7, "lime_concrete"), (4, -22, "light_blue_concrete")):
+        top = chain(m, "crown", col, (x, 39.4, 4), [(5.2, (1.4, 0.8), (-10, 0, rz))])
+        chain(m, "crown", "white_concrete", top, [(1.6, (0.9, 0.9), (-10, 0, rz))])
+    m.bend = -12
+    standard_anims(m, heavy=1.4, extra={"idle": idle_biped(4.0, 14, breath=0.03, extra={"crown": {"rot": wave(2, 3, 2.0)}})})
+    m.attacks = {"slam": "slam", "quake": "stomp", "lightning": "roar", "charge": "sweep"}
+    m.melee = "swipe"
+    return m

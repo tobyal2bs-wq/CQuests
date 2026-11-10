@@ -148,6 +148,7 @@ bosses:
     defeat-commands: []
     description: "A red oni warlord: a snarling face framed by a white mane and two ivory horns, a gold rope of beads, a white loincloth with a black tooth pattern, gold-trimmed armour skirt and a huge studded iron club."
   thunderback:
+    revision: 4
     name: "<gradient:#5d3a1a:#ffe14d><bold>Thunderback</bold></gradient>"
     title: "The Storm Ape"
     tier: big
@@ -171,8 +172,9 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A giant storm ape that walks on its knuckles: shaggy red-brown fur, a bare tan chest and face, gold arm rings stamped with a lightning glyph and a chieftain's feather crown."
+    description: "Thunderback, the storm ape: a giant gorilla that leans on its knuckles, shaggy red-brown fur done in layers, a bare tan chest and face with a heavy brow and red eyes, a silver saddle of fur down its back, gold arm rings with a lightning mark, and a chieftain's band of four coloured feathers."
   gorehorn:
+    revision: 4
     name: "<gradient:#3e2723:#ffcc80><bold>Gorehorn</bold></gradient>"
     title: "Champion of the Pit"
     tier: big
@@ -196,7 +198,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A minotaur pit champion: dark brown bull head with frosted-white horns and a gold nose ring, snow-white fur over the shoulders, a leather harness, a blue loincloth and a double-headed axe."
+    description: "Gorehorn, champion of the fighting pit: a huge minotaur with a dark brown bull head, a long muzzle with a gold nose ring, red eyes and two long pale horns. A thick white mane sits over his shoulders like a cape, crossed leather straps meet at an iron boss on his chest, a blue loincloth hangs from a studded belt, his legs end in black hooves and he swings a double-headed axe."
   abyssal_eye:
     revision: 3
     name: "<gradient:#0b3d91:#ffe066><bold>The Lantern Angler</bold></gradient>"
@@ -1844,7 +1846,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A cheeky brown ape with a pale face and big ears, long arms that drag its knuckles, and a curled tail."
+    description: "The Bark Ape, a cheeky jungle thief: shaggy brown fur, a pale heart-shaped face with a wide muzzle, big round ears, long arms that hang to its knuckles, short bowed legs and a curled tail."
   old_blindman:
     revision: 3
     name: "<gradient:#6d4c41:#e0e0e0><bold>Old Hoodlum</bold></gradient>"
@@ -1871,7 +1873,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Picture 12: a tall hermit under a deep brown hood that hides his eyes, a long ragged grey beard down to his knees, a big nose poking out, a patched brown cloak, and a dark staff with a gold band."
+    description: "The Old Blindman: a tall hermit under a deep brown hood that hides his eyes in shadow, a big nose and a white moustache poking out, a long grey beard down to his belt, a patched brown cloak tied with a rope and a dark staff with a gold band."
   king_oldbeard:
     revision: 4
     name: "<gradient:#b71c1c:#ffd54f><bold>King Oldbeard</bold></gradient>"
@@ -1929,7 +1931,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A grumpy illager farmer: grey skin, the long illager nose and a heavy unibrow, a wide straw hat, brown dungarees over a pale shirt, and a pitchfork."
+    description: "Farmer Grimbly, an illager of the wheat field: grey skin, the long illager nose under one heavy black brow, a wide straw hat, brown dungarees over a pale shirt, boots and an iron pitchfork."
   gilded_mimic:
     revision: 3
     name: "<gradient:#ff8f00:#fff176><bold>Gilded Mimic</bold></gradient>"
@@ -1956,7 +1958,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A treasure chest that bites: dark wood planks banded with gold, a gold lock plate with a red jewel, a lid that lifts to show rows of white teeth, a long red tongue lolling out and little gold coins spilling round its feet."
+    description: "The Gilded Mimic: a dark wood treasure chest banded in gold with a gold lock and a red jewel. The lid hangs open on rows of white teeth, two yellow eyes glow in the dark inside and a long red tongue lolls out over the front."
   mossling:
     revision: 3
     name: "<gradient:#33691e:#ffcc80><bold>Mossling</bold></gradient>"
@@ -1983,7 +1985,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A round moss bush that hatched legs: a fat leafy ball with two big shiny black eyes, a little open mouth, a pink flower and a white flower on top, stubby brown legs and leafy arms that wave."
+    description: "The Mossling, a round moss bush that hatched legs: a fat leafy ball with two big shiny black eyes, a small open mouth, a pink and a white flower on top, leafy arms and stubby brown legs."
   apple_crab:
     revision: 3
     name: "<gradient:#c62828:#aed581><bold>Applecrab</bold></gradient>"
@@ -2010,7 +2012,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A crab whose shell is a shiny red apple with a stalk and a green leaf, pale pink claws and legs, and two black stalk eyes peeking over the rim."
+    description: "A crab whose shell is a shiny red apple with a stalk and a leaf, two black eyes on stalks peeking over the front, big pale pink pincers and eight jointed legs."
   moss_imp:
     revision: 3
     name: "<gradient:#558b2f:#d7ccc8><bold>Moss Imp</bold></gradient>"
@@ -2037,7 +2039,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A little old imp grown over with moss: a round green body, leaf ears that flick, two twig horns, a red cap mushroom sprouting from its head, big glowing amber eyes over a toothy grin and a bark loincloth."
+    description: "A little old imp grown over with moss: a round green body, leaf ears, twig horns, a red mushroom on top, glowing amber eyes over a toothy grin, a bark loincloth and long thin arms."
   garden_gnome:
     revision: 3
     name: "<gradient:#c62828:#69f0ae><bold>Mister Pebbles</bold></gradient>"
@@ -2064,7 +2066,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Mister Pebbles, a garden gnome come to life: a tall red pointed hat that flops as he walks, a big white beard, a round pink nose and rosy cheeks, a blue coat with a black belt, brown boots and a tiny shovel."
+    description: "Mister Pebbles, a garden gnome come to life: a tall red hat that flops over, a big white beard, a round pink nose, rosy cheeks, a blue coat with a black belt and a gold buckle, brown boots and a little shovel."
   angry_goose:
     name: "<gradient:#eceff1:#ff9800><bold>Honkus</bold></gradient>"
     title: "The Goose Who Owns This Bench"
@@ -2090,7 +2092,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A big white goose with a long neck in four bending pieces that weave and dip as it hisses, a grey back, an orange beak with a black knob, angry eyes and wide orange feet."
+    description: "The Goose: a big white goose with a long neck in three bending pieces that weave and dip as it hisses, a grey back and wing tips, an orange beak with a black knob, angry eyes and wide orange feet."
   pack_goblin:
     revision: 3
     name: "<gradient:#558b2f:#ce93d8><bold>Snik</bold></gradient>"
@@ -2117,7 +2119,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Picture 8: a lanky green goblin with long ears, a brown hat, a red vest, purple trousers and a grin full of crooked teeth."
+    description: "The Pack Goblin: a lanky green goblin with long ears, a floppy brown hat, a red vest, purple trousers and a grin full of crooked teeth, bent under a huge stolen pack with a frying pan and a rolled blanket tied on."
   goblin_king:
     name: "<gradient:#1b5e20:#ffd54f><bold>King Grizzlegrin</bold></gradient>"
     title: "Crown Too Big"
@@ -2145,7 +2147,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Picture 8 again: the goblins' king, fatter, a gold crown slipping over one ear, a purple cape with a white fur collar, a gold belt and a crooked sceptre."
+    description: "King Snivel: a fat green goblin king, a gold crown slipping over one ear, long drooping ears, a big nose over a crooked grin, a purple cape with a white ermine collar, a gold belt with a ruby and a crooked sceptre."
   snapjaw:
     revision: 3
     name: "<gradient:#1b5e20:#ce93d8><bold>Snapjaw</bold></gradient>"
@@ -2172,7 +2174,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A hungry flower rooted in a mossy clump: a thick bending stem in three parts, wide leaves that flap, and a purple-spotted head that splits into a jaw full of white teeth and snaps at anything near."
+    description: "A hungry flytrap rooted in a mossy clump: a thick stem in two parts, wide leaves, and a purple-spotted head that splits into a jaw full of white teeth, with two little angry yellow eyes."
   cap_brothers:
     revision: 3
     name: "<gradient:#b71c1c:#ffccbc><bold>Toadstool</bold></gradient>"
@@ -2201,7 +2203,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A stout walking mushroom with a wide red cap spotted white, a pale stalk body with a cross little face, stubby legs, and a smaller brown-capped brother clinging to its back."
+    description: "Toadstool, the grumpier mushroom: a stout pale stalk with a cross little face, a wide red cap with white spots, stubby legs, and his small brown-capped brother clinging to his back."
   puffneck:
     revision: 3
     name: "<gradient:#7cb342:#f5f5f5><bold>Puffneck</bold></gradient>"
@@ -2228,7 +2230,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A tall stalk creature: a long green neck with leaves, a little yellow face with sleepy eyes and a round white dandelion clock for a head that sheds seeds when it is hit."
+    description: "Puffneck, a tall stalk creature: two leaf feet, a long green neck with leaves, and a round white dandelion clock for a head with a little yellow face, sleepy eyes and a small smile set in it."
   mallard:
     revision: 3
     name: "<gradient:#1b5e20:#ffeb3b><bold>Sir Mallard</bold></gradient>"
@@ -2257,7 +2259,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A chunky mallard drake: a glossy green head, a broad yellow bill, a white collar ring, a chestnut breast, a grey body, a curl of black tail and orange feet."
+    description: "Sir Mallard, a chunky drake: a glossy green head, a broad yellow bill, a white collar ring, a chestnut breast, a grey body with a blue wing patch, a curl of black tail and orange feet."
   piggy_farmer:
     revision: 3
     name: "<gradient:#f48fb1:#ffe082><bold>Farmer Trotter</bold></gradient>"
@@ -2286,7 +2288,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A pink pig standing up in blue dungarees and a check shirt, a straw hat pushed back, a big snout, small black eyes and floppy ears, and a muddy shovel."
+    description: "Farmer Trotter: a pink pig standing up in blue dungarees over a red shirt, a straw hat, a big snout, small grumpy eyes, floppy ears, muddy boots and a muddy shovel."
   ring_frog:
     name: "<gradient:#1b5e20:#c5e1a5><bold>Sir Croaksworth</bold></gradient>"
     title: "He Stands Up Straight"
@@ -2312,7 +2314,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Picture 14: a tall frog standing upright, mottled green all over, bulging eyes on top of a wide head, a pale wide mouth line, a pale belly, and long arms with webbed fingers."
+    description: "Floaty Frog, the pool party crasher: a tall mottled green frog standing upright with bulging eyes on top of a wide head, a pale wide mouth line, a pale belly, long arms with webbed hands, and a red and white swim ring round his middle."
   hay_golem:
     revision: 4
     name: "<gradient:#f9a825:#8d6e63><bold>Hay Golem</bold></gradient>"
@@ -2366,7 +2368,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A chubby little minotaur: a big brown bull head with white curved horns, a pink muzzle with a gold nose ring, a shaggy fringe, and a tiny body in a leather kilt; small but it charges hard."
+    description: "Little Moo: a chubby baby minotaur with a big brown bull head, curved ivory horns, a pink muzzle with a gold nose ring, a shaggy fringe over big angry eyes, a tiny body in a leather kilt and dark hooves."
   mandrake:
     revision: 3
     name: "<gradient:#a1887f:#c5e1a5><bold>Mandrake</bold></gradient>"
@@ -2393,7 +2395,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A pale knobbly root with a scrunched little face, stubby root arms and legs and a big tuft of leaves on its head. Its scream hurts."
+    description: "A pale knobbly root with a scrunched, screaming little face, rosy cheeks, root arms flung up, stubby root legs and a big fan of leaves on its head."
   mossy_turtle:
     revision: 3
     name: "<gradient:#2e7d32:#8d6e63><bold>Old Shellby</bold></gradient>"
@@ -2420,7 +2422,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A stocky turtle with a tall brown shell ringed in plates, moss and a little flower on top, a bright green head with sleepy eyes and a beak, and chunky green legs."
+    description: "The Mossy Turtle: a stocky turtle with a tall brown shell ringed in plates, a pale rim, moss and a little flower on top, a bright green head with sleepy eyes and a beak, and chunky green legs."
   stumpy:
     revision: 3
     name: "<gradient:#5d4037:#aed581><bold>Stumpy</bold></gradient>"
@@ -2447,7 +2449,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Stumpy, what is left of the old oak: a short cut stump with tree rings on top, a cross face carved in the bark with glowing green eyes, a shelf mushroom on its side, little root feet and twig arms."
+    description: "Stumpy, what is left of the old oak: a short cut stump whose top shows the tree rings, a cross face carved in the bark with glowing green eyes, a shelf mushroom on one side, a sprout on top, little root feet and twig arms with forked ends."
   boo_twin_b:
     revision: 3
     name: "<gradient:#e0e0e0:#b3e5fc><bold>Hoo</bold></gradient>"
@@ -2474,7 +2476,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Hoo, the younger Boo Twin: smaller and whiter, with tall oval eyes and a wobbly open mouth, arms raised to scare. Quicker than Boo, it darts around and goes after a different player."
+    description: "Hoo, the younger Boo Twin: a small white ghost with tall oval eyes, a wobbly open mouth, pale blue cheeks, a wavy hem and both arms raised to scare."
   cap_little:
     revision: 3
     name: "<gradient:#6d4c41:#ffe0b2><bold>Puffball</bold></gradient>"
@@ -2501,7 +2503,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Puffball, the little brother: a short mushroom with a round brown cap, a happy face and quick feet. He hops around and chases a different player from his brother."
+    description: "Puffball, the little brother: a short pale stalk with a round brown cap, a happy face with pink cheeks and quick little feet."
   gnome_little:
     revision: 3
     name: "<gradient:#c62828:#ffcdd2><bold>Thimble</bold></gradient>"
@@ -2528,7 +2530,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Thimble, the little Gnome Brother: a tall red hat that flops, a checked white beard, a green coat and a peach face with a round nose. He darts about on his own while Bramble fights."
+    description: "Thimble, the little Gnome Brother: a tall red hat that flops, a checked white and grey beard, a green coat with a brown belt and a peach face with a round nose."
   redeye:
     name: "<gradient:#c62828:#ffcdd2><bold>Peeper</bold></gradient>"
     title: "Two Big Eyes and No Manners"
