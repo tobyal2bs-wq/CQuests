@@ -135,6 +135,15 @@ public final class BossService implements Listener {
 
     // ------------------------------------------------------------------ setup
 
+    /** Copies the bundled name (or title) over the server's when the server still has one the boss used to ship with. */
+    static boolean follow(YamlConfiguration yaml, String at, org.bukkit.configuration.ConfigurationSection sec, String key, String previous) {
+        String now = yaml.getString(at + "." + key), next = sec.getString(key);
+        if (now == null || next == null || now.equals(next) || !sec.getStringList(previous).contains(now)) return false;
+        yaml.set(at + "." + key, next);
+        yaml.set(at + "." + previous, sec.getStringList(previous));
+        return true;
+    }
+
     /** Bosses added in a new version are copied into an older bosses.yml; existing ones are left alone. */
     private void addNewBosses(File file, YamlConfiguration yaml) {
         try (var in = plugin.getResource("bosses.yml")) {
@@ -142,12 +151,14 @@ public final class BossService implements Listener {
             YamlConfiguration bundled = YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));
             var from = bundled.getConfigurationSection("bosses");
             if (from == null) return;
-            List<String> added = new ArrayList<>(), updated = new ArrayList<>();
+            List<String> added = new ArrayList<>(), updated = new ArrayList<>(), renamed = new ArrayList<>();
             for (String id : from.getKeys(false)) {
                 var sec = from.getConfigurationSection(id);
                 if (sec == null) continue;
                 String at = "bosses." + id;
                 if (yaml.contains(at)) {
+                    // a renamed boss: a name or title nobody edited follows the new one; an admin's own name stays
+                    if (follow(yaml, at, sec, "name", "previous-names") | follow(yaml, at, sec, "title", "previous-titles")) renamed.add(id);
                     // a redesigned boss: take the new entry, keep the server's rewards and on/off switch
                     if (sec.getInt("revision", 0) <= yaml.getInt(at + ".revision", 0)) continue;
                     Object rewards = yaml.get(at + ".rewards");
@@ -168,7 +179,8 @@ public final class BossService implements Listener {
                 if (yaml.contains("bosses." + id)) { yaml.set("bosses." + id, null); removed.add(id); }
             yaml.set("removed", bundled.getStringList("removed"));
             if (!removed.isEmpty()) plugin.getLogger().info("Removed retired bosses from bosses.yml: " + String.join(", ", removed));
-            if (added.isEmpty() && updated.isEmpty() && removed.isEmpty()) return;
+            if (added.isEmpty() && updated.isEmpty() && removed.isEmpty() && renamed.isEmpty()) return;
+            if (!renamed.isEmpty()) plugin.getLogger().info("Gave bosses their new names in bosses.yml: " + String.join(", ", renamed));
             if (!updated.isEmpty()) plugin.getLogger().info("Updated redesigned bosses in bosses.yml (rewards kept, old file saved as bosses.yml.bak): " + String.join(", ", updated));
             com.cbosses.util.SafeFiles.write(file, yaml.saveToString());
             if (!added.isEmpty()) plugin.getLogger().info("Added new bosses to bosses.yml: " + String.join(", ", added));

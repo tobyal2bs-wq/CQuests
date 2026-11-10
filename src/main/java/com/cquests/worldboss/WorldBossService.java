@@ -155,6 +155,15 @@ public final class WorldBossService implements Listener {
     /** World bosses an update replaced; their models no longer exist. */
     static final Set<String> RETIRED = Set.of("fenrir", "ironhide_behemoth", "void_walker", "molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign");
 
+    /** Copies the bundled name (or title) over the server's when the server still has one the boss used to ship with. */
+    static boolean follow(YamlConfiguration yaml, String at, org.bukkit.configuration.ConfigurationSection sec, String key, String previous) {
+        String now = yaml.getString(at + "." + key), next = sec.getString(key);
+        if (now == null || next == null || now.equals(next) || !sec.getStringList(previous).contains(now)) return false;
+        yaml.set(at + "." + key, next);
+        yaml.set(at + "." + previous, sec.getStringList(previous));
+        return true;
+    }
+
     /** Bosses added in a new version are copied into an older worldbosses.yml; existing ones are left alone. */
     private void addNewBosses(File file, YamlConfiguration yaml) {
         try (var in = plugin.getResource("worldbosses.yml")) {
@@ -166,7 +175,12 @@ public final class WorldBossService implements Listener {
             // Bosses that were replaced by new ones (their models are gone) leave the file.
             for (String id : RETIRED) if (yaml.contains("bosses." + id)) { yaml.set("bosses." + id, null); added.add("-" + id); }
             for (String id : from.getKeys(false)) {
-                if (yaml.contains("bosses." + id)) continue;
+                if (yaml.contains("bosses." + id)) {
+                    // a renamed boss: a name or title nobody edited follows the new one; an admin's own name stays
+                    var sec = from.getConfigurationSection(id);
+                    if (sec != null && (follow(yaml, "bosses." + id, sec, "name", "previous-names") | follow(yaml, "bosses." + id, sec, "title", "previous-titles"))) added.add("~" + id);
+                    continue;
+                }
                 var sec = from.getConfigurationSection(id);
                 if (sec == null) continue;
                 for (String k : sec.getKeys(true)) if (!sec.isConfigurationSection(k)) yaml.set("bosses." + id + "." + k, sec.get(k));
@@ -174,7 +188,7 @@ public final class WorldBossService implements Listener {
             }
             if (added.isEmpty()) return;
             yaml.save(file);
-            plugin.getLogger().info("Updated the world bosses in worldbosses.yml (- means retired): " + String.join(", ", added));
+            plugin.getLogger().info("Updated the world bosses in worldbosses.yml (- means retired, ~ renamed): " + String.join(", ", added));
         } catch (Exception e) {
             plugin.getLogger().warning("Could not add new world bosses to worldbosses.yml: " + e.getMessage());
         }

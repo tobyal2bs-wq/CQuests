@@ -27,14 +27,17 @@
 # partner:    a second boss that appears beside this one (kind: partner). Both fight on their own and chase different
 #             players; when one falls the other is enraged, and the rewards are paid when both are down.
 # revision:   set by the plugin's authors; when a new version redesigns a boss, its entry is updated (rewards kept).
+# previous-names / previous-titles: what the boss used to be called; a server still using one of them gets the new name.
 # Change any of this in game with /cbosses edit <boss> <field> <value>.
 # description: shown in /cbosses menu and the README.
 bosses:
 
   # ------------------------------------------------------------ the weekly bosses (5000 health)
   slagheart:
-    name: "<gradient:#3d3d3d:#ff6a00><bold>Slagheart</bold></gradient>"
-    title: "The Molten Colossus"
+    name: "<gradient:#3d3d3d:#ff6a00><bold>Magmus</bold></gradient>"
+    title: "The Lava Golem"
+    previous-names: ["<gradient:#3d3d3d:#ff6a00><bold>Slagheart</bold></gradient>"]
+    previous-titles: ["The Molten Colossus"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -61,7 +64,8 @@ bosses:
     description: "A hunched stone colossus with one oversized fist. Its body is a molten core held in by grey stone plates; the gaps between the plates glow, so the cracks follow the armour instead of being random."
   warlord_gruk:
     name: "<gradient:#ffb300:#fff176><bold>Warlord Gruk</bold></gradient>"
-    title: "Gold-Hungry Tyrant of the Bastion"
+    title: "Piglin Boss of the Bastion"
+    previous-titles: ["Gold-Hungry Tyrant of the Bastion"]
     tier: big
     entity: PIGLIN_BRUTE
     health: 3000
@@ -93,8 +97,10 @@ bosses:
     defeat-commands: []
     description: "A pot-bellied piglin warlord: gold half helm with iron horns, a buckled war belt over a ragged green kilt, gold pauldrons, studded bracers and a stone maul bound with iron."
   grand_augur:
-    name: "<gradient:#4a5a8a:#ffd54f><bold>The Grand Augur</bold></gradient>"
-    title: "King of the Illagers"
+    name: "<gradient:#4a5a8a:#ffd54f><bold>King Malrick</bold></gradient>"
+    title: "Ruler of the Illagers"
+    previous-names: ["<gradient:#4a5a8a:#ffd54f><bold>The Grand Augur</bold></gradient>"]
+    previous-titles: ["King of the Illagers"]
     tier: big
     entity: EVOKER
     health: 3000
@@ -120,8 +126,10 @@ bosses:
     defeat-commands: []
     description: "The illager arch-sorcerer of ref38: a huge grey illager head with a hard black unibrow and a long nose, a tall open gold crown with a red and a blue gem, a blue coat with gold trim over a dark green tunic, a ruby amulet, big square gold cuffs, red pointed shoes, and a grey staff banded in red with a glowing gold crystal floating at its tip."
   crimson_ronin:
-    name: "<gradient:#8b0000:#ff6b6b><bold>The Crimson Oni</bold></gradient>"
-    title: "Warlord of the Red Mountain"
+    name: "<gradient:#8b0000:#ff6b6b><bold>Akuma</bold></gradient>"
+    title: "The Red Oni"
+    previous-names: ["<gradient:#8b0000:#ff6b6b><bold>The Crimson Oni</bold></gradient>"]
+    previous-titles: ["Warlord of the Red Mountain"]
     tier: big
     entity: VINDICATOR
     health: 3000
@@ -148,8 +156,10 @@ bosses:
     description: "A red oni warlord: a snarling face framed by a white mane and two ivory horns, a gold rope of beads, a white loincloth with a black tooth pattern, gold-trimmed armour skirt and a huge studded iron club."
   thunderback:
     revision: 4
-    name: "<gradient:#5d3a1a:#ffe14d><bold>Thunderback</bold></gradient>"
-    title: "The Storm Ape"
+    name: "<gradient:#5d3a1a:#ffe14d><bold>Big Bongo</bold></gradient>"
+    title: "The Storm Gorilla"
+    previous-names: ["<gradient:#5d3a1a:#ffe14d><bold>Thunderback</bold></gradient>"]
+    previous-titles: ["The Storm Ape"]
     tier: big
     entity: RAVAGER
     health: 3000
@@ -175,7 +185,8 @@ bosses:
   gorehorn:
     revision: 4
     name: "<gradient:#3e2723:#ffcc80><bold>Gorehorn</bold></gradient>"
-    title: "Champion of the Pit"
+    title: "Minotaur of the Pit"
+    previous-titles: ["Champion of the Pit"]
     tier: big
     entity: RAVAGER
     health: 3000
@@ -200,8 +211,10 @@ bosses:
     description: "Gorehorn, champion of the fighting pit: a huge minotaur with a dark brown bull head, a long muzzle with a gold nose ring, red eyes and two long pale horns. A thick white mane sits over his shoulders like a cape, crossed leather straps meet at an iron boss on his chest, a blue loincloth hangs from a studded belt, his legs end in black hooves and he swings a double-headed axe."
   abyssal_eye:
     revision: 3
-    name: "<gradient:#0b3d91:#ffe066><bold>The Lantern Angler</bold></gradient>"
-    title: "Light at the Bottom of the Sea"
+    name: "<gradient:#0b3d91:#ffe066><bold>Mama Gulp</bold></gradient>"
+    title: "The Deep Sea Angler"
+    previous-names: ["<gradient:#0b3d91:#ffe066><bold>The Lantern Angler</bold></gradient>"]
+    previous-titles: ["Light at the Bottom of the Sea"]
     tier: big
     entity: BLAZE
     health: 3000
@@ -228,8 +241,10 @@ bosses:
     defeat-commands: []
     description: "A deep sea anglerfish swimming through the air: a huge dark round head with a jutting underbite full of needle teeth, small glowing yellow eyes, a glowing lure on a stalk that bends over its face, side fins that paddle and a tail that sweeps from side to side."
   overgrowth:
-    name: "<gradient:#2d6a4f:#d8a657><bold>Overgrowth</bold></gradient>"
-    title: "The Guardian the Jungle Took"
+    name: "<gradient:#2d6a4f:#d8a657><bold>Rusty</bold></gradient>"
+    title: "The Jungle Golem"
+    previous-names: ["<gradient:#2d6a4f:#d8a657><bold>Overgrowth</bold></gradient>"]
+    previous-titles: ["The Guardian the Jungle Took"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -255,8 +270,10 @@ bosses:
     defeat-commands: []
     description: "A ruined terracotta guardian that the jungle took back: banded clay limbs made of stacked rings, moss on the shoulders, vines hanging down its chest and arms, one amber eye in a cracked head."
   prism_sentinel:
-    name: "<gradient:#7b2ff7:#4ef0ff><bold>The Prism Sentinel</bold></gradient>"
-    title: "Cut From the Heart of the Mountain"
+    name: "<gradient:#7b2ff7:#4ef0ff><bold>Gemma</bold></gradient>"
+    title: "The Crystal Golem"
+    previous-names: ["<gradient:#7b2ff7:#4ef0ff><bold>The Prism Sentinel</bold></gradient>"]
+    previous-titles: ["Cut From the Heart of the Mountain"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -280,8 +297,10 @@ bosses:
     defeat-commands: []
     description: "A crystal golem cut from diamond and amethyst: faceted plates over a glowing cyan core, a gem set in its chest, crystal clusters growing from the shoulders and a visor slit for eyes."
   tiki_warden:
-    name: "<gradient:#bf360c:#ffb300><bold>The Tiki Warden</bold></gradient>"
-    title: "Idol of the Burning Isle"
+    name: "<gradient:#bf360c:#ffb300><bold>Big Tiki</bold></gradient>"
+    title: "Idol of the Island"
+    previous-names: ["<gradient:#bf360c:#ffb300><bold>The Tiki Warden</bold></gradient>"]
+    previous-titles: ["Idol of the Burning Isle"]
     tier: big
     entity: ZOMBIE
     health: 3000
@@ -307,8 +326,10 @@ bosses:
     defeat-commands: []
     description: "A volcanic tiki idol come to life: a huge carved mask for a head with a lit mouth, orange stone body cut with glyph bands, a feathered headdress and a jagged obsidian-edged war blade."
   broodmother:
-    name: "<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"
-    title: "Queen of the Deep Webs"
+    name: "<gradient:#33691e:#aed581><bold>Widow Mae</bold></gradient>"
+    title: "Queen of the Spiders"
+    previous-names: ["<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"]
+    previous-titles: ["Queen of the Deep Webs"]
     tier: big
     entity: SPIDER
     health: 3000
@@ -337,8 +358,10 @@ bosses:
     description: "The spider queen: a black, hairy body banded in venom green, a swollen abdomen marked with a red hourglass, eight glowing eyes in two rows, long jointed legs and dripping fangs."
   tide_tyrant:
     revision: 3
-    name: "<gradient:#bf360c:#ff8a65><bold>King Shellback</bold></gradient>"
-    title: "The Crab Who Took the Reef"
+    name: "<gradient:#bf360c:#ff8a65><bold>King Crabby</bold></gradient>"
+    title: "Ruler of the Reef"
+    previous-names: ["<gradient:#bf360c:#ff8a65><bold>King Shellback</bold></gradient>"]
+    previous-titles: ["The Crab Who Took the Reef"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -369,8 +392,10 @@ bosses:
     description: "A giant red crab king: a wide speckled shell crusted with barnacles and a crown of pink and yellow coral, eyes on stalks that twitch, one huge crusher claw and one quick little claw, and six pointed legs that tap while it waits."
   storm_herald:
     revision: 3
-    name: "<gradient:#37474f:#ffee58><bold>The Thunder Ram</bold></gradient>"
-    title: "It Brings the Storm on Its Back"
+    name: "<gradient:#37474f:#ffee58><bold>Bjorn</bold></gradient>"
+    title: "The Storm Ram"
+    previous-names: ["<gradient:#37474f:#ffee58><bold>The Thunder Ram</bold></gradient>"]
+    previous-titles: ["It Brings the Storm on Its Back"]
     tier: big
     entity: RAVAGER
     health: 3000
@@ -396,7 +421,8 @@ bosses:
     description: "A towering ram-headed giant with blue-grey wool, two huge curled horns, a thundercloud of grey wool on its shoulders with glowing yellow lightning bolts, copper bracers, a copper rod in its fist and cloven hooves."
   pharaoh:
     name: "<gradient:#f9a825:#fff59d><bold>Pharaoh Ankhamun</bold></gradient>"
-    title: "Risen from the Buried Temple"
+    title: "Back From the Tomb"
+    previous-titles: ["Risen from the Buried Temple"]
     tier: big
     entity: HUSK
     health: 3000
@@ -428,7 +454,8 @@ bosses:
     description: "A mummy pharaoh: linen-wrapped limbs with loose strips, a striped gold and lapis headdress with a cobra crest, a broad jewelled collar, a gold mask over one half of the face and a crook staff."
   executioner:
     name: "<gradient:#263238:#90a4ae><bold>The Executioner</bold></gradient>"
-    title: "Axe of the Woodland Mansion"
+    title: "Axe of the Mansion"
+    previous-titles: ["Axe of the Woodland Mansion"]
     tier: big
     entity: VINDICATOR
     health: 3000
@@ -459,8 +486,10 @@ bosses:
     description: "A giant headsman: a black hood with a single eye slit, a bare grey chest crossed with chains, a blood-red apron over leather, iron manacles on its wrists and a huge crescent axe."
   ember_queen:
     revision: 4
-    name: "<gradient:#4e342e:#ff6d00><bold>The Forge Mother</bold></gradient>"
-    title: "Her Belly Is a Furnace"
+    name: "<gradient:#4e342e:#ff6d00><bold>Big Bertha</bold></gradient>"
+    title: "The Living Furnace"
+    previous-names: ["<gradient:#4e342e:#ff6d00><bold>The Forge Mother</bold></gradient>"]
+    previous-titles: ["Her Belly Is a Furnace"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -488,8 +517,10 @@ bosses:
     description: "The Forge Mother: a broad smith giantess with soot-dark skin, two thick copper braids bound with gold rings, a scorched leather apron over a furnace in her belly that glows through an iron grate, rolled sleeves, heavy black gloves, iron boots and a huge forge hammer with a glowing hot face."
   gravelord:
     revision: 4
-    name: "<gradient:#263238:#80cbc4><bold>The Bone Collector</bold></gradient>"
-    title: "He Comes With an Empty Sack"
+    name: "<gradient:#263238:#80cbc4><bold>Mister Bones</bold></gradient>"
+    title: "He Brings an Empty Sack"
+    previous-names: ["<gradient:#263238:#80cbc4><bold>The Bone Collector</bold></gradient>"]
+    previous-titles: ["He Comes With an Empty Sack"]
     tier: big
     entity: WITHER_SKELETON
     health: 3000
@@ -547,8 +578,10 @@ bosses:
     defeat-commands: []
     description: "A ghost pirate captain: a big tricorn hat with a skull badge, a red coat with gold buttons and cuffs, a peg leg, a hook hand, a cutlass and a green ghostly glow coming off him."
   keywarden:
-    name: "<gradient:#b8860b:#fff3b0><bold>The Keywarden</bold></gradient>"
-    title: "Guardian of the Five Keys"
+    name: "<gradient:#b8860b:#fff3b0><bold>Old Jangles</bold></gradient>"
+    title: "Keeper of the Five Keys"
+    previous-names: ["<gradient:#b8860b:#fff3b0><bold>The Keywarden</bold></gradient>"]
+    previous-titles: ["Guardian of the Five Keys"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -575,8 +608,10 @@ bosses:
     description: "A clockwork vault guardian: a brass and copper body riveted together, a round glass dome head with a glowing gear inside, a giant wind-up key turning in its back, piston arms and a lock-plate shield."
   bloodtusk:
     revision: 4
-    name: "<gradient:#4e342e:#ef5350><bold>Old Tusker</bold></gradient>"
-    title: "The War Boar of the Red Banner"
+    name: "<gradient:#4e342e:#ef5350><bold>Hamhock</bold></gradient>"
+    title: "The War Boar"
+    previous-names: ["<gradient:#4e342e:#ef5350><bold>Old Tusker</bold></gradient>"]
+    previous-titles: ["The War Boar of the Red Banner"]
     tier: big
     entity: HOGLIN
     health: 3000
@@ -605,7 +640,8 @@ bosses:
     description: "Old Tusker, the war boar of the red banner: a great bristly boar in dark brown with a black ridge of stiff hair down its back, a broad pink snout, two huge curved tusks, little angry eyes, red war paint stripes, an iron plate saddle strapped over its back and a tall red banner on a pole that flaps above it."
   king_gloop:
     name: "<gradient:#7cb342:#dce775><bold>King Gloop</bold></gradient>"
-    title: "Monarch of the Swamp"
+    title: "King of the Swamp"
+    previous-titles: ["Monarch of the Swamp"]
     tier: big
     entity: SLIME
     health: 3000
@@ -633,8 +669,10 @@ bosses:
     description: "King Gloop with extra detail: bubbles rising inside the jelly, a ring of slimeballs round his crown and swallowed loot floating in his body."
   clockwork_colossus:
     revision: 4
-    name: "<gradient:#b87333:#ffd54f><bold>The Clockwork Colossus</bold></gradient>"
-    title: "Wound Up and Furious"
+    name: "<gradient:#b87333:#ffd54f><bold>Tick-Tock</bold></gradient>"
+    title: "The Clockwork Giant"
+    previous-names: ["<gradient:#b87333:#ffd54f><bold>The Clockwork Colossus</bold></gradient>"]
+    previous-titles: ["Wound Up and Furious"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -658,8 +696,9 @@ bosses:
     defeat-commands: []
     description: "The Clockwork Colossus: a riveted copper and iron giant wound up by a great gold key turning in its back. Its chest is a round glass window onto a turning gold gear with a glowing core; its eyes are two lit slits in a domed iron helm with a steam whistle on top, twin exhaust stacks puff behind its shoulders, and its arms are iron pistons that end in heavy riveted fists."
   mossback:
-    name: "<gradient:#33691e:#a1887f><bold>Mossback</bold></gradient>"
+    name: "<gradient:#33691e:#a1887f><bold>Boulder</bold></gradient>"
     title: "The Walking Hill"
+    previous-names: ["<gradient:#33691e:#a1887f><bold>Mossback</bold></gradient>"]
     tier: big
     entity: RAVAGER
     health: 3000
@@ -685,8 +724,9 @@ bosses:
     defeat-commands: []
     description: "Mossback trimmed to about 250 blocks: the smallest loose bits go first, the head and glowing parts stay."
   old_wizard:
-    name: "<gradient:#4a148c:#e1bee7><bold>Archmage Bramblebeard</bold></gradient>"
+    name: "<gradient:#4a148c:#e1bee7><bold>Wizard Aldo</bold></gradient>"
     title: "Older Than the Mountains"
+    previous-names: ["<gradient:#4a148c:#e1bee7><bold>Archmage Bramblebeard</bold></gradient>"]
     tier: big
     entity: EVOKER
     health: 3000
@@ -713,8 +753,9 @@ bosses:
     description: "An old wizard in a tall purple hat with a brown band and a gold buckle, the tip bent over. Bushy white brows hide his eyes, a big nose sits over a long white beard, his purple robe is belted, he leans on a crooked staff topped with a glowing crystal and holds a heavy open spell book."
   hollow_mage:
     revision: 4
-    name: "<gradient:#0d47a1:#ffd54f><bold>The Hollow Mage</bold></gradient>"
+    name: "<gradient:#0d47a1:#ffd54f><bold>Hollow Hank</bold></gradient>"
     title: "Nothing Under the Hat"
+    previous-names: ["<gradient:#0d47a1:#ffd54f><bold>The Hollow Mage</bold></gradient>"]
     tier: big
     entity: WITCH
     health: 3000
@@ -738,8 +779,10 @@ bosses:
     defeat-commands: []
     description: "The Hollow Mage: a round little wizard in a huge mustard hat with a green band, the tall crown slumped over to one side. Under the brim there is only dark and two glowing yellow eyes. A blue coat with a tall collar, crossed straps and a buckle, white sleeves with green cuffs, striped green trousers and a crook staff."
   horned_brute:
-    name: "<gradient:#5d4037:#d7ccc8><bold>Gorrak the Horned</bold></gradient>"
-    title: "Brute of the High Pass"
+    name: "<gradient:#5d4037:#d7ccc8><bold>Gorrak</bold></gradient>"
+    title: "Brute of the Mountain Pass"
+    previous-names: ["<gradient:#5d4037:#d7ccc8><bold>Gorrak the Horned</bold></gradient>"]
+    previous-titles: ["Brute of the High Pass"]
     tier: big
     entity: RAVAGER
     health: 3000
@@ -763,8 +806,9 @@ bosses:
     defeat-commands: []
     description: "A squat mountain brute: a huge boxy tan body with mottled hide, a heavy head with thick dark brows, a long striped snout, two stubby white tusks and great curled black horns. Long arms hang to the ground, a ragged hide loincloth hangs in strips and he drags an iron-headed spear."
   rotting_giant:
-    name: "<gradient:#33691e:#26c6da><bold>The Rotting Giant</bold></gradient>"
+    name: "<gradient:#33691e:#26c6da><bold>Big Gus</bold></gradient>"
     title: "Too Big to Stay Buried"
+    previous-names: ["<gradient:#33691e:#26c6da><bold>The Rotting Giant</bold></gradient>"]
     tier: big
     entity: GIANT
     health: 3000
@@ -790,8 +834,10 @@ bosses:
     defeat-commands: []
     description: "A towering rotting giant: a small green head with sunken black eyes on a broad body, a torn cyan shirt stained with moss and rot, ragged purple trousers torn off at the knee, and long gangly green arms and legs. Flies and a rot cloud hang round him."
   dusk_scorpion:
-    name: "<gradient:#311b92:#ff1744><bold>The Dusk Scorpion</bold></gradient>"
-    title: "Sting of the Badlands"
+    name: "<gradient:#311b92:#ff1744><bold>Stinger</bold></gradient>"
+    title: "The Desert Scorpion"
+    previous-names: ["<gradient:#311b92:#ff1744><bold>The Dusk Scorpion</bold></gradient>"]
+    previous-titles: ["Sting of the Badlands"]
     tier: big
     entity: SPIDER
     health: 3000
@@ -817,8 +863,9 @@ bosses:
     defeat-commands: []
     description: "A giant slate-purple scorpion: a long plated body with glowing red eye clusters, two heavy pincers held forward, ragged fins along its sides, eight thin legs, and a segmented tail that arches right over its back to a blocky stinger."
   grave_marshal:
-    name: "<gradient:#37474f:#b0bec5><bold>The Grave Marshal</bold></gradient>"
+    name: "<gradient:#37474f:#b0bec5><bold>Marshal Graves</bold></gradient>"
     title: "Keeps the Dead in Line"
+    previous-names: ["<gradient:#37474f:#b0bec5><bold>The Grave Marshal</bold></gradient>"]
     tier: big
     entity: WITHER_SKELETON
     health: 3000
@@ -873,8 +920,10 @@ bosses:
     description: "Mayor Grumble, the village mayor as a person: the long villager head with its big nose, one thick unibrow over green eyes and a grumpy frown, a tall black top hat with a red band, a green coat with gold buttons, a red sash, a gold chain of office with a big emerald, grey trousers and polished black shoes, and a heavy wooden gavel."
   old_ironroot:
     revision: 3
-    name: "<gradient:#5d4037:#c5e1a5><bold>The Stump Warden</bold></gradient>"
-    title: "The Oldest Tree Got Up"
+    name: "<gradient:#5d4037:#c5e1a5><bold>Grandpa Oak</bold></gradient>"
+    title: "The Oldest Tree"
+    previous-names: ["<gradient:#5d4037:#c5e1a5><bold>The Stump Warden</bold></gradient>"]
+    previous-titles: ["The Oldest Tree Got Up"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -901,8 +950,10 @@ bosses:
     description: "A walking tree stump with ring-cut wood on top, mushrooms and a sapling growing out of its moss, glowing amber knot-hole eyes over a mossy beard, and arms and legs of thick twisting roots."
   frost_yeti:
     revision: 3
-    name: "<gradient:#90caf9:#ffffff><bold>The Frost Yeti</bold></gradient>"
-    title: "Keeper of the Ice Cave"
+    name: "<gradient:#90caf9:#ffffff><bold>Yuki</bold></gradient>"
+    title: "The Cave Yeti"
+    previous-names: ["<gradient:#90caf9:#ffffff><bold>The Frost Yeti</bold></gradient>"]
+    previous-titles: ["Keeper of the Ice Cave"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -929,8 +980,10 @@ bosses:
     description: "A huge shaggy white yeti hunched forward on long arms, thick fur in white and pale grey, a blue-grey face with a heavy brow, a wide mouth with two fangs, short curled horns, icicles hanging off its shoulders and a fist frozen into a block of ice."
   bog_orc:
     revision: 3
-    name: "<gradient:#2e7d32:#e0e0e0><bold>Horngut</bold></gradient>"
-    title: "Bully of the Swamp"
+    name: "<gradient:#2e7d32:#e0e0e0><bold>Grok</bold></gradient>"
+    title: "The Swamp Bully"
+    previous-names: ["<gradient:#2e7d32:#e0e0e0><bold>Horngut</bold></gradient>"]
+    previous-titles: ["Bully of the Swamp"]
     tier: big
     entity: ZOMBIE
     health: 3000
@@ -956,8 +1009,9 @@ bosses:
     defeat-commands: []
     description: "A huge pot-bellied swamp orc with mottled green skin, an iron helmet with two bull horns, an underbite with tusks, a fur pelt over one shoulder, swamp moss on its belt, rope-wrapped wrists and a spiked wooden club over its shoulder."
   millstone_monk:
-    name: "<gradient:#91b5aa:#e0d9bd><bold>Millstone Monk</bold></gradient>"
+    name: "<gradient:#91b5aa:#e0d9bd><bold>Brother Miller</bold></gradient>"
     title: "Keeper of the Old Mill"
+    previous-names: ["<gradient:#91b5aa:#e0d9bd><bold>Millstone Monk</bold></gradient>"]
     tier: big
     entity: IRON_GOLEM
     health: 3000
@@ -982,8 +1036,10 @@ bosses:
     defeat-commands: []
     description: "An ancient stone millkeeper with a carved cyan-eyed face, moss-covered shoulders, folded robes, heavy braced hands and an axle-mounted turning millstone. The exposed glowing axle is its weak spot."
   moonwake_manta:
-    name: "<gradient:#80b9b3:#e2eadb><bold>Moonwake Manta</bold></gradient>"
-    title: "Warden of the Moonlit Tide"
+    name: "<gradient:#80b9b3:#e2eadb><bold>Luna</bold></gradient>"
+    title: "The Moon Manta"
+    previous-names: ["<gradient:#80b9b3:#e2eadb><bold>Moonwake Manta</bold></gradient>"]
+    previous-titles: ["Warden of the Moonlit Tide"]
     tier: big
     entity: PHANTOM
     health: 3000
@@ -1008,8 +1064,10 @@ bosses:
     defeat-commands: []
     description: "A broad-winged nocturnal manta with layered prismarine fins, a dark belly, curled feeding horns, a luminous dorsal seam and a long articulated rudder tail."
   thorncoil_basilisk:
-    name: "<gradient:#8fa36d:#e2eadb><bold>Thorncoil Basilisk</bold></gradient>"
-    title: "Fang of the Tangled Grove"
+    name: "<gradient:#8fa36d:#e2eadb><bold>Viper</bold></gradient>"
+    title: "The Thorn Serpent"
+    previous-names: ["<gradient:#8fa36d:#e2eadb><bold>Thorncoil Basilisk</bold></gradient>"]
+    previous-titles: ["Fang of the Tangled Grove"]
     tier: big
     entity: RAVAGER
     health: 3000
@@ -1034,8 +1092,10 @@ bosses:
     defeat-commands: []
     description: "A coiled root serpent with a raised cobra-like leaf hood, a long hinged jaw, inset golden side eyes, paired ivory fangs and connected bark-armoured body segments."
   rootmaw:
-    name: "<gradient:#8d6e63:#d4e157><bold>Rootmaw</bold></gradient>"
-    title: "The Mandrake That Woke Up Hungry"
+    name: "<gradient:#8d6e63:#d4e157><bold>Big Root</bold></gradient>"
+    title: "The Giant Mandrake"
+    previous-names: ["<gradient:#8d6e63:#d4e157><bold>Rootmaw</bold></gradient>"]
+    previous-titles: ["The Mandrake That Woke Up Hungry"]
     tier: big
     entity: RAVAGER
     health: 3000
@@ -1059,8 +1119,10 @@ bosses:
     defeat-commands: []
     description: "Rootmaw, a mandrake root the size of a hut: a square trunk of pale knotted wood with a cracked crown, two glowing yellow eyes under a heavy brow, a huge mouth of jagged white teeth with a red gullet, two long root arms that split into twig fingers and drag on the ground, and a tuft of long yellow-green leaves that whip about on top."
   cinder_hollow:
-    name: "<gradient:#3e0d0d:#ff8a3d><bold>The Cinder Hollow</bold></gradient>"
-    title: "The Hat Is Still Smoking"
+    name: "<gradient:#3e0d0d:#ff8a3d><bold>Smoky Hank</bold></gradient>"
+    title: "His Hat Is Still Burning"
+    previous-names: ["<gradient:#3e0d0d:#ff8a3d><bold>The Cinder Hollow</bold></gradient>"]
+    previous-titles: ["The Hat Is Still Smoking"]
     tier: big
     entity: WITCH
     health: 3000
@@ -1084,8 +1146,10 @@ bosses:
     defeat-commands: []
     description: "The Cinder Hollow, the hollow mage who tried fire magic once too often: a charred nether-brick hat with a glowing orange band, a red coat, orange eyes in the dark and a staff that ends in a burning ember."
   rime_hollow:
-    name: "<gradient:#0d3a4a:#b3f0ff><bold>The Rime Hollow</bold></gradient>"
-    title: "Snow on the Brim, Frost in the Eyes"
+    name: "<gradient:#0d3a4a:#b3f0ff><bold>Chilly Hank</bold></gradient>"
+    title: "Snow on His Hat"
+    previous-names: ["<gradient:#0d3a4a:#b3f0ff><bold>The Rime Hollow</bold></gradient>"]
+    previous-titles: ["Snow on the Brim, Frost in the Eyes"]
     tier: big
     entity: WITCH
     health: 3000
@@ -1109,8 +1173,10 @@ bosses:
     defeat-commands: []
     description: "The Rime Hollow, the hollow mage from the far north: a hat of packed snow with an ice band, a cyan coat, pale blue eyes in the dark and a birch crook tipped with a shard of ice."
   bramble_hollow:
-    name: "<gradient:#1b3a12:#c5e1a5><bold>The Bramble Hollow</bold></gradient>"
-    title: "Mushrooms Grow on the Hat"
+    name: "<gradient:#1b3a12:#c5e1a5><bold>Mossy Hank</bold></gradient>"
+    title: "Mushrooms on His Hat"
+    previous-names: ["<gradient:#1b3a12:#c5e1a5><bold>The Bramble Hollow</bold></gradient>"]
+    previous-titles: ["Mushrooms Grow on the Hat"]
     tier: big
     entity: WITCH
     health: 3000
@@ -1134,8 +1200,10 @@ bosses:
     defeat-commands: []
     description: "The Bramble Hollow, the hollow mage who fell asleep in the woods for a hundred years: a spruce hat with red toadstools growing on the brim, a mossy green coat, lime eyes in the dark and a crook staff gone to moss."
   brewgut:
-    name: "<gradient:#33691e:#c0ca33><bold>Brewgut</bold></gradient>"
-    title: "Last Orders at the Bent Tankard"
+    name: "<gradient:#33691e:#c0ca33><bold>Bruno</bold></gradient>"
+    title: "The Tavern Ogre"
+    previous-names: ["<gradient:#33691e:#c0ca33><bold>Brewgut</bold></gradient>"]
+    previous-titles: ["Last Orders at the Bent Tankard"]
     tier: big
     entity: VINDICATOR
     health: 3000
@@ -1270,8 +1338,10 @@ bosses:
     defeat-commands: []
     description: "Santa gone bad: a red coat with matted white fur, a beard stained grey at the tips, a crooked hat, glowing red eyes and a grin full of teeth. He drags a sack of stolen presents on his back, swings a giant candy-cane hook and keeps a burning lump of coal for the naughty."
   frostbottom:
-    name: "<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"
-    title: "The Snowman With a Grudge"
+    name: "<gradient:#e1f5fe:#ff7043><bold>Frosty</bold></gradient>"
+    title: "The Angry Snowman"
+    previous-names: ["<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"]
+    previous-titles: ["The Snowman With a Grudge"]
     season: winter
     tier: big
     entity: STRAY
@@ -1334,8 +1404,10 @@ bosses:
   # ------------------------------------------------------------ summer
   sunscorch:
     revision: 4
-    name: "<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>"
-    title: "Melting On Holiday"
+    name: "<gradient:#ff6d00:#ffea00><bold>Sunny</bold></gradient>"
+    title: "Melting on Holiday"
+    previous-names: ["<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>"]
+    previous-titles: ["Melting On Holiday"]
     season: summer
     tier: big
     entity: MAGMA_CUBE
@@ -1482,8 +1554,10 @@ bosses:
     defeat-commands: []
     description: "A rabbit that has had enough of Easter: matted white fur, one ear torn and flopped over, red eyes, two huge buck teeth, a pink bow with a bell gone grubby, a leather strap with an iron pauldron, huge hind feet, a carrot as long as a sword and a basket of eggs it hurls."
   cocoa_colossus:
-    name: "<gradient:#4e2a1e:#ffcf6b><bold>The Cocoa Colossus</bold></gradient>"
-    title: "The Egg That Fought Back"
+    name: "<gradient:#4e2a1e:#ffcf6b><bold>Eggbert</bold></gradient>"
+    title: "The Chocolate Egg"
+    previous-names: ["<gradient:#4e2a1e:#ffcf6b><bold>The Cocoa Colossus</bold></gradient>"]
+    previous-titles: ["The Egg That Fought Back"]
     season: spring
     tier: big
     entity: IRON_GOLEM
@@ -1512,8 +1586,10 @@ bosses:
   # ------------------------------------------------------------ halloween
   gourd_king:
     revision: 4
-    name: "<gradient:#e65100:#76ff03><bold>The Gourd King</bold></gradient>"
-    title: "His Face Says It All"
+    name: "<gradient:#e65100:#76ff03><bold>Jack</bold></gradient>"
+    title: "King of the Pumpkins"
+    previous-names: ["<gradient:#e65100:#76ff03><bold>The Gourd King</bold></gradient>"]
+    previous-titles: ["His Face Says It All"]
     season: halloween
     tier: big
     entity: ZOMBIE
@@ -1574,8 +1650,10 @@ bosses:
     defeat-commands: []
     description: "A headless rider on a nightmare horse: the horse is black with a bone mask and ribs showing, a mane and tail of fire and burning hooves, under a ragged purple caparison with orange trim. The rider wears a dark coat with a ruffled collar and a tattered cape; flames rise from his neck, he holds up his own carved jack-o'-lantern head in one hand and a long notched sabre in the other."
   hexmother:
-    name: "<gradient:#6a1b9a:#ce93d8><bold>Hexmother Morwen</bold></gradient>"
-    title: "Brewer of a Thousand Curses"
+    name: "<gradient:#6a1b9a:#ce93d8><bold>Granny Morwen</bold></gradient>"
+    title: "The Swamp Witch"
+    previous-names: ["<gradient:#6a1b9a:#ce93d8><bold>Hexmother Morwen</bold></gradient>"]
+    previous-titles: ["Brewer of a Thousand Curses"]
     season: halloween
     tier: big
     entity: WITCH
@@ -1715,8 +1793,9 @@ bosses:
     defeat-commands: []
     description: "Picture 1: a big gnome in a tall green bent hat with a checked white beard, a peach nose and a red coat, and his little brother in a taller red hat standing at his hip. Both hats sway and the little one bobs on his own."
   moss_spirit:
-    name: "<gradient:#455a64:#69f0ae><bold>The Moss Spirit</bold></gradient>"
+    name: "<gradient:#455a64:#69f0ae><bold>Old Moss</bold></gradient>"
     title: "Two Faces in the Stone"
+    previous-names: ["<gradient:#455a64:#69f0ae><bold>The Moss Spirit</bold></gradient>"]
     chapter: 5
     entity: IRON_GOLEM
     health: 3000
@@ -1741,8 +1820,10 @@ bosses:
     description: "Picture 2: a squat stone spirit with two faces, glowing blue eyes on its head and a second pair on its chest, moss and grass growing over its shoulders with a white flower, and a gnarled wooden staff wound with moss, set with a red crystal."
   grubnose:
     revision: 4
-    name: "<gradient:#827717:#ffcc80><bold>Grubnose the Troll</bold></gradient>"
-    title: "Under the Old Bridge"
+    name: "<gradient:#827717:#ffcc80><bold>Grub</bold></gradient>"
+    title: "The Bridge Troll"
+    previous-names: ["<gradient:#827717:#ffcc80><bold>Grubnose the Troll</bold></gradient>"]
+    previous-titles: ["Under the Old Bridge"]
     chapter: 7
     entity: ZOMBIE
     health: 3000
@@ -1767,8 +1848,10 @@ bosses:
     description: "Grubnose the Troll: a hunched ochre troll that is all shoulders and long arms, with a big bulbous nose hanging over a lipless grin and two stubby tusks, a heavy brow over small black eyes, pointed ears, rag wraps round its forearms, and a leather loincloth on a belt strung with bones and a little skull."
   mudclub:
     revision: 4
-    name: "<gradient:#3e2723:#9ccc65><bold>Mudclub</bold></gradient>"
-    title: "Troll of the Dry Riverbed"
+    name: "<gradient:#3e2723:#9ccc65><bold>Mudd</bold></gradient>"
+    title: "The River Troll"
+    previous-names: ["<gradient:#3e2723:#9ccc65><bold>Mudclub</bold></gradient>"]
+    previous-titles: ["Troll of the Dry Riverbed"]
     chapter: 9
     entity: ZOMBIE
     health: 3000
@@ -1793,7 +1876,8 @@ bosses:
     description: "Mudclub, a horned bog ogre: mossy dark green hide, two curved pale horns, a scowling brow over red eyes, a wide grin full of square white teeth over a black goatee, a ragged brown loincloth, iron bands on its wrists and a heavy knotted log club with iron studs."
   ugor:
     name: "<gradient:#4e342e:#f8bbd0><bold>Ugor</bold></gradient>"
-    title: "The Brute of the Last Chapter"
+    title: "The Last Brute"
+    previous-titles: ["The Brute of the Last Chapter"]
     chapter: 10
     entity: RAVAGER
     health: 3000
@@ -1821,8 +1905,9 @@ bosses:
   # ------------------------------------------------------------ mini bosses: wake on the mini timer (/cbosses minis), 2000 health
   bark_ape:
     revision: 3
-    name: "<gradient:#5d3a1a:#c8a27a><bold>Bark Ape</bold></gradient>"
+    name: "<gradient:#5d3a1a:#c8a27a><bold>Coco</bold></gradient>"
     title: "The Jungle Thief"
+    previous-names: ["<gradient:#5d3a1a:#c8a27a><bold>Bark Ape</bold></gradient>"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -1848,8 +1933,9 @@ bosses:
     description: "The Bark Ape, a cheeky jungle thief: shaggy brown fur, a pale heart-shaped face with a wide muzzle, big round ears, long arms that hang to its knuckles, short bowed legs and a curled tail."
   old_blindman:
     revision: 3
-    name: "<gradient:#6d4c41:#e0e0e0><bold>Old Hoodlum</bold></gradient>"
+    name: "<gradient:#6d4c41:#e0e0e0><bold>Hermit Ezra</bold></gradient>"
     title: "He Hears Every Step"
+    previous-names: ["<gradient:#6d4c41:#e0e0e0><bold>Old Hoodlum</bold></gradient>"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -1875,8 +1961,9 @@ bosses:
     description: "The hermit from the picture: a villager-shaped old man in a tall brown hood, a pale forehead with one black slit for eyes, a long nose resting on a huge grey beard that covers his whole front down to the hem, brown sleeves with bare hands, and a black staff with a gold band."
   king_oldbeard:
     revision: 4
-    name: "<gradient:#b71c1c:#ffd54f><bold>King Oldbeard</bold></gradient>"
+    name: "<gradient:#b71c1c:#ffd54f><bold>King Albert</bold></gradient>"
     title: "Ruler of One Village"
+    previous-names: ["<gradient:#b71c1c:#ffd54f><bold>King Oldbeard</bold></gradient>"]
     kind: mini
     tier: mini
     entity: VINDICATOR
@@ -1933,8 +2020,9 @@ bosses:
     description: "Farmer Grimbly, an illager of the wheat field: grey skin, the long illager nose under one heavy black brow, a wide straw hat, brown dungarees over a pale shirt, boots and an iron pitchfork."
   gilded_mimic:
     revision: 3
-    name: "<gradient:#ff8f00:#fff176><bold>Gilded Mimic</bold></gradient>"
+    name: "<gradient:#ff8f00:#fff176><bold>Goldie</bold></gradient>"
     title: "Too Shiny to Trust"
+    previous-names: ["<gradient:#ff8f00:#fff176><bold>Gilded Mimic</bold></gradient>"]
     kind: mini
     tier: mini
     entity: SLIME
@@ -1960,8 +2048,10 @@ bosses:
     description: "The Gilded Mimic: a dark wood treasure chest banded in gold with a gold lock and a red jewel. The lid hangs open on rows of white teeth, two yellow eyes glow in the dark inside and a long red tongue lolls out over the front."
   mossling:
     revision: 3
-    name: "<gradient:#33691e:#ffcc80><bold>Mossling</bold></gradient>"
-    title: "It Hatched From a Bush"
+    name: "<gradient:#33691e:#ffcc80><bold>Twig</bold></gradient>"
+    title: "Hatched From a Bush"
+    previous-names: ["<gradient:#33691e:#ffcc80><bold>Mossling</bold></gradient>"]
+    previous-titles: ["It Hatched From a Bush"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -1987,8 +2077,10 @@ bosses:
     description: "The Mossling, a round moss bush that hatched legs: a fat leafy ball with two big shiny black eyes, a small open mouth, a pink and a white flower on top, leafy arms and stubby brown legs."
   apple_crab:
     revision: 3
-    name: "<gradient:#c62828:#aed581><bold>Applecrab</bold></gradient>"
-    title: "Orchard Pincher"
+    name: "<gradient:#c62828:#aed581><bold>Pinchy</bold></gradient>"
+    title: "The Apple Crab"
+    previous-names: ["<gradient:#c62828:#aed581><bold>Applecrab</bold></gradient>"]
+    previous-titles: ["Orchard Pincher"]
     kind: mini
     tier: mini
     entity: SPIDER
@@ -2014,8 +2106,9 @@ bosses:
     description: "A crab whose shell is a shiny red apple with a stalk and a leaf, two black eyes on stalks peeking over the front, big pale pink pincers and eight jointed legs."
   moss_imp:
     revision: 3
-    name: "<gradient:#558b2f:#d7ccc8><bold>Moss Imp</bold></gradient>"
+    name: "<gradient:#558b2f:#d7ccc8><bold>Sprig</bold></gradient>"
     title: "Small and Very Old"
+    previous-names: ["<gradient:#558b2f:#d7ccc8><bold>Moss Imp</bold></gradient>"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2067,8 +2160,10 @@ bosses:
     defeat-commands: []
     description: "Mister Pebbles, a garden gnome come to life: a tall red hat that flops over, a big white beard, a round pink nose, rosy cheeks, a blue coat with a black belt and a gold buckle, brown boots and a little shovel."
   angry_goose:
-    name: "<gradient:#eceff1:#ff9800><bold>Honkus</bold></gradient>"
-    title: "The Goose Who Owns This Bench"
+    name: "<gradient:#eceff1:#ff9800><bold>Gertrude</bold></gradient>"
+    title: "The Angry Goose"
+    previous-names: ["<gradient:#eceff1:#ff9800><bold>Honkus</bold></gradient>"]
+    previous-titles: ["The Goose Who Owns This Bench"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2120,8 +2215,10 @@ bosses:
     defeat-commands: []
     description: "The Pack Goblin: a lanky green goblin with long ears, a floppy brown hat, a red vest, purple trousers and a grin full of crooked teeth, bent under a huge stolen pack with a frying pan and a rolled blanket tied on."
   goblin_king:
-    name: "<gradient:#1b5e20:#ffd54f><bold>King Grizzlegrin</bold></gradient>"
-    title: "Crown Too Big"
+    name: "<gradient:#1b5e20:#ffd54f><bold>King Grizzle</bold></gradient>"
+    title: "His Crown Is Too Big"
+    previous-names: ["<gradient:#1b5e20:#ffd54f><bold>King Grizzlegrin</bold></gradient>"]
+    previous-titles: ["Crown Too Big"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2149,8 +2246,10 @@ bosses:
     description: "King Snivel: a fat green goblin king, a gold crown slipping over one ear, long drooping ears, a big nose over a crooked grin, a purple cape with a white ermine collar, a gold belt with a ruby and a crooked sceptre."
   snapjaw:
     revision: 3
-    name: "<gradient:#1b5e20:#ce93d8><bold>Snapjaw</bold></gradient>"
-    title: "Hungry Flower"
+    name: "<gradient:#1b5e20:#ce93d8><bold>Chomper</bold></gradient>"
+    title: "The Hungry Flower"
+    previous-names: ["<gradient:#1b5e20:#ce93d8><bold>Snapjaw</bold></gradient>"]
+    previous-titles: ["Hungry Flower"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2176,8 +2275,10 @@ bosses:
     description: "The flytrap from the picture: a long purple head held out on a thin bending green stem, its jaws split wide to show a red mouth lined with pale teeth, a crown of purple spikes sweeping back off the top, and long spiky leaves fanning from the stem and the base."
   cap_brothers:
     revision: 3
-    name: "<gradient:#b71c1c:#ffccbc><bold>Toadstool</bold></gradient>"
-    title: "The Grumpier Mushroom"
+    name: "<gradient:#b71c1c:#ffccbc><bold>Toad</bold></gradient>"
+    title: "The Grumpy Mushroom"
+    previous-names: ["<gradient:#b71c1c:#ffccbc><bold>Toadstool</bold></gradient>"]
+    previous-titles: ["The Grumpier Mushroom"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2205,8 +2306,9 @@ bosses:
     description: "Toadstool, the grumpier mushroom: a stout pale stalk with a cross little face, a wide red cap with white spots, stubby legs, and his small brown-capped brother clinging to his back."
   puffneck:
     revision: 3
-    name: "<gradient:#7cb342:#f5f5f5><bold>Puffneck</bold></gradient>"
+    name: "<gradient:#7cb342:#f5f5f5><bold>Dandy</bold></gradient>"
     title: "Blows Away in the Wind"
+    previous-names: ["<gradient:#7cb342:#f5f5f5><bold>Puffneck</bold></gradient>"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2232,8 +2334,9 @@ bosses:
     description: "Puffneck, a tall stalk creature: two leaf feet, a long green neck with leaves, and a round white dandelion clock for a head with a little yellow face, sleepy eyes and a small smile set in it."
   mallard:
     revision: 3
-    name: "<gradient:#1b5e20:#ffeb3b><bold>Sir Mallard</bold></gradient>"
+    name: "<gradient:#1b5e20:#ffeb3b><bold>Sir Quacks</bold></gradient>"
     title: "Crosses Any Road"
+    previous-names: ["<gradient:#1b5e20:#ffeb3b><bold>Sir Mallard</bold></gradient>"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2316,8 +2419,10 @@ bosses:
     description: "Floaty Frog, the pool party crasher: a tall mottled green frog standing upright with bulging eyes on top of a wide head, a pale wide mouth line, a pale belly, long arms with webbed hands, and a red and white swim ring round his middle."
   hay_golem:
     revision: 4
-    name: "<gradient:#f9a825:#8d6e63><bold>Hay Golem</bold></gradient>"
-    title: "The Scarecrow Walks"
+    name: "<gradient:#f9a825:#8d6e63><bold>Scarecrow Sam</bold></gradient>"
+    title: "Guards the Wheat"
+    previous-names: ["<gradient:#f9a825:#8d6e63><bold>Hay Golem</bold></gradient>"]
+    previous-titles: ["The Scarecrow Walks"]
     kind: mini
     tier: mini
     entity: IRON_GOLEM
@@ -2397,8 +2502,10 @@ bosses:
     description: "A pale knobbly root with a scrunched, screaming little face, rosy cheeks, root arms flung up, stubby root legs and a big fan of leaves on its head."
   mossy_turtle:
     revision: 3
-    name: "<gradient:#2e7d32:#8d6e63><bold>Old Shellby</bold></gradient>"
-    title: "Slow, Stubborn, Armoured"
+    name: "<gradient:#2e7d32:#8d6e63><bold>Shelby</bold></gradient>"
+    title: "Slow and Stubborn"
+    previous-names: ["<gradient:#2e7d32:#8d6e63><bold>Old Shellby</bold></gradient>"]
+    previous-titles: ["Slow, Stubborn, Armoured"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2557,8 +2664,10 @@ bosses:
     defeat-commands: []
     description: "Peeper, a little red blob that is mostly head: two huge goggling eyes that stick out over its brow and roll around on their own, a wide dark frown, stubby arms flung out to the sides and two short legs."
   bogwart:
-    name: "<gradient:#2e5d1a:#c5e17a><bold>Bogwart</bold></gradient>"
-    title: "Sits in the Reeds and Waits"
+    name: "<gradient:#2e5d1a:#c5e17a><bold>Warty</bold></gradient>"
+    title: "Waits in the Reeds"
+    previous-names: ["<gradient:#2e5d1a:#c5e17a><bold>Bogwart</bold></gradient>"]
+    previous-titles: ["Sits in the Reeds and Waits"]
     kind: mini
     tier: mini
     entity: DROWNED
@@ -2583,8 +2692,10 @@ bosses:
     defeat-commands: []
     description: "Bogwart, a slouching frog-man of the swamp: a wide flat head with two big eye bumps on top under heavy lids, a pale tan throat and lip, a hunched mottled green body, long arms with webbed three-finger hands and frog legs bent under him."
   old_pip:
-    name: "<gradient:#b71c1c:#a5d6a7><bold>Old Pip</bold></gradient>"
-    title: "Gnome Elder of the Garden"
+    name: "<gradient:#b71c1c:#a5d6a7><bold>Grandpa Pip</bold></gradient>"
+    title: "The Gnome Elder"
+    previous-names: ["<gradient:#b71c1c:#a5d6a7><bold>Old Pip</bold></gradient>"]
+    previous-titles: ["Gnome Elder of the Garden"]
     kind: mini
     tier: mini
     entity: ZOMBIE
@@ -2609,8 +2720,10 @@ bosses:
     defeat-commands: []
     description: "Old Pip, the gnome elder: a tall floppy red hat over bushy white brows, little green eyes, a huge nose that hangs over a long white beard, rosy cheeks, a teal tunic, a brown belt with an emerald buckle and little brown boots."
   sproutbeak:
-    name: "<gradient:#2e7d32:#a1887f><bold>Sproutbeak</bold></gradient>"
-    title: "A Hedge With Legs and a Backpack"
+    name: "<gradient:#2e7d32:#a1887f><bold>Hedgey</bold></gradient>"
+    title: "A Hedge With Legs"
+    previous-names: ["<gradient:#2e7d32:#a1887f><bold>Sproutbeak</bold></gradient>"]
+    previous-titles: ["A Hedge With Legs and a Backpack"]
     kind: mini
     tier: mini
     entity: ZOMBIE

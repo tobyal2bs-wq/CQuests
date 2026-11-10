@@ -19,6 +19,8 @@ import v11_new
 import v12_final
 import v13_approved
 import v14_studio
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import names
 DOCS = {f.__name__: " ".join((f.__doc__ or "").split()) for f in _m.MODELS}
 MODELS = json.load(open(os.path.join(ROOT, "src/main/resources/models.json")))["models"]
 YML = os.path.join(ROOT, "src/main/resources/bosses.yml")
@@ -228,6 +230,13 @@ def entry(id, kind, season=None, chapter=None):
         d["minion"], d["minions"] = MINION[id], 2 if chapter else 3
     own = list(MODELS[id]["attacks"])
     d["abilities"] = list(dict.fromkeys(own + EXTRA.get(id, [])))
+    # plain names (tools/names.py); the names a boss shipped with before are kept so the plugin can update
+    # servers that never edited them
+    d["prev_names"], d["prev_titles"] = list((o or {}).get("previous-names", [])), list((o or {}).get("previous-titles", []))
+    new_name, new_title = names.rename(id, d["name"], d["title"])
+    if new_name != d["name"] and d["name"] not in d["prev_names"]: d["prev_names"].append(d["name"])
+    if new_title != d["title"] and d["title"] not in d["prev_titles"]: d["prev_titles"].append(d["title"])
+    d["name"], d["title"] = new_name, new_title
     return d
 
 
@@ -270,6 +279,7 @@ w("""# CBosses bosses. Every boss is a block model (models.json) drawn over an i
 # partner:    a second boss that appears beside this one (kind: partner). Both fight on their own and chase different
 #             players; when one falls the other is enraged, and the rewards are paid when both are down.
 # revision:   set by the plugin's authors; when a new version redesigns a boss, its entry is updated (rewards kept).
+# previous-names / previous-titles: what the boss used to be called; a server still using one of them gets the new name.
 # Change any of this in game with /cbosses edit <boss> <field> <value>.
 # description: shown in /cbosses menu and the README.
 bosses:
@@ -282,6 +292,8 @@ def emit(id, d):
     elif id in REVISED: w(f"    revision: {REVISION}")
     for k in ("name", "title"):
         w(f"    {k}: {q(d[k])}")
+    if d.get("prev_names"): w(f"    previous-names: [{', '.join(q(x) for x in d['prev_names'])}]")
+    if d.get("prev_titles"): w(f"    previous-titles: [{', '.join(q(x) for x in d['prev_titles'])}]")
     if d.get("chapter"): w(f"    chapter: {d['chapter']}")
     if d.get("season"): w(f"    season: {d['season']}")
     if d.get("kind"): w(f"    kind: {d['kind']}")
