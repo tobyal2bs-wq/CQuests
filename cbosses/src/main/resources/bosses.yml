@@ -26,7 +26,6 @@
 # model:      the model in models.json (defaults to the id), or none for the plain mob with its equipment.
 # partner:    a second boss that appears beside this one (kind: partner). Both fight on their own and chase different
 #             players; when one falls the other is enraged, and the rewards are paid when both are down.
-# evolve:     true, false or a chance (0 to 1) that this boss grows stronger during a fight (see evolve: in config.yml).
 # revision:   set by the plugin's authors; when a new version redesigns a boss, its entry is updated (rewards kept).
 # Change any of this in game with /cbosses edit <boss> <field> <value>.
 # description: shown in /cbosses menu and the README.
@@ -38,8 +37,8 @@ bosses:
     title: "The Molten Colossus"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 10
     bar: RED
     theme: fire
@@ -65,9 +64,9 @@ bosses:
     title: "Gold-Hungry Tyrant of the Bastion"
     tier: big
     entity: PIGLIN_BRUTE
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 15
+    damage: 7
     armor: 10
     bar: YELLOW
     theme: gold
@@ -98,8 +97,8 @@ bosses:
     title: "King of the Illagers"
     tier: big
     entity: EVOKER
-    health: 5000
-    damage: 11
+    health: 3000
+    damage: 7
     armor: 6
     bar: BLUE
     theme: witch
@@ -125,8 +124,8 @@ bosses:
     title: "Warlord of the Red Mountain"
     tier: big
     entity: VINDICATOR
-    health: 5000
-    damage: 13
+    health: 3000
+    damage: 7
     armor: 8
     bar: RED
     theme: blood
@@ -153,8 +152,8 @@ bosses:
     title: "The Storm Ape"
     tier: big
     entity: RAVAGER
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: storm
@@ -179,8 +178,8 @@ bosses:
     title: "Champion of the Pit"
     tier: big
     entity: RAVAGER
-    health: 5000
-    damage: 13
+    health: 3000
+    damage: 7
     armor: 8
     bar: WHITE
     theme: earth
@@ -205,8 +204,8 @@ bosses:
     title: "Light at the Bottom of the Sea"
     tier: big
     entity: BLAZE
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: BLUE
     theme: water
@@ -233,8 +232,8 @@ bosses:
     title: "The Guardian the Jungle Took"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 11
+    health: 3000
+    damage: 7
     armor: 10
     bar: GREEN
     theme: nature
@@ -260,8 +259,8 @@ bosses:
     title: "Cut From the Heart of the Mountain"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 11
+    health: 3000
+    damage: 7
     armor: 14
     bar: PURPLE
     theme: witch
@@ -285,8 +284,8 @@ bosses:
     title: "Idol of the Burning Isle"
     tier: big
     entity: ZOMBIE
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: fire
@@ -312,9 +311,9 @@ bosses:
     title: "Queen of the Deep Webs"
     tier: big
     entity: SPIDER
-    health: 5000
+    health: 3000
     scale: 3.0
-    damage: 10
+    damage: 7
     speed: 0.34
     armor: 0
     bar: GREEN
@@ -342,9 +341,9 @@ bosses:
     title: "The Crab Who Took the Reef"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
+    health: 3000
     scale: 2.2
-    damage: 12
+    damage: 7
     armor: 8
     bar: RED
     theme: water
@@ -374,9 +373,9 @@ bosses:
     title: "It Brings the Storm on Its Back"
     tier: big
     entity: RAVAGER
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: storm
@@ -400,9 +399,9 @@ bosses:
     title: "Risen from the Buried Temple"
     tier: big
     entity: HUSK
-    health: 5000
+    health: 3000
     scale: 2.2
-    damage: 12
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: sand
@@ -432,9 +431,9 @@ bosses:
     title: "Axe of the Woodland Mansion"
     tier: big
     entity: VINDICATOR
-    health: 5000
+    health: 3000
     scale: 1.9
-    damage: 17
+    damage: 7
     armor: 10
     bar: WHITE
     theme: blood
@@ -464,8 +463,8 @@ bosses:
     title: "Her Belly Is a Furnace"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: RED
     theme: fire
@@ -493,9 +492,9 @@ bosses:
     title: "He Comes With an Empty Sack"
     tier: big
     entity: WITHER_SKELETON
-    health: 5000
+    health: 3000
     scale: 2.2
-    damage: 12
+    damage: 7
     armor: 8
     bar: WHITE
     theme: soul
@@ -525,8 +524,8 @@ bosses:
     title: "Captain of the Drowned"
     tier: big
     entity: DROWNED
-    health: 5000
-    damage: 10
+    health: 3000
+    damage: 7
     armor: 8
     bar: BLUE
     theme: water
@@ -552,8 +551,8 @@ bosses:
     title: "Guardian of the Five Keys"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 9
+    health: 3000
+    damage: 7
     armor: 12
     bar: YELLOW
     theme: gold
@@ -580,9 +579,9 @@ bosses:
     title: "The War Boar of the Red Banner"
     tier: big
     entity: HOGLIN
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 7
     speed: 0.3
     armor: 8
     bar: RED
@@ -609,9 +608,9 @@ bosses:
     title: "Monarch of the Swamp"
     tier: big
     entity: SLIME
-    health: 5000
+    health: 3000
     scale: 1
-    damage: 12
+    damage: 7
     armor: 6
     bar: GREEN
     theme: toxic
@@ -638,8 +637,8 @@ bosses:
     title: "Wound Up and Furious"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: iron
@@ -663,8 +662,8 @@ bosses:
     title: "The Walking Hill"
     tier: big
     entity: RAVAGER
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: GREEN
     theme: nature
@@ -690,8 +689,8 @@ bosses:
     title: "Older Than the Mountains"
     tier: big
     entity: EVOKER
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: PURPLE
     theme: witch
@@ -718,8 +717,8 @@ bosses:
     title: "Nothing Under the Hat"
     tier: big
     entity: WITCH
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: BLUE
     theme: void
@@ -743,8 +742,8 @@ bosses:
     title: "Brute of the High Pass"
     tier: big
     entity: RAVAGER
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: WHITE
     theme: earth
@@ -768,8 +767,8 @@ bosses:
     title: "Too Big to Stay Buried"
     tier: big
     entity: GIANT
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: GREEN
     theme: toxic
@@ -795,8 +794,8 @@ bosses:
     title: "Sting of the Badlands"
     tier: big
     entity: SPIDER
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: PURPLE
     theme: toxic
@@ -822,8 +821,8 @@ bosses:
     title: "Keeps the Dead in Line"
     tier: big
     entity: WITHER_SKELETON
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: WHITE
     theme: bone
@@ -850,8 +849,8 @@ bosses:
     title: "Taxes Are Due"
     tier: big
     entity: VINDICATOR
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: gold
@@ -878,8 +877,8 @@ bosses:
     title: "The Oldest Tree Got Up"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: GREEN
     theme: nature
@@ -906,8 +905,8 @@ bosses:
     title: "Keeper of the Ice Cave"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: WHITE
     theme: frost
@@ -934,8 +933,8 @@ bosses:
     title: "Bully of the Swamp"
     tier: big
     entity: ZOMBIE
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: GREEN
     theme: toxic
@@ -961,8 +960,8 @@ bosses:
     title: "Keeper of the Old Mill"
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     speed: 0.22
     armor: 9
     bar: GREEN
@@ -987,8 +986,8 @@ bosses:
     title: "Warden of the Moonlit Tide"
     tier: big
     entity: PHANTOM
-    health: 5000
-    damage: 11
+    health: 3000
+    damage: 7
     speed: 0.23
     armor: 6
     bar: BLUE
@@ -1013,8 +1012,8 @@ bosses:
     title: "Fang of the Tangled Grove"
     tier: big
     entity: RAVAGER
-    health: 5000
-    damage: 13
+    health: 3000
+    damage: 7
     speed: 0.21
     armor: 8
     bar: GREEN
@@ -1039,8 +1038,8 @@ bosses:
     title: "The Mandrake That Woke Up Hungry"
     tier: big
     entity: RAVAGER
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: GREEN
     theme: nature
@@ -1064,8 +1063,8 @@ bosses:
     title: "The Hat Is Still Smoking"
     tier: big
     entity: WITCH
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: RED
     theme: fire
@@ -1089,8 +1088,8 @@ bosses:
     title: "Snow on the Brim, Frost in the Eyes"
     tier: big
     entity: WITCH
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: BLUE
     theme: frost
@@ -1114,8 +1113,8 @@ bosses:
     title: "Mushrooms Grow on the Hat"
     tier: big
     entity: WITCH
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: GREEN
     theme: nature
@@ -1139,8 +1138,8 @@ bosses:
     title: "Last Orders at the Bent Tankard"
     tier: big
     entity: VINDICATOR
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: GREEN
     theme: nature
@@ -1165,8 +1164,8 @@ bosses:
     title: "It Hears Your Heartbeat"
     tier: mythic
     entity: IRON_GOLEM
-    health: 5000
-    damage: 15
+    health: 3000
+    damage: 9
     armor: 14
     bar: BLUE
     theme: sculk
@@ -1190,8 +1189,8 @@ bosses:
     title: "Three Skulls, One Hunger"
     tier: mythic
     entity: WITHER_SKELETON
-    health: 5000
-    damage: 14
+    health: 3000
+    damage: 9
     armor: 12
     bar: PURPLE
     theme: wither
@@ -1218,8 +1217,8 @@ bosses:
     title: "Heart of the Void"
     tier: mythic
     entity: IRON_GOLEM
-    health: 5000
-    damage: 17
+    health: 3000
+    damage: 9
     armor: 16
     bar: PINK
     theme: void
@@ -1248,8 +1247,8 @@ bosses:
     season: winter
     tier: big
     entity: ZOMBIE
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 6
     bar: RED
     theme: holiday
@@ -1276,9 +1275,9 @@ bosses:
     season: winter
     tier: big
     entity: STRAY
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 7
     armor: 8
     bar: WHITE
     theme: frost
@@ -1305,9 +1304,9 @@ bosses:
     season: winter
     tier: big
     entity: STRAY
-    health: 5000
+    health: 3000
     scale: 2.6
-    damage: 12
+    damage: 7
     armor: 8
     bar: BLUE
     theme: frost
@@ -1340,9 +1339,9 @@ bosses:
     season: summer
     tier: big
     entity: MAGMA_CUBE
-    health: 5000
+    health: 3000
     scale: 1
-    damage: 12
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: fire
@@ -1369,9 +1368,9 @@ bosses:
     season: summer
     tier: big
     entity: SPIDER
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 7
     speed: 0.32
     armor: 10
     bar: RED
@@ -1399,8 +1398,8 @@ bosses:
     season: summer
     tier: big
     entity: ZOMBIE
-    health: 5000
-    damage: 10
+    health: 3000
+    damage: 7
     armor: 4
     bar: PINK
     theme: candy
@@ -1428,9 +1427,9 @@ bosses:
     season: spring
     tier: big
     entity: ZOMBIE
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 7
     speed: 0.3
     armor: 6
     bar: WHITE
@@ -1458,9 +1457,9 @@ bosses:
     season: spring
     tier: big
     entity: RABBIT
-    health: 5000
+    health: 3000
     scale: 3.5
-    damage: 12
+    damage: 7
     speed: 0.5
     armor: 4
     bar: PINK
@@ -1488,8 +1487,8 @@ bosses:
     season: spring
     tier: big
     entity: IRON_GOLEM
-    health: 5000
-    damage: 11
+    health: 3000
+    damage: 7
     armor: 10
     bar: YELLOW
     theme: candy
@@ -1518,8 +1517,8 @@ bosses:
     season: halloween
     tier: big
     entity: ZOMBIE
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 7
     armor: 8
     bar: YELLOW
     theme: pumpkin
@@ -1546,9 +1545,9 @@ bosses:
     season: halloween
     tier: big
     entity: SKELETON
-    health: 5000
+    health: 3000
     scale: 1.8
-    damage: 12
+    damage: 7
     armor: 8
     bar: RED
     theme: pumpkin
@@ -1580,9 +1579,9 @@ bosses:
     season: halloween
     tier: big
     entity: WITCH
-    health: 5000
+    health: 3000
     scale: 1.9
-    damage: 8
+    damage: 7
     armor: 4
     bar: PURPLE
     theme: witch
@@ -1609,8 +1608,8 @@ bosses:
     title: "Burner of the Wanderers' Camp"
     chapter: 1
     entity: VINDICATOR
-    health: 5000
-    damage: 7
+    health: 3000
+    damage: 6
     armor: 4
     bar: YELLOW
     theme: fire
@@ -1637,8 +1636,8 @@ bosses:
     title: "Nothing Passes Without the Key"
     chapter: 2
     entity: VEX
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 6
     armor: 8
     bar: WHITE
     theme: soul
@@ -1665,8 +1664,8 @@ bosses:
     title: "The Elder's Champion"
     chapter: 3
     entity: ZOMBIE
-    health: 5000
-    damage: 8
+    health: 3000
+    damage: 6
     armor: 8
     bar: GREEN
     theme: nature
@@ -1693,8 +1692,8 @@ bosses:
     title: "Bramble and Thimble"
     chapter: 4
     entity: ZOMBIE
-    health: 5000
-    damage: 9
+    health: 3000
+    damage: 6
     armor: 8
     bar: GREEN
     theme: nature
@@ -1720,8 +1719,8 @@ bosses:
     title: "Two Faces in the Stone"
     chapter: 5
     entity: IRON_GOLEM
-    health: 5000
-    damage: 9
+    health: 3000
+    damage: 6
     armor: 8
     bar: GREEN
     theme: nature
@@ -1746,8 +1745,8 @@ bosses:
     title: "Under the Old Bridge"
     chapter: 7
     entity: ZOMBIE
-    health: 5000
-    damage: 9
+    health: 3000
+    damage: 6
     armor: 8
     bar: YELLOW
     theme: earth
@@ -1772,8 +1771,8 @@ bosses:
     title: "Troll of the Dry Riverbed"
     chapter: 9
     entity: ZOMBIE
-    health: 5000
-    damage: 9
+    health: 3000
+    damage: 6
     armor: 8
     bar: GREEN
     theme: earth
@@ -1797,8 +1796,8 @@ bosses:
     title: "The Brute of the Last Chapter"
     chapter: 10
     entity: RAVAGER
-    health: 5000
-    damage: 9
+    health: 3000
+    damage: 6
     armor: 8
     bar: RED
     theme: earth
@@ -1827,8 +1826,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: YELLOW
     theme: nature
@@ -1854,8 +1853,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: WHITE
     theme: bone
@@ -1881,8 +1880,8 @@ bosses:
     kind: mini
     tier: mini
     entity: VINDICATOR
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: RED
     theme: gold
@@ -1910,8 +1909,8 @@ bosses:
     kind: mini
     tier: mini
     entity: VINDICATOR
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: YELLOW
     theme: earth
@@ -1939,8 +1938,8 @@ bosses:
     kind: mini
     tier: mini
     entity: SLIME
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: YELLOW
     theme: gold
@@ -1966,8 +1965,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -1993,8 +1992,8 @@ bosses:
     kind: mini
     tier: mini
     entity: SPIDER
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: RED
     theme: nature
@@ -2020,8 +2019,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -2047,8 +2046,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: RED
     theme: nature
@@ -2073,8 +2072,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: WHITE
     theme: earth
@@ -2100,8 +2099,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -2126,8 +2125,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: YELLOW
     theme: nature
@@ -2155,8 +2154,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: PURPLE
     theme: toxic
@@ -2182,8 +2181,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: RED
     theme: toxic
@@ -2211,8 +2210,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: WHITE
     theme: wind
@@ -2238,8 +2237,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: water
@@ -2267,8 +2266,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: PINK
     theme: earth
@@ -2295,8 +2294,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: toxic
@@ -2322,8 +2321,8 @@ bosses:
     kind: mini
     tier: mini
     entity: IRON_GOLEM
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: YELLOW
     theme: earth
@@ -2349,8 +2348,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: RED
     theme: earth
@@ -2376,8 +2375,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -2403,8 +2402,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: water
@@ -2430,8 +2429,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -2457,8 +2456,8 @@ bosses:
     kind: mini
     tier: mini
     entity: VEX
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: WHITE
     theme: soul
@@ -2484,8 +2483,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: YELLOW
     theme: toxic
@@ -2511,8 +2510,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -2537,8 +2536,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: RED
     theme: blood
@@ -2563,8 +2562,8 @@ bosses:
     kind: mini
     tier: mini
     entity: DROWNED
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -2589,8 +2588,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature
@@ -2615,8 +2614,8 @@ bosses:
     kind: mini
     tier: mini
     entity: ZOMBIE
-    health: 2000
-    damage: 8
+    health: 1000
+    damage: 5
     armor: 4
     bar: GREEN
     theme: nature

@@ -237,6 +237,17 @@ def bobpos(length, amt, phase=0.0, n=8):
     return wave(1, amt, length, phase, n=n)
 
 
+def _outward(bones):
+    """The tables in this file were written with -z as "outward" for the left arm; in the engine +z swings the
+    left (+x) arm out and -z swings it into the body (hands sinking into the torso). Flip z once on the arm
+    channels so arms open away from the body as intended."""
+    for name, ch in bones.items():
+        if name.startswith(("armL", "armR", "foreL", "foreR")) and "rot" in ch:
+            for k in ch["rot"]:
+                k[1] = [k[1][0], k[1][1], -k[1][2]]
+    return bones
+
+
 def attack(length, hit, bones):
     return {"length": length, "hit": hit, "bones": bones}
 
@@ -252,7 +263,7 @@ def biped_set(heavy=1.0, weapon="R"):
     WF, OF = ("foreR", "foreL") if weapon == "R" else ("foreL", "foreR")
     sx = 1 if weapon == "R" else -1
     h = heavy
-    return {
+    out = {
         # big overhead smash with both fists / the weapon
         "slam": attack(1.5, 0.82, {
             "armL": {"rot": K((0, Z), (0.55, (-165, 0, -14)), (0.72, (-172, 0, -10)), (0.82, (-30, 0, -6)), (1.1, (-26, 0, -6)), (1.5, Z))},
@@ -317,11 +328,13 @@ def biped_set(heavy=1.0, weapon="R"):
             "legL": {"rot": K((0, Z), (0.55, (-32, 0, 0)), (0.8, (-30, 0, 0)), (1.1, Z))},
             "legR": {"rot": K((0, Z), (0.55, (22, 0, 0)), (0.8, (20, 0, 0)), (1.1, Z))}}),
     }
+    for c in out.values(): _outward(c["bones"])
+    return out
 
 
 def walk_biped(length=1.1, swing=26, arm=20, bob=0.9, sway=3):
     q = length / 4
-    return loop(length, {
+    return loop(length, _outward({
         "legL": {"rot": K((0, (swing, 0, 0)), (2 * q, (-swing, 0, 0)), (length, (swing, 0, 0)))},
         "legR": {"rot": K((0, (-swing, 0, 0)), (2 * q, (swing, 0, 0)), (length, (-swing, 0, 0)))},
         "shinL": {"rot": K((0, (0, 0, 0)), (q, (24, 0, 0)), (2 * q, (6, 0, 0)), (3 * q, (0, 0, 0)), (length, (0, 0, 0)))},
@@ -335,7 +348,7 @@ def walk_biped(length=1.1, swing=26, arm=20, bob=0.9, sway=3):
         "body": {"rot": K((0, (2, 5, 0)), (2 * q, (2, -5, 0)), (length, (2, 5, 0)))},
         "head": {"rot": K((0, (0, -4, 0)), (2 * q, (0, 4, 0)), (length, (0, -4, 0)))},
         "cape": {"rot": K((0, (14, 0, 0)), (2 * q, (20, 0, 0)), (length, (14, 0, 0)))},
-    })
+    }))
 
 
 def idle_biped(length=4.0, look=20, breath=0.03, extra=None, arms=1.0):
@@ -354,6 +367,7 @@ def idle_biped(length=4.0, look=20, breath=0.03, extra=None, arms=1.0):
         "jaw": {"rot": K((0, Z), (length * 0.25, (5, 0, 0)), (length * 0.35, Z), (length * 0.75, (3, 0, 0)), (length, Z))},
         "cape": {"rot": wave(0, 4, length, 0.2, base=(7, 0, 0))},
     }
+    _outward(b)
     if extra: b.update(extra)
     return loop(length, b)
 

@@ -101,9 +101,9 @@ class BossDataTest {
         var defs = bosses();
         assertEquals(30, defs.values().stream().filter(BossDef::mini).count(), "30 mini bosses");
         for (BossDef d : defs.values()) {
-            if (d.mini()) assertEquals(2000, d.health(), 0.01, d.id());
-            else if (d.tier().equals("mythic")) assertEquals(5000, d.health(), 0.01, d.id());
-            else if (!d.chapterBoss() && !d.sidekick()) assertEquals(5000, d.health(), 0.01, d.id());
+            if (d.mini()) assertEquals(1000, d.health(), 0.01, d.id());
+            else if (d.tier().equals("mythic")) assertEquals(3000, d.health(), 0.01, d.id());
+            else if (!d.chapterBoss() && !d.sidekick()) assertEquals(3000, d.health(), 0.01, d.id());
         }
         for (String id : new String[]{"the_unmaker", "withered_tyrant", "the_listener"}) assertEquals("mythic", defs.get(id).tier(), id);
     }
@@ -247,7 +247,7 @@ class BossDataTest {
     void approvedMonkShipsAsAWorldBossAndOtherDraftsStayExcluded() throws Exception {
         var d = bosses().get("millstone_monk");
         assertNotNull(d); assertEquals("world", d.kind()); assertEquals("big", d.tier());
-        assertEquals(5000, d.health(), .01); assertFalse(d.seasonal()); assertFalse(d.chapterBoss());
+        assertEquals(3000, d.health(), .01); assertFalse(d.seasonal()); assertFalse(d.chapterBoss());
         assertEquals(List.of("shockwave", "quake", "heal"), d.abilities());
         var all = models(); var m = all.get("millstone_monk"); assertNotNull(m);
         assertEquals(2, m.cubes.stream().filter(c -> c.tag().equals("eye_socket")).count());

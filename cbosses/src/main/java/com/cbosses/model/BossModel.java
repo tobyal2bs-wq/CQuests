@@ -773,7 +773,7 @@ public final class BossModel {
         int count = (int) Math.round(s.num("count", 30) * com.cbosses.fight.Fx.particles);
         if (!name.isEmpty() && count > 0) {
             float ring = s.num("ring", 0);
-            if (ring > 0) for (int i = 0; i < 40; i++) {
+            if (ring > 0 && com.cbosses.fight.Fx.rings) for (int i = 0; i < 40; i++) {
                 double a = Math.PI * 2 * i / 40;
                 particle(world, at.clone().add(Math.cos(a) * ring, 0.2, Math.sin(a) * ring), name, 1, 0.05, s);
             }

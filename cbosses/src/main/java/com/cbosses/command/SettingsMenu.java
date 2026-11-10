@@ -95,17 +95,9 @@ public final class SettingsMenu implements Listener {
                 b("fight.glow-plain-mobs", "Glow on plain mobs", Material.GLOW_INK_SAC),
                 i("rewards.min-damage-percent", "Min damage for reward %", Material.EMERALD, 0, 50, 1),
                 b("announcements.spawn-sound", "Spawn sound", Material.NOTE_BLOCK))));
-        out.add(new Page("evolve", "Evolving and mythic bosses", Material.NETHER_STAR, List.of(
-                b("evolve.enabled", "Bosses evolve", Material.EXPERIENCE_BOTTLE),
-                d("evolve.chance", "Chance to evolve", Material.RABBIT_FOOT, 0, 1, 0.05),
-                i("evolve.after-seconds", "First evolve after (s)", Material.CLOCK, 30, 600, 10),
-                i("evolve.max-stages", "Most evolve stages", Material.LADDER, 1, 5, 1),
-                d("evolve.damage-per-stage", "Extra damage per stage", Material.IRON_SWORD, 0, 1, 0.05),
-                d("evolve.speed-per-stage", "Extra speed per stage", Material.SUGAR, 0, 0.5, 0.02),
-                d("evolve.heal-percent", "Heal when evolving", Material.GOLDEN_APPLE, 0, 0.5, 0.05),
+        out.add(new Page("mythic", "Mythic bosses", Material.NETHER_STAR, List.of(
                 d("mythic.health-multiplier", "Mythic health x", Material.ENCHANTED_GOLDEN_APPLE, 0.5, 5, 0.25),
-                d("mythic.damage-multiplier", "Mythic damage x", Material.NETHERITE_SWORD, 0.5, 5, 0.05),
-                b("mythic.always-evolve", "Mythic always evolve", Material.DRAGON_BREATH))));
+                d("mythic.damage-multiplier", "Mythic damage x", Material.NETHERITE_SWORD, 0.5, 5, 0.05))));
         out.add(new Page("minis", "Mini bosses", Material.TURTLE_EGG, List.of(
                 b("minis.enabled", "Mini bosses on", Material.LEVER),
                 c("minis.mode", "Where they wake", Material.COMPASS, "fixed", "random", "mixed"),

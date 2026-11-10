@@ -177,9 +177,10 @@ public final class BossService implements Listener {
         }
     }
 
-    /** Apply the requested health tiers once; retain every reward and other custom field. */
+    /** Apply the requested health and damage tiers once (v2: minis 1000, the rest 3000, softer hits);
+     *  every reward and other custom field is kept. */
     private void migratePolishHealth(java.io.File file, YamlConfiguration yaml) {
-        if (yaml.getInt("polish-health-version", 0) >= 1) return;
+        if (yaml.getInt("polish-health-version", 0) >= 2) return;
         try (var in = plugin.getResource("bosses.yml")) {
             if (in == null) return;
             var bundled = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
@@ -187,9 +188,12 @@ public final class BossService implements Listener {
             if (bosses == null) return;
             for (String id : bosses.getKeys(false)) {
                 String path = "bosses." + id + ".health";
-                if (yaml.contains("bosses." + id)) yaml.set(path, bundled.getDouble(path));
+                if (yaml.contains("bosses." + id)) {
+                    yaml.set(path, bundled.getDouble(path));
+                    yaml.set("bosses." + id + ".damage", bundled.getDouble("bosses." + id + ".damage"));
+                }
             }
-            yaml.set("polish-health-version", 1);
+            yaml.set("polish-health-version", 2);
             com.cbosses.util.SafeFiles.write(file, yaml.saveToString());
         } catch (Exception e) { plugin.getLogger().warning("Could not migrate boss health: " + e.getMessage()); }
     }
@@ -237,6 +241,8 @@ public final class BossService implements Listener {
         lastWarn = yaml.getString("schedule.last-warn", "");
         scheduleOn = plugin.getConfig().getBoolean("schedule.enabled", true);
         var c = plugin.getConfig();
+        Fx.rings = c.getBoolean("effects.rings", false);
+        Fx.aura = c.getBoolean("effects.aura", false);
         Fx.particles = Math.max(0, Math.min(2, quality(c.getString("effects.quality", "high")) * c.getDouble("effects.particle-multiplier", 1)));
         Fx.debrisOn = c.getBoolean("effects.flying-blocks", true);
         Fx.maxDebris = Math.max(0, c.getInt("effects.max-flying-blocks", 160));
@@ -805,10 +811,6 @@ public final class BossService implements Listener {
         fight.nextDash = System.currentTimeMillis() + 9000;
         var cfg = plugin.getConfig();
         if (mythic(def)) fight.power = Math.max(0.1, cfg.getDouble("mythic.damage-multiplier", 1.25));
-        double chance = def.evolve() >= 0 ? def.evolve() : Math.max(0, Math.min(1, cfg.getDouble("evolve.chance", 0.6)));
-        if (mythic(def) && cfg.getBoolean("mythic.always-evolve", true)) chance = 1;
-        fight.evolves = cfg.getBoolean("evolve.enabled", true) && ThreadLocalRandom.current().nextDouble() < chance;
-        fight.nextEvolve = System.currentTimeMillis() + Math.max(20, cfg.getInt("evolve.after-seconds", 150)) * 1000L;
         try { fight.aura = Particle.valueOf(plugin.getConfig().getString("bosses-aura." + def.id(), fight.theme.spark().name())); } catch (IllegalArgumentException e) { fight.aura = fight.theme.spark(); }
         if (owner != null) { Player o = Bukkit.getPlayer(owner); if (o != null) fight.names.put(owner, o.getName()); }
         fights.put(key, fight);
@@ -908,7 +910,7 @@ public final class BossService implements Listener {
                 * (mythic(def) ? Math.max(0.1, plugin.getConfig().getDouble("mythic.damage-multiplier", 1.25)) : 1));
         if (def.speed() > 0) attr(m, "movement_speed", def.speed());
         if (def.armor() > 0) attr(m, "armor", def.armor());
-        attr(m, "knockback_resistance", 0.85);
+        attr(m, "knockback_resistance", 1.0);   // hits never launch a boss; only its own leap, charge or slam moves it
         attr(m, "follow_range", 48);
         attr(m, "step_height", 1.5);
         EntityEquipment eq = m.getEquipment();
@@ -1065,8 +1067,6 @@ public final class BossService implements Listener {
             if (!ab.isEmpty() && !inside.isEmpty()) { String sig = ab.get(ab.size() - 1); later(f, 30, () -> abilities.run(f, sig, fighters(f))); }
             f.nextAbility = now + 4000;
         }
-        if (f.evolves && now >= f.nextEvolve && !inside.isEmpty() && (f.introDone || f.model == null)
-                && f.stage < Math.max(1, plugin.getConfig().getInt("evolve.max-stages", 3))) evolve(f, false);
         // gap closer: a walking boss far from its target dashes or leaps at it
         if (target != null && !f.def.flies() && !f.busy() && now >= f.nextDash && f.introDone && boss.hasAI()
                 && target.getLocation().distanceSquared(loc) > 12 * 12 && plugin.getConfig().getBoolean("fight.gap-closer", true)) {
@@ -1091,36 +1091,6 @@ public final class BossService implements Listener {
             }
         }
         return true;
-    }
-
-    /**
-     * The boss grows stronger: it hits harder (evolve.damage-per-stage), moves faster, heals a little and
-     * everyone near is told. rage: its partner just fell, which counts as a stage whatever the timer says.
-     */
-    void evolve(Fight f, boolean rage) {
-        if (f.over || !f.boss.isValid()) return;
-        var c = plugin.getConfig();
-        long now = System.currentTimeMillis();
-        f.stage++;
-        f.nextEvolve = now + Math.max(20, c.getInt("evolve.after-seconds", 150)) * 1000L;
-        double base = mythic(f.def) ? Math.max(0.1, c.getDouble("mythic.damage-multiplier", 1.25)) : 1;
-        f.power = base * (1 + Math.max(0, c.getDouble("evolve.damage-per-stage", 0.25)) * f.stage);
-        Mob boss = f.boss;
-        if (f.def.damage() > 0) attr(boss, "attack_damage", f.def.damage() * f.power * damageMultiplier());
-        if (f.model != null) f.model.meleeDamage = (f.def.damage() > 0 ? f.def.damage() : 6) * f.power;
-        attr(boss, "movement_speed", Math.max(0.25, (f.def.speed() > 0 ? f.def.speed() : 0.25) * (1 + 0.15 * f.phase)
-                * (1 + Math.max(0, c.getDouble("evolve.speed-per-stage", 0.08)) * f.stage)));
-        double heal = Math.max(0, Math.min(1, c.getDouble("evolve.heal-percent", 0.1)));
-        if (heal > 0) boss.setHealth(Math.min(maxHealth(boss), boss.getHealth() + maxHealth(boss) * heal));
-        f.shownHealth = -1;
-        Location at = boss.getLocation().add(0, 1.5, 0);
-        Fx.particle(at.getWorld(), f.theme.spark(), at, 90, 1.2, 1.6, 1.2, 0.25, f.theme);
-        Fx.sound(at, "ENTITY_ELDER_GUARDIAN_CURSE", 1f, 0.7f);
-        if (f.model != null) try { f.model.attack("roar"); } catch (RuntimeException ignored) { }
-        String text = rage
-                ? T.t("fight.partner-rage", "<dark_red><bold>⬆</bold> <boss> <red>is enraged by the fall of its partner! <gray>It hits <percent>% harder.", "boss", f.def.name(), "percent", Math.round((f.power - 1) * 100))
-                : T.t("fight.evolved", "<dark_red><bold>⬆</bold> <boss> <red>evolved! <gray>Stage <stage>: it hits <percent>% harder.", "boss", f.def.name(), "stage", f.stage, "percent", Math.round((f.power - 1) * 100));
-        for (UUID id : f.viewers) { Player p = Bukkit.getPlayer(id); if (p != null) plugin.send(p, text); }
     }
 
     /**
@@ -1203,6 +1173,7 @@ public final class BossService implements Listener {
     }
 
     void aura(Fight f, Location feet) {
+        if (!Fx.aura) return;
         double h = f.model != null ? f.model.model.blocks() : f.boss.getHeight();
         double w = Math.max(0.6, (f.model != null ? h * 0.35 : f.boss.getWidth() / 1.5));
         Location at = feet.clone().add(0, h / 2, 0);
@@ -1322,7 +1293,6 @@ public final class BossService implements Listener {
             if (f.model != null) f.model.die(() -> cinema.deathEnd(f, fell));
             end(f, "defeated");
             if (f.model == null) cinema.deathEnd(f, fell);
-            mate.boss.getScheduler().run(plugin, t -> evolve(mate, true), null);
             return;
         }
         List<Map.Entry<UUID, Double>> ranked = new ArrayList<>(f.damage.entrySet());

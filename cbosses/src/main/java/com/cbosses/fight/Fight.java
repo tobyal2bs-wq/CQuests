@@ -60,10 +60,7 @@ public final class Fight {
     public volatile Fight partner;
     /** Whose rewards and chapter this fight pays when it is the last body standing. */
     public volatile BossDef payDef;
-    /** How many times it has evolved, whether it will, and when it next does. power multiplies all its damage. */
-    public volatile int stage;
-    boolean evolves;
-    long nextEvolve;
+    /** power multiplies all its damage (mythic bosses hit harder). */
     public volatile double power = 1;
 
     Fight(String key, BossDef def, Arena arena, boolean test, UUID tester, UUID owner, Mob boss, double max, BossBar bar, double health) {

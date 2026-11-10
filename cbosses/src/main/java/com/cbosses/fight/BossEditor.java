@@ -16,13 +16,13 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Op editing of bosses.yml from the game: names, colours, health, damage, bar colour, tier (mythic), whether
- * it evolves, and turning bosses on and off. Every change is written safely (a .bak copy is kept) and only the
+ * Op editing of bosses.yml from the game: names, colours, health, damage, bar colour, tier (mythic)
+ * and turning bosses on and off. Every change is written safely (a .bak copy is kept) and only the
  * one value changes, so nothing else in the file, and no player data, is touched. Running fights keep going.
  */
 public final class BossEditor {
     public static final List<String> FIELDS = List.of("name", "color", "title", "health", "damage", "speed", "armor", "bar", "theme", "tier",
-            "evolve", "ability-seconds", "health-per-player", "partner", "enabled", "description");
+            "ability-seconds", "health-per-player", "partner", "enabled", "description");
     public static final List<String> BARS = List.of("PINK", "BLUE", "RED", "GREEN", "YELLOW", "PURPLE", "WHITE");
     private static final Set<String> NUMBERS = Set.of("health", "damage", "speed", "armor", "ability-seconds", "health-per-player");
     private final CBossesPlugin plugin;
@@ -85,11 +85,6 @@ public final class BossEditor {
                 case "tier" -> { if (!BossDef.TIERS.contains(v.toLowerCase(Locale.ROOT))) throw new IllegalArgumentException("mini, big, mythic"); out = v.toLowerCase(Locale.ROOT); }
                 case "theme" -> { if (!Theme.ALL.containsKey(v.toLowerCase(Locale.ROOT))) throw new IllegalArgumentException(String.join(", ", new java.util.TreeSet<>(Theme.ALL.keySet()))); out = v.toLowerCase(Locale.ROOT); }
                 case "enabled" -> out = parseBool(v);
-                case "evolve" -> {
-                    if (v.equalsIgnoreCase("default")) out = null;
-                    else if (v.equalsIgnoreCase("true") || v.equalsIgnoreCase("false")) out = Boolean.parseBoolean(v.toLowerCase(Locale.ROOT));
-                    else { double d = Double.parseDouble(v); if (d < 0 || d > 1) throw new NumberFormatException(); out = d; }
-                }
                 case "partner" -> { if (!v.equalsIgnoreCase("none") && !y.isConfigurationSection("bosses." + v.toLowerCase(Locale.ROOT))) throw new IllegalArgumentException("a boss id or none"); out = v.equalsIgnoreCase("none") ? null : v.toLowerCase(Locale.ROOT); }
                 case "color" -> {
                     String[] c = v.split("\\s+");
@@ -101,7 +96,7 @@ public final class BossEditor {
                 default -> out = v;
             }
         } catch (NumberFormatException e) {
-            plugin.send(to, T.t("edit.number", "<red><field> needs a number of 0 or more (health at least 20; evolve 0 to 1, true or false).", "field", field));
+            plugin.send(to, T.t("edit.number", "<red><field> needs a number of 0 or more (health at least 20).", "field", field));
             return false;
         } catch (IllegalArgumentException e) {
             plugin.send(to, T.t("edit.allowed", "<red><field> must be one of: <list>", "field", field, "list", Text.escape(String.valueOf(e.getMessage()))));

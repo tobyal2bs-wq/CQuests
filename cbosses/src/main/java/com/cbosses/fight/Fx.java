@@ -38,6 +38,10 @@ public final class Fx {
     public static volatile int maxDebris = 160;
     /** effects.view-distance: effects are only sent to players this close. */
     public static volatile int viewDistance = 48;
+    /** effects.rings: the dust circles round a boss and on the ground (off by default; they read as clutter). */
+    public static volatile boolean rings = false;
+    /** effects.aura: the drifting particles around a boss's body (off by default). */
+    public static volatile boolean aura = false;
     private static final AtomicInteger debris = new AtomicInteger();
 
     private Fx() {}
@@ -80,6 +84,7 @@ public final class Fx {
 
     /** A flat ring of coloured dust on the ground. */
     public static void ring(Location center, double radius, Color color, float size, int points) {
+        if (!rings) return;
         int p = Math.max(8, (int) Math.round(points * Math.max(0.4, particles)));
         Particle.DustOptions dust = new Particle.DustOptions(color, size);
         World w = center.getWorld();

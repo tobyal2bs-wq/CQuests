@@ -182,7 +182,7 @@ public final class WorldBossService implements Listener {
 
     /** Apply the requested health tiers once; retain every reward and other custom field. */
     private void migratePolishHealth(java.io.File file, YamlConfiguration yaml) {
-        if (yaml.getInt("polish-health-version", 0) >= 1) return;
+        if (yaml.getInt("polish-health-version", 0) >= 2) return;   // v2: 3000 health and softer hits
         try (var in = plugin.getResource("worldbosses.yml")) {
             if (in == null) return;
             var bundled = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
@@ -190,9 +190,12 @@ public final class WorldBossService implements Listener {
             if (bosses == null) return;
             for (String id : bosses.getKeys(false)) {
                 String path = "bosses." + id + ".health";
-                if (yaml.contains("bosses." + id)) yaml.set(path, bundled.getDouble(path));
+                if (yaml.contains("bosses." + id)) {
+                    yaml.set(path, bundled.getDouble(path));
+                    yaml.set("bosses." + id + ".damage", bundled.getDouble("bosses." + id + ".damage"));
+                }
             }
-            yaml.set("polish-health-version", 1);
+            yaml.set("polish-health-version", 2);
             java.nio.file.Files.copy(file.toPath(), file.toPath().resolveSibling(file.getName() + ".bak"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             yaml.save(file);
         } catch (Exception e) { plugin.getLogger().warning("Could not migrate boss health: " + e.getMessage()); }
@@ -205,6 +208,9 @@ public final class WorldBossService implements Listener {
         migratePolishHealth(bossFile, bossYaml);
         defs = WorldBossDef.load(bossYaml, plugin.getLogger());
         var cfg = plugin.getConfig();
+        rings = cfg.getBoolean("world-bosses.rings", false);
+        auraOn = cfg.getBoolean("world-bosses.aura", false);
+        BossModel.rings = rings;
         ModelRig.detail = switch (cfg.getString("world-bosses.model-detail", "high").toLowerCase(java.util.Locale.ROOT)) {
             case "low" -> 0;
             case "medium" -> 1;
@@ -913,7 +919,7 @@ public final class WorldBossService implements Listener {
         if (def.damage() > 0) attr(m, "attack_damage", def.damage());
         if (def.speed() > 0) attr(m, "movement_speed", def.speed());
         if (def.armor() > 0) attr(m, "armor", def.armor());
-        attr(m, "knockback_resistance", 0.8);
+        attr(m, "knockback_resistance", 1.0);   // hits never launch a boss; only its own leap or charge moves it
         attr(m, "follow_range", 48);
         EntityEquipment eq = look == null ? null : m.getEquipment();
         if (eq != null) eq.clear();
@@ -1106,6 +1112,7 @@ public final class WorldBossService implements Listener {
     }
 
     private void aura(Fight f, Location feet) {
+        if (!auraOn) return;
         Location at = feet.clone().add(0, f.boss.getHeight() / 2, 0);
         double w = Math.max(0.4, f.boss.getWidth() / 1.5), h = Math.max(0.5, f.boss.getHeight() / 2);
         if (f.auraDust != null) at.getWorld().spawnParticle(Particle.DUST, at, 10, w, h, w, 0, f.auraDust);
@@ -1113,7 +1120,11 @@ public final class WorldBossService implements Listener {
 
     }
 
+    /** world-bosses.rings / aura: the dust circles and drifting particles round a boss (off by default). */
+    private static volatile boolean rings = false, auraOn = false;
+
     private static void ring(Location center, double radius, Color color, int points) {
+        if (!rings) return;
         Particle.DustOptions dust = new Particle.DustOptions(color, 1.6f);
         for (int i = 0; i < points; i++) {
             double a = Math.PI * 2 * i / points;

@@ -40,6 +40,8 @@ import java.util.function.Consumer;
  * blocks that changed. Spawn and death play the model's own steps (ModelRig) on the blocks.
  */
 public final class BossModel {
+    /** Dust rings in spawn and death steps (world-bosses.rings, off by default). */
+    public static volatile boolean rings = false;
     /** Ticks between live updates (effects.model-update-ticks); far from players it doubles. */
     public static volatile int period = 3;
     /** Multiplies every particle count in spawn and death steps (world-boss.particles). */
@@ -773,7 +775,7 @@ public final class BossModel {
         int count = (int) Math.round(s.num("count", 30) * particles);
         if (!name.isEmpty() && count > 0) {
             float ring = s.num("ring", 0);
-            if (ring > 0) for (int i = 0; i < 40; i++) {
+            if (ring > 0 && rings) for (int i = 0; i < 40; i++) {
                 double a = Math.PI * 2 * i / 40;
                 particle(world, at.clone().add(Math.cos(a) * ring, 0.2, Math.sin(a) * ring), name, 1, 0.05, s);
             }

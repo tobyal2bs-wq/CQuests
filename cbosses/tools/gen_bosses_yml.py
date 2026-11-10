@@ -29,8 +29,10 @@ LEGENDS = roster.MYTHIC
 SEASONAL = roster.SEASONAL
 CHAPTERS = roster.CHAPTERS
 MINIS = roster.minis()
-# health tiers asked for: big bosses 5000, mythic 5000, minis 2000, chapter bosses 5000
-TIER_HEALTH = {"big": 5000, "mythic": 5000, "mini": 2000}
+# health tiers asked for: minis 1000, every other boss 3000 (v1.5)
+TIER_HEALTH = {"big": 3000, "mythic": 3000, "mini": 1000}
+# melee damage per tier (abilities scale with it too); lowered in v1.5 because fights hit too hard
+TIER_DAMAGE = {"big": 7, "mythic": 9, "mini": 5, "chapter": 6}
 
 # extra abilities on top of the model's own attack moves (these use its melee swing)
 EXTRA = {
@@ -200,11 +202,13 @@ def entry(id, kind, season=None, chapter=None):
     d.update(NEW.get(id, {}) if o else {})
     d["season"], d["chapter"] = season, chapter
     if chapter:
-        d["health"] = 5000
+        d["health"] = 3000
+        d["damage"] = TIER_DAMAGE["chapter"]
         d["top_money"] = 0
     else:
         d["tier"] = "mythic" if id in LEGENDS else "mini" if id in MINIS else "big"
         d["health"] = TIER_HEALTH[d["tier"]]
+        d["damage"] = TIER_DAMAGE[d["tier"]]
     if id in MINIS:
         d["kind"] = "mini"
     if id in v12_final.PARTNER_INFO:
@@ -265,7 +269,6 @@ w("""# CBosses bosses. Every boss is a block model (models.json) drawn over an i
 # model:      the model in models.json (defaults to the id), or none for the plain mob with its equipment.
 # partner:    a second boss that appears beside this one (kind: partner). Both fight on their own and chase different
 #             players; when one falls the other is enraged, and the rewards are paid when both are down.
-# evolve:     true, false or a chance (0 to 1) that this boss grows stronger during a fight (see evolve: in config.yml).
 # revision:   set by the plugin's authors; when a new version redesigns a boss, its entry is updated (rewards kept).
 # Change any of this in game with /cbosses edit <boss> <field> <value>.
 # description: shown in /cbosses menu and the README.

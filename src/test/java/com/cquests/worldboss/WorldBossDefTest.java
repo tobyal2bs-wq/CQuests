@@ -86,7 +86,7 @@ class WorldBossDefTest {
     @Test
     void approvedMonkHasItsModelAndUnapprovedDraftsDoNotShip() throws Exception {
         var defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File("src/main/resources/worldbosses.yml")), Logger.getLogger("monk-test"));
-        var d = defs.get("millstone_monk"); assertNotNull(d); assertEquals(5000, d.health(), .01); assertTrue(!d.seasonal());
+        var d = defs.get("millstone_monk"); assertNotNull(d); assertEquals(3000, d.health(), .01); assertTrue(!d.seasonal());
         assertEquals(List.of("shockwave", "quake", "heal"), d.abilities());
         try (var in = new java.io.FileReader("src/main/resources/worldboss-models.json")) {
             var all = ModelRig.load(in); var m = all.get("millstone_monk"); assertNotNull(m);

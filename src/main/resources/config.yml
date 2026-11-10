@@ -312,6 +312,9 @@ world-bosses:
   max-active: 4
   # Radius of the border round a boss an op spawns where they stand (panel left-click).
   here-radius: 40
+  # Dust circles round a boss (rage, shockwave warnings, entrances) and drifting particles round its body.
+  rings: false
+  aura: false
   # Block effects (shockwave rings of ground blocks, falling meteors and their broken pieces) are block
   # displays, never real blocks. This caps how many are alive at once on the whole server (0 = particles only).
   max-block-effects: 48

@@ -33,6 +33,10 @@ effects:
   model-update-ticks: 3
   # Models only animate when a player is within this many blocks.
   model-view-distance: 96
+  # Dust circles round a boss and on the ground (attack warnings, rage, entrances). Off: they read as clutter.
+  rings: false
+  # Drifting particles around a boss's body while players are near.
+  aura: false
   # The omen before a boss appears (rings, cracks, a themed build-up). false skips straight to the entrance.
   intro: true
   # A short darkness pulse for players near a boss when it arrives.
@@ -69,7 +73,7 @@ arenas:
   here-radius: 40
 
 # ----------------------------------------------------------------------------------- MINI BOSSES
-# Small bosses (kind: mini, 3000 health) that wake on a timer. Ops manage everything in /cbosses minis:
+# Small bosses (kind: mini, 1000 health) that wake on a timer. Ops manage everything in /cbosses minis:
 # spots (barrier markers show them), mode, timer, how many at once. Spots are saved in minis.yml.
 minis:
   enabled: true
@@ -116,25 +120,11 @@ fight:
   # Worlds where no boss ever appears.
   disabled-worlds: []
 
-# ----------------------------------------------------------------------------------- EVOLVING AND MYTHIC
-# Bosses that evolve: after a while in a fight they grow stronger, up to max-stages times. Each stage they hit
-# damage-per-stage harder (0.25 = +25%), move a little faster and heal heal-percent of their health. chance is how
-# many bosses evolve at all (0 to 1); a boss can override it with evolve: true, false or a chance in bosses.yml.
-# When one body of a two-body boss falls, the other is enraged and evolves at once.
-evolve:
-  enabled: true
-  chance: 0.6
-  after-seconds: 150
-  max-stages: 3
-  damage-per-stage: 0.25
-  speed-per-stage: 0.08
-  heal-percent: 0.1
-
+# ----------------------------------------------------------------------------------- MYTHIC
 # Mythic bosses (tier: mythic in bosses.yml). Make any boss mythic with /cbosses edit <boss> tier mythic.
 mythic:
   health-multiplier: 1.0
   damage-multiplier: 1.25
-  always-evolve: true
 
 # ----------------------------------------------------------------------------------- CHAPTER BOSSES
 # When a player finishes a CQuests chapter, that chapter's boss comes for them (one-on-one, in a circle

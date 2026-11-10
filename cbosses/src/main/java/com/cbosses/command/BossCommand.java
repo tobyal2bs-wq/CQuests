@@ -235,7 +235,7 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
                 {"finale", "<cmd> finale [wake|reset] <gray>the boss after the three legends"},
                 {"selftest", "<cmd> selftest <gray>spawn every boss, run every attack and death"},
                 {"settings", "<cmd> settings [page] <gray>every option in a settings screen | settings set <path> <value>"},
-                {"edit", "<cmd> edit <boss> [field value] <gray>change name, color #hex [#hex], health, damage, bar, tier, evolve..."},
+                {"edit", "<cmd> edit <boss> [field value] <gray>change name, color #hex [#hex], health, damage, bar, tier..."},
                 {"disable", "<cmd> enable|disable <boss> <gray>turn a boss on or off (no name: list the ones that are off)"},
                 {"mythic", "<cmd> mythic [add|remove <boss>] <gray>choose which bosses are mythic"},
                 {"reload", "<cmd> reload"}};
@@ -289,7 +289,6 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
             case "bar" -> filter(com.cbosses.fight.BossEditor.BARS, args[3]);
             case "tier" -> filter(List.of("mini", "big", "mythic"), args[3]);
             case "enabled" -> filter(List.of("true", "false"), args[3]);
-            case "evolve" -> filter(List.of("true", "false", "0.5", "default"), args[3]);
             case "theme" -> filter(new ArrayList<>(com.cbosses.fight.Theme.ALL.keySet()), args[3]);
             case "partner" -> { List<String> out = new ArrayList<>(editor().ids()); out.add("none"); yield filter(out, args[3]); }
             case "color" -> filter(List.of("#ff5555", "#ffaa00"), args[3]);
