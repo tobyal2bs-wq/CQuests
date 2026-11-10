@@ -20,7 +20,7 @@ import java.util.Locale;
 
 /** /cbosses (aliases /cb, /bosses). Players see /cbosses next; controlling bosses needs op or the bosses.use permission. */
 public final class BossCommand implements CommandExecutor, TabCompleter {
-    private static final List<String> ADMIN = List.of("menu", "list", "spawn", "test", "stop", "selftest", "arena", "schedule", "chapter", "season", "finale", "settings", "reload", "info", "next", "help", "minis", "decor", "edit", "enable", "disable", "mythic");
+    private static final List<String> ADMIN = List.of("menu", "list", "spawn", "test", "stop", "selftest", "arena", "schedule", "chapter", "season", "finale", "settings", "reload", "info", "next", "help", "minis", "decor", "edit", "enable", "disable", "mythic", "blockbench");
     private final CBossesPlugin plugin;
     private final BossMenu menu;
     private final SettingsMenu settings;
@@ -149,6 +149,10 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
                 }
             }
             case "settings", "config" -> settings.command(sender, args);
+            case "blockbench", "bb" -> {
+                if (args.length < 2) plugin.send(sender, T.t("command.blockbench-usage", "<yellow>/<label> blockbench <boss|all> <gray>writes Blockbench files to plugins/CBosses/blockbench/", "label", label));
+                else s().exportBlockbench(sender, args[1]);
+            }
             case "reload" -> { plugin.reloadAll(); plugin.send(sender, T.t("command.reloaded-bosses", "<green>Reloaded: <count> bosses.", "count", s().defs().size())); }
             default -> help(sender, label);
         }
@@ -238,6 +242,7 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
                 {"edit", "<cmd> edit <boss> [field value] <gray>change name, color #hex [#hex], health, damage, bar, tier..."},
                 {"disable", "<cmd> enable|disable <boss> <gray>turn a boss on or off (no name: list the ones that are off)"},
                 {"mythic", "<cmd> mythic [add|remove <boss>] <gray>choose which bosses are mythic"},
+                {"blockbench", "<cmd> blockbench <boss|all> <gray>export models to edit in Blockbench"},
                 {"reload", "<cmd> reload"}};
         for (String[] line : lines)
             to.sendMessage(Text.mm(T.t("command.help." + line[0], " <yellow>" + line[1], "cmd", l)));
@@ -250,6 +255,7 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (args.length == 2) return switch (sub) {
             case "spawn" -> filter(s().ids(), args[1]);
+            case "blockbench", "bb" -> { List<String> out = new ArrayList<>(s().modelIds()); out.add("all"); yield filter(out, args[1]); }
             case "test" -> { List<String> out = new ArrayList<>(s().ids()); out.add("phase"); out.add("stop"); yield filter(out, args[1]); }
             case "stop" -> { List<String> out = new ArrayList<>(s().arenaIds()); out.addAll(s().ids()); yield filter(out, args[1]); }
             case "arena" -> filter(List.of("setspawn", "wand", "show", "region", "radius", "clear", "delete", "list"), args[1]);

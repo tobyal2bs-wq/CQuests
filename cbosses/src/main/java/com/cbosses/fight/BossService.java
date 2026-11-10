@@ -303,8 +303,32 @@ public final class BossService implements Listener {
                         "Each .json file uses the same format as models.json inside the jar (copy it out of the jar to start).",
                         "A model here replaces the built-in model with the same id; new ids add new models.",
                         "Updating the plugin never changes this folder, and no player progress is stored in it.",
+                        "Blockbench: /cbosses blockbench <boss|all> writes plugins/CBosses/blockbench/<boss>.bbmodel. Open it in",
+                        "Blockbench, edit it, save it here as <boss>.bbmodel and run /cbosses reload. Cubes are named after their block.",
                         "Run /cbosses reload after changing a file.", ""));
             } catch (IOException ignored) { }
+        }
+        File[] bb = dir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".bbmodel"));
+        if (bb != null && bb.length > 0) {
+            java.util.Arrays.sort(bb);
+            com.google.gson.JsonObject bundled = bundledModels();
+            for (File f : bb) {
+                String id = f.getName().substring(0, f.getName().length() - ".bbmodel".length()).toLowerCase(Locale.ROOT);
+                try (var r = java.nio.file.Files.newBufferedReader(f.toPath(), StandardCharsets.UTF_8)) {
+                    var project = com.google.gson.JsonParser.parseReader(r).getAsJsonObject();
+                    var base = bundled != null && bundled.getAsJsonObject("models").has(id) ? bundled.getAsJsonObject("models").getAsJsonObject(id) : null;
+                    var model = com.cbosses.model.BbModel.toModel(id, project, base, plugin.getLogger()::warning);
+                    var root = new com.google.gson.JsonObject();
+                    root.add("rigs", bundled != null ? bundled.getAsJsonObject("rigs") : new com.google.gson.JsonObject());
+                    var one = new com.google.gson.JsonObject();
+                    one.add(id, model);
+                    root.add("models", one);
+                    models.putAll(ModelRig.load(new java.io.StringReader(root.toString())));
+                    plugin.getLogger().info("Loaded the Blockbench model models/" + f.getName());
+                } catch (IOException | RuntimeException e) {
+                    plugin.getLogger().warning("Could not read models/" + f.getName() + ": " + e.getMessage());
+                }
+            }
         }
         File[] files = dir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".json"));
         if (files == null) return;
@@ -318,6 +342,46 @@ public final class BossService implements Listener {
                 plugin.getLogger().warning("Could not read models/" + f.getName() + ": " + e.getMessage());
             }
         }
+    }
+
+    /** The jar's models.json as JSON (read fresh, only when a Blockbench file needs it), or null. */
+    private com.google.gson.JsonObject bundledModels() {
+        try (var in = plugin.getResource("models.json")) {
+            if (in == null) return null;
+            return com.google.gson.JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+        } catch (IOException | RuntimeException e) {
+            plugin.getLogger().warning("Could not read the built-in models: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Writes Blockbench projects of one model (or "all") to plugins/CBosses/blockbench/, off the main thread. */
+    public void exportBlockbench(org.bukkit.command.CommandSender to, String which) {
+        Sched.async(() -> {
+            String msg;
+            try {
+                com.google.gson.JsonObject bundled = bundledModels();
+                if (bundled == null) throw new IOException("models.json is missing from the jar");
+                var all = bundled.getAsJsonObject("models");
+                List<String> ids = which.equalsIgnoreCase("all") ? new ArrayList<>(all.keySet()) : List.of(which.toLowerCase(Locale.ROOT));
+                File dir = new File(plugin.getDataFolder(), "blockbench");
+                if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("cannot create " + dir);
+                int n = 0;
+                for (String id : ids) {
+                    if (!all.has(id)) continue;
+                    var m = all.getAsJsonObject(id);
+                    var rig = bundled.getAsJsonObject("rigs").getAsJsonObject(m.get("rig").getAsString());
+                    java.nio.file.Files.writeString(new File(dir, id + ".bbmodel").toPath(), com.cbosses.model.BbModel.toBlockbench(id, m, rig).toString(), StandardCharsets.UTF_8);
+                    n++;
+                }
+                msg = n == 0 ? T.t("command.blockbench-none", "<red>No built-in model called <id>.", "id", which)
+                        : T.t("command.blockbench-done", "<green>Wrote <count> Blockbench model(s) to plugins/CBosses/blockbench/. <gray>Edit one, save it into plugins/CBosses/models/ and run /cbosses reload.", "count", n);
+            } catch (IOException | RuntimeException e) {
+                msg = "<red>Blockbench export failed: " + e.getMessage();
+            }
+            String done = msg;
+            if (to instanceof org.bukkit.entity.Player p) Sched.entity(p, () -> plugin.send(p, done)); else Sched.global(() -> plugin.send(to, done));
+        });
     }
 
     /** A model from models.json by id, or null. */

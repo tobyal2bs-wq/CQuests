@@ -33,6 +33,9 @@ text:
   # commands
   command:
     arena-setspawn-wand-show-region: "<yellow>/<label> arena setspawn|wand|show|region|radius|clear|delete|list <arena>"
+    blockbench-done: "<green>Wrote <count> Blockbench model(s) to plugins/CBosses/blockbench/. <gray>Edit one, save it into plugins/CBosses/models/ and run /cbosses reload."
+    blockbench-none: "<red>No built-in model called <id>."
+    blockbench-usage: "<yellow>/<label> blockbench <boss|all> <gray>writes Blockbench files to plugins/CBosses/blockbench/"
     cbosses-commands: "<gold>CBosses commands"
     chapter-boss-coming: "<green>Chapter <n> boss is coming for <player>."
     chapter-bosses-reset-for: "<gray>Chapter bosses reset for <input2>."
@@ -49,6 +52,7 @@ text:
     finale-waking: "<light_purple>The finale is waking."
     help:
       arena: " <yellow><cmd> arena setspawn|wand|region|radius|show|clear|delete <arena>"
+      blockbench: " <yellow><cmd> blockbench <boss|all> <gray>export models to edit in Blockbench"
       chapter: " <yellow><cmd> chapter <player> <n> | reset <player> | retry"
       decor: " <yellow><cmd> decor place <model>|remove|list <gray>pumpkins and other models that sit and pull faces"
       disable: " <yellow><cmd> enable|disable <boss> <gray>turn a boss on or off (no name: list the ones that are off)"
@@ -68,7 +72,7 @@ text:
       test: " <yellow><cmd> test <boss>|phase|stop <gray>try a boss in front of you, nothing is paid"
     is-not-online: "<red><input> is not online."
     is-rising-at: "<green><boss> <green>is rising at <arena>."
-    mythic-list: "<light_purple>Mythic bosses: <white><list> <gray>(/<label> mythic add|remove <boss>; their extra damage and health are under mythic: in config.yml)"
+    mythic-list: "<light_purple>Mythic bosses: <white><list> <gray>(/<label> mythic add|remove <boss>; their extra damage, health and evolving are under mythic: in config.yml)"
     no-arena: "<red>No arena <arena>"
     no-arena-2: "<red>No arena <id>"
     no-boss: "<red>No boss <input>"
