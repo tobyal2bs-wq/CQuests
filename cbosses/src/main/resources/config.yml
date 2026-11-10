@@ -1,0 +1,272 @@
+# ======================================================================================================
+#  CBosses - animated block-model bosses for Paper and Folia
+#  Commands: /cbosses (aliases /cb, /bosses). Permission cbosses.admin for everything but /cbosses next.
+#  Every boss is in bosses.yml, every chat line in messages.yml. /cbosses reload applies changes.
+# ======================================================================================================
+
+# Turn the whole plugin off without removing it.
+enabled: true
+# Draw bosses with their block models (models.json). false uses plain mobs wearing their equipment.
+models: true
+# /cbosses settings: auto opens the game's own settings screen on 1.21.6+ servers and a chest menu on older
+# ones; dialog or chest forces one.
+settings-menu: auto
+
+# ----------------------------------------------------------------------------------- EFFECTS AND LAG
+# Everything that can cost frames or ticks is here. The defaults look great and stay light; turn
+# quality down on a busy server.
+effects:
+  # low, medium, high or ultra: how many particles every effect uses.
+  quality: high
+  # Fine tune on top of quality (0.5 = half, 2 = double, 0 = no boss particles at all).
+  particle-multiplier: 1.0
+  # Blocks that fly out of the ground for slams, eruptions, meteors and loot fountains.
+  flying-blocks: true
+  # Most flying blocks alive at once across the whole server. They clean themselves up after a few seconds.
+  max-flying-blocks: 160
+  # Most shards a boss breaks into when it dies.
+  max-shards-per-death: 48
+  # How much fine detail the boss models keep: high (every plate, patch and fringe), medium (no surface
+  # patches, about 15% fewer blocks) or low (also no plates, trims or hems, about 25% fewer).
+  model-detail: high
+  # How often a model moves (in ticks). 3 is smooth thanks to interpolation; 4-5 halves the cost.
+  model-update-ticks: 3
+  # Models only animate when a player is within this many blocks.
+  model-view-distance: 96
+  # The omen before a boss appears (rings, cracks, a themed build-up). false skips straight to the entrance.
+  intro: true
+  # A short darkness pulse for players near a boss when it arrives.
+  intro-darkness: true
+
+# ----------------------------------------------------------------------------------- WEEKLY BOSS
+# A big public boss wakes on a schedule at an arena you set up:
+#   /cbosses arena setspawn main          where the boss appears
+#   /cbosses arena wand main              border rod: left-click blocks for the corners it can never cross
+#   /cbosses arena region main <region>   or use a WorldGuard region as the border
+schedule:
+  enabled: true
+  # Days the boss wakes (MONDAY ... SUNDAY). Add more for more fights a week.
+  days: [SATURDAY]
+  # One time or a list, e.g. ["14:00", "20:00"].
+  time: "20:00"
+  # Time zone, e.g. Europe/London or America/New_York. Empty uses the server's clock.
+  zone: ""
+  # Chat warning this many minutes before (0 for none).
+  warn-minutes: 10
+  # The arena the weekly boss uses.
+  arena: main
+  # rotate: a different boss each week in order; random: a random one each week.
+  order: rotate
+  # Boss ids never picked by the schedule. The finale boss only wakes through the finale below.
+  exclude: [the_unmaker]
+  # Also put the chapter bosses into the weekly rotation.
+  include-chapter-bosses: false
+
+arenas:
+  # Circle border (blocks around the spawn) for arenas without an outline or region.
+  default-radius: 40
+  # Border radius for a boss spawned where an op stands (/cbosses menu left-click, /cbosses spawn <boss> here).
+  here-radius: 40
+
+# ----------------------------------------------------------------------------------- MINI BOSSES
+# Small bosses (kind: mini, 3000 health) that wake on a timer. Ops manage everything in /cbosses minis:
+# spots (barrier markers show them), mode, timer, how many at once. Spots are saved in minis.yml.
+minis:
+  enabled: true
+  # Minutes between rounds.
+  every-minutes: 60
+  # fixed: only at your spots. random: somewhere near a random player. mixed: either, at random.
+  mode: mixed
+  # Minis woken each round, and the most alive at once.
+  per-round: 1
+  max-alive: 3
+  # Border radius for random places and new spots.
+  radius: 24
+  # Random places are this far from the chosen player.
+  random-min-distance: 30
+  random-max-distance: 80
+  # Worlds random minis may wake in (empty: any world a player is in).
+  random-worlds: []
+  # Only these mini ids (empty: every mini).
+  bosses: []
+  # Chat lines when a mini is about to wake and when it wakes.
+  announce: true
+  warn-seconds: 60
+
+# ----------------------------------------------------------------------------------- FIGHTS
+fight:
+  # Multiply every boss's health and damage. Health also grows with players (health-per-player in bosses.yml).
+  health-multiplier: 1.0
+  damage-multiplier: 1.0
+  # A public boss leaves when nobody is in its arena for this long, and after max-minutes either way.
+  idle-minutes: 5
+  max-minutes: 30
+  # Players must stand inside the border to hurt the boss (stops shooting it from outside).
+  only-hurt-from-inside: true
+  # Walking bosses dash or leap at players who run far away.
+  gap-closer: true
+  # Most minions alive per boss.
+  max-minions: 8
+  # Most bosses alive at once (weekly, chapter and test fights together).
+  max-active: 6
+  # Players see the boss bar within this many blocks.
+  boss-bar-range: 56
+  # Plain mob bosses (models: false or model: none) glow so they stand out.
+  glow-plain-mobs: true
+  # Worlds where no boss ever appears.
+  disabled-worlds: []
+
+# ----------------------------------------------------------------------------------- EVOLVING AND MYTHIC
+# Bosses that evolve: after a while in a fight they grow stronger, up to max-stages times. Each stage they hit
+# damage-per-stage harder (0.25 = +25%), move a little faster and heal heal-percent of their health. chance is how
+# many bosses evolve at all (0 to 1); a boss can override it with evolve: true, false or a chance in bosses.yml.
+# When one body of a two-body boss falls, the other is enraged and evolves at once.
+evolve:
+  enabled: true
+  chance: 0.6
+  after-seconds: 150
+  max-stages: 3
+  damage-per-stage: 0.25
+  speed-per-stage: 0.08
+  heal-percent: 0.1
+
+# Mythic bosses (tier: mythic in bosses.yml). Make any boss mythic with /cbosses edit <boss> tier mythic.
+mythic:
+  health-multiplier: 1.0
+  damage-multiplier: 1.25
+  always-evolve: true
+
+# ----------------------------------------------------------------------------------- CHAPTER BOSSES
+# When a player finishes a CQuests chapter, that chapter's boss comes for them (one-on-one, in a circle
+# around where they stand). Works through the CQuests advancements, so no CQuests settings change.
+# Without CQuests, send one with /cbosses chapter <player> <n>.
+chapter-bosses:
+  enabled: true
+  # Listen for CQuests chapter completions.
+  from-cquests: true
+  # Seconds of warning (title countdown) before the boss arrives.
+  countdown-seconds: 10
+  # The circle the fight happens in.
+  arena-radius: 28
+  # Multiply chapter boss health (they are solo fights).
+  health-multiplier: 1.0
+  # The boss is the quest player's own: it appears at their quest spot and nobody else sees it, hears it,
+  # bumps into it or is attacked by it or its minions. Its particles, sounds and flying blocks are only
+  # shown to that player too. Bosses never break or place blocks.
+  private: true
+  # Other players may help (they get the base reward too). Ignored while private is on.
+  allow-helpers: false
+  # The boss leaves if its player is out of the circle this many seconds; it waits for /cbosses chapter retry.
+  leave-after-seconds: 30
+  # Chapters whose boss is a big one: longer countdown sound, darker titles.
+  big-chapters: [5, 10]
+  # Broadcast when someone beats their chapter boss.
+  announce: true
+  # Pick a different boss for a chapter (any id from bosses.yml), or "none" for no boss. Empty uses chapter: in bosses.yml.
+  bosses:
+    1: ""
+    2: ""
+    3: ""
+    4: ""
+    5: ""
+    6: ""
+    7: ""
+    8: ""
+    9: ""
+    10: ""
+
+# ----------------------------------------------------------------------------------- REWARDS
+rewards:
+  # Damage needed (percent of the boss's health) to earn a reward.
+  min-damage-percent: 2
+  # How money is paid (%player% and %amount%). Empty pays no money. Works with any economy plugin's command.
+  money-command: "eco give %player% %amount%"
+  # Console commands for a whole group of bosses, on top of each boss's own lists in bosses.yml
+  # (commands, top-commands, spawn-commands, defeat-commands; set group-commands: false on a boss to skip these).
+  #   every-player: each player who earned a reward     top-player: only the player with the most damage
+  #   on-spawn: once when the boss wakes                on-defeat: once when it falls
+  # Placeholders: %player%, %place%, %boss% (id), %bossname%, and %world% %x% %y% %z% for on-spawn and on-defeat
+  # (%player% there is the killer, or the nearest player when it wakes). Example: "give %player% diamond 3"
+  commands:
+    bosses:      # weekly and mythic bosses (seasonal ones too)
+      every-player: []
+      top-player: []
+      on-spawn: []
+      on-defeat: []
+    seasonal:    # only seasonal bosses, run after the bosses: lists
+      every-player: []
+      top-player: []
+      on-spawn: []
+      on-defeat: []
+    minis:       # every mini boss
+      every-player: []
+      top-player: []
+      on-spawn: []
+      on-defeat: []
+    chapter:     # chapter bosses (the player who beat it)
+      every-player: []
+      top-player: []
+      on-spawn: []
+      on-defeat: []
+
+announcements:
+  # Every online player hears the boss wake.
+  spawn-sound: true
+
+# ----------------------------------------------------------------------------------- WORLDGUARD
+# With WorldGuard installed CBosses adds two region flags:
+#   /rg flag <region> cbosses-spawn deny   no boss can appear in the region
+#   /rg flag <region> cbosses-fight deny   bosses can't hurt players there and players can't hurt bosses
+# and arenas can use a region as their border (/cbosses arena region <arena> <region>).
+worldguard:
+  enabled: true
+  # WorldGuard's mob-spawning deny would also block the bosses (they are mobs). Keep this true so bosses
+  # still appear in protected spawn areas you made an arena in; set false to let WorldGuard block them.
+  bypass-spawn-blocking: true
+
+# ----------------------------------------------------------------------------------- FINALE
+# Once every legend in after: has been beaten (in any order, by anyone, tests don't count), the finale boss
+# wakes at its arena. Progress is saved in finale.yml and starts over when the finale is beaten.
+# /cbosses finale shows progress, /cbosses finale wake starts it now, /cbosses finale reset starts over.
+finale:
+  enabled: true
+  boss: the_unmaker
+  after: [withered_tyrant, the_listener]
+  # Seconds between the warning and the boss arriving.
+  delay-seconds: 60
+  # The arena it wakes in.
+  arena: main
+
+# ----------------------------------------------------------------------------------- SEASONS
+# Seasonal bosses (season: in bosses.yml) take the weekly slot while their season is on.
+# mode: on, off or auto (between from and to every year, month-day). Change with /cbosses season <id> <mode>.
+seasons:
+  # With CQuests installed, a season CQuests has on is on here too.
+  follow-cquests: true
+  # A seasonal boss replaces the weekly boss while its season is on.
+  replace-weekly-boss: true
+  list:
+    halloween:
+      name: "<gold>Halloween"
+      mode: auto
+      from: "10-15"
+      to: "11-05"
+    winter:
+      name: "<aqua>Winterfest"
+      mode: auto
+      from: "12-10"
+      to: "01-05"
+    spring:
+      name: "<green>Spring Bloom"
+      mode: auto
+      from: "04-01"
+      to: "04-21"
+    summer:
+      name: "<yellow>Summer Blaze"
+      mode: auto
+      from: "07-01"
+      to: "07-31"
+
+# A different aura particle per boss (any particle without extra data), e.g. gravelord: SOUL_FIRE_FLAME.
+# Empty uses the theme's particle.
+bosses-aura: {}

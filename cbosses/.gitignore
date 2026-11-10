@@ -1,0 +1,7 @@
+.gradle/
+build/
+run/
+*.iml
+.idea/
+__pycache__/
+tools/models/tex/
