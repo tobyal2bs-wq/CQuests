@@ -73,6 +73,25 @@ def taper(m, bone, p0, p1, r0, r1, ramp, n=3, flat=1.0, bright=None):
         slab(m, bone, c[0], c[1], c[2], 2 * r * 0.62, seg, 2 * r * 0.94 * flat, blk, rot, c if rot else None)
 
 
+def lathe(m, bone, prof, ramp, round_=0.62, lo=0.0, hi=1.0):
+    """A turned form (robe, hat, bell sleeve) from a profile of points (y, a, b, x, z): one rounded slice
+    between each pair of points, so the outline can flare, narrow and lean. Tone runs lo..hi by height."""
+    y0, y1 = prof[0][0], prof[-1][0]
+    for p, q in zip(prof, prof[1:]):
+        a, b = (p[1] + q[1]) / 2, (p[2] + q[2]) / 2
+        x, z = (p[3] + q[3]) / 2, (p[4] + q[4]) / 2
+        t = ((p[0] + q[0]) / 2 - y0) / max(0.01, y1 - y0)
+        ring(m, bone, x, (p[0] + q[0]) / 2, z, a, b, abs(q[0] - p[0]) + 0.04, tone(ramp, lo + (hi - lo) * t), round_=round_)
+
+
+def chain(m, bone, pts, r0, r1, ramp, flat=1.0, bright=None):
+    """A bent taper through several points (a gnarled staff, a drooping hat tip, a curling beard)."""
+    n = len(pts) - 1
+    for i in range(n):
+        a, b = r0 + (r1 - r0) * i / n, r0 + (r1 - r0) * (i + 1) / n
+        taper(m, bone, pts[i], pts[i + 1], a, b, ramp, n=1, flat=flat, bright=(lambda t, i=i: bright((i + t) / n)) if bright else None)
+
+
 # ------------------------------------------------------------------------------------------------ the ogre
 
 @sculpt("brewgut")
@@ -83,6 +102,7 @@ def brewgut():
     ragged apron, short thick legs in patched trousers and heavy boots, puffed sleeves, huge green forearms
     and fists, and a wooden tankard."""
     m = Model("brewgut", "biped", 1.6)
+    m.sculpted = True          # shading comes from the ramps; no mottle patches
     GREEN = ["green_terracotta", "green_terracotta", "lime_terracotta", "lime_terracotta", "green_concrete_powder"]
     SHIRT = ["light_gray_concrete_powder", "white_concrete", "white_concrete_powder", "white_wool"]
     VEST = ["brown_terracotta", "brown_concrete", "brown_wool", "brown_concrete_powder"]
@@ -153,5 +173,156 @@ def brewgut():
         "body": {"rot": K((0, Z), (0.5, (-10, 0, 0)), (1.0, (14, 0, 0)), (1.6, Z))}})
     standard_anims(m, heavy=1.2, extra={"swig": swig, "idle": idle_biped(4.0, 18, breath=0.04, extra={"jaw": {"rot": wave(0, 3, 4.0)}})})
     m.attacks = {"slam": "slam", "charge": "lunge", "roar": "swig"}
+    m.melee = "swipe"
+    return m
+
+
+# ------------------------------------------------------------------------------------------------ the hermit
+
+@sculpt("old_blindman")
+def old_blindman():
+    """Hermit Ezra, sculpted: a stooped old man in a heavy brown hooded robe that flares to a ragged hem, the
+    hood thrown forward so his face sits in shadow, eyes long gone under drooping white brows, a long hooked
+    nose, a white beard that flows down to a rope belt, wide bell sleeves, a hump on his back, and a gnarled
+    staff with a brass band whose crook carries a small lantern."""
+    m = Model("old_blindman", "biped", 1.0)
+    m.sculpted = True          # shading comes from the ramps; no mottle patches
+    ROBE = ["black_terracotta", "brown_terracotta", "brown_terracotta", "brown_concrete", "brown_concrete"]
+    SKIN = ["brown_terracotta", "terracotta", "terracotta", "white_terracotta"]
+    BEARD = ["light_gray_wool", "light_gray_concrete_powder", "white_concrete", "white_concrete_powder", "white_wool"]
+    WOOD = ["black_terracotta", "dark_oak_planks", "stripped_dark_oak_log"]
+    humanoid(m, hip=7, legx=2, neck=18, shoulder=18.5, armx=6)
+    m.bone("lamp", "armR", (-10.4, 26.6, 4.2))
+    # feet peeking out under the hem
+    for sd, leg in ((1, "legL"), (-1, "legR")):
+        blob(m, leg, (sd * 2.3, 1.0, 2.6), (1.7, 1.0, 2.5), ["black_terracotta", "brown_terracotta"], n=2, bottom=-1.0, top=0.8)
+    # the skirt flares to the floor; a ragged hem of tilted strips
+    lathe(m, "hips", [(0.8, 7.0, 6.0, 0, 0.3), (3.0, 6.6, 5.6, 0, 0.3), (5.4, 6.0, 5.0, 0, 0.2), (8.0, 5.5, 4.6, 0, 0.2)], ROBE, round_=0.7, lo=0.15, hi=0.6)
+    for x, z, h in ((-5.6, 3.0, 1.4), (-3.0, 5.4, 1.8), (0.0, 5.9, 1.2), (3.0, 5.4, 1.7), (5.6, 3.0, 1.3), (6.4, -1.0, 1.6), (-6.4, -1.0, 1.5), (0, -5.7, 1.6)):
+        slab(m, "hips", x, 0.8 - h / 2 + 0.5, z, 2.4, h, 0.7, "black_terracotta", rot=(0, math.degrees(math.atan2(x, z)), 7 if x >= 0 else -7), origin=(x, 1.0, z))
+    # the upper robe, leaning forward into a stoop, with a hump on the back
+    lathe(m, "body", [(8.0, 5.5, 4.6, 0, 0.2), (11.0, 5.7, 4.6, 0, 0.3), (14.0, 5.9, 4.6, 0, 0.6), (16.6, 5.6, 4.4, 0, 1.0), (18.6, 4.4, 3.6, 0, 1.4)], ROBE, round_=0.7, lo=0.35, hi=0.95)
+    blob(m, "body", (0, 15.2, -2.4), (4.6, 3.6, 3.0), ROBE[1:], n=3, top=0.9)
+    for sd in (1, -1):
+        taper(m, "body", (sd * 1.6, 18.0, 5.5), (sd * 3.6, 8.6, 5.2), 0.9, 1.1, ["brown_terracotta", "brown_concrete"], n=2, flat=0.5)   # robe edges
+    # rope belt with a knot and two hanging ends
+    ring(m, "hips", 0, 8.6, 0.3, 5.9, 5.0, 0.9, "stripped_oak_log", round_=0.7)
+    blob(m, "hips", (1.6, 8.5, 5.4), (0.8, 0.7, 0.6), ["stripped_oak_log"], n=1)
+    for dx in (1.2, 2.2):
+        taper(m, "hips", (dx + 0.2, 8.2, 5.5), (dx + 0.6, 4.2, 6.0), 0.35, 0.3, ["stripped_spruce_log", "stripped_oak_log"], n=2)
+    # head: a face in the shadow of the hood
+    blob(m, "head", (0, 21.4, 2.4), (3.4, 3.6, 3.0), SKIN, n=4, bottom=-0.8, top=0.95)
+    slab(m, "head", 0, 21.8, 0.6, 8.4, 7.6, 1.0, "black_terracotta")                                # dark inside of the hood
+    blob(m, "head", (0, 22.0, -0.8), (5.0, 5.4, 4.6), ROBE[1:], n=5, bottom=-0.75, top=0.98)
+    chain(m, "head", [(-4.4, 17.8, 3.4), (-4.6, 22.6, 4.0), (-3.0, 25.8, 4.4), (0, 26.6, 4.6), (3.0, 25.8, 4.4), (4.6, 22.6, 4.0), (4.4, 17.8, 3.4)],
+          1.3, 1.3, ROBE[2:], bright=lambda t: 1 - abs(t - 0.5))                                                       # hood rim
+    # blind eyes under heavy drooping brows, a long hooked nose, sunken cheeks
+    slab(m, "head", 0, 22.0, 5.3, 5.4, 0.5, 0.3, "black_terracotta")
+    for sd in (1, -1):
+        taper(m, "head", (sd * 0.5, 23.0, 5.4), (sd * 3.4, 21.6, 5.0), 0.75, 0.4, BEARD[2:], n=2, flat=0.7)       # brow
+    chain(m, "head", [(0, 22.2, 5.2), (0, 20.2, 6.4), (0, 18.6, 6.9)], 0.95, 0.85, ["terracotta", "terracotta", "white_terracotta"])
+    blob(m, "head", (0, 18.4, 6.6), (1.0, 0.9, 1.0), ["terracotta", "terracotta"], n=2)
+    # the beard flows down over the chest to the belt, a moustache over it
+    chain(m, "head", [(0, 19.0, 4.6), (0, 15.5, 5.6), (0, 12.0, 5.9), (0.3, 8.6, 6.1), (0.6, 6.6, 6.2)], 3.0, 0.7, BEARD, flat=0.55, bright=lambda t: 1 - t * 0.85)
+    for sd in (1, -1):
+        chain(m, "head", [(sd * 0.6, 18.4, 6.0), (sd * 2.4, 17.6, 5.7), (sd * 3.0, 15.4, 5.4)], 0.7, 0.4, BEARD[2:], flat=0.8)
+        taper(m, "head", (sd * 2.6, 18.4, 4.6), (sd * 2.4, 13.0, 5.4), 1.3, 0.6, BEARD[1:], n=2, flat=0.6)       # side locks
+    # bell sleeves and knobbly hands
+    for sd, arm in ((1, "armL"), (-1, "armR")):
+        blob(m, arm, (sd * 6.0, 17.4, 0.6), (2.4, 2.4, 2.6), ROBE[2:], n=3)
+        lathe(m, arm, [(16.4, 2.0, 2.0, sd * 6.4, 0.8), (14.0, 2.3, 2.3, sd * 6.8, 1.6), (11.8, 2.8, 2.8, sd * 7.0, 2.4)], ROBE, lo=0.3, hi=0.9)
+        ring(m, arm, sd * 7.0, 11.6, 2.4, 2.95, 2.95, 0.5, "brown_terracotta")
+        blob(m, arm, (sd * 7.0, 10.2, 2.8), (1.4, 1.5, 1.4), SKIN[1:], n=2)
+        slab(m, arm, sd * 7.0, 10.6, 4.1, 2.0, 0.8, 0.6, "terracotta")                                        # knuckles
+    # the gnarled staff with a brass band and a crook that carries the lantern
+    chain(m, "armR", [(-7.2, 0.0, 3.6), (-7.5, 5.0, 3.3), (-7.0, 10.0, 3.7), (-7.4, 15.0, 3.4), (-7.0, 20.0, 3.8), (-7.3, 24.6, 3.6)], 0.75, 0.6, WOOD,
+          bright=lambda t: 0.2 + t * 0.6)
+    for y, r in ((12.6, 0.8), (6.0, 0.95), (17.8, 0.9)):
+        blob(m, "armR", (-7.2, y, 3.6), (r, 0.5, r), ["dark_oak_planks"], n=1)                                      # knots
+    ring(m, "armR", -7.1, 13.6, 3.6, 0.85, 0.85, 0.7, "gold_block", round_=0.75)
+    chain(m, "armR", [(-7.3, 24.4, 3.6), (-7.6, 26.8, 3.9), (-9.2, 27.8, 4.1), (-10.4, 26.8, 4.2)], 0.6, 0.45, WOOD[1:])
+    # a small iron lantern built from blocks (the real lantern block would show tiny inside its box)
+    slab(m, "lamp", -10.4, 26.0, 4.3, 0.3, 1.0, 0.3, "polished_blackstone")
+    slab(m, "lamp", -10.4, 25.35, 4.3, 1.9, 0.4, 1.9, "polished_blackstone")
+    slab(m, "lamp", -10.4, 24.2, 4.3, 1.5, 1.9, 1.5, "shroomlight")
+    m.cubes[-1]["l"] = True
+    for dx, dz in ((-0.75, -0.75), (0.75, -0.75), (-0.75, 0.75), (0.75, 0.75)):
+        slab(m, "lamp", -10.4 + dx, 24.2, 4.3 + dz, 0.3, 1.9, 0.3, "polished_blackstone")
+    slab(m, "lamp", -10.4, 23.05, 4.3, 1.9, 0.4, 1.9, "polished_blackstone")
+    m.no_elbows = m.no_knees = True
+    m.bend = -10
+    sway = {"lamp": {"rot": wave2((6, 0, 3), 2.2)}}
+    standard_anims(m, heavy=0.6, idle=idle_biped(4.4, 10, breath=0.02, extra=sway))
+    m.attacks = {"pull": "cast", "darkness": "roar", "slam": "slam"}
+    m.melee = "swipe"
+    return m
+
+
+# ------------------------------------------------------------------------------------------------ the gnome
+
+@sculpt("old_pip")
+def old_pip():
+    """Grandpa Pip, sculpted: a round little gnome elder under a tall red cap that folds at the brim and droops
+    back at the tip, bushy white brows over bright green eyes, rosy cheeks, a long drooping nose over a big
+    white moustache and a pointed beard, a round teal tunic with a dark belt and a glowing emerald buckle,
+    small skin hands and stubby boots with turned-up toes."""
+    m = Model("old_pip", "biped", 1.0)
+    m.sculpted = True          # shading comes from the ramps; no mottle patches
+    RED = ["red_terracotta", "red_wool", "red_wool", "red_concrete", "red_concrete"]
+    SKIN = ["terracotta", "white_terracotta", "white_terracotta"]
+    WHITE = ["light_gray_concrete_powder", "white_concrete", "white_concrete_powder", "white_wool"]
+    TEAL = ["cyan_terracotta", "cyan_wool", "cyan_wool", "cyan_concrete", "cyan_concrete"]
+    NOSE = ["brown_terracotta", "terracotta", "terracotta"]
+    humanoid(m, hip=4, legx=2, neck=13, shoulder=12.5, armx=5.6)
+    m.bone("hat", "head", (0, 19.5, 0.6))
+    m.bone("beard", "head", (0, 13.6, 4))
+    # stubby legs and boots with a turned-up toe
+    for sd, leg in ((1, "legL"), (-1, "legR")):
+        x = sd * 2.1
+        taper(m, leg, (x, 4.6, 0), (x, 2.0, 0.2), 1.6, 1.5, ["brown_terracotta", "brown_concrete"], n=2)
+        blob(m, leg, (x, 1.2, 0.9), (1.8, 1.2, 2.7), ["black_terracotta", "brown_terracotta", "brown_concrete"], n=2, bottom=-1.0, top=0.9)
+        taper(m, leg, (x, 1.0, 3.2), (x, 2.2, 4.4), 0.8, 0.35, ["brown_terracotta", "brown_concrete"], n=1)
+        slab(m, leg, x, 0.25, 1.1, 3.4, 0.5, 5.2, "black_terracotta")
+    # a round tunic that flares over the hips, the belt and the emerald buckle
+    blob(m, "body", (0, 8.8, 0.3), (5.0, 4.8, 4.4), TEAL, n=6, bottom=-0.85, top=0.95)
+    lathe(m, "hips", [(3.6, 5.4, 4.8, 0, 0.3), (5.0, 5.3, 4.7, 0, 0.3), (6.4, 5.1, 4.6, 0, 0.3)], TEAL, round_=0.7, lo=0.25, hi=0.5)
+    ring(m, "hips", 0, 6.6, 0.3, 5.3, 4.7, 1.2, "dark_oak_planks", round_=0.7)
+    slab(m, "hips", 0, 6.6, 4.9, 2.6, 2.2, 0.5, "emerald_block")
+    m.cubes[-1]["l"] = True
+    slab(m, "hips", 0, 6.6, 5.15, 1.2, 1.0, 0.2, "black_terracotta")
+    # arms: teal sleeves, skin hands
+    for sd, arm in ((1, "armL"), (-1, "armR")):
+        x = sd * 5.4
+        blob(m, arm, (x - sd * 0.3, 11.4, 0.2), (1.8, 1.7, 1.8), TEAL[2:], n=2)
+        taper(m, arm, (x + sd * 0.3, 11.0, 0.3), (x + sd * 0.8, 7.6, 1.0), 1.7, 1.8, TEAL, n=2, bright=lambda t: 0.8 - t * 0.5)
+        ring(m, arm, x + sd * 0.8, 7.3, 1.0, 1.9, 1.9, 0.6, "cyan_terracotta")
+        blob(m, arm, (x + sd * 0.9, 6.1, 1.3), (1.3, 1.3, 1.3), SKIN, n=2)
+    # head: round face, rosy cheeks, green eyes under bushy brows, white hair at the back
+    blob(m, "head", (0, 16.2, 1.0), (3.8, 3.8, 3.6), SKIN, n=5, bottom=-0.8, top=0.95)
+    blob(m, "head", (0, 16.6, -0.8), (4.1, 3.0, 3.0), WHITE, n=3, bottom=-0.9, top=0.9)
+    for sd in (1, -1):
+        slab(m, "head", sd * 1.5, 16.9, 4.55, 1.5, 1.3, 0.3, "white_concrete")
+        slab(m, "head", sd * 1.35, 16.8, 4.75, 0.9, 1.0, 0.2, "lime_concrete")
+        slab(m, "head", sd * 1.2, 16.9, 4.9, 0.4, 0.5, 0.1, "black_concrete")
+        taper(m, "head", (sd * 0.5, 18.0, 4.6), (sd * 3.0, 18.6, 4.0), 0.6, 0.45, WHITE[1:], n=2, flat=0.8)   # brows
+        slab(m, "head", sd * 2.3, 15.4, 4.3, 1.4, 0.9, 0.3, "pink_terracotta")                                 # cheeks
+        slab(m, "head", sd * 3.9, 16.0, 1.2, 0.7, 1.8, 1.4, "white_terracotta")                                 # ears
+    chain(m, "head", [(0, 17.0, 4.4), (0, 15.2, 5.8), (0, 13.2, 6.6)], 1.0, 1.0, NOSE)
+    blob(m, "head", (0, 13.0, 6.4), (1.1, 1.0, 1.0), NOSE[1:], n=2)
+    # moustache and beard on their own bone so they bob
+    for sd in (1, -1):
+        chain(m, "beard", [(sd * 0.5, 13.8, 5.4), (sd * 2.4, 13.2, 5.0), (sd * 3.6, 12.0, 4.4)], 1.0, 0.5, WHITE[1:], flat=0.8)
+    blob(m, "beard", (0, 11.4, 3.6), (3.6, 2.4, 2.0), WHITE, n=3, bottom=-0.9, top=0.9)
+    chain(m, "beard", [(0, 10.4, 4.2), (0, 7.8, 5.0), (0.3, 5.8, 5.2)], 2.4, 0.5, WHITE, flat=0.6, bright=lambda t: 0.9 - t * 0.7)
+    # the cap: a folded brim, then a tall cone that bends back and droops at the tip
+    ring(m, "hat", 0, 19.6, 0.6, 4.6, 4.4, 1.4, "red_wool", round_=0.72)
+    ring(m, "hat", 0, 18.95, 0.6, 4.5, 4.3, 0.2, "red_terracotta", round_=0.72)
+    lathe(m, "hat", [(20.2, 4.2, 4.0, 0, 0.5), (21.2, 3.95, 3.75, 0, 0.35), (22.2, 3.6, 3.4, 0, 0.15), (23.2, 3.15, 3.0, 0, -0.15),
+                     (24.1, 2.7, 2.6, 0.1, -0.5), (25.0, 2.2, 2.1, 0.25, -0.9), (25.8, 1.75, 1.7, 0.5, -1.3), (26.5, 1.35, 1.3, 0.8, -1.7),
+                     (27.1, 1.0, 1.0, 1.1, -2.0)], RED, lo=0.2, hi=0.99)
+    chain(m, "hat", [(1.1, 27.0, -2.0), (1.7, 27.6, -2.9), (2.0, 27.2, -3.8)], 0.8, 0.4, RED[1:])
+    m.no_elbows = m.no_knees = True
+    standard_anims(m, heavy=0.6, extra={"idle": idle_biped(3.0, 18, extra={"hat": {"rot": wave(2, 4, 3.0)}, "beard": {"rot": wave(0, 3, 1.5)}})})
+    m.attacks = {"volley": "cast", "blink": "stomp"}
     m.melee = "swipe"
     return m

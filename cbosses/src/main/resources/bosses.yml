@@ -1958,7 +1958,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "The hermit from the picture: one tall brown-hooded figure, a bare pink-brown forehead, a single black slit for eyes, a long villager nose resting on a grey beard that covers the whole front down to the hem, brown sleeves with bare hands, little brown boots, and a thick black staff with a gold band."
+    description: "Hermit Ezra, sculpted: a stooped old man in a heavy brown hooded robe that flares to a ragged hem, the hood thrown forward so his face sits in shadow, eyes long gone under drooping white brows, a long hooked nose, a white beard that flows down to a rope belt, wide bell sleeves, a hump on his back, and a gnarled staff with a brass band whose crook carries a small lantern."
   king_oldbeard:
     revision: 4
     name: "<gradient:#b71c1c:#ffd54f><bold>King Albert</bold></gradient>"
@@ -2718,7 +2718,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "The gnome elder from the picture, built as voxel art: a stepped red hat of knobbly cubes in three reds, a white fringe under it, little green eyes, a long brown villager nose over a chunky white beard, a teal tunic with knobbly two-tone cloth, a dark belt with a big glowing emerald buckle, and small brown boots."
+    description: "Grandpa Pip, sculpted: a round little gnome elder under a tall red cap that folds at the brim and droops back at the tip, bushy white brows over bright green eyes, rosy cheeks, a long drooping nose over a big white moustache and a pointed beard, a round teal tunic with a dark belt and a glowing emerald buckle, small skin hands and stubby boots with turned-up toes."
   sproutbeak:
     name: "<gradient:#2e7d32:#a1887f><bold>Hedgey</bold></gradient>"
     title: "A Hedge With Legs"

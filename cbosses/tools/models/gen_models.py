@@ -196,7 +196,7 @@ for id, fn in roster.builders().items():
     if m.rig in ("biped", "quad"): m.knees()
     m.zones()
     tag(m)
-    if m.id in v14_studio.STUDIO and m.id not in SKINNED_BY_HAND and not m.id.startswith("decor_") and not getattr(m, "flat", False): mottle_pass.skin(m)
+    if m.id in v14_studio.STUDIO and m.id not in SKINNED_BY_HAND and not m.id.startswith("decor_") and not getattr(m, "flat", False) and not getattr(m, "sculpted", False): mottle_pass.skin(m)
     texturize(m)
     m.attacks = fight_attacks(m)
     j = m.json()
