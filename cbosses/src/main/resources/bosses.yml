@@ -181,7 +181,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Thunderback, the storm ape: a giant gorilla that leans on its knuckles, shaggy red-brown fur done in layers, a bare tan chest and face with a heavy brow and red eyes, a silver saddle of fur down its back, gold arm rings with a lightning mark, and a chieftain's band of four coloured feathers."
+    description: "Big Bongo, the storm gorilla, sculpted: a huge silverback that leans on its knuckles, a peaked skull hung low between a wall of shoulders, a heavy brow over glowing storm-blue eyes, a wide flat nose and a fanged scowl, a bare dark chest, gold rings with a lightning mark on its arms, and a chieftain's band of four coloured feathers."
   gorehorn:
     revision: 4
     name: "<gradient:#3e2723:#ffcc80><bold>Gorehorn</bold></gradient>"
@@ -208,7 +208,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Gorehorn, champion of the fighting pit: a huge minotaur with a dark brown bull head, a long muzzle with a gold nose ring, red eyes and two long pale horns. A thick white mane sits over his shoulders like a cape, crossed leather straps meet at an iron boss on his chest, a blue loincloth hangs from a studded belt, his legs end in black hooves and he swings a double-headed axe."
+    description: "Gorehorn, champion of the fighting pit, sculpted: a huge minotaur with a dark bull head on a thick neck, a long pale muzzle with a gold nose ring, red eyes under a heavy brow and two long pale horns that sweep out and forward; a white mane over his shoulders like a cape, crossed leather straps meeting at an iron boss, a studded belt with a blue loincloth, shaggy bull legs on black hooves, and a double axe."
   abyssal_eye:
     revision: 3
     name: "<gradient:#0b3d91:#ffe066><bold>Mama Gulp</bold></gradient>"
@@ -1845,7 +1845,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Grubnose the Troll: a hunched ochre troll that is all shoulders and long arms, with a big bulbous nose hanging over a lipless grin and two stubby tusks, a heavy brow over small black eyes, pointed ears, rag wraps round its forearms, and a leather loincloth on a belt strung with bones and a little skull."
+    description: "Grub the troll, sculpted: a hunched ochre troll that is all shoulders and long arms, the head hung low and forward under a hump of muscle, a heavy brow over small black eyes, a huge bulbous red nose over a lipless grin with stubby tusks, long drooping ears, rag wraps round thick forearms and big fists, short bowed legs with splayed toes, and a leather loincloth on a belt strung with bones and a little skull."
   mudclub:
     revision: 4
     name: "<gradient:#3e2723:#9ccc65><bold>Mudd</bold></gradient>"
@@ -1873,7 +1873,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Mudclub, a horned bog ogre: mossy dark green hide, two curved pale horns, a scowling brow over red eyes, a wide grin full of square white teeth over a black goatee, a ragged brown loincloth, iron bands on its wrists and a heavy knotted log club with iron studs."
+    description: "Mudd the bog ogre, sculpted: a broad dark green brute with two curved pale horns sweeping out of its brow, a scowl over red eyes, a wide grin full of square teeth over a black goatee, a chest that tapers to a hard gut, a ragged brown loincloth, iron bands on its wrists and a heavy knotted log club studded with iron."
   ugor:
     name: "<gradient:#4e342e:#f8bbd0><bold>Ugor</bold></gradient>"
     title: "The Last Brute"
