@@ -614,6 +614,7 @@ def sunscorch():
     for b, p, at in (("body", "root", (0, 0, 0)), ("inner", "body", (0, 10, 0)), ("mouth", "body", (0, 9, 9)), ("ring", "body", (0, 6, 0)), ("rays", "body", (0, 21, 0))):
         m.bone(b, p, at)
     OR, OR_D, YE = "orange_concrete", "orange_terracotta", "yellow_concrete"
+    litbox(m, "inner", (0, 10.5, 0), (9.0, 9.0, 9.0), "shroomlight")                        # the white-hot core, seen when it bursts
     part(m, "body", (0, 9.6, 0), (18.0, 19.2, 18.0), OR, dark=OR_D, band=0.1)
     litbox(m, "body", (0, 17.6, 0), (18.3, 3.6, 18.3), YE)
     for x, z, h in ((-6.0, 9.15, 3.6), (-1.6, 9.15, 2.0), (6.6, 9.15, 4.4), (9.15, -5.0, 5.2), (9.15, 2.4, 2.6), (-9.15, 4.6, 4.8), (-9.15, -3.4, 2.2), (2.0, -9.15, 4.0), (-5.0, -9.15, 2.8)):
