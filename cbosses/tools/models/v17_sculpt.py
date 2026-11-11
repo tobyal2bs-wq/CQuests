@@ -17,7 +17,7 @@ from v14_kit import humanoid, standard_anims, idle_biped, wave, wave2, K, Z, att
 import functools
 
 # how many blocks a sculpted model may use: minis stay at 300, big bosses get BIG_BUDGET
-MINI_BUDGET, BIG_BUDGET = 300, 450
+MINI_BUDGET, BIG_BUDGET = 300, 300
 # quality levels, best first: the size from which slices turn eight-sided (ring, taper), whether balls get
 # a light top and a dark bottom, and how many slices a sliced blob loses
 LEVELS = [dict(oct=1.6, toct=1.6, shade=1.6, ball=1.6, cut=0), dict(oct=2.2, toct=2.2, shade=3.0, ball=1.6, cut=0),
@@ -135,26 +135,25 @@ def ball(m, bone, c, r, ramp, top=1.0, bottom=-1.0, rot=None, origin=None, shade
     cy0, ch = (up - dn) * 0.28 * ry, 0.56 * ry * (up + dn)
     place((0, cy0, 0), (1.1 * rx, ch, 1.1 * rz), I, mid)
     place((0, cy0, 0), (1.1 * r45, ch, 1.1 * r45), _ry(math.radians(45)), mid)
-    # rods that reach up and down: along y, and the diagonals in the x-y and z-y planes
-    for half, blk, f in ((1, hi, up), (-1, lo, dn)):
-        if f <= 0.05: continue
-        place((0, half * ry * f / 2, 0), (2 * K8 * rx, ry * f, 2 * K8 * rz), I, blk)
+    # rods that reach up and down: along y, and the diagonals in the x-y and z-y planes. Shaded balls split
+    # each into an upper (light) and a lower (dark) half; plain ones use whole rods, which costs less.
+    parts = ((1, hi, up), (-1, lo, dn)) if shade else ((0, mid, None),)
+    for half, blk, f in parts:
+        if f is not None and f <= 0.05: continue
+        span = f if f is not None else up + dn          # length as a fraction of the radius
+        off = half * f / 2 if f is not None else (up - dn) / 2   # where its middle sits, same units
+        place((0, off * ry, 0), (2 * K8 * rx, ry * span, 2 * K8 * rz), I, blk)
         for plane in ("xy", "zy"):
             ra = rx if plane == "xy" else rz
             d = ra * ry / math.sqrt((ra * ra + ry * ry) / 2)
             for sd in (1, -1):
-                # a half rod from the centre out along the diagonal (sd, half)
-                L = d * f
-                ang = math.radians(45) * sd * half
+                # a rod on the line through (sd, 1); its middle sits mo along that line (negative = down),
+                # so the upper half of one line and the lower half of the other cover all four diagonals
+                L, mo, h2 = d * span, d * off, math.sqrt(0.5)
                 if plane == "xy":
-                    R = _rz(-ang)
-                    local = (math.sin(ang) * L / 2 * half * half, half * math.cos(ang) * L / 2, 0)
-                    local = (sd * L / 2 * math.sqrt(0.5), half * L / 2 * math.sqrt(0.5), 0)
-                    size = (2 * K8 * d, L, 2 * K8 * rz)
+                    R, local, size = _rz(math.radians(-45 * sd)), (sd * h2 * mo, h2 * mo, 0), (2 * K8 * d, L, 2 * K8 * rz)
                 else:
-                    R = _rx(ang)
-                    local = (0, half * L / 2 * math.sqrt(0.5), sd * L / 2 * math.sqrt(0.5))
-                    size = (2 * K8 * rx, L, 2 * K8 * d)
+                    R, local, size = _rx(math.radians(45 * sd)), (0, h2 * mo, sd * h2 * mo), (2 * K8 * rx, L, 2 * K8 * d)
                 place(local, size, R, blk)
 
 
@@ -782,8 +781,8 @@ def gorehorn():
     # shaggy bull legs on black split hooves
     for sd, leg in ((1, "legL"), (-1, "legR")):
         x = sd * 5.2
-        taper(m, leg, (x, 14.6, 0), (x + sd * 0.4, 7.0, -0.6), 3.9, 2.8, HEAD, n=3, bright=lambda t: 0.9 - t * 0.5)
-        taper(m, leg, (x + sd * 0.4, 7.0, -0.6), (x + sd * 0.6, 2.6, 0.6), 2.5, 2.0, HEAD, n=2, bright=lambda t: 0.45 - t * 0.3)
+        taper(m, leg, (x, 14.6, 0), (x + sd * 0.4, 7.0, -0.6), 3.9, 2.8, HEAD, n=2, bright=lambda t: 0.9 - t * 0.5)
+        taper(m, leg, (x + sd * 0.4, 7.0, -0.6), (x + sd * 0.6, 2.6, 0.6), 2.5, 2.0, HEAD, n=1, bright=lambda t: 0.45 - t * 0.3)
         ring(m, leg, x + sd * 0.6, 3.2, 0.5, 2.6, 2.6, 1.2, "brown_concrete", round_=0.66)                          # fetlock tuft
         blob(m, leg, (x + sd * 0.6, 1.2, 1.2), (2.4, 1.2, 2.9), ["black_terracotta", "gray_terracotta"], n=2, bottom=-1.0, top=0.9)
         slab(m, leg, x + sd * 0.6, 1.0, 3.95, 0.3, 1.8, 1.0, "black_concrete")                                       # split hoof
@@ -798,8 +797,8 @@ def gorehorn():
     slab(m, "body", 0, 24.6, 9.05, 0.6, 0.6, 0.2, "polished_blackstone")
     # the white mane over the shoulders, hanging down the back like a cape
     blob(m, "body", (0, 31.4, -0.8), (10.6, 3.6, 7.6), MANE, n=3, bottom=-0.6, top=0.98)
-    for x in (-7.5, -4.5, -1.5, 1.5, 4.5, 7.5):
-        taper(m, "body", (x, 30.0, -6.4 + abs(x) * 0.12), (x * 1.06, 21.0 + abs(x) * 0.4, -7.2 + abs(x) * 0.1), 1.9, 0.6, MANE, n=2, flat=0.55, bright=lambda t: 0.9 - t * 0.6)
+    for x in (-6.6, -2.2, 2.2, 6.6):
+        taper(m, "body", (x, 30.0, -6.4 + abs(x) * 0.12), (x * 1.06, 21.0 + abs(x) * 0.4, -7.2 + abs(x) * 0.1), 2.6, 0.8, MANE, n=2, flat=0.55, bright=lambda t: 0.9 - t * 0.6)
     # studded belt and the blue loincloth
     ring(m, "hips", 0, 15.6, 0.8, 7.6, 6.0, 2.2, "brown_terracotta", round_=0.72)
     for x, z in ((-5.0, 5.4), (-2.5, 6.4), (2.5, 6.4), (5.0, 5.4)):
@@ -834,15 +833,13 @@ def gorehorn():
         slab(m, "head", sd * 2.7, 39.2, 9.35, 0.9, 0.6, 0.2, "red_concrete")
         m.cubes[-1]["l"] = True
         slab(m, "head", sd * 2.9, 39.9, 9.3, 2.4, 0.6, 0.6, "brown_terracotta", rot=(0, 0, -18 * sd))               # scowl
-        taper(m, "head", (sd * 4.4, 38.6, 3.0), (sd * 7.6, 37.6, 2.4), 1.2, 0.4, HEAD[1:], n=2, flat=0.4)         # ears
+        taper(m, "head", (sd * 4.4, 38.6, 3.0), (sd * 7.6, 37.6, 2.4), 1.2, 0.4, HEAD[1:], n=1, flat=0.4)         # ears
         ring(m, "head", sd * 4.4, 41.0, 4.2, 1.7, 1.7, 1.0, "gray_terracotta")
         chain(m, "head", [(sd * 4.4, 41.2, 4.2), (sd * 8.2, 42.0, 4.0), (sd * 10.6, 44.6, 5.0), (sd * 10.8, 47.6, 7.2)], 1.6, 0.35, HORN,
               bright=lambda t: 0.1 + t * 0.85)
     blob(m, "jaw", (0, 33.6, 8.8), (3.2, 1.2, 3.6), ["black_terracotta", "brown_terracotta", "brown_concrete"], n=2)
     # the double axe: a wrapped haft and two crescent iron heads
     chain(m, "axe", [(-14.0, 0.5, 4.0), (-14.0, 12.0, 4.0), (-14.0, 27.0, 4.0)], 0.65, 0.6, ["dark_oak_planks", "stripped_dark_oak_log"])
-    for y in (8.6, 10.6):
-        ring(m, "axe", -14.0, y, 4.0, 0.75, 0.75, 1.2, "brown_terracotta")
     ring(m, "axe", -14.0, 23.4, 4.0, 1.0, 1.0, 4.2, "polished_blackstone")
     for sz in (1, -1):
         for dy, h, ln in ((0, 3.0, 5.0), (2.4, 1.8, 6.0), (-2.4, 1.8, 6.0), (3.9, 1.2, 6.8), (-3.9, 1.2, 6.8)):
