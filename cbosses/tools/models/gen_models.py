@@ -154,14 +154,16 @@ out = {"version": 2, "rigs": anims.RIGS, "models": {}}
 used, problems = set(), []
 SPAWN, DEATH = roster.recipes()
 
-# ---- one clean entrance for every boss: the whole model grows in at once (no blocks flying in one by one,
-# no rising out of the ground), with a burst in its theme's colours and its own roar. Only the zombie climbs out.
+# ---- one entrance for every boss. Walkers appear small high above their spot, grow to full size in the air,
+# drop and land with a squash and a puff of dust, then roar. Flyers swirl in from a speck. Only the zombie climbs out.
 CLIMBERS = {"rotting_giant"}
 try:
     import yaml as _yaml
-    _THEMES = {k: v.get("theme", "earth") for k, v in _yaml.safe_load(open(os.path.join(os.path.dirname(__file__), "..", "..", "src", "main", "resources", "bosses.yml")))["bosses"].items()}
+    _YML = _yaml.safe_load(open(os.path.join(os.path.dirname(__file__), "..", "..", "src", "main", "resources", "bosses.yml")))["bosses"]
 except Exception:
-    _THEMES = {}
+    _YML = {}
+_THEMES = {k: v.get("theme", "earth") for k, v in _YML.items()}
+_FLIERS = {k for k, v in _YML.items() if v.get("movement") in ("fly", "hover")}
 _BURST = {"fire": "FLAME", "frost": "SNOWFLAKE", "soul": "SOUL_FIRE_FLAME", "nature": "CHERRY_LEAVES", "water": "SPLASH", "storm": "ELECTRIC_SPARK",
           "gold": "WAX_ON", "toxic": "ITEM_SLIME", "blood": "CRIMSON_SPORE", "void": "PORTAL", "witch": "WITCH", "sculk": "SCULK_SOUL",
           "wither": "SMOKE", "candy": "CHERRY_LEAVES", "holiday": "SNOWFLAKE", "pumpkin": "FLAME", "feather": "CLOUD", "wind": "CLOUD",
@@ -173,11 +175,35 @@ def entrance(id, old):
     pitch = next((st.get("pitch", 1.0) for st in old if st.get("op") == "fx" and st.get("sound")), 1.0)
     roar = next((st["name"] for st in old if st.get("op") == "anim" and st.get("name") not in ("walk",)), None)
     p = _BURST.get(_THEMES.get(id, "earth"), "CLOUD")
-    return [{"op": "shrink", "at": 0, "s": 0},
-            {"op": "fx", "at": 0, "y": 0.5, "spread": 1.2, "particle": p, "count": 40, "sound": sound, "pitch": pitch, "ring": 2},
-            {"op": "pose", "at": 2, "dur": 12},
-            {"op": "fx", "at": 10, "y": 0.8, "spread": 1.0, "particle": p, "count": 30}] + \
-           ([{"op": "anim", "at": 16, "dur": 24, "name": roar}] if roar else [])
+    if id in _FLIERS:
+        steps = [{"op": "shrink", "at": 0, "s": 0.05}, {"op": "spin", "at": 0, "deg": -150}, {"op": "move", "at": 0, "vh": [0, 0.5, 0]},
+                 {"op": "fx", "at": 0, "y": 0.9, "spread": 0.6, "particle": p, "count": 30, "sound": sound, "pitch": pitch},
+                 {"op": "pose", "at": 2, "dur": 16},
+                 {"op": "fx", "at": 10, "y": 0.6, "spread": 1.2, "particle": p, "count": 30},
+                 {"op": "fx", "at": 18, "y": 0.5, "spread": 0.2, "particle": "FLASH", "count": 1, "sound": "ENTITY_PHANTOM_FLAP", "pitch": 0.6}]
+        start = 20
+    else:
+        steps = [{"op": "shrink", "at": 0, "s": 0.05}, {"op": "move", "at": 0, "vh": [0, 1.5, 0]},
+                 {"op": "fx", "at": 0, "y": 1.9, "spread": 0.5, "particle": p, "count": 30, "sound": sound, "pitch": pitch},
+                 {"op": "shrink", "at": 2, "dur": 10, "s": 20},
+                 {"op": "fx", "at": 8, "y": 1.9, "spread": 1.0, "particle": p, "count": 24},
+                 {"op": "pose", "at": 14, "dur": 5},
+                 {"op": "fx", "at": 19, "y": 0.02, "spread": 1.6, "particle": "CLOUD", "count": 40, "sound": "ENTITY_GENERIC_EXPLODE", "pitch": 0.6},
+                 {"op": "fx", "at": 19, "y": 0.1, "spread": 1.2, "particle": p, "count": 30},
+                 {"op": "scale", "at": 19, "dur": 2, "s": [1.12, 0.82, 1.12]},
+                 {"op": "pose", "at": 21, "dur": 4}]
+        start = 26
+    return steps + ([{"op": "anim", "at": start, "dur": 24, "name": roar}] if roar else [])
+
+
+def weight(clip):
+    """Every attack gets its body behind it: the whole model leans back as it winds up, drives forward into the
+    hit and settles, unless the clip already moves the root itself."""
+    h, L = clip.get("hit"), clip["length"]
+    root = clip["bones"].setdefault("root", {})
+    if not h or "rot" in root or h >= L: return
+    root["rot"] = [[0, [0, 0, 0]], [round(h * 0.65, 4), [-6, 0, 0]], [round(h, 4), [8, 0, 0]],
+                   [round(h + (L - h) * 0.35, 4), [5, 0, 0]], [L, [0, 0, 0]]]
 
 
 # grubnose and mudclub carry their own painted mottling (v14_studio.hide_detail)
@@ -314,6 +340,14 @@ def studio_finish(id, m, rigs):
 
 for model_id, data in out["models"].items():
     if model_id in v14_studio.STUDIO and not model_id.startswith("decor_"): studio_finish(model_id, data, out["rigs"])
+_ATTACK = lambda n, c: not c.get("loop") and c.get("hit") and n not in ("hurt", "roar", "howl") and not n.startswith(("die", "death", "opening"))
+for rig in out["rigs"].values():
+    for n, c in rig.items():
+        if _ATTACK(n, c): weight(c)
+for model_id, data in out["models"].items():
+    if model_id.startswith("decor_"): continue
+    for n, c in (data.get("anims") or {}).items():
+        if _ATTACK(n, c): weight(c)
 dest = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), "../../src/main/resources/models.json")
 json.dump(out, open(dest, "w"), separators=(",", ":"))
 for id, m in out["models"].items():

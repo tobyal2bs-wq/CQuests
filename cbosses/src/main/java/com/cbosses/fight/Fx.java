@@ -40,6 +40,8 @@ public final class Fx {
     public static volatile int viewDistance = 48;
     /** effects.rings: the dust circles round a boss and on the ground (off by default; they read as clutter). */
     public static volatile boolean rings = false;
+    /** effects.ground-waves: rings of blocks racing outward on slams (off by default; a burst at the hit instead). */
+    public static volatile boolean waves = false;
     /** effects.aura: the drifting particles around a boss's body (off by default). */
     public static volatile boolean aura = false;
     private static final AtomicInteger debris = new AtomicInteger();
@@ -236,6 +238,11 @@ public final class Fx {
         Location c = center.clone();
         BlockData data;
         try { data = (block.isBlock() ? block : Material.STONE).createBlockData(); } catch (RuntimeException e) { return; }
+        if (!waves) {
+            debris(c, block, Math.min(8, 2 + steps), 2.2, 1.6, 0.4f);
+            try { Privacy.particle(c.getWorld(), Particle.BLOCK, c.clone().add(0, 0.3, 0), n(18), radius * 0.25, 0.1, radius * 0.25, 0.1, data); } catch (RuntimeException ignored) { }
+            return;
+        }
         int rings = Math.max(2, steps);
         for (int k = 1; k <= rings; k++) {
             double rr = radius * k / rings;

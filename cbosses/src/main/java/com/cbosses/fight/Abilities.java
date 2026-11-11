@@ -43,8 +43,8 @@ final class Abilities {
 
     /** Damage of an attack: its base value scaled by the boss's damage setting, the phase it is in and abilities.damage-multiplier. */
     double dmg(Fight f, double base) {
-        double scale = Math.max(0.5, Math.min(2.5, f.def.damage() / 11.0));
-        return base * scale * (1 + 0.15 * f.phase) * f.power * service.damageMultiplier();
+        double scale = Math.max(0.3, Math.min(2, f.def.damage() / 14.0));
+        return base * scale * (1 + 0.1 * f.phase) * f.power * service.damageMultiplier();
     }
 
     private void hurt(Fight f, Player p, double base) {

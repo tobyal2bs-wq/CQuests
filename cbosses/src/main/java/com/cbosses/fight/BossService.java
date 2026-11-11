@@ -189,10 +189,10 @@ public final class BossService implements Listener {
         }
     }
 
-    /** Apply the requested health and damage tiers once (v2: minis 1000, the rest 3000, softer hits);
+    /** Apply the requested health and damage tiers once (v3: minis 1000, the rest 3000, about 30% softer hits);
      *  every reward and other custom field is kept. */
     private void migratePolishHealth(java.io.File file, YamlConfiguration yaml) {
-        if (yaml.getInt("polish-health-version", 0) >= 2) return;
+        if (yaml.getInt("polish-health-version", 0) >= 3) return;
         try (var in = plugin.getResource("bosses.yml")) {
             if (in == null) return;
             var bundled = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
@@ -205,7 +205,7 @@ public final class BossService implements Listener {
                     yaml.set("bosses." + id + ".damage", bundled.getDouble("bosses." + id + ".damage"));
                 }
             }
-            yaml.set("polish-health-version", 2);
+            yaml.set("polish-health-version", 3);
             com.cbosses.util.SafeFiles.write(file, yaml.saveToString());
         } catch (Exception e) { plugin.getLogger().warning("Could not migrate boss health: " + e.getMessage()); }
     }
@@ -254,6 +254,7 @@ public final class BossService implements Listener {
         scheduleOn = plugin.getConfig().getBoolean("schedule.enabled", true);
         var c = plugin.getConfig();
         Fx.rings = c.getBoolean("effects.rings", false);
+        Fx.waves = c.getBoolean("effects.ground-waves", false);
         Fx.aura = c.getBoolean("effects.aura", false);
         Fx.particles = Math.max(0, Math.min(2, quality(c.getString("effects.quality", "high")) * c.getDouble("effects.particle-multiplier", 1)));
         Fx.debrisOn = c.getBoolean("effects.flying-blocks", true);

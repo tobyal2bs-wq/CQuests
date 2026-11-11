@@ -130,7 +130,6 @@ final class Cinematics {
         Theme th = f.theme;
         f.bar.color(phase >= 2 ? BossBar.Color.RED : BossBar.Color.PURPLE);
         Fx.particle(w, Particle.EXPLOSION_EMITTER, at.clone().add(0, 1, 0), 1, 0, 0, 0, 0, th);
-        Fx.eruption(at, 9, Fx.ground(at, th), th, 4);
         Fx.debris(at, Fx.ground(at, th), 12, 5, 2.4, 0.5f);
         Fx.sound(at, th.charge(), 2f, 0.6f);
         Fx.sound(at, "ENTITY_ENDER_DRAGON_GROWL", 1.2f, 0.7f);
@@ -155,8 +154,7 @@ final class Cinematics {
         Fx.sound(at, th.death(), 2f, 0.8f);
         Fx.sound(at, "ENTITY_PLAYER_ATTACK_CRIT", 2f, 0.5f);
         Fx.particle(w, Particle.FLASH, at.clone().add(0, 1.5, 0), 1, 0, 0, 0, 0, th);
-        Fx.ring(at, 4, th.main(), 2.2f, 50);
-        Fx.eruption(at, 6, Fx.ground(at, th), th, 3);
+        Fx.debris(at, Fx.ground(at, th), 10, 3, 1.8, 0.45f);
     }
 
     void deathEnd(Fight f, Location at) {
@@ -174,7 +172,7 @@ final class Cinematics {
             int k = i;
             later(at, 1 + i * 3L, () -> {
                 for (double y = 0; y < 18; y += 0.7) Fx.particle(w, Particle.END_ROD, at.clone().add(0, y, 0), 1, 0.06, 0.1, 0.06, 0, th);
-                Fx.ring(at, 1 + k * 1.4, k % 2 == 0 ? th.main() : th.accent(), 2f, 30 + k * 8);
+                Fx.dust(at.clone().add(0, 1 + k * 2.5, 0), k % 2 == 0 ? th.main() : th.accent(), 1.6f, 6, 0.4);
             });
         }
         // fireworks in the boss's colours, without the rocket

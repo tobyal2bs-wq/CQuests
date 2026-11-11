@@ -318,9 +318,11 @@ public final class BossModel {
                 if (d > 1.8 * 1.8 && d < reach * reach && Bukkit.isOwnedByCurrentRegion(target2)) target2.damage(meleeDamage, mob);
             }, null, Math.max(1, Math.round(swing.hit() * 20)));
         }
-        // Follow the shortest arc through +/-180 rather than spinning a whole turn.
-        float heading = !flying && speed > 0.025
-                ? (float) Math.toDegrees(Math.atan2(-dx, dz)) : now.getYaw();
+        // Face where it walks, but only when that is roughly where its body faces: a step back, a shove or
+        // a strafe would otherwise spin the model round. Follow the shortest arc through +/-180.
+        float moving = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        float heading = !flying && speed > 0.025 && Math.abs(Math.IEEEremainder(moving - now.getYaw(), 360)) < 100
+                ? moving : now.getYaw();
         float turn = MotionBlend.turn(yaw, heading, DT);
         yaw += turn;
         if (++viewerCheck % 7 == 1) {

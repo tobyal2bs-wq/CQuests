@@ -33,8 +33,8 @@ CHAPTERS = roster.CHAPTERS
 MINIS = roster.minis()
 # health tiers asked for: minis 1000, every other boss 3000 (v1.5)
 TIER_HEALTH = {"big": 3000, "mythic": 3000, "mini": 1000}
-# melee damage per tier (abilities scale with it too); lowered in v1.5 because fights hit too hard
-TIER_DAMAGE = {"big": 7, "mythic": 9, "mini": 5, "chapter": 6}
+# melee damage per tier (abilities scale with it too); lowered again in v1.6, about 30% softer
+TIER_DAMAGE = {"big": 5, "mythic": 6, "mini": 3.5, "chapter": 4}
 
 # extra abilities on top of the model's own attack moves (these use its melee swing)
 EXTRA = {

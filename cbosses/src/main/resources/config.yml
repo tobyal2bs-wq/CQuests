@@ -35,6 +35,8 @@ effects:
   model-view-distance: 96
   # Dust circles round a boss and on the ground (attack warnings, rage, entrances). Off: they read as clutter.
   rings: false
+  # Rings of blocks racing outward across the ground on slams. Off: a burst of debris at the hit instead.
+  ground-waves: false
   # Drifting particles around a boss's body while players are near.
   aura: false
   # The omen before a boss appears (rings, cracks, a themed build-up). false skips straight to the entrance.

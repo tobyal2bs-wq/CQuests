@@ -20,11 +20,10 @@ import functools
 MINI_BUDGET, BIG_BUDGET = 300, 300
 # quality levels, best first: the size from which slices turn eight-sided (ring, taper), whether balls get
 # a light top and a dark bottom, and how many slices a sliced blob loses
-LEVELS = [dict(oct=1.6, toct=1.8, shade=99, ball=99, cut=0), dict(oct=2.2, toct=2.4, shade=99, ball=99, cut=0),
-          dict(oct=3.0, toct=3.0, shade=99, ball=99, cut=1), dict(oct=4.0, toct=99, shade=99, ball=99, cut=1),
-          dict(oct=99, toct=99, shade=99, ball=99, cut=2), dict(oct=99, toct=99, shade=99, ball=3.2, cut=2)]
-# the middle style: round slices that still show their steps, no fully smooth balls (ball=99) until the
-# budget forces it on the last level
+LEVELS = [dict(oct=99, toct=99, shade=99, ball=99, cut=0), dict(oct=99, toct=99, shade=99, ball=99, cut=1),
+          dict(oct=99, toct=99, shade=99, ball=99, cut=2)]
+# the approved look (the ogre): stacked slices with a plus-shaped section, no eight-sided slices and no
+# smooth balls; a model over its budget only loses slices
 Q = dict(LEVELS[0])
 
 
@@ -235,7 +234,7 @@ def frustum(m, bone, c0, a0, b0, c1, a1, b1, block, thick=None, sides=8):
         panel(m, bone, q0, q1, 2 * math.tan(math.pi / sides) * rmax * 1.04, t, (cs, 0.0, sn), block)
 
 
-def lathe(m, bone, prof, ramp, round_=0.62, lo=0.0, hi=1.0, smooth=True):
+def lathe(m, bone, prof, ramp, round_=0.62, lo=0.0, hi=1.0, smooth=False):
     """A turned form (robe, hat, bell sleeve) from a profile of points (y, a, b, x, z). Big forms are
     leaning boards between the points (frustum), so the outline slopes; small ones are rounded slices.
     Tone runs lo..hi by height."""
