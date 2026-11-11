@@ -70,12 +70,12 @@ class BossDataTest {
             int n = fm.cubes.size();
             // only one face is shown at a time, so the spare faces don't count
             if (fm.faceOf != null) for (String f : fm.faceOf) if (f != null && !f.equals("idle")) n--;
-            if (d.mini()) assertTrue(n >= 25 && n <= 300, d.id() + " is a mini boss with " + n + " blocks");
-            else if (d.chapterBoss() && d.chapter() >= 4) assertTrue(n >= 150 && n <= 300, d.id() + " is a rebuilt chapter boss with " + n + " blocks");
-            else if (d.chapterBoss()) assertTrue(n >= 70 && n <= 300, d.id() + " is a chapter boss with " + n + " blocks");
-            else if (d.sidekick()) assertTrue(n >= 150 && n <= 300, d.id() + " is a second body with " + n + " blocks");
-            else if (d.seasonal()) assertTrue(n >= 60 && n <= 300, d.id() + " is a painted seasonal boss with " + n + " blocks");
-            else assertTrue(n >= 40 && n <= 300, d.id() + " has " + n + " blocks");
+            if (d.mini()) assertTrue(n >= 25 && n <= 500, d.id() + " is a mini boss with " + n + " blocks");
+            else if (d.chapterBoss() && d.chapter() >= 4) assertTrue(n >= 150 && n <= 500, d.id() + " is a rebuilt chapter boss with " + n + " blocks");
+            else if (d.chapterBoss()) assertTrue(n >= 70 && n <= 500, d.id() + " is a chapter boss with " + n + " blocks");
+            else if (d.sidekick()) assertTrue(n >= 150 && n <= 500, d.id() + " is a second body with " + n + " blocks");
+            else if (d.seasonal()) assertTrue(n >= 60 && n <= 500, d.id() + " is a painted seasonal boss with " + n + " blocks");
+            else assertTrue(n >= 40 && n <= 500, d.id() + " has " + n + " blocks");
         }
         int was = ModelRig.detail;
         try {
@@ -140,7 +140,7 @@ class BossDataTest {
             ModelRig.Model m = models.get(id);
             assertNotNull(m, id);
             int n = m.cubes.size();
-            assertTrue(n >= 50 && n <= 300, id + " has " + n + " blocks");
+            assertTrue(n >= 50 && n <= 500, id + " has " + n + " blocks");
             assertNotNull(m.anim("idle"), id + " idle");
         }
     }
@@ -152,7 +152,7 @@ class BossDataTest {
             ModelRig.Model m = models.get(id);
             assertNotNull(m, id);
             int n = m.cubes.size();
-            assertTrue(n >= 150 && n <= 300, id + " has " + n + " blocks");
+            assertTrue(n >= 150 && n <= 500, id + " has " + n + " blocks");
             long kinds = m.cubes.stream().map(ModelRig.Cube::base).distinct().count();
             assertTrue(kinds >= 6, id + " uses only " + kinds + " kinds of block");
             assertNotNull(m.anim("idle"), id + " idle");

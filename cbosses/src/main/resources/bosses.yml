@@ -418,7 +418,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A towering ram-headed giant with blue-grey wool, two huge curled horns, a thundercloud of grey wool on its shoulders with glowing yellow lightning bolts, copper bracers, a copper rod in its fist and cloven hooves."
+    description: "Bjorn, the Storm Ram: a towering ram-man in thick white wool with grey patches, a long dark grey face with a pale muzzle and a wool goatee, glowing yellow eyes with slit pupils, two huge cream horns that curl back and round past his ears, a storm cloud riding his shoulders with lit bolts hanging from it, copper bracers on dark forearms, a forked copper rod in his fist and black hooves."
   pharaoh:
     name: "<gradient:#f9a825:#fff59d><bold>Pharaoh Ankhamun</bold></gradient>"
     title: "Back From the Tomb"
@@ -518,9 +518,9 @@ bosses:
   gravelord:
     revision: 4
     name: "<gradient:#263238:#80cbc4><bold>Mister Bones</bold></gradient>"
-    title: "He Brings an Empty Sack"
+    title: "The Gravedigger"
     previous-names: ["<gradient:#263238:#80cbc4><bold>The Bone Collector</bold></gradient>"]
-    previous-titles: ["He Comes With an Empty Sack"]
+    previous-titles: ["He Comes With an Empty Sack", "He Brings an Empty Sack"]
     tier: big
     entity: WITHER_SKELETON
     health: 3000
@@ -549,7 +549,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "The Bone Collector: a hunched grey ghoul in a torn black hood, with sunken black eye pits lit by two soul-blue sparks, a long crooked nose and a jagged grin, long thin arms ending in hooked claws, a rope belt, and a huge patched burlap sack of skulls on its back that sways as it shuffles. A soul lantern hangs from one hand on a chain."
+    description: "Mister Bones, the gravedigger: a big chunky skeleton in a tall battered top hat with a purple band and a long black coat hanging open over his ribs. Soul-blue lights burn in his eye sockets above a toothy grin. He has bony hands and knees, worn boots, a soul lantern on his belt, and digs with a huge iron shovel."
   captain_brine:
     name: "<gradient:#005f73:#94d2bd><bold>Captain Brine</bold></gradient>"
     title: "Captain of the Drowned"
@@ -605,7 +605,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A clockwork vault guardian: a brass and copper body riveted together, a round glass dome head with a glowing gear inside, a giant wind-up key turning in its back, piston arms and a lock-plate shield."
+    description: "Old Jangles, Keeper of the Five Keys: a stout clockwork vault guardian. A brass boiler body in copper bands with rivets, a lock plate with a glowing keyhole and a pressure gauge, two smokestacks on its back, a brass head with two glowing amber lenses, a grille mouth and a glass dome with a lit gear inside, piston arms with brass gauntlets, a round lock shield, a ring of five keys jangling at its belt and a big wind-up key turning in its back."
   bloodtusk:
     revision: 4
     name: "<gradient:#4e342e:#ef5350><bold>Hamhock</bold></gradient>"
@@ -1433,7 +1433,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Sunscorch, a little sun on its summer holiday: a cube of glowing orange jelly around a white-hot core, a crown of flame rays, big pink heart sunglasses, a wide melting grin with its tongue out, drips running down its sides and a yellow duck swim ring round its middle."
+    description: "Sunny, a little sun on its summer holiday: a cube of orange sun with a glowing yellow top that melts down its sides in drips, a crown of flame rays, big pink heart sunglasses, a wide grin with its tongue out and a yellow duck swim ring round its middle."
   admiral_pinchworth:
     name: "<gradient:#ff5252:#ffd180><bold>Admiral Pinchworth</bold></gradient>"
     title: "Lord of the Sandcastle"
@@ -1648,7 +1648,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A headless rider on a nightmare horse: the horse is black with a bone mask and ribs showing, a mane and tail of fire and burning hooves, under a ragged purple caparison with orange trim. The rider wears a dark coat with a ruffled collar and a tattered cape; flames rise from his neck, he holds up his own carved jack-o'-lantern head in one hand and a long notched sabre in the other."
+    description: "The Headless Horseman on his nightmare horse. The horse is black with a bone mask, ribs showing on its chest, glowing eyes and nostrils, a mane and tail of fire and burning hooves, under a purple caparison with orange trim and a black saddle. The rider wears a dark coat with gold buttons, a ruffled white collar and a tattered cape; flames rise from his neck, he holds his carved, glowing jack-o'-lantern head up high in one hand and points a long sabre with the other."
   hexmother:
     name: "<gradient:#6a1b9a:#ce93d8><bold>Granny Morwen</bold></gradient>"
     title: "The Swamp Witch"
@@ -1679,7 +1679,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A crone of a witch: green warty skin, a long hooked nose, wild grey hair, a tall bent hat with a buckle and a spider web, a ragged purple dress with potion bottles on the belt, a black cat riding her shoulder and a gnarled staff topped with a skull and a bubbling green cauldron-fire."
+    description: "Granny Morwen, the swamp witch: a hunched crone with green skin, a long hooked nose with a wart, mean yellow eyes under heavy brows, a crooked grin with one tooth and wild grey hair, a huge black hat with a purple band, a gold buckle and a spider web, a ragged purple dress with a black shawl, striped stockings and pointed boots, glowing potion bottles on her belt, a black cat on her shoulder, and a gnarled staff topped with a skull and green fire."
   # ------------------------------------------------------------ chapter bosses, one after every CQuests chapter
   brakka:
     name: "<gradient:#ff7b00:#ffd27a><bold>Brakka the Torchbearer</bold></gradient>"
@@ -1710,8 +1710,9 @@ bosses:
     description: "Chapter 1, The Wanderers' Camp: Brakka the bandit chief. A burly raider with a red bandana over his face, an eye patch, leather armour with a wolf-fur collar, a satchel of stolen loot, a crossbow slung on his back and a hatchet in each hand."
   gate_shade:
     revision: 3
-    name: "<gradient:#212121:#b0bec5><bold>The Gatekeeper</bold></gradient>"
+    name: "<gradient:#212121:#b0bec5><bold>Grimsby</bold></gradient>"
     title: "Nothing Passes Without the Key"
+    previous-names: ["<gradient:#212121:#b0bec5><bold>The Gatekeeper</bold></gradient>"]
     chapter: 2
     entity: VEX
     health: 3000
@@ -1736,7 +1737,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "A hooded gatekeeper with no feet, its long tattered grey cloak drifting below it, two white eyes in the dark of its hood, a chain of padlocks across its chest, a huge iron key in one hand and a lantern in the other."
+    description: "Grimsby, the gate gargoyle: a crouching stone gargoyle that hovers on slow beats of its bat wings, mossy on the shoulders, with curled horns, a heavy brow over glowing soul-blue eyes, a wide fanged grin and pointed ears. It hugs a huge iron key to its chest with clawed hands, its legs are tucked up under it, and a long tail with a spade tip hangs below."
   oakheart:
     name: "<gradient:#3a5a40:#a3b18a><bold>Sir Oakheart</bold></gradient>"
     title: "The Elder's Champion"
@@ -1791,7 +1792,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Picture 1: a big gnome in a tall green bent hat with a checked white beard, a peach nose and a red coat, and his little brother in a taller red hat standing at his hip. Both hats sway and the little one bobs on his own."
+    description: "The Gnome Brothers, from the gnome-and-mini-gnome picture: Bramble in a huge leaning green hat and a red coat, and his little brother Thimble at his side in a tall dark red hat and a green coat. Both have big peach noses and long checked white beards. The hats sway and Thimble hops about."
   moss_spirit:
     name: "<gradient:#455a64:#69f0ae><bold>Old Moss</bold></gradient>"
     title: "Two Faces in the Stone"
@@ -1901,7 +1902,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Picture 7: a huge brown-furred brute with a villager's build and a pig's snout, small dark eyes under a shaggy brow, tusks, a mane down its back, and fists like stumps. Breathes heavily."
+    description: "Ugor, the last brute: a huge hunched boar-man in coarse brown fur with a dark mane from his crown down his back, a big pink snout, small mean eyes under a heavy black brow, two curved ivory tusks, floppy ears, a studded belt with a skull buckle over a ragged leather loincloth, a necklace of teeth, long arms with leather-wrapped forearms and huge fists, and black hooves."
   # ------------------------------------------------------------ mini bosses: wake on the mini timer (/cbosses minis), 2000 health
   bark_ape:
     revision: 3
@@ -2582,7 +2583,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Hoo, the younger Boo Twin: a small white ghost with tall oval eyes, a wobbly open mouth, pale blue cheeks, a wavy hem and both arms raised to scare."
+    description: "Hoo, the younger Boo Twin: a small white sheet ghost with tall oval eyes, a wobbly open mouth with a pink tongue, pale blue cheeks, a little light blue scarf, a curl on top, a wavy hem and both arms raised to scare."
   cap_little:
     revision: 3
     name: "<gradient:#6d4c41:#ffe0b2><bold>Puffball</bold></gradient>"
@@ -2718,7 +2719,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Grandpa Pip, sculpted: a round little gnome elder under a tall red cap that folds at the brim and droops back at the tip, bushy white brows over bright green eyes, rosy cheeks, a long drooping nose over a big white moustache and a pointed beard, a round teal tunic with a dark belt and a glowing emerald buckle, small skin hands and stubby boots with turned-up toes."
+    description: "Grandpa Pip, the gnome elder: a round little gnome under a tall red cap with a turned-up brim, its tip flopping down his back with a white bobble, bushy white brows over bright green eyes, rosy cheeks, a long drooping nose over a big white moustache and a pointed beard, a round teal tunic with a dark belt and a glowing emerald buckle, small hands and stubby boots with turned-up toes."
   sproutbeak:
     name: "<gradient:#2e7d32:#a1887f><bold>Hedgey</bold></gradient>"
     title: "A Hedge With Legs"
@@ -2746,7 +2747,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Sproutbeak, a little round hedge that walks: a cube of leafy green on two long thin legs with big flat feet, a beady eye on each side, a tiny beak, stubby leaf wings, a leather backpack strapped on with a buckle at the front."
+    description: "Hedgey, a hedge with legs: a round bush of moss and leaves with tufts sticking out and a few flowers in it, beady eyes on each side under leafy brows, a small orange beak, stubby leaf wings, a leather backpack strapped on with a gold buckle at the front, and two long thin orange legs with big flat three-toed feet."
   # ------------------------------------------------------------ second bodies of two-body bosses (they appear beside their partner, never alone)
 
 # bosses taken out of the plugin; a server that still has them drops them on start

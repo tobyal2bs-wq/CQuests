@@ -418,8 +418,8 @@ bosses:
   gravelord:
     name: "<gradient:#6a1b9a:#e040fb><bold>Mister Bones</bold></gradient>"
     previous-names: ["<gradient:#6a1b9a:#e040fb><bold>The Gravelord</bold></gradient>"]
-    title: "He Brings an Empty Sack"
-    previous-titles: ["Lord of the Restless Dead"]
+    title: "The Gravedigger"
+    previous-titles: ["Lord of the Restless Dead", "He Brings an Empty Sack"]
     entity: WITHER_SKELETON
     health: 3000
     scale: 2.2

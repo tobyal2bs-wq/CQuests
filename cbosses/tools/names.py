@@ -23,7 +23,8 @@ NAMES = {
     "pharaoh": ("Pharaoh Ankhamun", "Back From the Tomb"),
     "executioner": ("The Executioner", "Axe of the Mansion"),
     "ember_queen": ("Big Bertha", "The Living Furnace"),
-    "gravelord": ("Mister Bones", "He Brings an Empty Sack"),
+    "gravelord": ("Mister Bones", "The Gravedigger"),
+    "gate_shade": ("Grimsby", "Nothing Passes Without the Key"),
     "captain_brine": ("Captain Brine", "Captain of the Drowned"),
     "keywarden": ("Old Jangles", "Keeper of the Five Keys"),
     "bloodtusk": ("Hamhock", "The War Boar"),
@@ -79,6 +80,9 @@ NAMES = {
     "old_pip": ("Grandpa Pip", "The Gnome Elder"),
     "sproutbeak": ("Hedgey", "A Hedge With Legs"),
 }
+
+# titles a boss had under an earlier entry here, so servers still showing one get the new title
+EARLIER_TITLES = {"gravelord": ["He Brings an Empty Sack"]}
 
 
 def rename(id, name, title):

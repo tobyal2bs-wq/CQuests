@@ -236,6 +236,7 @@ def entry(id, kind, season=None, chapter=None):
     new_name, new_title = names.rename(id, d["name"], d["title"])
     if new_name != d["name"] and d["name"] not in d["prev_names"]: d["prev_names"].append(d["name"])
     if new_title != d["title"] and d["title"] not in d["prev_titles"]: d["prev_titles"].append(d["title"])
+    d["prev_titles"] += [t for t in names.EARLIER_TITLES.get(id, []) if t != new_title and t not in d["prev_titles"]]
     d["name"], d["title"] = new_name, new_title
     return d
 
