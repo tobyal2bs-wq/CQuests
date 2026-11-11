@@ -1225,7 +1225,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Brewgut, the orc who runs the tavern: a big square green head with an underbite and two yellow tusks, small dark eyes under a heavy brow and a notched ear, a rolled-up white shirt under a brown vest, a belt, a ragged shirt hem, maroon trousers, huge green forearms and a barrel tankard in one fist."
+    description: "The ogre from the picture, kept as the tavern brute: a hunched square green head pushed forward over the chest, small white eyes under a heavy brow, a wide nose, two pale tusks over the lip and stubby ears; a white shirt under an open brown vest, a ragged white apron on a dark belt, mauve trousers, dark boots, puffed white sleeves over thick green forearms, and a wooden tankard in the right fist."
   # ------------------------------------------------------------ mythic: Warden, Wither, Ender Dragon, Breeze and the finale (5000 health)
   the_listener:
     name: "<gradient:#052e33:#4ae3e3><bold>THE LISTENER BELOW</bold></gradient>"
@@ -1958,7 +1958,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "The hermit from the picture: a villager-shaped old man in a tall brown hood, a pale forehead with one black slit for eyes, a long nose resting on a huge grey beard that covers his whole front down to the hem, brown sleeves with bare hands, and a black staff with a gold band."
+    description: "The hermit from the picture: one tall brown-hooded figure, a bare pink-brown forehead, a single black slit for eyes, a long villager nose resting on a grey beard that covers the whole front down to the hem, brown sleeves with bare hands, little brown boots, and a thick black staff with a gold band."
   king_oldbeard:
     revision: 4
     name: "<gradient:#b71c1c:#ffd54f><bold>King Albert</bold></gradient>"
@@ -2718,7 +2718,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "Old Pip, the gnome elder: a tall floppy red hat over bushy white brows, little green eyes, a huge nose that hangs over a long white beard, rosy cheeks, a teal tunic, a brown belt with an emerald buckle and little brown boots."
+    description: "The gnome elder from the picture, built as voxel art: a stepped red hat of knobbly cubes in three reds, a white fringe under it, little green eyes, a long brown villager nose over a chunky white beard, a teal tunic with knobbly two-tone cloth, a dark belt with a big glowing emerald buckle, and small brown boots."
   sproutbeak:
     name: "<gradient:#2e7d32:#a1887f><bold>Hedgey</bold></gradient>"
     title: "A Hedge With Legs"
