@@ -20,9 +20,11 @@ import functools
 MINI_BUDGET, BIG_BUDGET = 300, 300
 # quality levels, best first: the size from which slices turn eight-sided (ring, taper), whether balls get
 # a light top and a dark bottom, and how many slices a sliced blob loses
-LEVELS = [dict(oct=1.6, toct=1.6, shade=1.6, ball=1.6, cut=0), dict(oct=2.2, toct=2.2, shade=3.0, ball=1.6, cut=0),
-          dict(oct=3.0, toct=3.0, shade=99, ball=1.6, cut=0), dict(oct=4.0, toct=99, shade=99, ball=2.4, cut=1),
-          dict(oct=99, toct=99, shade=99, ball=3.2, cut=2)]
+LEVELS = [dict(oct=1.6, toct=1.8, shade=99, ball=99, cut=0), dict(oct=2.2, toct=2.4, shade=99, ball=99, cut=0),
+          dict(oct=3.0, toct=3.0, shade=99, ball=99, cut=1), dict(oct=4.0, toct=99, shade=99, ball=99, cut=1),
+          dict(oct=99, toct=99, shade=99, ball=99, cut=2), dict(oct=99, toct=99, shade=99, ball=3.2, cut=2)]
+# the middle style: round slices that still show their steps, no fully smooth balls (ball=99) until the
+# budget forces it on the last level
 Q = dict(LEVELS[0])
 
 
@@ -493,6 +495,16 @@ def old_pip():
     return m
 
 
+def shift(m, bones, d):
+    """Moves every block of these bones, and their pivots, by d."""
+    for c in m.cubes:
+        if c["b"] in bones:
+            for k in ("f", "t", "o"):
+                if k in c: c[k] = [round(c[k][q] + d[q], 3) for q in range(3)]
+    for b in m.bones:
+        if b["name"] in bones: b["pivot"] = [round(b["pivot"][q] + d[q], 3) for q in range(3)]
+
+
 # ------------------------------------------------------------------------------------------------ the trolls
 
 def knuckles(m, bone, x, y, z, w=1.2, n=3, gap=1.4, block="green_terracotta"):
@@ -579,9 +591,9 @@ def grubnose():
     for x, z, h, tilt in ((-2.4, 6.8, 2.2, -18), (-0.8, 6.2, 2.8, -6), (0.9, 6.4, 2.6, 8), (2.4, 7.0, 2.0, 20), (0.0, 3.8, 2.4, 0)):
         slab(m, "head", x, 37.0 + h / 2 - 0.4, z, 0.9, h, 0.9, "brown_terracotta", rot=(-14, 0, tilt), origin=(x, 37.0, z))   # scraggly tufts
     blob(m, "head", (0, 32.0, 12.8), (1.3, 1.6, 1.2), NOSE[1:], n=2)                                         # nose bridge
-    blob(m, "head", (0, 29.6, 13.8), (2.6, 2.6, 2.4), NOSE, n=4)                                             # the big nose
+    blob(m, "head", (0, 30.2, 13.4), (2.3, 2.2, 2.1), NOSE, n=4)                                             # the big nose
     for sd in (1, -1):
-        blob(m, "head", (sd * 2.0, 28.8, 13.4), (1.1, 1.0, 1.0), NOSE[:2], n=1)                              # nostril wings
+        blob(m, "head", (sd * 1.8, 29.4, 13.0), (1.0, 0.9, 0.9), NOSE[:2], n=1)                              # nostril wings
     # jaw: a wide lipless grin with stubby tusks
     blob(m, "jaw", (0, 27.2, 8.6), (5.4, 2.4, 5.0), SK, n=3, bottom=-1.0, top=0.7, light=lambda u: 0.1 + (u + 1) * 0.3)
     slab(m, "jaw", 0, 28.20, 12.95, 7.6, 0.6, 0.4, "black_terracotta")
@@ -589,6 +601,7 @@ def grubnose():
         slab(m, "jaw", k * 1.4, 27.90, 13.05, 0.9, 0.7, 0.3, "bone_block")
     for sd in (1, -1):
         taper(m, "jaw", (sd * 3.4, 27.8, 12.2), (sd * 3.8, 30.2, 12.8), 0.75, 0.4, BONE, n=2)
+    shift(m, ("head", "jaw"), (0, 1.6, 0.6))                                                                 # lift the head out of the chest
     m.bend = -16
     standard_anims(m, heavy=1.3, extra={"idle": idle_biped(4.0, 16, breath=0.04, extra={"cloth": {"rot": wave(0, 6, 2.0, base=(4, 0, 0))},
                                                                                         "jaw": {"rot": wave(0, 4, 4.0)}})})
