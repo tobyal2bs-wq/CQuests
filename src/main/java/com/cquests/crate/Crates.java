@@ -83,6 +83,7 @@ public final class Crates implements Listener {
 
     public void stop() {
         if (timer != null) { timer.cancel(); timer = null; }
+        if (!plugin.isEnabled()) return;                       // shutting down: the displays are never saved, nothing to clean
         for (Crate c : crates.values()) { Location a = c.at(); if (a != null) Sched.at(a, () -> hide(c)); }
     }
 
