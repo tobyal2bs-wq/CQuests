@@ -374,3 +374,28 @@ invites:
     5: []
     10: []
 
+
+# Loot crates: wooden crates that break open for loot when a player uses them (/cq crate place|remove|token|wild|hint).
+crates:
+  enabled: true
+  # A crate spot you placed comes back this long after someone opens it.
+  respawn-minutes: 30
+  # A few crates also hide on the surface around a world's spawn and move somewhere else after a while.
+  wild:
+    count: 3
+    world: ""            # empty: the main world
+    radius: 1500
+    lifetime-minutes: 360
+    respawn-minutes: 20
+  # One pick per crate: "weight ITEM amount". Higher weight is more common.
+  loot:
+    - "30 DIAMOND 5"
+    - "8 NETHERITE_INGOT 1"
+    - "22 EMERALD 12"
+    - "15 GOLDEN_APPLE 2"
+    - "15 IRON_INGOT 16"
+    - "10 EXPERIENCE_BOTTLE 16"
+  # A Chest Token drops on top of the loot at 1 in N crates; N is rolled fresh every day between these two.
+  token:
+    min-odds: 10000
+    max-odds: 200000

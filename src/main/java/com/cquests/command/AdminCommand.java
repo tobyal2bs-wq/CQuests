@@ -76,6 +76,7 @@ public final class AdminCommand implements TabExecutor {
             case "chapter", "chapters" -> chapter(sender, args);
             case "farm" -> plugin.farmCommand().run(sender,args);
             case "merchant" -> new com.cquests.merchant.MerchantCommand(plugin).run(sender,args);
+            case "crate", "crates" -> plugin.crates().command(sender, args);
             case "camp" -> plugin.spawns().arrangeCamp(sender);
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
@@ -591,9 +592,15 @@ public final class AdminCommand implements TabExecutor {
             if (args.length == 2 && args[0].equalsIgnoreCase("test")) return QuestsCommand.filter(List.of("worldboss"), args[1]);
         }
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "player", "quest", "finale", "test", "backup", "backups", "restore", "worldboss", "season"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "crate", "player", "quest", "finale", "test", "backup", "backups", "restore", "worldboss", "season"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
+        if (first.equals("crate") || first.equals("crates")) {
+            if (args.length == 2) return QuestsCommand.filter(List.of("list", "place", "remove", "token", "wild", "hint"), args[1]);
+            if (args.length == 3 && args[1].equalsIgnoreCase("remove")) return QuestsCommand.filter(plugin.crates().ids(), args[2]);
+            if (args.length == 3 && args[1].equalsIgnoreCase("token")) return null;
+            return List.of();
+        }
         if(first.equals("merchant")){
             if(!(sender instanceof Player p)||!p.isOp())return List.of();
             if(args.length==2)return QuestsCommand.filter(List.of("test","list","spawn","point","shop","end","wand","undo","routeclear","walk","despawn","edit"),args[1]);

@@ -78,13 +78,13 @@ public final class MerchantService {
     public static boolean editGesture(Player player){return player.isSneaking()||(player.getCurrentInput()!=null&&player.getCurrentInput().isSneak());}
     private ItemStack item(String path){
         Object raw=yaml.get(path);if(raw instanceof ItemStack stack)return stack.clone();
-        if(raw instanceof String text){String[] parts=text.split(" ");return new ItemStack(Material.valueOf(parts[0]),parts.length>1?Integer.parseInt(parts[1]):1);}return null;
+        if(raw instanceof String text){String[] parts=text.split(" ");if(parts[0].equalsIgnoreCase("CHEST_TOKEN"))return plugin.crates().token(parts.length>1?Integer.parseInt(parts[1]):1);return new ItemStack(Material.valueOf(parts[0]),parts.length>1?Integer.parseInt(parts[1]):1);}return null;
     }
     private synchronized void load(){
         yaml=YamlConfiguration.loadConfiguration(file);Map<String,MerchantDefinition> found=new LinkedHashMap<>();
-        if(!yaml.contains("merchants.flora")){
+        for(String shipped:List.of("flora","tokenkeeper"))if(!yaml.contains("merchants."+shipped)){
             var defaults=YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(java.util.Objects.requireNonNull(plugin.getResource("merchants.yml")),java.nio.charset.StandardCharsets.UTF_8));
-            var flora=defaults.getConfigurationSection("merchants.flora");if(flora!=null)flora.getValues(true).forEach((k,v)->{if(!(v instanceof org.bukkit.configuration.ConfigurationSection))yaml.set("merchants.flora."+k,v);});
+            var section=defaults.getConfigurationSection("merchants."+shipped);if(section!=null)section.getValues(true).forEach((k,v)->{if(!(v instanceof org.bukkit.configuration.ConfigurationSection))yaml.set("merchants."+shipped+"."+k,v);});
         }
         var root=yaml.getConfigurationSection("merchants");
         if(root!=null)for(String id:root.getKeys(false))try{

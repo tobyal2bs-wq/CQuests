@@ -30,8 +30,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Decorations ops place (/cbosses decor place <model>): a block model that just sits there and pulls faces,
- * like the three carved pumpkins. They are drawn only while a player is within 48 blocks and taken away
+ * Decorations ops place (/cbosses decor place <model>): a block model that just sits there, pulls faces
+ * (mostly happy, now and then sad) and now and then hops in place, like the carved pumpkins, gingerbread
+ * people and Easter eggs. One goes on top of the block you look at, or on top of the decoration already
+ * standing there, so they stack. They are drawn only while a player is within 48 blocks and taken away
  * again when nobody is near, so a decoration costs nothing in empty chunks and is never saved into the
  * world; their places are kept in decor.yml.
  */
@@ -40,7 +42,8 @@ public final class Decor {
 
     static final class Piece {
         final String id, model, world;
-        final double x, y, z;
+        final double x, z;
+        volatile double y;
         final float yaw;
         volatile List<BlockDisplay> parts;
         volatile String face = "idle";
@@ -133,24 +136,77 @@ public final class Decor {
     private void changeFace(Piece p, Location at) {
         ModelRig.Model m = plugin.service().model(p.model);
         if (m == null || m.faces.size() < 2) return;
+        ThreadLocalRandom r = ThreadLocalRandom.current();
         List<String> faces = new ArrayList<>(m.faces);
-        faces.remove(p.face);
-        faces.remove("dead");
-        p.face = faces.get(ThreadLocalRandom.current().nextInt(faces.size()));
-        p.nextFace = System.currentTimeMillis() + ThreadLocalRandom.current().nextLong(1800, 4200);
+        faces.removeAll(List.of(p.face, "dead", "sad"));
+        if (m.faces.contains("sad") && r.nextInt(7) == 0) p.face = "sad";
+        else if (m.faces.contains("happy") && !p.face.equals("happy") && r.nextInt(5) < 2) p.face = "happy";
+        else if (!faces.isEmpty()) p.face = faces.get(r.nextInt(faces.size()));
+        p.nextFace = System.currentTimeMillis() + r.nextLong(1800, 4200);
+        boolean hop = r.nextInt(3) == 0 && above(p) == null;
         Matrix4f[] pose = pose(p, m);
-        List<BlockDisplay> parts = p.parts;
-        for (int i = 0; i < parts.size() && i < pose.length; i++) {
-            if (m.faceOf[i] == null) continue;
-            BlockDisplay d = parts.get(i);
-            if (!d.isValid()) continue;
-            d.setInterpolationDelay(0);
-            d.setTransformation(BossModel.transformation(pose[i]));
-        }
+        if (hop) { hop(p, m, at, pose); return; }
+        send(p, m, pose, 0, 3, true);
         // a little puff and sound when it changes its face, only close by
         at.getWorld().spawnParticle(org.bukkit.Particle.SMOKE, at.clone().add(0, 1.2, 0), 3, 0.3, 0.2, 0.3, 0.01);
         if (ThreadLocalRandom.current().nextInt(4) == 0)
             at.getWorld().playSound(at, org.bukkit.Sound.BLOCK_WOOD_HIT, 0.4f, 0.6f + ThreadLocalRandom.current().nextFloat() * 0.6f);
+    }
+
+    /** Sends a pose to the parts (only the face plates when faceOnly), offset up by lift and squashed by squash. */
+    private void send(Piece p, ModelRig.Model m, Matrix4f[] pose, float lift, int ticks, boolean faceOnly) {
+        send(p, m, pose, lift, 1, ticks, faceOnly);
+    }
+
+    private void send(Piece p, ModelRig.Model m, Matrix4f[] pose, float lift, float squash, int ticks, boolean faceOnly) {
+        List<BlockDisplay> parts = p.parts;
+        if (parts == null) return;
+        Matrix4f move = new Matrix4f().translation(0, lift, 0).scale(1 + (1 - squash) * 0.8f, squash, 1 + (1 - squash) * 0.8f);
+        for (int i = 0; i < parts.size() && i < pose.length; i++) {
+            if (faceOnly && m.faceOf[i] == null) continue;
+            BlockDisplay d = parts.get(i);
+            if (!d.isValid()) continue;
+            d.setInterpolationDelay(0);
+            d.setInterpolationDuration(ticks);
+            d.setTransformation(BossModel.transformation(new Matrix4f(move).mul(pose[i])));
+        }
+    }
+
+    /** A little hop in place: crouch, up, land with a squash, back to shape. Only when nothing stands on it. */
+    private void hop(Piece p, ModelRig.Model m, Location at, Matrix4f[] pose) {
+        List<BlockDisplay> parts = p.parts;
+        send(p, m, pose, 0, 0.88f, 2, false);
+        int[][] keys = {{2, 4, 30}, {6, 3, 0}, {9, 3, -1}};          // tick, length, lift in hundredths (-1: squash)
+        for (int[] k : keys) Bukkit.getRegionScheduler().runDelayed(plugin, at, t -> {
+            if (p.parts != parts) return;                               // hidden or shown again meanwhile
+            if (k[2] < 0) send(p, m, pose, 0, 0.9f, k[1], false);
+            else send(p, m, pose, k[2] / 100f, 1, k[1], false);
+        }, k[0]);
+        Bukkit.getRegionScheduler().runDelayed(plugin, at, t -> { if (p.parts == parts) send(p, m, pose, 0, 1, 3, false); }, 12);
+        at.getWorld().playSound(at, org.bukkit.Sound.ENTITY_SLIME_JUMP_SMALL, 0.35f, 1.3f + ThreadLocalRandom.current().nextFloat() * 0.4f);
+    }
+
+    /** The decoration standing right on top of this one, if any. */
+    private Piece above(Piece p) {
+        double top = p.y + height(p);
+        for (Piece o : pieces.values())
+            if (o != p && o.world.equals(p.world) && Math.abs(o.x - p.x) < 0.01 && Math.abs(o.z - p.z) < 0.01 && Math.abs(o.y - top) < 0.02) return o;
+        return null;
+    }
+
+    private double height(Piece p) {
+        ModelRig.Model m = plugin.service().model(p.model);
+        return m == null ? 1 : m.blocks();
+    }
+
+    /** The y a new decoration sits at in this column: on the block, or on top of the stack already there. */
+    private double top(String world, double x, double y, double z) {
+        for (boolean moved = true; moved; ) {
+            moved = false;
+            for (Piece o : pieces.values())
+                if (o.world.equals(world) && Math.abs(o.x - x) < 0.01 && Math.abs(o.z - z) < 0.01 && Math.abs(o.y - y) < 0.02) { y = o.y + height(o); moved = true; break; }
+        }
+        return y;
     }
 
     private void hide(Piece p) {
@@ -179,8 +235,12 @@ public final class Decor {
                 Location l = player.getLocation();
                 int n = pieces.size() + 1;
                 while (pieces.containsKey("decor" + n)) n++;
-                // it faces the player who placed it
-                Piece p = new Piece("decor" + n, model, l.getWorld().getName(), l.getBlockX() + 0.5, l.getBlockY(), l.getBlockZ() + 0.5, Math.round((l.getYaw() + 180) / 90f) * 90f);
+                // on top of the block looked at (or of the decorations already stacked there), facing the player
+                org.bukkit.block.Block hit = player.getTargetBlockExact(6);
+                org.bukkit.block.Block on = hit != null && hit.getType().isSolid() ? hit.getRelative(org.bukkit.block.BlockFace.UP) : l.getBlock();
+                String w = l.getWorld().getName();
+                double x = on.getX() + 0.5, z = on.getZ() + 0.5;
+                Piece p = new Piece("decor" + n, model, w, x, top(w, x, on.getY(), z), z, Math.round((l.getYaw() + 180) / 90f) * 90f);
                 pieces.put(p.id, p);
                 save();
                 plugin.send(to, T.t("decor.placed", "<green>Placed <white><model></white> (<id>). <gray>Remove it with /<label> decor remove", "model", model, "id", p.id, "label", label));
@@ -199,8 +259,13 @@ public final class Decor {
                 }
                 if (best == null) { plugin.send(to, T.t("decor.none", "<red>No decoration within 6 blocks. <gray>/<label> decor remove <id>", "label", label)); return; }
                 Piece gone = best;
+                // whatever was stacked on it comes down by its height
+                List<Piece> stack = new ArrayList<>();
+                for (Piece up = above(gone); up != null && !stack.contains(up); up = above(up)) stack.add(up);
+                double drop = height(gone);
                 pieces.remove(gone.id);
                 Location a = gone.at();
+                for (Piece up : stack) { if (a != null) Sched.at(a, () -> hide(up)); up.y -= drop; }
                 if (a != null) Sched.at(a, () -> hide(gone)); else hide(gone);
                 save();
                 plugin.send(to, T.t("decor.removed", "<gray>Removed <white><id></white>.", "id", gone.id));

@@ -16,6 +16,19 @@ final class ContentUpgrade {
         applyChapters18(plugin);
         applyCoop19(plugin);
         applySeasons110(plugin);
+        applyCrates117(plugin);
+    }
+
+    /** 1.17.0: the loot crate quests (crate_*). */
+    private static void applyCrates117(CQuestsPlugin plugin) {
+        File marker = new File(plugin.getDataFolder(), ".content-1.17.0");
+        if (marker.exists()) return;
+        try {
+            merge(plugin, "quests.yml", "quests", (id, value) -> id.startsWith("crate_"), ".before-1.17.0", List.of());
+            Files.writeString(marker.toPath(), "Loot crate quests added. Existing IDs and progress preserved.\n");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not add the 1.17.0 crate quests; existing files kept: " + e.getMessage());
+        }
     }
 
     /** 1.10.0: the tutorial quest and seasonal daily quests (season_*). */

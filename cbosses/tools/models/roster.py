@@ -4,7 +4,7 @@ import importlib
 import models
 
 MODULES = ["v2_general", "v2_seasonal", "v2_chapters", "v2_legends", "v3_general", "v3_mythic", "v3_seasonal",
-           "v4_normal", "v4_chapters", "v4_seasonal", "v5_normal", "v5_mythic", "v6_originals", "v7_bigs", "v8_pumpkins", "v9_minis", "v10_fixes", "v11_new", "v12_final", "v13_approved", "v14_studio", "v15_minis", "v16_pixel", "v17_sculpt"]
+           "v4_normal", "v4_chapters", "v4_seasonal", "v5_normal", "v5_mythic", "v6_originals", "v7_bigs", "v8_pumpkins", "v9_minis", "v10_fixes", "v11_new", "v12_final", "v13_approved", "v14_studio", "v15_minis", "v16_pixel", "v17_sculpt", "v18_seasonal"]
 
 # the weekly rotation: the first 25 bosses, then the new ones drawn from the user's pictures
 GENERAL = ["slagheart", "warlord_gruk", "grand_augur", "crimson_ronin", "thunderback", "gorehorn", "abyssal_eye", "overgrowth",
@@ -49,7 +49,7 @@ def builders():
 
 
 def recipes():
-    import v2_recipes, v4_recipes, v8_recipes, v9_minis, v11_new, v12_final, v14_studio
+    import v2_recipes, v4_recipes, v8_recipes, v9_minis, v11_new, v12_final, v14_studio, v18_seasonal
     spawn, death = dict(v2_recipes.SPAWN), dict(v2_recipes.DEATH)
     for r in (v4_recipes, v8_recipes, v9_minis, v11_new, v12_final):
         spawn.update(r.SPAWN)

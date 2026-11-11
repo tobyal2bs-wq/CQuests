@@ -62,6 +62,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     private ScheduledTask autosave;
     private BackupManager backups;
     private com.cquests.merchant.MerchantService merchants;
+    private com.cquests.crate.Crates crates;
     private com.cquests.adventure.GeminiMail gemini;
     private com.cquests.merchant.NativeMarket market;
     private com.cquests.adventure.QuestMail mail;
@@ -112,6 +113,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         farm = new FarmService(this);
         farmCommand = new FarmCommand(this);
         shield = new NpcShield(this);
+        crates = new com.cquests.crate.Crates(this);
         merchants = new com.cquests.merchant.MerchantService(this);
         memories = new com.cquests.adventure.NpcMemory(this);
         adventures = new com.cquests.adventure.QuestAdventures(this);
@@ -134,12 +136,14 @@ public final class CQuestsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new com.cquests.merchant.MerchantListener(this), this);
         getServer().getPluginManager().registerEvents(adventures, this);
         getServer().getPluginManager().registerEvents(worldBosses, this);
+        getServer().getPluginManager().registerEvents(crates, this);
         register("quests", new QuestsCommand(this));
         register("cquests", new AdminCommand(this));
 
         spawns.load();
         spawns.start();
         merchants.start();
+        crates.start();
         worldBosses.start();
         autosave = Sched.asyncTimer(() -> {
             store.saveDirtyAsync();
@@ -169,6 +173,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         if(adventures!=null)adventures.shutdown();
         if(worldBosses!=null)worldBosses.shutdown();
         if(merchants!=null)merchants.shutdown();
+        if(crates!=null)crates.stop();
         if (farmSave != null) farmSave.cancel();
         if (farm != null) farm.shutdown();
         if (speech != null) speech.stopAll();
@@ -239,6 +244,7 @@ public final class CQuestsPlugin extends JavaPlugin {
         spawns.load();
         progression.reload(); farm.reload();
         merchants.reload();
+        crates.start();
         worldBosses.stopAll(); worldBosses.reload();
         spawns.start();
         backups.start();
@@ -304,6 +310,7 @@ public final class CQuestsPlugin extends JavaPlugin {
     public FarmService farm() { return farm; }
     public FarmCommand farmCommand() { return farmCommand; }
     public com.cquests.merchant.MerchantService merchants(){return merchants;}
+    public com.cquests.crate.Crates crates(){return crates;}
     public com.cquests.adventure.GeminiMail gemini(){return gemini;}
     public com.cquests.merchant.NativeMarket market(){return market;}
     public com.cquests.adventure.QuestMail mail(){return mail;}

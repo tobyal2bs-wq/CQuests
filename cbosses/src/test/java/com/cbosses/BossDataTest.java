@@ -170,6 +170,12 @@ class BossDataTest {
             assertNotNull(m, id);
             assertTrue(m.faces.size() >= 5, id + " has faces");
         }
+        for (String id : new String[]{"decor_gingerbread", "decor_gingerbread_girl", "decor_egg_pink", "decor_egg_blue", "decor_egg_mint"}) {
+            ModelRig.Model m = models.get(id);
+            assertNotNull(m, id);
+            assertTrue(m.faces.contains("happy") && m.faces.contains("sad"), id + " is happy and sometimes sad");
+            assertTrue(m.blocks() > 0.8f && m.blocks() < 1.2f, id + " stands about one block tall, so they stack");
+        }
         // only one face shows at a time
         var pose = ModelRig.cubes(king, ModelRig.pose(king, java.util.List.of(new ModelRig.Layer(king.anim("idle"), 0, 1))));
         king.showFace(pose, "angry");

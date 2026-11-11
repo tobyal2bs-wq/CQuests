@@ -308,6 +308,7 @@ public final class QuestManager {
                 if (tip != null) plugin.send(player, T.t("quest-manager.tip", "<dark_gray>  Tip: <gray><tip>", "tip", Text.escape(tip)));
             }
         }
+        if (!quiet && quest.objectives().stream().anyMatch(o -> o.type() == ObjectiveType.FIND)) plugin.crates().hint(player, 2);
         player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1f);
         plugin.visibility().refresh(player);
         plugin.tracker().track(player, quest.id());
