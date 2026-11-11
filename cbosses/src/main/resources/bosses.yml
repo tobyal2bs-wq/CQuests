@@ -1225,7 +1225,7 @@ bosses:
       top-commands: []
     spawn-commands: []
     defeat-commands: []
-    description: "The ogre from the picture, kept as the tavern brute: a hunched square green head pushed forward over the chest, small white eyes under a heavy brow, a wide nose, two pale tusks over the lip and stubby ears; a white shirt under an open brown vest, a ragged white apron on a dark belt, mauve trousers, dark boots, puffed white sleeves over thick green forearms, and a wooden tankard in the right fist."
+    description: "The tavern ogre, sculpted: a heavy round head sunk forward between hunched shoulders, a jutting underbite with two curved tusks, a thick brow over small deep eyes, a broad flat nose and pointed ears; a barrel belly in a grubby white shirt under an open leather vest, a thick belt with a brass buckle, a ragged apron, short thick legs in patched trousers and heavy boots, puffed sleeves, huge green forearms and fists, and a wooden tankard."
   # ------------------------------------------------------------ mythic: Warden, Wither, Ender Dragon, Breeze and the finale (5000 health)
   the_listener:
     name: "<gradient:#052e33:#4ae3e3><bold>THE LISTENER BELOW</bold></gradient>"
