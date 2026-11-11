@@ -14,8 +14,34 @@ from v14_studio import studio
 from v14_kit import humanoid, standard_anims, idle_biped, wave, wave2, K, Z, attack, loop
 
 
+import functools
+
+# how many blocks a sculpted model may use: minis stay at 300, big bosses get BIG_BUDGET
+MINI_BUDGET, BIG_BUDGET = 300, 450
+# quality levels, best first: the size from which slices turn eight-sided (ring, taper), whether balls get
+# a light top and a dark bottom, and how many slices a sliced blob loses
+LEVELS = [dict(oct=1.6, toct=1.6, shade=1.6, ball=1.6, cut=0), dict(oct=2.2, toct=2.2, shade=3.0, ball=1.6, cut=0),
+          dict(oct=3.0, toct=3.0, shade=99, ball=1.6, cut=0), dict(oct=4.0, toct=99, shade=99, ball=2.4, cut=1),
+          dict(oct=99, toct=99, shade=99, ball=3.2, cut=2)]
+Q = dict(LEVELS[0])
+
+
 def sculpt(id):
-    return studio(id, revise=False)
+    """Registers a sculpted model and builds it at the best quality that fits its block budget."""
+    def deco(fn):
+        @functools.wraps(fn)
+        def run():
+            import roster
+            budget = MINI_BUDGET if id in roster.minis() else BIG_BUDGET
+            for lv in LEVELS:
+                Q.update(lv)
+                m = fn()
+                if len(m.cubes) <= budget: break
+            Q.update(LEVELS[0])
+            m.quality = LEVELS.index(lv)
+            return m
+        return studio(id, revise=False)(run)
+    return deco
 
 
 def tone(ramp, t):
@@ -30,17 +56,118 @@ def slab(m, bone, cx, cy, cz, w, h, d, block, rot=None, origin=None, g=None):
     if g: m.cubes[-1]["g"] = g
 
 
-def ring(m, bone, cx, cy, cz, a, b, h, block, rot=None, origin=None, round_=0.62):
-    """One rounded slice: a plus of two boxes, so the corners are cut and it reads round."""
-    slab(m, bone, cx, cy, cz, 2 * a * 0.94, h, 2 * b * round_, block, rot, origin)
-    slab(m, bone, cx, cy, cz, 2 * a * round_, h, 2 * b * 0.94, block, rot, origin)
+K8 = math.tan(math.radians(22.5))   # half-width of an octagon side, as a fraction of its radius
+OCT = 1.6                            # forms at least this big get eight-sided slices; smaller ones keep the plus
 
 
-def blob(m, bone, c, r, ramp, n=6, top=1.0, bottom=-1.0, light=None, rot=None, origin=None, round_=0.62):
-    """An ellipsoid with radii r = (rx, ry, rz) centred at c, from bottom to top (-1..1 of ry) in n slices.
-    Each slice's tone comes from its height, dark below and light above."""
+def _rx(a): c, s = math.cos(a), math.sin(a); return [[1, 0, 0], [0, c, -s], [0, s, c]]
+def _ry(a): c, s = math.cos(a), math.sin(a); return [[c, 0, s], [0, 1, 0], [-s, 0, c]]
+def _rz(a): c, s = math.cos(a), math.sin(a); return [[c, -s, 0], [s, c, 0], [0, 0, 1]]
+def _mul(A, B): return [[sum(A[i][k] * B[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+def _app(A, v): return [sum(A[i][k] * v[k] for k in range(3)) for i in range(3)]
+
+
+def mat(rot):
+    """The game applies a cube's rotation as Rz * Ry * Rx (degrees)."""
+    if not rot: return [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    x, y, z = (math.radians(v) for v in rot)
+    return _mul(_rz(z), _mul(_ry(y), _rx(x)))
+
+
+def euler(R):
+    """Back from a matrix to (x, y, z) degrees in the game's Rz * Ry * Rx order."""
+    b = -math.asin(max(-1.0, min(1.0, R[2][0])))
+    if abs(math.cos(b)) > 1e-6:
+        c, a = math.atan2(R[2][1], R[2][2]), math.atan2(R[1][0], R[0][0])
+    else:
+        c, a = math.atan2(-R[1][2], R[1][1]), 0.0
+    return tuple(round(math.degrees(v), 2) for v in (c, b, a))
+
+
+def obox(m, bone, centre, size, R, block, g=None):
+    """A box of the given size centred at centre, turned by matrix R about its own centre."""
+    rot = euler(R)
+    if all(abs(v) < 0.01 for v in rot): rot = None
+    slab(m, bone, centre[0], centre[1], centre[2], size[0], size[1], size[2], block, rot, tuple(centre) if rot else None, g)
+
+
+def ring(m, bone, cx, cy, cz, a, b, h, block, rot=None, origin=None, round_=0.62, sides=None):
+    """One rounded slice. Big slices are octagons (four bars at 0, 45, 90 and 135 degrees), which read
+    round from every side; small ones are a plus of two boxes."""
+    if sides is None: sides = 8 if max(a, b) >= Q["oct"] else 4
+    if sides == 4:
+        slab(m, bone, cx, cy, cz, 2 * a * 0.94, h, 2 * b * round_, block, rot, origin)
+        slab(m, bone, cx, cy, cz, 2 * a * round_, h, 2 * b * 0.94, block, rot, origin)
+        return
+    R0 = mat(rot)
+    o = origin or (cx, cy, cz)
+    c = _app(R0, [cx - o[0], cy - o[1], cz - o[2]])
+    c = [c[0] + o[0], c[1] + o[1], c[2] + o[2]]
+    r45 = a * b / math.sqrt((a * a + b * b) / 2)
+    for size, spin in (((2 * a, h, 2 * K8 * b), 0), ((2 * K8 * a, h, 2 * b), 0),
+                       ((2 * r45, h, 2 * K8 * r45), 45), ((2 * r45, h, 2 * K8 * r45), -45)):
+        obox(m, bone, c, size, _mul(R0, _ry(math.radians(spin))), block)
+
+
+def ball(m, bone, c, r, ramp, top=1.0, bottom=-1.0, rot=None, origin=None, shade=True):
+    """An ellipsoid with no terraces: three rods along x, y and z, six rods at 45 degrees in the three
+    planes (so each plane shows an octagon) and a core box that fills the diagonals. Rods that reach up or
+    down are split in two so the top half takes a light tone and the bottom half a dark one. top and bottom
+    (-1..1) shorten the rods that reach up or down, for forms sunk into others."""
+    rx, ry, rz = r
+    R0 = mat(rot)
+    o = origin or c
+    def place(local, size, R, blk):
+        p = _app(R0, [c[0] + local[0] - o[0], c[1] + local[1] - o[1], c[2] + local[2] - o[2]])
+        obox(m, bone, (p[0] + o[0], p[1] + o[1], p[2] + o[2]), size, _mul(R0, R), blk)
+    shade = shade and max(r) >= Q["shade"]
+    lo, mid, hi = (tone(ramp, 0.2), tone(ramp, 0.55), tone(ramp, 0.9)) if shade else (tone(ramp, 0.55),) * 3
+    up, dn = max(0.0, top), max(0.0, -bottom)
+    I = mat(None)
+    # the equator: rods along x and z and the two diagonals between them, all one band thick
+    band = 2 * K8 * ry
+    r45 = rx * rz / math.sqrt((rx * rx + rz * rz) / 2)
+    place((0, 0, 0), (2 * rx, band, 2 * K8 * rz), I, mid)
+    place((0, 0, 0), (2 * K8 * rx, band, 2 * rz), I, mid)
+    for sp in (45, -45):
+        place((0, 0, 0), (2 * r45, band, 2 * K8 * r45), _ry(math.radians(sp)), mid)
+    # the core: a square and a diamond, so its corners stay inside the rods
+    cy0, ch = (up - dn) * 0.28 * ry, 0.56 * ry * (up + dn)
+    place((0, cy0, 0), (1.1 * rx, ch, 1.1 * rz), I, mid)
+    place((0, cy0, 0), (1.1 * r45, ch, 1.1 * r45), _ry(math.radians(45)), mid)
+    # rods that reach up and down: along y, and the diagonals in the x-y and z-y planes
+    for half, blk, f in ((1, hi, up), (-1, lo, dn)):
+        if f <= 0.05: continue
+        place((0, half * ry * f / 2, 0), (2 * K8 * rx, ry * f, 2 * K8 * rz), I, blk)
+        for plane in ("xy", "zy"):
+            ra = rx if plane == "xy" else rz
+            d = ra * ry / math.sqrt((ra * ra + ry * ry) / 2)
+            for sd in (1, -1):
+                # a half rod from the centre out along the diagonal (sd, half)
+                L = d * f
+                ang = math.radians(45) * sd * half
+                if plane == "xy":
+                    R = _rz(-ang)
+                    local = (math.sin(ang) * L / 2 * half * half, half * math.cos(ang) * L / 2, 0)
+                    local = (sd * L / 2 * math.sqrt(0.5), half * L / 2 * math.sqrt(0.5), 0)
+                    size = (2 * K8 * d, L, 2 * K8 * rz)
+                else:
+                    R = _rx(ang)
+                    local = (0, half * L / 2 * math.sqrt(0.5), sd * L / 2 * math.sqrt(0.5))
+                    size = (2 * K8 * rx, L, 2 * K8 * d)
+                place(local, size, R, blk)
+
+
+def blob(m, bone, c, r, ramp, n=6, top=1.0, bottom=-1.0, light=None, rot=None, origin=None, round_=0.62, sliced=False):
+    """An ellipsoid with radii r = (rx, ry, rz) centred at c. Big forms are a ball() (smooth, no
+    terraces); small ones and forms cut flat (a boot sole, a half dome) are stacked slices, each slice's
+    tone from its height, dark below and light above."""
     cx, cy, cz = c
     rx, ry, rz = r
+    if not sliced and max(rx, rz) >= Q["ball"] and bottom <= -0.55 and top >= 0.55 and light is None:
+        ball(m, bone, c, r, ramp, top=top, bottom=bottom, rot=rot, origin=origin)
+        return
+    n = max(1, n - Q["cut"]) if n > 2 else n
     edges = [bottom + (top - bottom) * i / n for i in range(n + 1)]
     for i in range(n):
         u0, u1 = edges[i], edges[i + 1]
@@ -55,12 +182,14 @@ def blob(m, bone, c, r, ramp, n=6, top=1.0, bottom=-1.0, light=None, rot=None, o
 
 def taper(m, bone, p0, p1, r0, r1, ramp, n=3, flat=1.0, bright=None):
     """A rounded limb from p0 (radius r0) to p1 (radius r1) in n pieces; each piece is rotated to follow the
-    line, so arms, horns and tusks can point anywhere. flat squashes the depth (1 = round)."""
+    line, so arms, horns and tusks can point anywhere. flat squashes the depth (1 = round). Thick pieces get
+    an eight-sided section (two more bars spun 45 degrees about the limb)."""
     dx, dy, dz = (p1[i] - p0[i] for i in range(3))
     L = math.sqrt(dx * dx + dy * dy + dz * dz)
     # rotation that turns +y onto the direction: tilt about x (towards z) then about z (towards x)
     rx = math.degrees(math.atan2(dz, math.sqrt(dx * dx + dy * dy)))
     rz = -math.degrees(math.atan2(dx, dy))
+    R0 = mat((rx, 0, rz))
     for i in range(n):
         t0, t1 = i / n, (i + 1) / n
         tm = (t0 + t1) / 2
@@ -68,20 +197,57 @@ def taper(m, bone, p0, p1, r0, r1, ramp, n=3, flat=1.0, bright=None):
         r = r0 + (r1 - r0) * tm
         seg = L / n * 1.08
         blk = tone(ramp, bright(tm) if bright else 1 - tm * 0.5)
+        if r >= Q["toct"] and flat > 0.7:
+            for size, spin in (((2 * r, seg, 2 * K8 * r * flat), 0), ((2 * K8 * r, seg, 2 * r * flat), 0),
+                               ((2 * r, seg, 2 * K8 * r), 45), ((2 * r, seg, 2 * K8 * r), -45)):
+                obox(m, bone, c, size, _mul(R0, _ry(math.radians(spin))), blk)
+            continue
         rot = (rx, 0, rz) if abs(rx) > 0.5 or abs(rz) > 0.5 else None
         slab(m, bone, c[0], c[1], c[2], 2 * r * 0.94, seg, 2 * r * 0.62 * flat, blk, rot, c if rot else None)
         slab(m, bone, c[0], c[1], c[2], 2 * r * 0.62, seg, 2 * r * 0.94 * flat, blk, rot, c if rot else None)
 
 
-def lathe(m, bone, prof, ramp, round_=0.62, lo=0.0, hi=1.0):
-    """A turned form (robe, hat, bell sleeve) from a profile of points (y, a, b, x, z): one rounded slice
-    between each pair of points, so the outline can flare, narrow and lean. Tone runs lo..hi by height."""
+def panel(m, bone, p0, p1, width, thick, out, block):
+    """A flat board from p0 to p1 (its length), width across, thick deep, with its back face pushed in
+    along out (a horizontal outward direction), so the front face lies on the line p0-p1."""
+    u = [p1[i] - p0[i] for i in range(3)]
+    L = math.sqrt(sum(v * v for v in u))
+    u = [v / L for v in u]
+    w = [-out[2], 0.0, out[0]]                                  # horizontal, along the surface
+    n = [w[1] * u[2] - w[2] * u[1], w[2] * u[0] - w[0] * u[2], w[0] * u[1] - w[1] * u[0]]
+    R = [[w[0], u[0], n[0]], [w[1], u[1], n[1]], [w[2], u[2], n[2]]]
+    c = [(p0[i] + p1[i]) / 2 - out[i] * thick / 2 for i in range(3)]
+    obox(m, bone, c, (width, L * 1.02, thick), R, block)
+
+
+def frustum(m, bone, c0, a0, b0, c1, a1, b1, block, thick=None, sides=8):
+    """A smooth cone or skirt between two ellipses: eight boards that lean from the lower outline to the
+    upper one, so it slopes instead of stepping. Open at both ends (hide them inside other forms)."""
+    for k in range(sides):
+        th = 2 * math.pi * k / sides
+        cs, sn = math.cos(th), math.sin(th)
+        q0 = (c0[0] + a0 * cs, c0[1], c0[2] + b0 * sn)
+        q1 = (c1[0] + a1 * cs, c1[1], c1[2] + b1 * sn)
+        rm = (math.hypot(a0 * cs, b0 * sn) + math.hypot(a1 * cs, b1 * sn)) / 2
+        rmax = max(math.hypot(a0 * cs, b0 * sn), math.hypot(a1 * cs, b1 * sn))
+        t = thick or max(0.6, min(2.0, rm * 0.45))
+        panel(m, bone, q0, q1, 2 * math.tan(math.pi / sides) * rmax * 1.04, t, (cs, 0.0, sn), block)
+
+
+def lathe(m, bone, prof, ramp, round_=0.62, lo=0.0, hi=1.0, smooth=True):
+    """A turned form (robe, hat, bell sleeve) from a profile of points (y, a, b, x, z). Big forms are
+    leaning boards between the points (frustum), so the outline slopes; small ones are rounded slices.
+    Tone runs lo..hi by height."""
     y0, y1 = prof[0][0], prof[-1][0]
     for p, q in zip(prof, prof[1:]):
+        t = ((p[0] + q[0]) / 2 - y0) / max(0.01, y1 - y0)
+        blk = tone(ramp, lo + (hi - lo) * t)
+        if smooth and max(p[1], p[2], q[1], q[2]) >= 1.6:
+            frustum(m, bone, (p[3], p[0], p[4]), p[1], p[2], (q[3], q[0], q[4]), q[1], q[2], blk)
+            continue
         a, b = (p[1] + q[1]) / 2, (p[2] + q[2]) / 2
         x, z = (p[3] + q[3]) / 2, (p[4] + q[4]) / 2
-        t = ((p[0] + q[0]) / 2 - y0) / max(0.01, y1 - y0)
-        ring(m, bone, x, (p[0] + q[0]) / 2, z, a, b, abs(q[0] - p[0]) + 0.04, tone(ramp, lo + (hi - lo) * t), round_=round_)
+        ring(m, bone, x, (p[0] + q[0]) / 2, z, a, b, abs(q[0] - p[0]) + 0.04, blk, round_=round_)
 
 
 def chain(m, bone, pts, r0, r1, ramp, flat=1.0, bright=None):
@@ -144,14 +310,14 @@ def brewgut():
             slab(m, arm, x + sd * 0.9 + k, 9.8, 5.0, 1.1, 1.2, 0.6, "green_terracotta")         # knuckles
         slab(m, arm, x + sd * 0.4, 20.5, 2.0, 3.0, 1.0, 3.4, "light_gray_concrete_powder")      # rolled cuff
     # the head: round skull sunk low and forward, heavy jaw with an underbite
-    blob(m, "head", (0, 31.2, 3.6), (6.4, 5.8, 6.0), GREEN, n=6, bottom=-0.6, top=0.97)
+    blob(m, "head", (0, 31.2, 3.6), (6.4, 5.8, 6.0), GREEN, n=6, bottom=-0.6, top=0.97, sliced=True)
     blob(m, "jaw", (0, 27.4, 4.6), (5.2, 2.4, 4.6), GREEN, n=3, bottom=-1.0, top=0.6, light=lambda u: 0.15 + (u + 1) * 0.25)
     slab(m, "jaw", 0, 28.5, 8.9, 6.4, 1.0, 0.9, "lime_terracotta")                                # lower lip
     slab(m, "jaw", 0, 29.15, 8.7, 5.4, 0.5, 0.8, "black_terracotta")                               # mouth line
     slab(m, "jaw", 1.4, 29.1, 8.95, 1.4, 0.5, 0.6, "pink_terracotta")                            # tongue tip
     for sd in (1, -1):
         taper(m, "jaw", (sd * 2.8, 28.6, 8.8), (sd * 3.4, 31.0, 9.8), 0.7, 0.3, ["end_stone", "bone_block", "bone_block"], n=2)
-    slab(m, "head", 0, 34.0, 8.8, 8.2, 1.3, 2.4, "green_terracotta", rot=(10, 0, 0))                   # heavy brow
+    chain(m, "head", [(-4.4, 33.6, 8.2), (-1.6, 34.2, 9.0), (1.6, 34.2, 9.0), (4.4, 33.6, 8.2)], 1.0, 1.0, GREEN[:3])   # heavy brow ridge
     for sd in (1, -1):
         slab(m, "head", sd * 2.5, 32.4, 9.4, 2.2, 1.5, 0.4, "white_concrete")                    # eyes
         slab(m, "head", sd * 2.2, 32.3, 9.65, 1.0, 1.1, 0.2, "black_concrete")
