@@ -30,7 +30,7 @@ def mob(id):
     return deco
 
 
-LOOSE = ("fing", "thumb", "tail", "wing", "ring", "ray", "cloud", "key", "lantern", "shovel", "staff", "rod", "cat", "little", "rider", "hat", "beard", "jaw", "inner")
+LOOSE = ("fing", "tip", "thumb", "tail", "wing", "ring", "ray", "cloud", "key", "lantern", "shovel", "staff", "rod", "cat", "little", "rider", "hat", "beard", "jaw", "inner")
 
 
 def joints(m):
@@ -257,18 +257,28 @@ def alive(m):
                 hb["pivot"] = [round(v, 3) for v in H]
                 sw, sd = shaft["t"][0] - shaft["f"][0], shaft["t"][2] - shaft["f"][2]
                 gw, gd = max(w, sw + 1.6), max(d * 0.9, sd + 1.6)
-                m.c(hb["name"], skin, H, (gw, max(2.0, h * 0.9), gd))                           # the fist round the grip
-                for k in (-1, 0, 1):
-                    m.c(hb["name"], skin, (H[0], H[1] + k * 0.75, H[2] + gd / 2 + 0.12), (gw * 0.96, 0.5, 0.5))
-                m.c(hb["name"], skin, (H[0] - sx * (gw / 2 + 0.1), H[1] + 0.5, H[2] + 0.3), (0.6, 0.9, gd * 0.7))
+                gh, n = max(2.6, h * 0.9), hb["name"]
+                m.c(n, skin, (H[0], H[1], H[2] - gd / 4 - 0.1), (gw, gh, gd / 2 + 0.2))                  # the palm behind the grip
+                fh = (gh - 0.6) / 4
+                for k in range(4):                                                                       # four fingers, each wrapped round the front
+                    y = H[1] - gh / 2 + fh / 2 + k * (fh + 0.2)
+                    m.c(n, skin, (H[0], y, H[2] + gd / 2 - 0.1), (gw + 0.3, fh, 0.7))
+                    m.c(n, skin, (H[0] + sx * (gw / 2 - 0.15), y, H[2] + gd / 4 - 0.2), (0.7, fh, gd / 2 + 0.2))
+                m.c(n, skin, (H[0] - sx * (gw / 2 - 0.1), H[1] + gh / 2 - 0.5, H[2] + gd / 4), (0.8, 0.8, gd / 2 + 0.6))   # the thumb closes it from the other side
+                m.c(n, skin, (H[0] - sx * gw * 0.15, H[1] + gh / 2 - 0.5, H[2] + gd / 2 + 0.2), (gw * 0.6, 0.8, 0.6))
             continue
         P = (H[0], bot, H[2] + d * 0.15)
         m.bone("fing" + side, fore, P)
         if loose:
             for c in loose: c["b"] = "fing" + side
-        else:
-            for k in (-1, 0, 1):
-                m.c("fing" + side, skin, (H[0] + k * w * 0.33, bot - h * 0.3 + 0.15, H[2] + d * 0.15), (w * 0.27, h * 0.6 + 0.3, d * 0.42))
+        else:                                                                                            # four fingers of two joints each
+            fl, fw = h * 0.45 + 0.4, w * 0.2
+            m.bone("tip" + side, "fing" + side, (H[0], bot - fl + 0.1, H[2] + d * 0.15))
+            for k in range(4):
+                x = H[0] + (k - 1.5) * w * 0.26
+                m.c("fing" + side, skin, (x, bot - fl / 2 + 0.15, H[2] + d * 0.15), (fw, fl + 0.3, d * 0.4))
+                m.c("tip" + side, skin, (x, bot - fl - fl * 0.4 + 0.2, H[2] + d * 0.15), (fw, fl * 0.8 + 0.2, d * 0.36))
+            m.motion["tip" + side] = ("curl", -26)
         T = (H[0] - sx * (w / 2), bot + h * 0.45, H[2] + d * 0.25)
         m.bone("thumb" + side, fore, T)
         m.c("thumb" + side, skin, (T[0] - sx * 0.25, T[1] - h * 0.3, T[2] + 0.1), (0.9, h * 0.6, d * 0.4))
