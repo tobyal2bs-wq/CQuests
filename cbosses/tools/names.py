@@ -51,7 +51,8 @@ NAMES = {
     "brewgut": ("Bruno", "The Tavern Ogre"),
     # seasonal
     "frostbottom": ("Frosty", "The Angry Snowman"),
-    "sunscorch": ("Sunny", "Melting on Holiday"),
+    "sunscorch": ("Sizzle", "Done Being Cooked On"),
+    "headless_horseman": ("Stitches", "Good Boy, Badly Sewn"),
     "cocoa_colossus": ("Eggbert", "The Chocolate Egg"),
     "gourd_king": ("Jack", "King of the Pumpkins"),
     "hexmother": ("Granny Morwen", "The Swamp Witch"),

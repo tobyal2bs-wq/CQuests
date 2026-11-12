@@ -20,7 +20,7 @@ def mob(id):
         def run():
             m = fn()
             m.flat = m.sculpted = True
-            m.post = lambda m: (joints(m), unfight(m))
+            m.post = lambda m: (calm(m), joints(m), emboss(m), unfight(m))
             return m
         run.__name__ = fn.__name__
         run.__doc__ = fn.__doc__
@@ -68,6 +68,46 @@ def joints(m):
         if gap(c, P) > 0.6 * h:
             g = 0.9 * h
             m.box(n, c["k"], *reach([v - g for v in P], [v + g for v in P], c))
+
+
+def calm(m):
+    """A block display squeezes the whole 16x16 texture onto each face, so a woolly or mossy block on a small
+    piece turns into dense noise. Small pieces take the smooth block of the same colour; big faces keep the grain."""
+    import palette
+    for c in m.cubes:
+        d = sorted(t - f for f, t in zip(c["f"], c["t"]))
+        if d[2] >= 5 and d[1] >= 2.5: continue
+        k = c["k"]
+        if k.endswith("_wool") and k[:-5] + "_concrete" in palette.P: c["k"] = k[:-5] + "_concrete"
+        elif k == "moss_block": c["k"] = "green_concrete"
+
+
+def emboss(m):
+    """Painted features (eyes, pupils, mouths, buckles) were plates a hair off the surface, close enough to
+    flicker or vanish against the face behind them when the head turns. Each plate is now a real raised piece:
+    sunk 0.2 into the surface it sits on and standing 0.3 proud of it, and a plate painted over another plate
+    (a pupil on an eye white) stands a further 0.25 proud for each layer."""
+    big = [c for c in m.cubes if "r" not in c and min(t - f for f, t in zip(c["f"], c["t"])) >= 0.5]
+    groups = {}
+    for c in m.cubes:
+        if "r" in c: continue
+        d = [t - f for f, t in zip(c["f"], c["t"])]
+        ax = d.index(min(d))
+        if d[ax] > 0.25: continue
+        o = [k for k in range(3) if k != ax]
+        mid = (c["f"][ax] + c["t"][ax]) / 2
+        best = None
+        for q in big:
+            if q["b"] != c["b"] or not all(min(c["t"][k], q["t"][k]) - max(c["f"][k], q["f"][k]) > 0.01 for k in o): continue
+            for sd, s in ((1, q["t"][ax]), (-1, q["f"][ax])):
+                if abs(mid - s) < 0.6 and (best is None or abs(mid - s) < best[0]): best = (abs(mid - s), id(q), sd, s)
+        if best: groups.setdefault((best[1], ax, best[2], best[3]), []).append(c)
+    for (_, ax, sd, s), cs in groups.items():
+        out = lambda c: round(((c["t"][ax] if sd > 0 else c["f"][ax]) - s) * sd, 2)
+        levels = sorted({out(c) for c in cs})
+        for c in cs:
+            lo, hi = s - 0.2 * sd, s + (0.3 + 0.25 * levels.index(out(c))) * sd
+            c["f"][ax], c["t"][ax] = round(min(lo, hi), 3), round(max(lo, hi), 3)
 
 
 def unfight(m):
@@ -714,54 +754,6 @@ def glow_last(m, n, blocks):
 
 # ------------------------------------------------------------------------------------------------ Sunny
 
-@mob("sunscorch")
-def sunscorch():
-    """Sunny, a little sun on its summer holiday: a cube of orange sun with a glowing yellow top that melts down
-    its sides in drips, a crown of flame rays, big pink heart sunglasses, a wide grin with its tongue out and a
-    yellow duck swim ring round its middle."""
-    import v14_studio
-    m = Model("sunscorch", "slime", 1.6)
-    for b, p, at in (("body", "root", (0, 0, 0)), ("inner", "body", (0, 10, 0)), ("mouth", "body", (0, 9, 9)), ("ring", "body", (0, 6, 0)), ("rays", "body", (0, 21, 0))):
-        m.bone(b, p, at)
-    OR, OR_D, YE = "orange_concrete", "orange_terracotta", "yellow_concrete"
-    litbox(m, "inner", (0, 10.5, 0), (9.0, 9.0, 9.0), "shroomlight")                        # the white-hot core, seen when it bursts
-    part(m, "body", (0, 9.6, 0), (18.0, 19.2, 18.0), OR, dark=OR_D, band=0.1)
-    litbox(m, "body", (0, 17.6, 0), (18.3, 3.6, 18.3), YE)
-    for x, z, h in ((-6.0, 9.15, 3.6), (-1.6, 9.15, 2.0), (6.6, 9.15, 4.4), (9.15, -5.0, 5.2), (9.15, 2.4, 2.6), (-9.15, 4.6, 4.8), (-9.15, -3.4, 2.2), (2.0, -9.15, 4.0), (-5.0, -9.15, 2.8)):
-        w = (1.4, h, 0.2) if abs(z) > 9 else (0.2, h, 1.4)
-        litbox(m, "body", (x, 15.8 - h / 2, z), w, YE)
-    litbox(m, "body", (-6.4, 18.4, 9.26), (2.4, 0.8, 0.1), "white_concrete")                     # a shine
-    # heart sunglasses
-    paint(m, "body", "f", (0, 12.8, 9.0), [".pp.pp...pp.pp.", "pmmpmmp.pmmpmmp", "pmwmmmpppmwmmmp", "pmmmmmp.pmmmmmp", ".pmmmp...pmmmp.", "..pmp.....pmp..", "...p.......p..."],
-          {"p": "pink_concrete", "m": "magenta_concrete", "w": "white_concrete"}, 0.9, d=0.3)
-    for sd in (1, -1):
-        bx(m, "body", (sd * 9.12, 14.6, 4.4), (0.2, 0.8, 9.0), "pink_concrete")
-    # the grin with teeth and the tongue sticking out
-    paint(m, "mouth", "f", (0, 6.0, 9.0), [".kkkkkkkkkkk.", "kwwkwwkwwkwwk", "kkkkkkkkkkkkk", ".kkkrrrrrkkk.", "...krrrrrk..."], {"k": "black_concrete", "w": "white_concrete", "r": "red_concrete"}, 0.9)
-    part(m, "mouth", (0, 3.8, 9.8), (3.2, 2.6, 1.4), "red_concrete", light="pink_concrete")
-    bx(m, "mouth", (0, 3.6, 10.56), (0.4, 1.8, 0.1), "pink_concrete")
-    # the crown of flame rays
-    import math
-    for k in range(8):
-        a = k * math.pi / 4
-        x, z = math.cos(a) * 6.2, math.sin(a) * 6.2
-        tall = 5.5 if k % 2 == 0 else 3.8
-        litbox(m, "rays", (x, 21 + tall / 2, z), (2.6, tall, 2.6), YE)
-        litbox(m, "rays", (x, 21 + tall + 0.8, z), (1.4, 1.8, 1.4), OR)
-    # the duck swim ring, white stripes and a duck head at the front
-    for c, s in (((0, 2.6, -10.6), (24.0, 3.4, 3.2)), ((0, 2.6, 10.6), (24.0, 3.4, 3.2)), ((-10.6, 2.6, 0), (3.2, 3.4, 18.0)), ((10.6, 2.6, 0), (3.2, 3.4, 18.0))):
-        part(m, "ring", c, s, YE, dark="yellow_terracotta", band=0.25)
-    for x, z in ((-12.26, -4.6), (-12.26, 4.6), (12.26, -4.6), (12.26, 4.6)):
-        bx(m, "ring", (x, 2.6, z), (0.1, 3.4, 2.0), "white_concrete")
-    part(m, "ring", (8.4, 6.0, 12.0), (4.4, 4.4, 4.0), YE)
-    part(m, "ring", (8.4, 5.4, 14.8), (2.6, 1.2, 1.8), OR)
-    paint(m, "ring", "f", (8.4, 6.8, 14.0), ["k..k"], {"k": "black_concrete"}, 0.8)
-    m.anims = v14_studio.sunscorch().anims
-    m.attacks = {"leap": "slam", "quake": "hop", "fire_ring": "burst", "volley": "spit"}
-    m.melee = "hop"
-    return m
-
-
 # ------------------------------------------------------------------------------------------------ Granny Morwen
 
 @mob("hexmother")
@@ -869,91 +861,6 @@ def hexmother():
 
 # ------------------------------------------------------------------------------------------------ The Headless Horseman
 
-@mob("headless_horseman")
-def headless_horseman():
-    """The Headless Horseman on his nightmare horse. The horse is black with a bone mask, ribs showing on its
-    chest, glowing eyes and nostrils, a mane and tail of fire and burning hooves, under a purple caparison with
-    orange trim and a black saddle. The rider wears a dark coat with gold buttons, a ruffled white collar and a
-    tattered cape; flames rise from his neck, he holds his carved, glowing jack-o'-lantern head up high in one
-    hand and points a long sabre with the other."""
-    m = Model("headless_horseman", "quad", 1.8)
-    m.bone("body", "root", (0, 21, 0))
-    for n, x, z in (("legFL", 3.6, 8.6), ("legFR", -3.6, 8.6), ("legBL", 3.6, -9.4), ("legBR", -3.6, -9.4)):
-        m.bone(n, "body", (x, 21, z))
-    m.bone("head", "body", (0, 30, 11)); m.bone("jaw", "head", (0, 30, 16))
-    m.bone("tail", "body", (0, 26, -12)); m.bone("rider", "body", (0, 30, -1))
-    m.bone("riderArmR", "rider", (-4.6, 40.4, -1)); m.bone("riderArmL", "rider", (4.6, 40.4, -1))
-    HB, HB_L, BONE, FIRE, FIRE2 = "black_concrete", "gray_concrete", "calcite", "orange_concrete", "yellow_concrete"
-    CAP, TRIM, COAT, COAT_D = "purple_wool", "orange_concrete", "blue_terracotta", "black_wool"
-    # the horse: body, ribs on the chest, the caparison and saddle
-    part(m, "body", (0, 24.8, -0.4), (9.6, 8.4, 22.0), HB)
-    for sd in (1, -1):
-        paint(m, "body", "l" if sd == 1 else "r", (sd * 4.8, 25.2, 6.6), ["w.w.w", "w.w.w", "....."], {"w": BONE}, 1.0)
-    part(m, "body", (0, 26.0, -3.0), (10.4, 6.2, 13.0), CAP)
-    bx(m, "body", (0, 23.2, -3.0), (10.6, 1.0, 13.2), TRIM)
-    for sd in (1, -1):
-        for z in (-7.6, -3.0, 1.6):
-            bx(m, "body", (sd * 5.3, 22.2, z), (0.2, 1.4, 1.8), TRIM)
-    part(m, "body", (0, 29.4, -1.0), (8.4, 1.2, 6.4), "black_terracotta")
-    # the neck with a fiery mane
-    bx(m, "body", (0, 30.0, 9.2), (4.8, 9.0, 5.4), HB, rot=(-28, 0, 0), origin=(0, 26, 8))
-    for y, z, h in ((33.6, 7.6, 3.0), (31.2, 6.0, 2.6), (28.8, 4.6, 2.2)):
-        litbox(m, "body", (0, y, z), (1.6, h, 2.2), FIRE)
-        litbox(m, "body", (0, y + h / 2 + 0.6, z - 0.4), (1.0, 1.4, 1.2), FIRE2)
-    # legs: black, with burning hooves
-    for n, x, z in (("legFL", 3.6, 8.6), ("legFR", -3.6, 8.6), ("legBL", 3.6, -9.4), ("legBR", -3.6, -9.4)):
-        part(m, n, (x, 17.0, z), (3.6, 7.4, 4.2), HB)
-        bx(m, n, (x, 8.6, z), (2.8, 10.0, 3.0), HB)
-        litbox(m, n, (x, 1.6, z + 0.3), (3.0, 3.2, 3.4), FIRE)
-        litbox(m, n, (x, 3.8, z + 0.3), (2.6, 1.2, 2.8), FIRE2)
-    # the head: long and black, a bone mask with glowing eye holes, fire nostrils, ears
-    part(m, "head", (0, 34.0, 13.4), (5.2, 5.6, 6.4), HB)
-    part(m, "head", (0, 31.4, 18.2), (4.4, 3.8, 5.0), HB)
-    bx(m, "head", (0, 34.4, 16.75), (5.4, 3.6, 0.3), BONE)
-    bx(m, "head", (0, 33.4, 18.6), (4.6, 0.3, 4.2), BONE)
-    for sd in (1, -1):
-        bx(m, "head", (sd * 1.4, 35.0, 16.94), (1.4, 1.0, 0.1), "black_concrete")
-        litbox(m, "head", (sd * 1.4, 34.9, 16.98), (0.6, 0.6, 0.1), FIRE)
-        litbox(m, "head", (sd * 1.0, 31.8, 20.74), (0.8, 0.8, 0.1), FIRE)
-        bx(m, "head", (sd * 1.6, 37.6, 12.6), (1.0, 2.0, 1.0), HB)
-    litbox(m, "head", (0, 37.6, 11.0), (1.4, 2.6, 2.6), FIRE)
-    part(m, "jaw", (0, 29.2, 18.0), (3.8, 1.0, 4.4), HB)
-    # the fire tail
-    bx(m, "tail", (0, 26.0, -12.0), (1.6, 1.6, 2.4), HB)
-    litbox(m, "tail", (0, 24.0, -13.6), (2.2, 4.0, 2.2), FIRE)
-    litbox(m, "tail", (0, 20.8, -14.4), (1.6, 3.2, 1.6), FIRE2)
-    # the rider: legs astride, dark coat, ruffled collar, a cape and flames where his head should be
-    for sd in (1, -1):
-        bx(m, "rider", (sd * 3.6, 31.0, 0.4), (2.4, 2.4, 5.0), COAT_D)
-        part(m, "rider", (sd * 5.4, 27.6, 2.2), (2.0, 6.0, 2.4), "black_terracotta")
-        bx(m, "rider", (sd * 5.4, 24.4, 2.6), (2.2, 1.0, 3.0), "iron_block")
-    part(m, "rider", (0, 36.6, -1.0), (7.0, 9.0, 4.4), COAT, dark=COAT_D, band=0.2)
-    paint(m, "rider", "f", (0, 36.6, 1.2), ["g", ".", "g", ".", "g"], {"g": "gold_block"}, 0.8)
-    part(m, "rider", (0, 41.8, -1.0), (5.8, 1.6, 4.4), "white_wool")
-    paint(m, "rider", "f", (0, 41.4, 1.2), ["w.w.w.w"], {"w": "white_concrete"}, 0.8)
-    litbox(m, "rider", (0, 43.6, -1.0), (3.0, 2.2, 2.6), FIRE)
-    litbox(m, "rider", (0.2, 45.6, -1.0), (1.8, 2.0, 1.6), FIRE2)
-    litbox(m, "rider", (-0.3, 47.2, -1.2), (1.0, 1.4, 1.0), FIRE)
-    part(m, "rider", (0, 35.6, -3.8), (7.8, 11.0, 0.6), COAT_D, rot=(14, 0, 0), origin=(0, 41, -3.6))
-    for i, x in enumerate((-3.0, -1.0, 1.0, 3.0)):
-        bx(m, "rider", (x, 29.2 - (i % 2) * 0.8, -5.4), (1.8, 2.0 + (i % 2) * 1.6, 0.6), COAT_D, rot=(14, 0, 0), origin=(0, 41, -3.6))
-    # his right hand points the sabre forward, his left holds his glowing pumpkin head high
-    part(m, "riderArmR", (-4.6, 38.4, -0.6), (2.2, 4.6, 2.2), COAT)
-    bx(m, "riderArmR", (-4.6, 36.4, 1.6), (2.0, 2.0, 4.0), COAT)
-    bx(m, "riderArmR", (-4.6, 36.4, 4.2), (1.8, 1.8, 1.8), COAT_D)
-    bx(m, "riderArmR", (-4.6, 36.6, 5.6), (2.6, 0.6, 0.6), "gold_block")
-    bx(m, "riderArmR", (-4.6, 39.8, 11.2), (0.4, 1.4, 13.0), "iron_block", rot=(-22, 0, 0), origin=(-4.6, 36.6, 5.4))
-    part(m, "riderArmL", (4.6, 43.2, -1.0), (2.2, 6.0, 2.2), COAT)
-    bx(m, "riderArmL", (4.6, 46.8, -1.0), (1.8, 1.6, 1.8), COAT_D)
-    part(m, "riderArmL", (4.6, 49.8, -1.0), (4.8, 4.4, 4.8), "orange_concrete", dark="orange_terracotta", band=0.2)
-    bx(m, "riderArmL", (4.6, 52.4, -1.0), (1.0, 1.0, 1.0), "green_concrete")
-    paint(m, "riderArmL", "f", (4.6, 50.0, 1.4), ["y...y", "yy.yy", ".....", "yyyyy", ".y.y."], {"y": FIRE2}, 0.8)
-    glow_last(m, 8, {FIRE2})
-    m.attacks = {"charge": "charge", "fire": "rear", "minions": "howl", "heads": "toss"}
-    m.melee = "bite"
-    return m
-
-
 # ------------------------------------------------------------------------------------------------ Grandpa Pip
 
 @mob("old_pip")
@@ -1059,6 +966,167 @@ def sproutbeak():
     m.attacks = {"charge": "lunge"}
     m.melee = "swipe"
     return m
+
+
+# ------------------------------------------------------------------------------------------------ Sizzle (was Sunny)
+
+@mob("sunscorch")
+def sunscorch():
+    """Sizzle, a kettle barbecue that got fed up with being cooked on: a black bowl on three legs with two
+    wheels, a shiny red lid with angry eyes and a handle, a wide mouth of white teeth with glowing coals
+    inside, flames out of the top vent, and a wooden side shelf with ketchup, mustard and a sausage on a fork."""
+    import v14_studio, math
+    m = Model("sunscorch", "slime", 1.6)
+    for b, p, at in (("body", "root", (0, 0, 0)), ("inner", "body", (0, 13, 0)), ("mouth", "body", (0, 12.2, 7)), ("ring", "body", (0, 12, 0)), ("rays", "body", (0, 26, 0))):
+        m.bone(b, p, at)
+    BLK, BLK_L, RED, RED_D, RED_L, WOOD = "black_concrete", "gray_concrete", "red_concrete", "red_terracotta", "pink_concrete", "stripped_birch_log"
+    # three legs, the back two on wheels
+    bx(m, "body", (0, 3.4, 6.0), (1.6, 6.8, 1.6), BLK_L)
+    bx(m, "body", (0, 0.5, 6.2), (2.6, 1.0, 2.6), BLK)
+    for sd in (1, -1):
+        bx(m, "body", (sd * 6.4, 4.0, -5.6), (1.6, 5.6, 1.6), BLK_L)
+        part(m, "body", (sd * 7.6, 2.0, -5.6), (1.4, 4.0, 4.0), BLK)
+        bx(m, "body", (sd * 8.4, 2.0, -5.6), (0.5, 1.4, 1.4), "light_gray_concrete")
+    # the bowl, stepped in underneath, with an ash catcher
+    part(m, "body", (0, 7.4, 0), (13.0, 2.0, 11.0), BLK)
+    part(m, "body", (0, 10.6, 0), (18.0, 4.8, 15.0), BLK, light=BLK_L)
+    bx(m, "body", (0, 5.8, 0), (5.0, 1.4, 5.0), "light_gray_concrete")
+    # the coals behind the teeth
+    litbox(m, "inner", (0, 13.6, 0.4), (15.0, 1.8, 12.0), "shroomlight")
+    for x, z in ((-4.6, 5.0), (-1.2, 5.6), (2.4, 5.2), (5.4, 5.6)):
+        litbox(m, "inner", (x, 14.0, z), (2.2, 1.6, 1.6), "orange_concrete")
+    bx(m, "body", (0, 14.2, -0.6), (16.0, 2.6, 13.4), BLK)
+    # the lid: red enamel, a darker rim, a lighter shine, a top step, a handle
+    part(m, "body", (0, 19.2, 0), (18.4, 7.6, 15.4), RED, dark=RED_D, band=0.16)
+    part(m, "body", (0, 23.8, 0), (13.0, 1.8, 10.6), RED)
+    bx(m, "body", (-5.6, 21.4, 7.6), (2.2, 1.0, 0.5), RED_L)
+    bx(m, "body", (-7.0, 20.0, 7.6), (0.9, 1.6, 0.5), RED_L)
+    for sd in (1, -1):
+        bx(m, "body", (sd * 2.6, 25.6, 3.0), (1.0, 2.0, 1.0), BLK_L)
+    bx(m, "body", (0, 26.8, 3.0), (7.2, 1.0, 1.4), WOOD)
+    # the face on the lid: big angry eyes with slanted brows
+    for sd in (1, -1):
+        bx(m, "body", (sd * 4.0, 19.6, 7.7), (4.4, 4.0, 0.5), "white_concrete")
+        bx(m, "body", (sd * 3.4, 19.0, 7.95), (2.0, 2.2, 0.5), BLK)
+        bx(m, "body", (sd * 3.0, 19.6, 8.2), (0.7, 0.7, 0.4), "white_concrete")
+        bx(m, "body", (sd * 4.0, 22.0, 7.9), (5.4, 1.3, 0.9), BLK, rot=(0, 0, -16 * sd), origin=(sd * 4.0, 22.0, 7.9))
+    # teeth: the upper row hangs from the lid, the lower row is on the jaw that drops open
+    for x in (-6.6, -4.4, -2.2, 0, 2.2, 4.4, 6.6):
+        bx(m, "body", (x, 14.9, 7.5), (1.8, 1.4, 0.8), "white_concrete")
+    part(m, "mouth", (0, 12.4, 7.2), (17.0, 1.2, 1.6), BLK_L)
+    for x in (-5.5, -3.3, -1.1, 1.1, 3.3, 5.5):
+        bx(m, "mouth", (x, 13.5, 7.5), (1.8, 1.2, 0.8), "white_concrete")
+    # flames out of the vent
+    part(m, "rays", (0, 25.0, -2.0), (4.0, 0.8, 4.0), BLK_L)
+    for k in range(5):
+        a = k * 2 * math.pi / 5
+        x, z = math.cos(a) * 1.6, math.sin(a) * 1.6 - 2.0
+        tall = 4.6 if k % 2 == 0 else 3.0
+        litbox(m, "rays", (x, 25.4 + tall / 2, z), (1.8, tall, 1.8), "orange_concrete")
+        litbox(m, "rays", (x, 25.4 + tall + 0.6, z), (1.0, 1.4, 1.0), "yellow_concrete")
+    # the side shelf: ketchup, mustard, and a sausage on a long fork on the other side
+    part(m, "ring", (12.0, 12.6, 0), (6.4, 1.0, 9.0), WOOD)
+    bx(m, "ring", (10.0, 11.4, 0), (1.0, 1.6, 7.0), BLK_L)
+    for z, c, cap in ((2.4, RED, "white_concrete"), (-1.6, "yellow_concrete", "green_concrete")):
+        part(m, "ring", (12.6, 15.0, z), (2.2, 3.8, 2.2), c)
+        bx(m, "ring", (12.6, 17.4, z), (1.0, 1.0, 1.0), cap)
+    bx(m, "ring", (-10.2, 12.6, 1.0), (3.0, 1.4, 2.0), BLK_L)
+    bx(m, "ring", (-12.4, 16.6, 1.0), (0.9, 9.0, 0.9), "light_gray_concrete", rot=(0, 0, 14), origin=(-11.4, 12.6, 1.0))
+    part(m, "ring", (-13.6, 21.6, 1.0), (2.2, 5.0, 2.2), "brown_terracotta", light="orange_terracotta", rot=(0, 0, 14), origin=(-11.4, 12.6, 1.0))
+    m.anims = v14_studio.sunscorch().anims
+    m.attacks = {"leap": "slam", "quake": "hop", "fire_ring": "burst", "volley": "spit"}
+    m.melee = "hop"
+    return m
+
+
+# ------------------------------------------------------------------------------------------------ Stitches (was the Headless Horseman)
+
+@mob("headless_horseman")
+def headless_horseman():
+    """Stitches, a big dog sewn together from three others: a green front half, a purple back half and one grey
+    leg, joined with thick black seams and cross stitches, iron bolts in its neck, one huge yellow eye and one
+    small one, an upright ear and a torn floppy one, a spiked collar with a tag, a lolling tongue and a bony
+    tail with a bow."""
+    m = Model("headless_horseman", "quad", 1.8)
+    GRN, GRN_D, PUR, PUR_D, GRY, GRY_D, INK = "lime_terracotta", "green_terracotta", "purple_terracotta", "blue_terracotta", "light_gray_terracotta", "gray_terracotta", "black_concrete"
+    m.bone("body", "root", (0, 15, 0))
+    for n, x, z in (("legFL", 3.6, 8), ("legFR", -3.6, 8), ("legBL", 3.6, -8), ("legBR", -3.6, -8)):
+        m.bone(n, "body", (x, 15, z))
+    m.bone("head", "body", (0, 21, 10)); m.bone("jaw", "head", (0, 19.4, 13))
+    m.bone("tail", "body", (0, 21, -11))
+    # legs: thick thighs, thinner shins, big paws with toes; the front right one is the grey spare
+    for n, x, z, c, d in (("legFL", 3.6, 8, GRN, GRN_D), ("legFR", -3.6, 8, GRY, GRY_D), ("legBL", 3.6, -8, PUR, PUR_D), ("legBR", -3.6, -8, PUR, PUR_D)):
+        part(m, n, (x, 11.6, z), (4.2, 7.2, 4.6), c)
+        bx(m, n, (x, 8.2, z), (4.5, 0.7, 4.9), INK)                                   # the seam where the leg was sewn on
+        part(m, n, (x, 5.0, z + 0.2), (3.2, 6.4, 3.4), c, dark=d, band=0.3)
+        part(m, n, (x, 1.0, z + 0.8), (4.0, 2.0, 5.0), d)
+        for t in (-1.2, 0, 1.2):
+            bx(m, n, (x + t, 0.5, z + 3.4), (0.8, 1.0, 0.6), "white_concrete")
+    # the body: green chest, purple haunches, the big seam between them with cross stitches
+    part(m, "body", (0, 18.6, 5.6), (10.4, 9.0, 11.2), GRN, dark=GRN_D, band=0.22)
+    part(m, "body", (0, 18.2, -5.6), (9.8, 8.2, 11.2), PUR, dark=PUR_D, band=0.22)
+    bx(m, "body", (0, 18.5, 0), (10.9, 9.5, 0.8), INK)
+    for y in (15.6, 18.4, 21.2):
+        for sd in (1, -1):
+            bx(m, "body", (sd * 5.3, y, 0), (0.5, 0.7, 2.6), INK)
+    for x in (-3.0, 0, 3.0):
+        bx(m, "body", (x, 23.2, 0), (0.7, 0.5, 2.6), INK)
+    # a square patch on the flank and a row of spine stitches down the back
+    bx(m, "body", (5.0, 19.0, -6.0), (0.6, 3.6, 4.0), GRY)
+    for dz, dy in ((-2.2, 0), (2.2, 0), (0, 2.0), (0, -2.0)):
+        bx(m, "body", (5.2, 19.0 + dy, -6.0 + dz), (0.5, 0.6 if dy else 3.6, 0.6 if dz else 4.0), INK)
+    for z in (-9.0, -6.0, -3.0, 3.0, 6.0, 9.0):
+        bx(m, "body", (0, 22.9 if z > 0 else 22.1, z), (2.4, 0.6, 0.6), INK)
+    # the collar with spikes and a gold tag
+    part(m, "body", (0, 20.6, 10.6), (9.0, 7.4, 1.6), "red_terracotta")
+    for x in (-3.4, 0, 3.4):
+        bx(m, "body", (x, 24.8, 10.6), (1.0, 1.4, 1.0), "iron_block")
+    for sd in (1, -1):
+        bx(m, "body", (sd * 4.9, 21.0, 10.6), (1.4, 1.0, 1.0), "iron_block")
+    bx(m, "body", (0, 16.4, 11.6), (1.8, 1.8, 0.5), "gold_block")
+    # the head: a broad skull, a long muzzle, a big black nose
+    part(m, "head", (0, 23.0, 13.6), (9.0, 7.6, 7.0), GRN, dark=GRN_D, band=0.18)
+    part(m, "head", (0, 21.8, 19.0), (5.6, 3.6, 5.0), GRY, dark=GRY_D, band=0.25)
+    bx(m, "head", (0, 21.9, 16.4), (5.9, 3.9, 0.6), INK)                              # the muzzle is sewn on too
+    part(m, "head", (0, 23.4, 21.2), (2.6, 1.6, 1.4), INK)
+    # mismatched eyes: one huge and yellow, one small, with a stitched scar over it
+    bx(m, "head", (2.4, 24.4, 17.1), (3.4, 3.4, 0.4), "white_concrete")
+    litbox(m, "head", (2.4, 24.4, 17.3), (2.2, 2.2, 0.4), "yellow_concrete")
+    bx(m, "head", (2.0, 24.2, 17.5), (1.0, 1.0, 0.4), INK)
+    bx(m, "head", (-2.6, 24.2, 17.1), (1.8, 1.8, 0.4), "white_concrete")
+    bx(m, "head", (-2.6, 24.0, 17.3), (0.8, 0.8, 0.4), INK)
+    bx(m, "head", (-2.6, 26.0, 17.0), (3.2, 0.5, 0.5), INK, rot=(0, 0, 18), origin=(-2.6, 26.0, 17.0))
+    for t in (-0.9, 0.3):
+        bx(m, "head", (-2.6 + t, 26.0 + t * 0.3, 17.1), (0.5, 1.5, 0.4), INK)
+    # ears: one upright, one torn and flopped over
+    part(m, "head", (3.4, 28.4, 12.2), (2.4, 4.0, 1.6), GRN_D)
+    bx(m, "head", (3.4, 28.2, 13.1), (1.2, 2.4, 0.4), "pink_terracotta")
+    bx(m, "head", (-3.8, 27.0, 12.2), (2.4, 3.4, 1.6), PUR, rot=(0, 0, 70), origin=(-3.4, 26.6, 12.2))
+    # iron bolts through the neck
+    for sd in (1, -1):
+        bx(m, "head", (sd * 5.2, 21.6, 12.0), (1.8, 1.4, 1.4), "iron_block")
+        bx(m, "head", (sd * 6.2, 21.6, 12.0), (0.6, 2.2, 2.2), "iron_block")
+    # the jaw: teeth and a long pink tongue hanging out of one side
+    part(m, "jaw", (0, 19.4, 18.2), (5.0, 1.4, 5.6), GRY_D)
+    for x in (-1.9, 1.9):
+        bx(m, "jaw", (x, 20.4, 20.2), (0.8, 1.2, 0.8), "white_concrete")
+    for x in (-1.9, -0.6, 0.6, 1.9):
+        bx(m, "head", (x, 19.7, 20.9), (0.8, 1.0, 0.6), "white_concrete")
+    part(m, "jaw", (1.4, 18.2, 20.8), (1.8, 3.4, 0.9), "pink_concrete", dark="pink_terracotta", band=0.3)
+    # the tail: three bones, each smaller, and a purple bow on the end
+    for i, (y, z) in enumerate(((22.4, -12.4), (24.6, -14.0), (26.8, -15.0))):
+        bx(m, "tail", (0, y, z), (1.8 - i * 0.3, 3.2, 1.8 - i * 0.3), "bone_block", rot=(-34 + i * 8, 0, 0), origin=(0, y, z))
+    for sd in (1, -1):
+        bx(m, "tail", (sd * 1.4, 28.4, -15.4), (2.0, 1.8, 0.8), "magenta_terracotta")
+    bx(m, "tail", (0, 28.4, -15.4), (1.0, 1.0, 1.0), PUR)
+    m.attacks = {"charge": "charge", "fire": "rear", "minions": "howl", "heads": "toss"}
+    m.melee = "bite"
+    return m
+
+
+import v2_recipes
+for _st in v2_recipes.DEATH["headless_horseman"]:                 # the old rider's arm is gone; the tail flies off instead
+    if "riderArmL" in str(_st.get("only", "")): _st["only"] = _st["only"].replace("riderArmL", "tail")
 
 
 # Hoo, the little ghost, is retired: servers drop it from bosses.yml on the next start
