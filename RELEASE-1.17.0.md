@@ -21,3 +21,22 @@
 - Attacks lean back into the wind-up and drive into the hit. About 30% less damage.
 - The model no longer flips round when a boss is shoved or backs off.
 - No dust rings or ground waves (`effects.ground-waves`, off by default).
+
+## Rebuilt bosses (CBosses and CQuests)
+- Twelve bosses rebuilt in a clean mob style with real detail: Ugor, Mister Bones the gravedigger, Grimsby the gargoyle, Bjorn, Old Jangles, Granny Morwen, the gnome brothers, Old Pip, Hedgey and more.
+- **Sizzle** the angry barbecue replaces Sunny and **Stitches** the sewn-together dog replaces the Headless Horseman. Seasons, abilities and rewards are kept; servers pick up the new names by themselves.
+- Hoo, the little ghost mini boss, is removed.
+- Nothing floats or comes apart any more: every neck, waist, shoulder, elbow and knee has a joint.
+- Eyes, mouths and buckles are raised solid pieces, so faces no longer flicker or vanish when a head turns.
+- Each walker has its own walk and a signature move.
+
+## Boss bar and announcements (CBosses and CQuests)
+- The boss bar shows only within 30 blocks of the boss (`fight.boss-bar-range` in CBosses).
+- The bar shows the name with a brighter gradient, health and a percentage.
+- The spawn announcement is one line: who appeared and where.
+
+## Spawning (CBosses)
+- Mini bosses never pick their own place. With no spot set, nothing wakes; `minis.mode` now defaults to `fixed`. Only an explicit `minis.mode: random` wakes them near players.
+
+## Blockbench
+- `cbosses/tools/export_bbmodel.py` writes any boss as a Blockbench `.bbmodel` file with bones and block textures.

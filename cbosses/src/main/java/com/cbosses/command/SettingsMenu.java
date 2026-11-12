@@ -91,7 +91,7 @@ public final class SettingsMenu implements Listener {
                 b("fight.gap-closer", "Boss closes the gap", Material.RABBIT_FOOT),
                 i("fight.max-minions", "Max minions", Material.ZOMBIE_HEAD, 0, 30, 1),
                 i("fight.max-active", "Max bosses at once", Material.WITHER_SKELETON_SKULL, 1, 20, 1),
-                i("fight.boss-bar-range", "Boss bar range", Material.NAME_TAG, 16, 160, 8),
+                i("fight.boss-bar-range", "Boss bar range", Material.NAME_TAG, 16, 160, 2),
                 b("fight.glow-plain-mobs", "Glow on plain mobs", Material.GLOW_INK_SAC),
                 i("rewards.min-damage-percent", "Min damage for reward %", Material.EMERALD, 0, 50, 1),
                 b("announcements.spawn-sound", "Spawn sound", Material.NOTE_BLOCK))));

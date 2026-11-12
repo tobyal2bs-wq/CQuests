@@ -880,7 +880,7 @@ public final class BossService implements Listener {
             return null;
         }
         double max = maxHealth(mob);
-        BossBar bar = BossBar.bossBar(Text.mm(def.name()), 0f, barColor(def.bar()), BossBar.Overlay.NOTCHED_20);
+        BossBar bar = BossBar.bossBar(Text.mm("<dark_gray>« </dark_gray>" + Text.shine(def.name()) + "<dark_gray> »</dark_gray>"), 0f, barColor(def.bar()), BossBar.Overlay.NOTCHED_10);
         Fight fight = new Fight(key, def, arena, test, tester == null ? null : tester.getUniqueId(), owner, mob, max, bar, hp);
         fight.privateZone = owner == null ? null : pendingZone.remove(key);
         if (fight.privateZone != null) mob.setCollidable(false);
@@ -958,8 +958,8 @@ public final class BossService implements Listener {
             Player o = Bukkit.getPlayer(owner);
             if (o != null) plugin.send(o, plugin.msg("chapter-boss-started", T.t("fight.has-come-for-you-beat", "<gold>⚔ <boss> <gold>has come for you! <gray>Beat it to claim the chapter reward. Leave the circle or die and it leaves.")).replace("<boss>", def.name()));
         } else {
-            broadcast(plugin.msg("spawn-broadcast", T.t("fight.world-boss-has-risen-everyone", "<dark_gray><st>                                        </st>\n<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  <boss>\n<title>\n<gold>has risen<where>\n<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n<dark_gray><st>                                        </st>"))
-                    .replace("<boss>", def.name()).replace("<title>", def.title().isBlank() ? "" : "<gray><italic>" + Text.escape(def.title()) + "</italic>").replace("<where>", where(arena)));
+            broadcast(plugin.msg("spawn-announcement", T.t("fight.boss-has-appeared", "<gold>⚔ <boss> <gray>has appeared<where>"))
+                    .replace("<boss>", Text.shine(def.name())).replace("<where>", where(arena)));
             if (plugin.getConfig().getBoolean("announcements.spawn-sound", true))
                 Sched.global(() -> { for (Player p : Bukkit.getOnlinePlayers()) Sched.entity(p, () -> p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.5f, 0.8f)); });
         }
@@ -1085,7 +1085,8 @@ public final class BossService implements Listener {
             return true;
         }
         List<Player> close = new ArrayList<>(), inside = new ArrayList<>();
-        int barRange = Math.max(16, plugin.getConfig().getInt("fight.boss-bar-range", 56));
+        int barRange = plugin.getConfig().getInt("fight.boss-bar-range", 30);
+        barRange = barRange == 56 ? 30 : Math.max(16, barRange);     // 56 was the old default; the bar now shows within 30 blocks
         for (Player p : loc.getNearbyPlayers(barRange)) {
             if (!p.isOnline() || !Bukkit.isOwnedByCurrentRegion(p)) continue;
             if (f.privateZone != null && !p.getUniqueId().equals(f.owner)) continue;
@@ -1107,7 +1108,9 @@ public final class BossService implements Listener {
             f.shownHealth = shown;
             if (f.introDone || f.model == null) f.bar.progress((float) Math.max(0, Math.min(1, health / Math.max(1, f.max))));
             // the bar shows only the name and the health
-            f.bar.name(Text.mm(f.def.name() + " <gray>❤ <white>" + String.format(Locale.ROOT, "%,d", shown) + "<gray>/" + String.format(Locale.ROOT, "%,d", Math.round(f.max * f.ratio))));
+            long top = Math.round(f.max * f.ratio);
+            f.bar.name(Text.mm("<dark_gray>« </dark_gray>" + Text.shine(f.def.name()) + "<dark_gray> »</dark_gray>  <red>❤ <white>" + String.format(Locale.ROOT, "%,d", shown)
+                    + "<dark_gray>/</dark_gray><gray>" + String.format(Locale.ROOT, "%,d", top) + "  <yellow>" + Math.round(100.0 * shown / Math.max(1, top)) + "%"));
         }
         if (!close.isEmpty()) aura(f, loc);
         Player target = null;

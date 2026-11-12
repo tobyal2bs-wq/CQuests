@@ -82,7 +82,8 @@ minis:
   # Minutes between rounds.
   every-minutes: 60
   # fixed: only at your spots. random: somewhere near a random player. mixed: either, at random.
-  mode: mixed
+  # With no spot set, fixed and mixed wake nothing: a mini never picks its own place unless mode is random.
+  mode: fixed
   # Minis woken each round, and the most alive at once.
   per-round: 1
   max-alive: 3
@@ -116,7 +117,7 @@ fight:
   # Most bosses alive at once (weekly, chapter and test fights together).
   max-active: 6
   # Players see the boss bar within this many blocks.
-  boss-bar-range: 56
+  boss-bar-range: 30
   # Plain mob bosses (models: false or model: none) glow so they stand out.
   glow-plain-mobs: true
   # Worlds where no boss ever appears.

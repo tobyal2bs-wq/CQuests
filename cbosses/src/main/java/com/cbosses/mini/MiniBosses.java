@@ -69,7 +69,7 @@ public final class MiniBosses implements Listener {
 
     FileConfiguration cfg() { return plugin.getConfig(); }
     public boolean enabled() { return cfg().getBoolean("minis.enabled", true); }
-    public String mode() { String m = cfg().getString("minis.mode", "mixed").toLowerCase(Locale.ROOT); return MODES.contains(m) ? m : "mixed"; }
+    public String mode() { String m = cfg().getString("minis.mode", "fixed").toLowerCase(Locale.ROOT); return MODES.contains(m) ? m : "fixed"; }
     public int everyMinutes() { return Math.max(1, cfg().getInt("minis.every-minutes", 60)); }
     public int maxAlive() { return Math.max(1, cfg().getInt("minis.max-alive", 3)); }
     public int perRound() { return Math.max(1, cfg().getInt("minis.per-round", 1)); }
@@ -137,7 +137,8 @@ public final class MiniBosses implements Listener {
             case "random" -> false;
             default -> !fixed.isEmpty() && ThreadLocalRandom.current().nextBoolean();
         };
-        if (useFixed && fixed.isEmpty()) { if (mode.equals("fixed")) return false; useFixed = false; }
+        // no spot set: nothing wakes. Only the explicit "random" mode ever picks a place by itself.
+        if (!mode.equals("random") && fixed.isEmpty()) return false;
         if (useFixed) {
             Spot s = fixed.get(ThreadLocalRandom.current().nextInt(fixed.size()));
             BossDef def = pick(onlyBoss, s.bosses);

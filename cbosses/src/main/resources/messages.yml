@@ -2,7 +2,7 @@
 # Placeholders: <boss>, <minutes>, <where>, <title>, <player>, <seconds>.
 prefix: "<dark_gray>[<gold>CBosses</gold>]</dark_gray> "
 schedule-warning: "<gold><bold>⚔ BOSS</bold></gold> <boss> <gray>wakes in <white><minutes> minutes</white><where>"
-spawn-broadcast: "<dark_gray><st>                                        </st>\n<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  <boss>\n<title>\n<gold>has risen<where>\n<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n<dark_gray><st>                                        </st>"
+spawn-announcement: "<gold>⚔ <boss> <gray>has appeared<where>"
 boss-idle: "<gray><boss> <gray>found no challengers and left."
 boss-timeout: "<gray><boss> <gray>was not beaten in time and vanished."
 boss-stopped: "<gray><boss> <gray>was sent away."
@@ -121,6 +121,7 @@ text:
     border-cleared-arena-now-uses: "<gray>Border cleared. Arena <white><arena></white> now uses <border>."
     border-rod-for-arena-left: "<gold>Border rod for arena <white><arena></white>. <gray>Left-click blocks around the arena to add corners in order. The boss can never walk past this outline."
     boss-border-rod: "<gold><bold>Boss Border Rod</bold></gold> <gray>(<arena>)"
+    boss-has-appeared: "<gold>⚔ <boss> <gray>has appeared<where>"
     boss-reward-in-damage: "<gold>Boss reward: <white>#<place></white> in damage<amount><items>."
     boss-spawn-for-arena-set: "<green>Boss spawn for arena <white><arena></white> set here. <gray>Border: <border>. Draw one with <yellow>/cbosses arena wand <arena></yellow> or link a WorldGuard region with <yellow>/cbosses arena region <arena> <region></yellow>."
     boss-wakes-in-minutes: "<gold><bold>⚔ BOSS</bold></gold> <boss> <gray>wakes in <white><minutes> minutes</white><where>"
@@ -174,7 +175,6 @@ text:
     was-sent-away: "<gray><boss> <gray>was sent away."
     weak-spot: "<light_purple><bold>Weak spot!"
     weekly-boss: "<gray>Weekly boss: <white><off>"
-    world-boss-has-risen-everyone: "<dark_gray><st>                                        </st>\n<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  <boss>\n<title>\n<gold>has risen<where>\n<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n<dark_gray><st>                                        </st>"
     worldguard-is-not-running-on: "<red>WorldGuard is not running on this server."
   # the finale
   finale:

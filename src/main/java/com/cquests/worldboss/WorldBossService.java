@@ -838,7 +838,7 @@ public final class WorldBossService implements Listener {
             return null;
         }
         double max = maxHealth(mob);
-        BossBar bar = BossBar.bossBar(Text.mm(def.name()), 1f, barColor(def.bar()), BossBar.Overlay.NOTCHED_20);
+        BossBar bar = BossBar.bossBar(Text.mm("<dark_gray>« </dark_gray>" + Text.shine(def.name()) + "<dark_gray> »</dark_gray>"), 1f, barColor(def.bar()), BossBar.Overlay.NOTCHED_10);
         Fight fight = new Fight(key, def, arena, test, tester == null ? null : tester.getUniqueId(), mob, max, bar);
         fight.nextAbility = System.currentTimeMillis() + 6000;
         try { fight.particle = Particle.valueOf(def.particle()); } catch (IllegalArgumentException e) { fight.particle = Particle.FLAME; }
@@ -901,12 +901,7 @@ public final class WorldBossService implements Listener {
         if (test) {
             if (tester != null) plugin.send(tester, T.t("world-boss-service.test-world-boss-nothing-is", "<gray>Test world boss: <boss> <gray>(<id>). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.", "boss", def.name(), "id", def.id()));
         } else {
-            broadcast("<dark_gray><st>                                        </st>\n"
-                    + "<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  " + def.name() + "\n"
-                    + (def.title().isBlank() ? "" : "<gray><italic>" + Text.escape(def.title()) + "</italic>\n")
-                    + "<gold>has risen" + where(arena) + "\n"
-                    + "<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n"
-                    + "<dark_gray><st>                                        </st>");
+            broadcast("<gold>⚔ " + Text.shine(def.name()) + " <gray>has appeared" + where(arena));
             Sched.global(() -> { for (Player p : Bukkit.getOnlinePlayers()) Sched.entity(p, () -> p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.5f, 0.8f)); });
         }
         return fight;
@@ -1038,7 +1033,7 @@ public final class WorldBossService implements Listener {
         // One nearby-player query per tick: the bar uses everyone within 56 blocks, the fight only those inside the border.
         List<Player> close = new ArrayList<>();
         List<Player> inside = new ArrayList<>();
-        for (Player p : loc.getNearbyPlayers(56)) {
+        for (Player p : loc.getNearbyPlayers(30)) {            // the bar shows within 30 blocks of the boss
             if (!p.isOnline() || !Bukkit.isOwnedByCurrentRegion(p)) continue;
             close.add(p);
             if (fighter(p) && p.getLocation().distanceSquared(loc) <= 1600 && f.arena.contains(p.getLocation())) inside.add(p);
@@ -1058,7 +1053,9 @@ public final class WorldBossService implements Listener {
             // Only rebuild the bar text when the number changes.
             f.shownHealth = shown;
             f.bar.progress((float) Math.max(0, Math.min(1, health / Math.max(1, f.max))));
-            f.bar.name(Text.mm(f.def.name() + " <gray>❤ <white>" + String.format(Locale.ROOT, "%,d", shown) + "<gray>/" + String.format(Locale.ROOT, "%,d", Math.round(f.max * f.ratio))));
+            long top = Math.round(f.max * f.ratio);
+            f.bar.name(Text.mm("<dark_gray>« </dark_gray>" + Text.shine(f.def.name()) + "<dark_gray> »</dark_gray>  <red>❤ <white>" + String.format(Locale.ROOT, "%,d", shown)
+                    + "<dark_gray>/</dark_gray><gray>" + String.format(Locale.ROOT, "%,d", top) + "  <yellow>" + Math.round(100.0 * shown / Math.max(1, top)) + "%"));
         }
         // Effects are only drawn when someone can see them.
         if (!close.isEmpty()) aura(f, loc);

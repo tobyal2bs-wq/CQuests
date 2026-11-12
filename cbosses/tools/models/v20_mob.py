@@ -923,7 +923,7 @@ def sproutbeak():
     on with a gold buckle at the front, and two long thin orange legs with big flat three-toed feet."""
     from v14_kit import humanoid
     m = Model("sproutbeak", "biped", 1.0)
-    humanoid(m, hip=10, legx=3, neck=14, shoulder=18, armx=8.2)
+    humanoid(m, hip=10, legx=3, neck=24, shoulder=18, armx=8.2)   # the hedge is head and body in one; only the top tuft turns
     LEAF, LEAF_D, LEAF_L, LEG = "moss_block", "green_concrete", "green_concrete_powder", "orange_terracotta"
     for sd, leg in ((1, "legL"), (-1, "legR")):
         x = sd * 3
@@ -936,7 +936,7 @@ def sproutbeak():
     for c, s in (((5.4, 24.6, 3.4), (3.2, 2.2, 3.2)), ((-4.6, 24.6, -2.4), (3.6, 2.4, 3.6)), ((0.4, 24.8, 0.6), (3.0, 2.6, 3.0)),
                  ((7.8, 19.4, -3.6), (1.6, 3.2, 3.2)), ((-7.8, 15.4, 2.6), (1.6, 3.0, 3.0)), ((-2.4, 21.4, -6.8), (3.6, 3.0, 1.6)),
                  ((3.6, 13.6, -6.8), (3.0, 2.6, 1.6)), ((-5.4, 12.0, 4.6), (2.6, 2.2, 3.0))):
-        part(m, "body", c, s, LEAF_L if c[1] > 20 else LEAF)
+        part(m, "head" if c[0] == 0.4 else "body", c, s, LEAF_L if c[1] > 20 else LEAF)
     for x, y, z in ((-4.2, 15.6, 6.56), (4.4, 16.2, 6.56), (-7.56, 21.2, -3.0)):
         f = "f" if z > 6 else "r"
         paint(m, "body", f, (x, y, z), [".p.", "pyp", ".p."], {"p": "pink_concrete", "y": "yellow_concrete"}, 0.6)
@@ -951,10 +951,10 @@ def sproutbeak():
     bx(m, "body", (0, 13.2, 6.8), (1.8, 1.6, 0.2), "gold_block")
     # the face: beady eyes on each side under leafy brows, a small orange beak
     for sd in (1, -1):
-        bx(m, "head", (sd * 3.0, 19.6, 6.56), (2.6, 2.6, 0.1), "white_concrete")
-        bx(m, "head", (sd * 2.6, 19.4, 6.62), (1.4, 1.6, 0.1), "black_concrete")
-        bx(m, "head", (sd * 3.0, 21.6, 6.8), (3.2, 0.8, 0.6), LEAF_D, rot=(0, 0, -12 * sd), origin=(sd * 3.0, 21.6, 6.8))
-    part(m, "head", (0, 17.6, 7.4), (2.4, 1.6, 2.0), "orange_concrete", dark="orange_terracotta", band=0.4)
+        bx(m, "body", (sd * 3.0, 19.6, 6.56), (2.6, 2.6, 0.1), "white_concrete")
+        bx(m, "body", (sd * 2.6, 19.4, 6.62), (1.4, 1.6, 0.1), "black_concrete")
+        bx(m, "body", (sd * 3.0, 21.6, 6.8), (3.2, 0.8, 0.6), LEAF_D, rot=(0, 0, -12 * sd), origin=(sd * 3.0, 21.6, 6.8))
+    part(m, "body", (0, 17.6, 7.4), (2.4, 1.6, 2.0), "orange_concrete", dark="orange_terracotta", band=0.4)
     # stubby leaf wings
     for sd, arm in ((1, "armL"), (-1, "armR")):
         part(m, arm, (sd * 8.2, 16.8, 0.4), (1.4, 5.0, 4.8), LEAF_D, light=LEAF_L)

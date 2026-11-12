@@ -25,6 +25,24 @@ public final class Text {
         return MM.deserialize(input);
     }
 
+    private static final java.util.regex.Pattern TWO_STOPS = java.util.regex.Pattern.compile("<gradient:#([0-9a-fA-F]{6}):#([0-9a-fA-F]{6})>");
+
+    /** A two-colour name gradient gets a bright middle stop, so the name reads as lit rather than a flat fade. */
+    public static String shine(String name) {
+        if (name == null) return "";
+        java.util.regex.Matcher m = TWO_STOPS.matcher(name);
+        StringBuilder out = new StringBuilder();
+        while (m.find()) {
+            int a = Integer.parseInt(m.group(1), 16), b = Integer.parseInt(m.group(2), 16), mid = 0;
+            for (int sh = 16; sh >= 0; sh -= 8) {
+                int avg = (((a >> sh) & 255) + ((b >> sh) & 255)) / 2;
+                mid |= Math.min(255, avg + (255 - avg) * 55 / 100) << sh;
+            }
+            m.appendReplacement(out, String.format("<gradient:#%s:#%06x:#%s>", m.group(1), mid, m.group(2)));
+        }
+        return m.appendTail(out).toString();
+    }
+
     public static String escape(String raw) {
         return MM.escapeTags(raw);
     }
