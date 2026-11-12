@@ -45,7 +45,7 @@ class BossDataTest {
     void everyBossHasAModelWithAnEntranceAndADeath() throws Exception {
         var models = models();
         var defs = bosses();
-        assertEquals(94, defs.size(), "41 weekly, 3 mythic, 12 seasonal, 8 chapter and 30 mini bosses");
+        assertEquals(93, defs.size(), "41 weekly, 3 mythic, 12 seasonal, 8 chapter and 29 mini bosses");
         for (BossDef d : defs.values()) {
             ModelRig.Model m = models.get(d.model());
             assertNotNull(m, d.id() + " has no model");
@@ -99,7 +99,7 @@ class BossDataTest {
     @Test
     void healthTiersAndMiniBosses() throws Exception {
         var defs = bosses();
-        assertEquals(30, defs.values().stream().filter(BossDef::mini).count(), "30 mini bosses");
+        assertEquals(29, defs.values().stream().filter(BossDef::mini).count(), "29 mini bosses");
         for (BossDef d : defs.values()) {
             if (d.mini()) assertEquals(1000, d.health(), 0.01, d.id());
             else if (d.tier().equals("mythic")) assertEquals(3000, d.health(), 0.01, d.id());
