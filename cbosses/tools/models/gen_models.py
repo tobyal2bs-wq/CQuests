@@ -222,6 +222,7 @@ for id, fn in roster.builders().items():
     if m.rig in ("biped", "quad"): m.knees()
     if getattr(m, "post", None): m.post(m)        # a model's own pass once its joints are cut
     m.zones()
+    if getattr(m, "fullzones", None): m.fullzones(m)
     tag(m)
     if m.id in v14_studio.STUDIO and m.id not in SKINNED_BY_HAND and not m.id.startswith("decor_") and not getattr(m, "flat", False) and not getattr(m, "sculpted", False): mottle_pass.skin(m)
     texturize(m)

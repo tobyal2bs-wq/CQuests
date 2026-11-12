@@ -19,8 +19,10 @@ def mob(id):
     def deco(fn):
         def run():
             m = fn()
+            if id in LIVE: LIVE[id](m)
             m.flat = m.sculpted = True
-            m.post = lambda m: (calm(m), joints(m), emboss(m), unfight(m))
+            m.post = lambda m: (alive(m), calm(m), joints(m), emboss(m), unfight(m))
+            m.fullzones = every_part
             return m
         run.__name__ = fn.__name__
         run.__doc__ = fn.__doc__
@@ -28,7 +30,7 @@ def mob(id):
     return deco
 
 
-LOOSE = ("tail", "wing", "ring", "ray", "cloud", "key", "lantern", "shovel", "staff", "rod", "cat", "little", "rider", "hat", "beard", "jaw", "inner")
+LOOSE = ("fing", "thumb", "tail", "wing", "ring", "ray", "cloud", "key", "lantern", "shovel", "staff", "rod", "cat", "little", "rider", "hat", "beard", "jaw", "inner")
 
 
 def joints(m):
@@ -55,7 +57,7 @@ def joints(m):
         return f, t
     for b in list(m.bones):
         n = b["name"]
-        if n not in by or not b["parent"] or any(w in n.lower() for w in LOOSE): continue
+        if n not in by or not b["parent"] or any(w in n.lower() for w in LOOSE) or n in getattr(m, "motion", {}): continue
         a = b["parent"]
         while a and a not in by: a = pv[a]["parent"]
         if not a: continue
@@ -176,6 +178,265 @@ def moves(m, walk=None, body=0, **clips):
         if body: w["bones"]["body"]["rot"] = [[t, [x + body, y, z]] for t, (x, y, z) in w["bones"]["body"]["rot"]]
         m.anims["walk"] = w
     m.anims.update(clips)
+
+
+# ------------------------------------------------------------------------------------------------ everything moves
+
+def live(m, name, parent, pivot, lo, hi, sway, kind="sway"):
+    """Cuts the pieces of parent whose centre lies in the box lo..hi loose as a bone of their own that moves in
+    every clip. kind is sway (sway = degrees on x, y, z), curl (sway = degrees the tip curls) or jaw."""
+    m.live = getattr(m, "live", []) + [(name, parent, pivot, lo, hi, sway, kind)]
+
+
+def stir(m, **bones):
+    """Bones the model already has that should move in every clip that leaves them still: name=(kind, amount)."""
+    m.stirred = dict(getattr(m, "stirred", {}), **bones)
+
+
+def _mid(c): return [(a + b) / 2 for a, b in zip(c["f"], c["t"])]
+
+
+def _shift(m, bone, d):
+    """Moves a bone, everything hanging from it and all their pieces by d."""
+    tree, grew = {bone}, True
+    while grew:
+        grew = False
+        for b in m.bones:
+            if b["parent"] in tree and b["name"] not in tree: tree.add(b["name"]); grew = True
+    for b in m.bones:
+        if b["name"] in tree and b["name"] != bone: b["pivot"] = [round(v + e, 3) for v, e in zip(b["pivot"], d)]
+    for c in m.cubes:
+        if c["b"] in tree:
+            for k in ("f", "t", "o"):
+                if k in c: c[k] = [round(v + e, 3) for v, e in zip(c[k], d)]
+
+
+def alive(m):
+    """Runs once the elbows and knees are cut: cuts the declared loose parts, gives every hand fingers and a
+    thumb that curl, seats every held thing in its fist, and writes motion for all of it into every clip."""
+    import math
+    m.motion = {k: v for k, v in getattr(m, "stirred", {}).items() if k in m.names}
+    kids = {"armL": ("foreL",), "armR": ("foreR",)}
+    for name, parent, pivot, lo, hi, sway, kind in getattr(m, "live", []):
+        fam = {parent} | {b["name"] for b in m.bones if b["parent"] == parent and b["name"][:4] in ("fore", "shin", "foot")}
+        pick = [c for c in m.cubes if c["b"] in fam and all(lo[i] <= _mid(c)[i] <= hi[i] for i in range(3))]
+        assert pick, (m.id, name, "nothing in the box")
+        homes = [c["b"] for c in pick]
+        m.bone(name, max(set(homes), key=homes.count), pivot)
+        for c in pick: c["b"] = name
+        m.motion[name] = (kind, sway)
+    for side, sx in (("L", 1), ("R", -1)):
+        fore = "fore" + side
+        if fore not in m.names: continue
+        mine = [c for c in m.cubes if c["b"] == fore and "r" not in c and min(t - f for f, t in zip(c["f"], c["t"])) >= 1.2]
+        if not mine: continue
+        hand = min(mine, key=lambda c: _mid(c)[1])
+        H, (w, h, d) = _mid(hand), [t - f for f, t in zip(hand["f"], hand["t"])]
+        skin = hand["k"]
+        allc = [c for c in m.cubes if c["b"] == fore and "r" not in c]
+        wide = lambda c: c["t"][0] - c["f"][0] >= 0.8 * w and abs(_mid(c)[0] - H[0]) < 0.6
+        bot = min(c["f"][1] for c in allc if wide(c) and c["t"][1] <= hand["t"][1] + 0.01)      # a shaded band under the hand is still the hand
+        h = hand["t"][1] - bot
+        H[1] = (hand["t"][1] + bot) / 2
+        held = [b for b in m.bones if b["parent"] == fore and b["name"] not in m.motion]
+        loose = [c for c in allc if not wide(c) and c["t"][1] <= bot + 0.7 and _mid(c)[1] < bot and c["t"][0] - c["f"][0] < 0.6 * w]
+        if held:
+            for c in loose: m.cubes.remove(c)
+            elbow = next(b for b in m.bones if b["name"] == fore)
+            for hb in held:
+                mine = [c for c in m.cubes if c["b"] == hb["name"]]
+                shaft = max(mine, key=lambda c: c["t"][1] - c["f"][1])
+                S = _mid(shaft)
+                dy = 0
+                low = min(c["f"][1] for c in mine)
+                if m.rig == "biped" and (getattr(m, "hold", {}) or {}).get(hb["name"], 25) == 0 and low < 6:      # a staff stands on the ground
+                    rise = (elbow["pivot"][1] - H[1]) * (1 - math.cos(math.radians(elbow.get("rest", [0])[0])))
+                    dy = -low - rise + 0.3
+                    if shaft["t"][1] + dy < H[1] + 2: dy = 0
+                _shift(m, hb["name"], (H[0] - S[0], dy, H[2] - S[2]))
+                hb["pivot"] = [round(v, 3) for v in H]
+                sw, sd = shaft["t"][0] - shaft["f"][0], shaft["t"][2] - shaft["f"][2]
+                gw, gd = max(w, sw + 1.6), max(d * 0.9, sd + 1.6)
+                m.c(hb["name"], skin, H, (gw, max(2.0, h * 0.9), gd))                           # the fist round the grip
+                for k in (-1, 0, 1):
+                    m.c(hb["name"], skin, (H[0], H[1] + k * 0.75, H[2] + gd / 2 + 0.12), (gw * 0.96, 0.5, 0.5))
+                m.c(hb["name"], skin, (H[0] - sx * (gw / 2 + 0.1), H[1] + 0.5, H[2] + 0.3), (0.6, 0.9, gd * 0.7))
+            continue
+        P = (H[0], bot, H[2] + d * 0.15)
+        m.bone("fing" + side, fore, P)
+        if loose:
+            for c in loose: c["b"] = "fing" + side
+        else:
+            for k in (-1, 0, 1):
+                m.c("fing" + side, skin, (H[0] + k * w * 0.33, bot - h * 0.3 + 0.15, H[2] + d * 0.15), (w * 0.27, h * 0.6 + 0.3, d * 0.42))
+        T = (H[0] - sx * (w / 2), bot + h * 0.45, H[2] + d * 0.25)
+        m.bone("thumb" + side, fore, T)
+        m.c("thumb" + side, skin, (T[0] - sx * 0.25, T[1] - h * 0.3, T[2] + 0.1), (0.9, h * 0.6, d * 0.4))
+        m.motion["fing" + side] = ("curl", -22)
+        m.motion["thumb" + side] = ("sway", (0, 0, -sx * 14))
+    if not m.motion: return
+    import anims as rigs
+    m.anims = dict(rigs.RIGS.get(m.rig, {}), **(getattr(m, "anims", None) or {}))
+    for name, clip in list(m.anims.items()):
+        if not isinstance(clip, dict) or "bones" not in clip: continue
+        L, h, bones = clip["length"], clip.get("hit"), dict(clip["bones"])
+        cyc = 2 if clip.get("loop") and L >= 2.4 else 1
+        for i, (bone, (kind, amt)) in enumerate(m.motion.items()):
+            if "rot" in bones.get(bone, {}): continue
+            ph = (i * 0.37) % 1
+            if clip.get("loop"):
+                if kind == "sway": keys = [(L * k / 8, [a * math.sin(2 * math.pi * (cyc * k / 8 + ph + j * 0.25)) for j, a in enumerate(amt)]) for k in range(9)]
+                elif kind == "curl": keys = [(L * k / 8, (amt * (0.6 + 0.5 * math.sin(2 * math.pi * (cyc * k / 8 + ph))), 0, 0)) for k in range(9)]
+                else: keys = [(0, Z), (L * 0.2, (amt * 0.5, 0, 0)), (L * 0.32, Z), (L * 0.7, (amt * 0.3, 0, 0)), (L * 0.8, Z), (L, Z)]
+            else:
+                h2 = h if h and 0 < h < L else L / 2
+                if kind == "sway": keys = [(0, Z), (h2 * 0.55, [-1.3 * a for a in amt]), (h2, [2.2 * a for a in amt]), (h2 + (L - h2) * 0.45, [-0.7 * a for a in amt]), (L, Z)]
+                elif kind == "curl": keys = [(0, (amt * 0.6, 0, 0)), (h2 * 0.5, (amt * 0.1, 0, 0)), (h2, (amt * 3.2, 0, 0)), (h2 + (L - h2) * 0.5, (amt * 2.4, 0, 0)), (L, (amt * 0.6, 0, 0))]
+                else: keys = [(0, Z), (h2 * 0.6, (amt * 0.4, 0, 0)), (h2, (amt * 2.0, 0, 0)), (h2 + (L - h2) * 0.5, (amt, 0, 0)), (L, Z)]
+            bones[bone] = dict(bones.get(bone, {}), rot=K(*keys))
+        m.anims[name] = dict(clip, bones=bones)
+
+
+def every_part(m):
+    """A hit box on every part: each bone with real mass gets its own, small things (fingers, a nose) count
+    with what they hang from, and the weak spot stays."""
+    parent = {b["name"]: b["parent"] for b in m.bones}
+    vol = lambda c: (c["t"][0] - c["f"][0]) * (c["t"][1] - c["f"][1]) * (c["t"][2] - c["f"][2])
+    mass = {}
+    for c in m.cubes: mass[c["b"]] = mass.get(c["b"], 0) + vol(c)
+    def home(b):
+        while parent[b] and (mass.get(b, 0) < 40 or b in m.motion): b = parent[b]
+        return b
+    groups = {}
+    for c in m.cubes: groups.setdefault(home(c["b"]), []).append(c)
+    held = {b["name"] for b in m.bones if (b["parent"] or "").startswith("fore")}
+    def kind(b):
+        n = b.lower()
+        if b in held: return "weapon", 0.3
+        if n == "head" or n == "lhead": return "head", 1.5
+        if n[:3] in ("arm",) or n[:4] == "fore": return "arm", 0.8
+        if n[:3] == "leg" or n[:4] in ("shin", "foot"): return "leg", 0.7
+        if "tail" in n: return "tail", 0.8
+        if "hat" in n: return "hat", 0.5
+        if "wing" in n: return "wing", 0.8
+        return "body", 1.0
+    zones = [z for z in m.zone_list if z["kind"] == "weak"]
+    for b, cs in groups.items():
+        if b == "root" and len(groups) > 1 and mass.get(b, 0) < 40: continue
+        big = max(vol(c) for c in cs)
+        cs = [c for c in cs if vol(c) >= big * 0.12]
+        lo = [min(c["f"][i] for c in cs) for i in range(3)]
+        hi = [max(c["t"][i] for c in cs) for i in range(3)]
+        k, mult = kind(b)
+        zones.append({"kind": k, "b": b, "c": [round((a + e) / 2, 2) for a, e in zip(lo, hi)], "w": round(max(2.5, hi[0] - lo[0], hi[2] - lo[2]) if k != "weapon" else max(2.5, sorted(e - a for a, e in zip(lo, hi))[1]), 2),
+                      "h": round(max(2.5, hi[1] - lo[1]), 2), "mult": mult})
+    m.zone_list = zones
+    if m.rig in ("biped", "quad"): m.hitbox = 0.45
+
+
+# ------------------------------------------------------------------------------------------------ loose parts per boss
+
+def _gnomes(m):
+    X, Z0, s = 9.6, -2.4, 0.62
+    P = lambda x, y, z: (X + x * s, y * s, Z0 + z * s)
+    live(m, "beard", "head", (0, 11.2, 4), (-5, 3, 2.5), (5, 11.3, 6.5), (5, 0, 3))
+    live(m, "nose", "head", (0, 17, 3.6), (-1.7, 15.3, 4.5), (1.7, 18.7, 6.2), (4, 0, 5))
+    live(m, "lbeard", "lhead", P(0, 11.2, 4), P(-5, 3, 2.5), P(5, 11.3, 6.5), (6, 0, 4))
+    live(m, "larmL", "little", P(5.4, 14.6, 0), P(4, 7, -1.6), P(6.9, 15.2, 1.8), (14, 0, 0))
+    live(m, "larmR", "little", P(-5.4, 14.6, 0), P(-6.9, 7, -1.6), P(-4, 15.2, 1.8), (-14, 0, 0))
+    live(m, "llegL", "little", P(2.2, 5.2, 0), P(0.9, 0, -1.5), P(3.8, 5.4, 3), (12, 0, 0))
+    live(m, "llegR", "little", P(-2.2, 5.2, 0), P(-3.8, 0, -1.5), P(-0.9, 5.4, 3), (-12, 0, 0))
+    stir(m, hat2=("sway", (3, 0, 4)), hat3=("sway", (5, 0, 8)), lhat2=("sway", (5, 0, 8)), lhead=("sway", (0, 10, 0)))
+
+
+def _ugor(m):
+    bx(m, "jaw", (0, 27.25, 10.6), (3.0, 0.5, 5.0), "pink_concrete")
+    live(m, "tongue", "jaw", (0, 27.2, 8.2), (-1.6, 27.05, 7.9), (1.6, 27.6, 13.2), (8, 10, 0))
+    for sd, n in ((1, "earL"), (-1, "earR")):
+        live(m, n, "head", (sd * 5.7, 33.6, 5.4), (min(sd * 5.2, sd * 9.6), 31.5, 4), (max(sd * 5.2, sd * 9.6), 35.5, 7), (0, 0, sd * 10))
+    live(m, "snout", "head", (0, 29, 11), (-3.5, 26.4, 11.9), (3.5, 31.4, 16), (4, 0, 0))
+    live(m, "clothF", "hips", (0, 12.3, 5.2), (-4, 6, 4.9), (4, 12.5, 5.9), (9, 0, 0))
+    live(m, "clothB", "hips", (0, 12.3, -4.4), (-4, 6, -5.0), (4, 12.5, -4.1), (-9, 0, 0))
+    stir(m, jaw=("jaw", 8))
+
+
+def _bones(m):
+    live(m, "tails", "hips", (0, 13.4, -2.6), (-5.2, 7, -3.3), (5.2, 13.8, -2.0), (-8, 0, 0))
+    stir(m, jaw=("jaw", 8), hat=("sway", (3, 0, 3)), lantern=("sway", (12, 0, 6)))
+
+
+def _grimsby(m):
+    m.bone("jaw", "head", (0, 30.4, 3.2))
+    bx(m, "jaw", (0, 29.5, 3.2), (8.2, 1.4, 7.2), "andesite")
+    for sd in (1, -1):
+        bx(m, "jaw", (sd * 2.6, 30.6, 6.7), (0.7, 1.2, 0.6), "calcite")
+        live(m, "earL" if sd == 1 else "earR", "head", (sd * 4.5, 34, 2.6), (min(sd * 4.6, sd * 7.4), 33, 2.2), (max(sd * 4.6, sd * 7.4), 36.6, 3.0), (0, sd * 10, sd * 6))
+    m.bone("bigkey", "armR", (0, 19, 6.6))                     # the key is held in his right fist, not stuck to his chest
+    for c in m.cubes:
+        if c["b"] == "core" and c["k"] == "iron_block": c["b"] = "bigkey"
+    m.hold = {"bigkey": 0}
+    bx(m, "tail", (0, 16.8, -4.2), (1.8, 4.0, 1.8), "stone")
+    live(m, "tailtip", "tail", (0, 10, -6.3), (-2, 4, -8), (2, 9.9, -5.5), (10, 0, 14))
+    stir(m, jaw=("jaw", 10), tail=("sway", (6, 0, 10)), wingL=("sway", (0, 14, 0)), wingR=("sway", (0, -14, 0)))
+
+
+def _bjorn(m):
+    for sd in (1, -1):
+        live(m, "earL" if sd == 1 else "earR", "head", (sd * 3.7, 31.6, 3.0), (min(sd * 3.3, sd * 6.2), 30.6, 2.2), (max(sd * 3.3, sd * 6.2), 32.6, 3.8), (0, sd * 6, sd * 10))
+    live(m, "goatee", "jaw", (0, 27.2, 8), (-1.5, 24, 7), (1.5, 27.3, 9), (9, 0, 5))
+    stir(m, jaw=("jaw", 7), cloud=("sway", (0, 5, 2)))
+
+
+def _jangles(m):
+    live(m, "lamp", "head", (0, 42.3, 0.4), (-1.6, 42.2, -1.2), (1.6, 44.2, 2), (8, 0, 8))
+    stir(m, keys=("sway", (10, 0, 6)), key=("sway", (0, 0, 45)))
+
+
+def _granny(m):
+    live(m, "nose", "head", (0, 35.4, 4.6), (-1.6, 33, 5.2), (1.6, 37, 9), (5, 0, 4))
+    live(m, "hairL", "head", (4.6, 36.5, -0.4), (4.7, 31, -2), (7, 38.4, 1.5), (0, 0, 9)); live(m, "hairR", "head", (-4.6, 36.5, -0.4), (-7, 31, -2), (-4.7, 38.4, 1.5), (0, 0, -9))
+    live(m, "hattip", "hat", (1.6, 45.4, -1.6), (-2, 45.5, -8), (8, 52, 3), (10, 0, 8))
+    live(m, "cathead", "cat", (7.6, 30.6, 0.6), (5, 30.2, 0.3), (10, 35, 4), (6, 16, 0))
+    live(m, "cattail", "cat", (7.6, 29.8, -3.2), (5, 29, -6), (10, 36, -3.5), (8, 0, 14))
+    live(m, "flame", "staff", (-8.6, 30.2, 2), (-11, 30.2, 0), (-6, 35, 4), (0, 20, 7))
+    stir(m, jaw=("jaw", 9), hat=("sway", (3, 0, 3)), cat=("sway", (2, 6, 0)))
+
+def _pip(m):
+    live(m, "nose", "head", (0, 16, 4), (-1, 13.2, 4.5), (1, 16.8, 6.6), (5, 0, 5))
+    live(m, "hattip", "hat", (0, 26, -2.4), (-1.6, 22.8, -6.5), (1.6, 27.2, -2.6), (10, 0, 10))
+    stir(m, beard=("sway", (5, 0, 4)), hat=("sway", (3, 0, 3)))
+
+
+def _hedgey(m):
+    live(m, "beak", "body", (0, 17.6, 6.5), (-1.3, 16.6, 6.5), (1.3, 18.6, 8.6), (7, 0, 0))
+    live(m, "pack", "body", (0, 21.5, -6.6), (-4.8, 12.5, -10.2), (4.8, 22.3, -6.6), (5, 0, 0))
+    live(m, "tuftA", "body", (7.2, 19.4, -3.6), (7, 17.5, -5.5), (8.8, 21.3, -1.8), (0, 0, 10))
+    live(m, "tuftB", "body", (-7.2, 15.4, 2.6), (-8.8, 13.6, 0.9), (-7, 17.2, 4.3), (0, 0, -10))
+    stir(m, head=("sway", (3, 8, 0)))
+
+
+def _sizzle(m):
+    for sd in (1, -1):
+        live(m, "browL" if sd == 1 else "browR", "body", (sd * 4.0, 22.0, 7.9), (min(sd, sd * 7), 21.2, 7.5), (max(sd, sd * 7), 22.8, 8.6), (0, 0, sd * 8))
+    bx(m, "ring", (-11.6, 12.6, 1.0), (1.2, 1.2, 1.2), "gray_concrete")
+    live(m, "fork", "ring", (-11.4, 12.6, 1.0), (-15, 12.2, 0), (-11.5, 25, 2), (0, 0, 10))
+    live(m, "bottles", "ring", (12.6, 13.1, 0.4), (11, 13.2, -3), (14, 18.2, 3.8), (4, 0, 6))
+    stir(m, rays=("sway", (0, 12, 5)))
+
+
+def _stitches(m):
+    bx(m, "jaw", (0, 19.6, 14.6), (4.6, 1.6, 3.4), "gray_terracotta")          # the hinge, up inside the skull
+    live(m, "tongue", "jaw", (1.4, 19.8, 20.8), (0.4, 16.3, 20.2), (2.4, 20, 21.4), (10, 0, 12))
+    live(m, "earL", "head", (3.4, 26.6, 12.2), (2.1, 26.3, 11.3), (4.7, 30.6, 13.4), (8, 0, 6))
+    live(m, "earR", "head", (-3.4, 26.6, 12.2), (-6.5, 25.5, 11.3), (-2.2, 29.5, 13.1), (0, 0, 12))
+    live(m, "tailtip", "tail", (0, 25.6, -14.6), (-2.6, 25.6, -16.5), (2.6, 29.6, -14.5), (10, 0, 14))
+    live(m, "nose", "head", (0, 23.4, 20.5), (-1.4, 22.5, 20.4), (1.4, 24.3, 22), (4, 0, 4))
+    live(m, "tag", "body", (0, 17.3, 11.6), (-1, 15.4, 11.3), (1, 17.4, 11.9), (14, 0, 10))
+    stir(m, jaw=("jaw", 10), tail=("sway", (6, 0, 12)))
+
+
+LIVE = {"gnome_brothers": _gnomes, "ugor": _ugor, "gravelord": _bones, "gate_shade": _grimsby, "storm_herald": _bjorn, "keywarden": _jangles,
+        "hexmother": _granny, "old_pip": _pip, "sproutbeak": _hedgey, "sunscorch": _sizzle, "headless_horseman": _stitches}
 
 
 def checker(w, h, odd=0):
@@ -840,7 +1101,7 @@ def hexmother():
     bx(m, "staff", (-8.6, 13.2, 2), (1.8, 1.0, 1.8), "dark_oak_log")
     part(m, "staff", (-8.6, 28.6, 2), (2.8, 2.6, 2.6), "calcite")
     paint(m, "staff", "f", (-8.6, 28.8, 3.3), ["k.k", "...", ".k."], {"k": "black_concrete"}, 0.7)
-    litbox(m, "staff", (-8.6, 31.0, 2), (2.0, 1.6, 2.0), "lime_concrete")
+    litbox(m, "staff", (-8.6, 30.7, 2), (2.0, 2.2, 2.0), "lime_concrete")
     litbox(m, "staff", (-8.4, 32.4, 2), (1.2, 1.6, 1.2), "lime_stained_glass")
     m.bend = -50
     standard_anims(m, heavy=0.9, extra={"idle": idle_biped(4.0, 18, breath=0.03, extra={

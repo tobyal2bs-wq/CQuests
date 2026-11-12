@@ -51,13 +51,13 @@ and its minions only go after that player. If they lose or leave, it waits for `
 | Chapter | Boss | Health | Blocks |
 |---|---|---|---|
 | 1 | Brakka the Torchbearer | 3000 | 133 |
-| 2 | Grimsby | 3000 | 100 |
+| 2 | Grimsby | 3000 | 113 |
 | 3 | Sir Oakheart | 3000 | 152 |
-| 4 | The Gnome Brothers | 3000 | 185 |
+| 4 | The Gnome Brothers | 3000 | 192 |
 | 5 | Old Moss | 3000 | 300 |
 | 7 | Grub | 3000 | 297 |
 | 9 | Mudd | 3000 | 248 |
-| 10 | Ugor | 3000 | 165 |
+| 10 | Ugor | 3000 | 174 |
 
 <table>
 <tr><td valign="top" width="33%"><br><b>Brakka the Torchbearer</b><br><i>Burner of the Wanderers' Camp</i><br><sub><code>brakka</code> · 3000 HP · 2 phases · Walks</sub><br><br>Chapter 1, The Wanderers' Camp: Brakka the bandit chief. A burly raider with a red bandana over his face, an eye patch, leather armour with a wolf-fur collar, a satchel of stolen loot, a crossbow slung on his back and a hatchet in each hand.<br><br><sub><b>Attacks:</b> Volley, Charge, Minions, Slam, Fire Ring</sub></td><td valign="top" width="33%"><br><b>Grimsby</b><br><i>Nothing Passes Without the Key</i><br><sub><code>gate_shade</code> · 3000 HP · 2 phases · Hovers</sub><br><br>Grimsby, the gate gargoyle: a crouching stone gargoyle that hovers on slow beats of its bat wings, mossy on the shoulders, with curled horns, a heavy brow over glowing soul-blue eyes, a wide fanged grin and pointed ears. It hugs a huge iron key to its chest with clawed hands, its legs are tucked up under it, and a long tail with a spade tip hangs below.<br><br><sub><b>Attacks:</b> Blink, Darkness, Minions</sub></td><td valign="top" width="33%"><br><b>Sir Oakheart</b><br><i>The Elder's Champion</i><br><sub><code>oakheart</code> · 3000 HP · 2 phases · Walks</sub><br><br>Chapter 3, The Elder's Charge: an old oak that woke up to protect the elder's grove. A trunk of bark with a hollow full of amber light for a face, mossy shoulders, branch arms that end in leafy fists, roots for feet, mushrooms on its side and a bird's nest in its crown of leaves.<br><br><sub><b>Attacks:</b> Quake, Minions, Spikes, Volley, Heal</sub></td></tr>

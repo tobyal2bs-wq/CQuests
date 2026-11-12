@@ -28,7 +28,13 @@ One place for what you asked, what was done, and what is still open. Jump with t
 | 12 Nov | Texture is bad on nearly all of them | **Partly done**, see Still open |
 | 12 Nov | Design more bosses, preview only, do not add | ==Done==, 3 previews |
 | 12 Nov | Keep notes in files with bookmarks | ==This file== |
-| 12 Nov | Use Blockbench | **Open**, see Still open |
+| 12 Nov | Boss bar better, name gradient, only within 30 blocks | ==Done== |
+| 12 Nov | Simpler spawn announcement | ==Done==, one line |
+| 12 Nov | Bosses must not spawn where no spot is set | ==Done== |
+| 12 Nov | Hedgey's face disappears when he moves | ==Fixed==, face sits on the hedge itself |
+| 12 Nov | Release with all features | ==Done==, CQuests 1.17.0 with CBosses 1.3.10 |
+| 12 Nov | All of them still look bad | **Open**, see Still open |
+| 12 Nov | Use Blockbench | ==Done==, Blockbench 4.12.4 runs on my side, every boss is checked in it (`in-blockbench.png`) |
 | 12 Nov | Remove the little ghost boss (Hoo) | ==Done== |
 | 12 Nov | Floating torsos and viewer glitches | ==Fixed== |
 | 12 Nov | Work on the animations | ==Done==, own walks and signature moves |
@@ -65,7 +71,8 @@ One place for what you asked, what was done, and what is still open. Jump with t
 ## Still open
 
 - **Textures.** Small parts now use smooth blocks so the texture is not squeezed into noise. The hard limit: without a resource pack each face shows one whole vanilla block texture, so the models cannot have painted skins like the reference mods. **A resource pack would lift that limit.** Your call.
-- **Blockbench.** I cannot run Blockbench here. I can export any boss as a `.bbmodel` file for you to open and edit there, and read your edits back in.
+- **Looks.** You said all of them still look bad. Next pass goes boss by boss inside Blockbench.
+- **Blockbench files.** `blockbench-models.zip` in this folder opens in Blockbench if you want to edit one yourself.
 - **I could not reproduce the vanishing eyes in my own renderer.** The fix targets the most likely cause. If it still happens, tell me which boss and whether it is in the viewer or in game.
 
 <a id="previews"></a>
