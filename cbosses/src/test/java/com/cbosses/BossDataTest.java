@@ -126,7 +126,7 @@ class BossDataTest {
     @Test
     void retiredBossesAreGoneAndTwinsAreOneModelAgain() throws Exception {
         var defs = bosses();
-        for (String id : new String[]{"cluck_rider", "hollow_king", "ender_wyrm", "gale_sovereign", "ghost_jelly", "orc_bruiser", "cyclops_ogre", "cinder_imp", "boo_twins", "shulker_matriarch", "pink_burrower", "ironhide_behemoth", "void_walker", "fenrir"}) assertNull(defs.get(id), id);
+        for (String id : new String[]{"cluck_rider", "hollow_king", "ender_wyrm", "gale_sovereign", "ghost_jelly", "orc_bruiser", "cyclops_ogre", "cinder_imp", "boo_twins", "shulker_matriarch", "pink_burrower", "ironhide_behemoth", "void_walker", "fenrir", "boo_twin_b"}) assertNull(defs.get(id), id);
         assertEquals(0, defs.values().stream().filter(BossDef::sidekick).count());
         var yaml = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/bosses.yml"));
         assertTrue(yaml.getStringList("removed").contains("cluck_rider"));

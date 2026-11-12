@@ -8,7 +8,7 @@ as layers a little bigger than the body: belts with buckles, straps, cuffs, ragg
 surface under it, so nothing flickers."""
 from build import Model
 from v14_studio import studio
-from v14_kit import standard_anims, idle_biped, wave, K, Z
+from v14_kit import standard_anims, idle_biped, walk_biped, attack, wave, K, Z
 from v17_sculpt import slab
 
 E = 0.06   # how far a painted plate sits off the face under it
@@ -20,11 +20,71 @@ def mob(id):
         def run():
             m = fn()
             m.flat = m.sculpted = True
+            m.post = lambda m: (joints(m), unfight(m))
             return m
         run.__name__ = fn.__name__
         run.__doc__ = fn.__doc__
         return studio(id, revise=False)(run)
     return deco
+
+
+LOOSE = ("tail", "wing", "ring", "ray", "cloud", "key", "lantern", "shovel", "staff", "rod", "cat", "little", "rider", "hat", "beard", "jaw", "inner")
+
+
+def joints(m):
+    """Keeps every limb joined to what it hangs from. The parent gets a ball of the limb's own block round each
+    hinge, reaching into the parent's nearest part, and the limb gets a short post from the hinge into its own
+    nearest part when that sits away from the hinge. A limb turns about its hinge, so it always passes
+    through the ball: bending an elbow, knee, neck or waist never opens a hole, and nothing floats at rest.
+    Loose things (tails, wings, rings, held tools) are left alone."""
+    pv = {b["name"]: b for b in m.bones}
+    solid = lambda c: min(t - f for f, t in zip(c["f"], c["t"])) >= 0.5
+    for f in [b["name"] for b in m.bones if b["name"].startswith("foot")]:
+        mine = [c for c in m.cubes if c["b"] == f]
+        if mine and not any(map(solid, mine)):        # only paint fell below the knee cut: it stays on the shin
+            for c in mine: c["b"] = pv[f]["parent"]
+    by = {}
+    for c in m.cubes:
+        if solid(c) and "r" not in c and not c.get("l"): by.setdefault(c["b"], []).append(c)
+    def gap(c, P): return sum(max(0, c["f"][i] - P[i], P[i] - c["t"][i]) ** 2 for i in range(3)) ** 0.5
+    def near(cs, P): return min(cs, key=lambda c: (round(gap(c, P), 2), -min(c["t"][i] - c["f"][i] for i in (0, 2))))
+    def reach(f, t, c):          # stretch a box along each axis until it runs 0.5 into c
+        for i in range(3):
+            if c["f"][i] > t[i] - 0.5: t[i] = min(c["f"][i] + 0.5, c["t"][i])
+            if c["t"][i] < f[i] + 0.5: f[i] = max(c["t"][i] - 0.5, c["f"][i])
+        return f, t
+    for b in list(m.bones):
+        n = b["name"]
+        if n not in by or not b["parent"] or any(w in n.lower() for w in LOOSE): continue
+        a = b["parent"]
+        while a and a not in by: a = pv[a]["parent"]
+        if not a: continue
+        P = b["pivot"]
+        c, q = near(by[n], P), near(by[a], P)
+        w = min(c["t"][i] - c["f"][i] for i in (0, 2))
+        h = max(0.5, (0.3 if n == "head" else 0.42) * min(w, min(q["t"][i] - q["f"][i] for i in (0, 2))))
+        a_bone = a if a == b["parent"] else b["parent"]
+        m.box(a_bone, c["k"], *reach([v - h for v in P], [v + h for v in P], q))
+        if gap(c, P) > 0.6 * h:
+            g = 0.9 * h
+            m.box(n, c["k"], *reach([v - g for v in P], [v + g for v in P], c))
+
+
+def unfight(m):
+    """Two faces in one plane, facing the same way, flicker against each other (a band's bottom on its box's
+    bottom, a strap flush with a side). The smaller box steps 0.03 out of that plane, so the detail always wins."""
+    cs = [c for c in m.cubes if "r" not in c]
+    vol = lambda c: (c["t"][0] - c["f"][0]) * (c["t"][1] - c["f"][1]) * (c["t"][2] - c["f"][2])
+    for _ in range(3):
+        moved = False
+        for i, a in enumerate(cs):
+            for b in cs[i + 1:]:
+                for ax in range(3):
+                    if not all(min(a["t"][k], b["t"][k]) - max(a["f"][k], b["f"][k]) > 0.01 for k in range(3) if k != ax): continue
+                    s = a if vol(a) < vol(b) else b
+                    if abs(a["f"][ax] - b["f"][ax]) < 0.005: s["f"][ax] = round(s["f"][ax] - 0.03, 3); moved = True
+                    if abs(a["t"][ax] - b["t"][ax]) < 0.005: s["t"][ax] = round(s["t"][ax] + 0.03, 3); moved = True
+        if not moved: break
 
 
 def bx(m, bone, c, s, block, rot=None, origin=None):
@@ -65,6 +125,17 @@ def paint(m, bone, face, c, rows, ink, p, d=0.1):
             else: pos, size = (c[0] + u, c[1] + off, c[2] - v), (w, d, p)
             bx(m, bone, pos, size, ink[ch])
             i = k
+
+
+def moves(m, walk=None, body=0, **clips):
+    """A boss's own walk (walk_biped settings, leaning the body forward by body degrees) and signature clips,
+    on top of the shared biped set. Clips are written as the engine plays them: +x on a bone tips it forward,
+    +z swings the left arm out and the right arm in."""
+    if walk:
+        w = walk_biped(**walk)
+        if body: w["bones"]["body"]["rot"] = [[t, [x + body, y, z]] for t, (x, y, z) in w["bones"]["body"]["rot"]]
+        m.anims["walk"] = w
+    m.anims.update(clips)
 
 
 def checker(w, h, odd=0):
@@ -149,7 +220,14 @@ def gnome_brothers():
         "hat1": {"rot": wave(2, 3, 4.0)}, "hat2": {"rot": wave(2, 5, 4.0, 0.1)}, "hat3": {"rot": wave(2, 9, 4.0, 0.2)},
         "little": {"pos": hop}, "lhead": {"rot": wave(1, 16, 4.0)},
         "lhat1": {"rot": wave(2, 5, 4.0, 0.3)}, "lhat2": {"rot": wave(2, 10, 4.0, 0.45)}})})
-    m.attacks = {"minions": "roar", "leap": "lunge", "slam": "slam"}
+    up = lambda sd: K((0, Z), (0.3, (-40, 0, 10 * sd)), (0.55, (-165, 0, 25 * sd)), (0.7, (-150, 0, 35 * sd)), (0.85, (-165, 0, 25 * sd)), (1.0, (-150, 0, 35 * sd)), (1.4, Z))
+    moves(m, dict(length=0.8, swing=24, arm=22, bob=0.9, sway=8),
+          rally=attack(1.4, 0.55, {"armL": {"rot": up(1)}, "armR": {"rot": up(-1)}, "body": {"rot": K((0, Z), (0.3, (10, 0, 0)), (0.55, (-14, 0, 0)), (1.4, Z))},
+                                   "head": {"rot": K((0, Z), (0.55, (-22, 0, 0)), (0.85, (-18, 12, 0)), (1.0, (-18, -12, 0)), (1.4, Z))},
+                                   "hips": {"pos": K((0, Z), (0.3, (0, -1.2, 0)), (0.55, (0, 2.6, 0)), (0.75, Z), (0.9, (0, 1.2, 0)), (1.05, Z), (1.4, Z))},
+                                   "little": {"rot": K((0, Z), (0.45, (0, 0, 0)), (0.7, (-12, 20, 0)), (0.95, (-12, -20, 0)), (1.4, Z))},
+                                   "hat3": {"rot": K((0, Z), (0.55, (24, 0, 0)), (0.8, (-18, 0, 0)), (1.4, Z))}}))
+    m.attacks = {"minions": "rally", "leap": "lunge", "slam": "slam"}
     m.melee = "swipe"
     return m
 
@@ -254,7 +332,18 @@ def ugor():
     # bristles on the crown
     m.bend = -16
     standard_anims(m, heavy=1.3, extra={"idle": idle_biped(3.6, 14, breath=0.05, extra={"jaw": {"rot": wave(0, 4, 3.6)}})})
-    m.attacks = {"minions": "roar", "charge": "lunge", "quake": "stomp", "slam": "slam"}
+    def beat(sd, d):
+        hit, lift = (-28, 0, -24 * sd), (-48, 0, -30 * sd)
+        return K((0, Z), *[(t + d, v) for k in range(3) for t, v in ((0.25 + 0.4 * k, lift), (0.4 + 0.4 * k, hit))], (1.9, Z))
+    moves(m, dict(length=1.3, swing=22, arm=24, bob=1.4, sway=6), body=6,
+          beat=attack(1.9, 0.6, {"armL": {"rot": beat(1, 0)}, "armR": {"rot": beat(-1, 0.2)},
+                                 "foreL": {"rot": K((0, Z), (0.25, (-95, 0, 0)), (1.4, (-95, 0, 0)), (1.9, Z))},
+                                 "foreR": {"rot": K((0, Z), (0.45, (-95, 0, 0)), (1.6, (-95, 0, 0)), (1.9, Z))},
+                                 "body": {"rot": K((0, Z), (0.3, (-14, 0, 0)), (1.5, (-12, 0, 0)), (1.9, Z)),
+                                          "scl": K((0, (1, 1, 1)), (0.4, (1.06, 1.03, 1.08)), (0.8, (1.03, 1, 1.04)), (1.2, (1.07, 1.03, 1.09)), (1.9, (1, 1, 1)))},
+                                 "head": {"rot": K((0, Z), (0.3, (-26, 0, 0)), (1.0, (-22, 10, 0)), (1.4, (-22, -10, 0)), (1.9, Z))},
+                                 "jaw": {"rot": K((0, Z), (0.3, (34, 0, 0)), (1.5, (30, 0, 0)), (1.9, Z))}}))
+    m.attacks = {"minions": "beat", "charge": "lunge", "quake": "stomp", "slam": "slam"}
     m.melee = "swipe"
     return m
 
@@ -334,7 +423,15 @@ def gravelord():
     m.bend = -20
     standard_anims(m, heavy=1.0, extra={"idle": idle_biped(4.0, 18, breath=0.03, extra={
         "jaw": {"rot": wave(0, 5, 2.0)}, "hat": {"rot": wave(2, 4, 4.0, 0.2)}, "lantern": {"rot": wave(0, 14, 2.0)}})})
-    m.attacks = {"skulls": "cast", "pull": "lunge", "minions": "roar"}
+    moves(m, dict(length=1.2, swing=28, arm=12, bob=0.8, sway=4), body=4,
+          dig=attack(1.4, 0.75, {"armR": {"rot": K((0, Z), (0.4, (-24, 0, 6)), (0.6, (-36, 0, 0)), (0.75, (-150, 0, -6)), (1.0, (-140, 0, -6)), (1.4, Z))},
+                                 "armL": {"rot": K((0, Z), (0.4, (-50, 0, 8)), (0.75, (-120, 0, -8)), (1.0, (-110, 0, -8)), (1.4, Z))},
+                                 "foreR": {"rot": K((0, Z), (0.4, (-10, 0, 0)), (0.75, (-30, 0, 0)), (1.4, Z))},
+                                 "body": {"rot": K((0, Z), (0.4, (28, 0, 0)), (0.6, (30, 0, 0)), (0.75, (-12, 0, 0)), (1.0, (-10, 0, 0)), (1.4, Z))},
+                                 "head": {"rot": K((0, Z), (0.4, (12, 0, 0)), (0.75, (-20, 0, 0)), (1.4, Z))},
+                                 "hat": {"rot": K((0, Z), (0.75, (-14, 0, 0)), (1.0, (6, 0, 0)), (1.4, Z))},
+                                 "hips": {"pos": K((0, Z), (0.4, (0, -1.5, 0)), (0.75, (0, 0.6, 0)), (1.4, Z))}}))
+    m.attacks = {"skulls": "cast", "pull": "dig", "minions": "roar"}
     m.melee = "swipe"
     return m
 
@@ -496,7 +593,14 @@ def storm_herald():
     litbox(m, "rod", (-10.8, 26.8, 1.2), (0.8, 1.6, 0.8), "yellow_concrete")
     standard_anims(m, heavy=1.2, extra={"idle": idle_biped(4.0, 14, breath=0.04, extra={
         "cloud": {"rot": wave(1, 6, 4.0), "pos": wave(1, 0.6, 4.0, 0.25)}, "jaw": {"rot": wave(0, 4, 2.0)}})})
-    m.attacks = {"lightning": "cast", "charge": "lunge", "shockwave": "stomp", "slam": "slam"}
+    moves(m, dict(length=1.2, swing=22, arm=18, bob=1.0, sway=5), body=4,
+          call=attack(1.6, 1.0, {"armR": {"rot": K((0, Z), (0.5, (-60, 0, -10)), (0.85, (-172, 0, 6)), (1.25, (-168, 0, 6)), (1.6, Z))},
+                                 "armL": {"rot": K((0, Z), (0.5, (-20, 0, 30)), (0.85, (-30, 0, 55)), (1.25, (-28, 0, 50)), (1.6, Z))},
+                                 "body": {"rot": K((0, Z), (0.5, (8, 0, 0)), (0.85, (-16, 0, 0)), (1.25, (-14, 0, 0)), (1.6, Z))},
+                                 "head": {"rot": K((0, Z), (0.5, (10, 0, 0)), (0.85, (-30, 0, 0)), (1.25, (-26, 0, 0)), (1.6, Z))},
+                                 "jaw": {"rot": K((0, Z), (0.85, (30, 0, 0)), (1.25, (26, 0, 0)), (1.6, Z))},
+                                 "cloud": {"scl": K((0, (1, 1, 1)), (0.85, (1.25, 1.15, 1.25)), (1.0, (1.45, 1.3, 1.45)), (1.25, (1.35, 1.2, 1.35)), (1.6, (1, 1, 1)))}}))
+    m.attacks = {"lightning": "call", "charge": "lunge", "shockwave": "stomp", "slam": "slam"}
     m.melee = "swipe"
     return m
 
@@ -584,14 +688,20 @@ def keywarden():
     bx(m, "head", (0, 42.6, 0.4), (3.0, 0.6, 3.0), "gold_block")
     litbox(m, "head", (0, 43.4, 0.4), (1.2, 1.2, 1.2), "redstone_lamp")
     # the wind-up key in the back
-    bx(m, "key", (0, 26, -7.4), (1.2, 1.2, 3.6), DK)
+    bx(m, "key", (0, 26, -7.0), (1.2, 1.2, 4.4), DK)
     for sd in (1, -1):
         part(m, "key", (sd * 2.6, 26, -9.6), (4.0, 4.6, 0.8), "gold_block", dark=BR_D, band=0.3)
         bx(m, "key", (sd * 2.8, 26, -9.6), (2.0, 2.6, 1.0), COP)
     bx(m, "key", (0, 26, -9.6), (1.6, 1.6, 1.0), COP)
     turn = K(*[(t, (0, 0, 90 * t)) for t in range(5)])
     standard_anims(m, heavy=1.3, extra={"idle": idle_biped(4.0, 12, breath=0.02, extra={"key": {"rot": turn}, "keys": {"rot": wave(0, 12, 2.0)}})})
-    m.attacks = {"slam": "slam", "charge": "sweep", "minions": "cast", "darkness": "roar"}
+    piston = lambda d: K((0, Z), *[(0.2 + 0.3 * k + d, (-70 if k % 2 else -10, 0, 0)) for k in range(4)], (1.6, Z))
+    moves(m, dict(length=1.0, swing=20, arm=26, bob=0.4, sway=0),
+          wind=attack(1.6, 1.0, {"key": {"rot": K((0, Z), (1.3, (0, 0, 1080)), (1.6, (0, 0, 1080)))},
+                                 "armL": {"rot": piston(0)}, "armR": {"rot": piston(0.15)},
+                                 "head": {"rot": K((0, Z), (0.9, Z), (1.2, (0, 180, 0)), (1.4, (0, 360, 0)), (1.6, (0, 360, 0)))},
+                                 "body": {"rot": K(*[(0.1 * k, (0, 0, (2 if k % 2 else -2) if 0 < k < 16 else 0)) for k in range(17)])}}))
+    m.attacks = {"slam": "slam", "charge": "sweep", "minions": "wind", "darkness": "roar"}
     m.melee = "swipe"
     return m
 
@@ -717,6 +827,7 @@ def hexmother():
     paint(m, "jaw", "f", (0, 32.0, 4.7), ["k.....k", ".kkwkk."], {"k": "black_concrete", "w": "white_concrete"}, 0.7)
     # the hat: a wide brim, a tall bent cone, a purple band with a gold buckle, a spider web on the side
     part(m, "hat", (0, 39.6, 0.4), (13.0, 0.8, 12.0), HAT)
+    bx(m, "hat", (0, 38.8, 0.8), (7.2, 1.4, 6.6), HAT)          # the crown sits down on her head
     cone = ((0, 41.4, 0.2, 7.6, 2.8, 7.2), (0.4, 44.0, -0.4, 6.0, 2.6, 5.8), (1.2, 46.4, -1.4, 4.4, 2.4, 4.2), (2.4, 48.4, -2.8, 3.0, 1.8, 3.0), (3.8, 49.6, -4.4, 1.8, 1.4, 1.8))
     for x, y, z, w, h, d in cone:
         part(m, "hat", (x, y, z), (w, h, d), HAT)
@@ -742,7 +853,16 @@ def hexmother():
     m.bend = -50
     standard_anims(m, heavy=0.9, extra={"idle": idle_biped(4.0, 18, breath=0.03, extra={
         "hat": {"rot": wave(2, 4, 4.0)}, "jaw": {"rot": wave(0, 5, 2.0)}, "cat": {"rot": wave(1, 12, 4.0, 0.3)}})})
-    m.attacks = {"hex": "cast", "potions": "double", "minions": "roar", "blink": "cast"}
+    moves(m, dict(length=1.0, swing=16, arm=8, bob=0.5, sway=6), body=10,
+          hex=attack(1.6, 0.95, {"armR": {"rot": K((0, Z), (0.6, (-150, 0, -10)), (0.8, (-165, 0, -12)), (0.95, (-100, 0, -4)), (1.3, (-95, 0, -4)), (1.6, Z))},
+                                 "armL": {"rot": K((0, Z), (0.6, (-40, 0, 20)), (0.95, (-95, 0, -4)), (1.3, (-90, 0, -4)), (1.6, Z))},
+                                 "foreL": {"rot": K((0, Z), (0.6, (-60, 0, 0)), (0.95, (-5, 0, 0)), (1.6, Z))},
+                                 "body": {"rot": K((0, Z), (0.6, (-12, 10, 0)), (0.95, (14, -6, 0)), (1.3, (12, -6, 0)), (1.6, Z))},
+                                 "head": {"rot": K((0, Z), (0.6, (-15, 0, 0)), (0.95, (8, 0, 0)), (1.6, Z))},
+                                 "jaw": {"rot": K((0, Z), (0.6, (6, 0, 0)), (0.95, (26, 0, 0)), (1.3, (22, 0, 0)), (1.6, Z))},
+                                 "hat": {"rot": K((0, Z), (0.6, (-15, 0, 6)), (0.95, (12, 0, -4)), (1.25, (-4, 0, 2)), (1.6, Z))},
+                                 "cat": {"rot": K((0, Z), (0.8, (-12, 0, 0)), (0.95, (8, 0, 0)), (1.6, Z))}}))
+    m.attacks = {"hex": "hex", "potions": "double", "minions": "roar", "blink": "cast"}
     m.melee = "swipe"
     return m
 
@@ -834,43 +954,6 @@ def headless_horseman():
     return m
 
 
-# ------------------------------------------------------------------------------------------------ Hoo
-
-@mob("boo_twin_b")
-def boo_twin_b():
-    """Hoo, the younger Boo Twin: a small white sheet ghost with tall oval eyes, a wobbly open mouth with a pink
-    tongue, pale blue cheeks, a little light blue scarf, a curl on top, a wavy hem and both arms raised to scare."""
-    m = Model("boo_twin_b", "float", 1.0)
-    m.bone("core", "root", (0, 6, 0)); m.bone("head", "core", (0, 12, 0))
-    m.bone("armL", "core", (5.2, 11, 0)); m.bone("armR", "core", (-5.2, 11, 0))
-    for r in ("ring1", "ring2", "ring3"):
-        m.bone(r, "core", (0, 6, 0))
-    W, W_D = "white_wool", "light_gray_wool"
-    part(m, "core", (0, 8.8, 0), (10.0, 8.8, 9.0), W)
-    for i, x in enumerate((-3.75, -1.25, 1.25, 3.75)):
-        for z in (4.0, -4.0):
-            up = (i + (z > 0)) % 2
-            bx(m, "core", (x, 3.6 + up * 0.6, z), (2.5, 1.6 - up * 1.2 + 1.2, 1.0), W)
-        for xs in (5.0, -5.0):
-            if i < 3:
-                bx(m, "core", (xs * 0.9, 3.8 + (i % 2) * 0.6, -3.0 + i * 3.0), (1.0, 1.4, 3.0), W)
-    bx(m, "core", (0, 4.36, 0), (9.4, 0.1, 8.4), W_D)
-    paint(m, "core", "f", (0, 8.2, 4.5), ["..kkk..", ".kkkkk.", ".kkpkk.", "..kkk.."], {"k": "black_concrete", "p": "pink_concrete"}, 0.8)
-    paint(m, "core", "f", (0, 10.6, 4.5), ["b.........b"], {"b": "light_blue_concrete"}, 0.8)
-    bx(m, "core", (0, 12.6, 0), (10.4, 1.2, 9.4), "light_blue_wool")
-    bx(m, "core", (3.0, 11.0, 4.86), (1.6, 3.2, 0.3), "light_blue_wool")
-    part(m, "head", (0, 15.4, 0), (9.0, 4.4, 8.4), W)
-    part(m, "head", (0, 18.2, 0), (6.6, 1.4, 6.2), W)
-    bx(m, "head", (0.6, 19.4, 0), (1.2, 1.2, 1.2), W, rot=(0, 0, 30), origin=(0.6, 19.4, 0))
-    paint(m, "head", "f", (0, 15.6, 4.2), [".kk...kk.", "kwkk.kwkk", "kkkk.kkkk", "kkkk.kkkk", ".kk...kk."], {"k": "black_concrete", "w": "white_concrete"}, 0.8)
-    for sd, arm in ((1, "armL"), (-1, "armR")):
-        bx(m, arm, (sd * 6.2, 12.4, 0), (2.2, 4.8, 2.4), W, rot=(0, 0, -28 * sd), origin=(sd * 5.2, 11, 0))
-        bx(m, arm, (sd * 7.6, 14.6, 0), (2.4, 1.6, 2.6), W, rot=(0, 0, -28 * sd), origin=(sd * 5.2, 11, 0))
-    m.attacks = {"darkness": "pulse", "blink": "spin", "dive": "dive"}
-    m.melee = "swipe"
-    return m
-
-
 # ------------------------------------------------------------------------------------------------ Grandpa Pip
 
 @mob("old_pip")
@@ -917,6 +1000,8 @@ def old_pip():
     bx(m, "hat", (0, 25.4, -4.8), (2.0, 2.4, 2.0), RED, rot=(30, 0, 0), origin=(0, 26.4, -4.4))
     bx(m, "hat", (0, 23.8, -5.4), (1.6, 1.6, 1.6), W)
     standard_anims(m, heavy=0.7, extra={"idle": idle_biped(3.2, 14, breath=0.04, extra={"hat": {"rot": wave(2, 4, 3.2)}, "beard": {"rot": wave(0, 4, 3.2, 0.2)}})})
+    moves(m, dict(length=0.9, swing=28, arm=20, bob=0.7, sway=9), body=5)
+    m.anims["walk"]["bones"]["beard"] = {"rot": wave(2, 8, 0.9)}
     m.attacks = {"volley": "cast", "blink": "stomp"}
     m.melee = "swipe"
     return m
@@ -968,6 +1053,15 @@ def sproutbeak():
         part(m, arm, (sd * 8.2, 16.8, 0.4), (1.4, 5.0, 4.8), LEAF_D, light=LEAF_L)
         paint(m, arm, "l" if sd == 1 else "r", (sd * 8.9, 16.8, 0.4), ["..l..", ".l.l.", "l...l"], {"l": LEAF_L}, 0.9)
     standard_anims(m, heavy=0.6, extra={"idle": idle_biped(2.4, 18, breath=0.05)})
+    moves(m, dict(length=0.6, swing=34, arm=0, bob=1.6, sway=4))
+    flap = lambda sd: K(*[(0.075 * k, (0, 0, sd * (48 if k % 2 else 8))) for k in range(9)])
+    m.anims["walk"]["bones"]["armL"], m.anims["walk"]["bones"]["armR"] = {"rot": flap(1)}, {"rot": flap(-1)}
     m.attacks = {"charge": "lunge"}
     m.melee = "swipe"
     return m
+
+
+# Hoo, the little ghost, is retired: servers drop it from bosses.yml on the next start
+import v12_final
+v12_final.drop("boo_twin_b")
+v12_final.REMOVED.append("boo_twin_b")

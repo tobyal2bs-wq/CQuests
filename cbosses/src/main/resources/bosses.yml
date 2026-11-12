@@ -2557,33 +2557,6 @@ bosses:
     spawn-commands: []
     defeat-commands: []
     description: "Stumpy, what is left of the old oak: a short cut stump whose top shows the tree rings, a cross face carved in the bark with glowing green eyes, a shelf mushroom on one side, a sprout on top, little root feet and twig arms with forked ends."
-  boo_twin_b:
-    revision: 3
-    name: "<gradient:#e0e0e0:#b3e5fc><bold>Hoo</bold></gradient>"
-    title: "The Younger Twin"
-    kind: mini
-    tier: mini
-    entity: VEX
-    health: 1000
-    damage: 3.5
-    armor: 4
-    bar: WHITE
-    theme: soul
-    movement: hover
-    phases: [0.5]
-    ability-seconds: 6
-    abilities: [darkness, blink, dive]
-    health-per-player: 0.15
-    rewards:
-      money: 15000
-      top-money: 45000
-      items: ["DIAMOND 1", "GOLD_INGOT 8", "EXPERIENCE_BOTTLE 8"]
-      top-items: ["GOLDEN_APPLE 2"]
-      commands: []
-      top-commands: []
-    spawn-commands: []
-    defeat-commands: []
-    description: "Hoo, the younger Boo Twin: a small white sheet ghost with tall oval eyes, a wobbly open mouth with a pink tongue, pale blue cheeks, a little light blue scarf, a curl on top, a wavy hem and both arms raised to scare."
   cap_little:
     revision: 3
     name: "<gradient:#6d4c41:#ffe0b2><bold>Puffball</bold></gradient>"
@@ -2751,4 +2724,4 @@ bosses:
   # ------------------------------------------------------------ second bodies of two-body bosses (they appear beside their partner, never alone)
 
 # bosses taken out of the plugin; a server that still has them drops them on start
-removed: ["fenrir", "ironhide_behemoth", "void_walker", "cluck_rider", "hollow_king", "ender_wyrm", "gale_sovereign", "ghost_jelly", "orc_bruiser", "cyclops_ogre", "cinder_imp", "boo_twins", "shulker_matriarch", "pink_burrower"]
+removed: ["fenrir", "ironhide_behemoth", "void_walker", "cluck_rider", "hollow_king", "ender_wyrm", "gale_sovereign", "ghost_jelly", "orc_bruiser", "cyclops_ogre", "cinder_imp", "boo_twins", "shulker_matriarch", "pink_burrower", "boo_twin_b"]
