@@ -1,12 +1,13 @@
 """v21: design previews. These bosses are NOT in the plugin: the module is only loaded when PREVIEW=1 is set,
 to render pictures for the owner to pick from. An approved one moves into v20_mob with a real slot."""
 from build import Model
-from v14_studio import new_mini
+from v14_studio import new_mini, recipe
+SLIME = recipe("POOF", "ENTITY_SLIME_SQUISH", "ENTITY_SLIME_DEATH", 1.2, "burst", "die_deflate")
 from v14_kit import standard_anims, idle_biped, humanoid, wave
 from v20_mob import bx, part, paint, lit, litbox, moves, joints, emboss, unfight, calm
 
 
-def preview(id, name, title):
+def preview(id, name, title, rec=None):
     def deco(fn):
         def run():
             m = fn()
@@ -14,7 +15,7 @@ def preview(id, name, title):
             m.post = lambda m: (calm(m), joints(m), emboss(m), unfight(m))
             return m
         run.__name__, run.__doc__ = fn.__name__, fn.__doc__
-        return new_mini(id, "<bold>%s</bold>" % name, title)(run)
+        return new_mini(id, "<bold>%s</bold>" % name, title, rec=rec)(run)
     return deco
 
 
@@ -189,4 +190,161 @@ def preview_crumb():
     moves(m, dict(length=0.9, swing=26, arm=20, bob=0.8, sway=7))
     m.attacks = {"slam": "slam", "leap": "lunge"}
     m.melee = "swipe"
+    return m
+
+
+# ------------------------------------------------------------------------------------------------ angry household things (Sizzle's family)
+
+def gadget(id, W, H, D, y0, mouth_y, shell, shell_d, base, glow, tooth="white_concrete", eye_y=None, brow="black_concrete"):
+    """A thing with a face, built like Sizzle: a lower half, an upper half that is the lid, a glowing gap between
+    them with teeth top and bottom, big angry eyes with slanted brows. Bones match Sizzle's so his clips fit."""
+    import v14_studio
+    m = Model(id, "slime", 1.6)
+    for b, p, at in (("body", "root", (0, 0, 0)), ("inner", "body", (0, mouth_y + 1, 0)), ("mouth", "body", (0, mouth_y, D / 2)), ("ring", "body", (0, mouth_y, 0)), ("rays", "body", (0, y0 + H, 0))):
+        m.bone(b, p, at)
+    top = y0 + H
+    part(m, "body", (0, (y0 + mouth_y) / 2, 0), (W, mouth_y - y0, D), base[0], dark=base[1], band=0.2)
+    litbox(m, "inner", (0, mouth_y + 1.1, 0.3), (W - 2.6, 2.0, D - 2.6), glow)
+    part(m, "body", (0, (mouth_y + 2.2 + top) / 2, 0), (W + 0.4, top - mouth_y - 2.2, D + 0.4), shell, dark=shell_d, band=0.14)
+    bx(m, "body", (0, mouth_y + 1.1, -0.6), (W - 1.6, 2.4, D - 1.6), "black_concrete")
+    n = max(4, int((W - 3) // 2.2))
+    for k in range(n):
+        bx(m, "body", ((k - (n - 1) / 2) * 2.2, mouth_y + 1.7, D / 2 - 0.1), (1.8, 1.3, 0.8), tooth)
+    part(m, "mouth", (0, mouth_y - 0.5, D / 2 - 0.4), (W - 1.0, 1.2, 1.6), base[1])
+    for k in range(n - 1):
+        bx(m, "mouth", ((k - (n - 2) / 2) * 2.2, mouth_y + 0.5, D / 2 - 0.1), (1.8, 1.1, 0.8), tooth)
+    ey = eye_y or (mouth_y + 2.2 + top) / 2 + 0.6
+    e = min(4.4, W * 0.24)
+    for sd in (1, -1):
+        bx(m, "body", (sd * W * 0.22, ey, D / 2 + 0.3), (e, e * 0.9, 0.5), "white_concrete")
+        bx(m, "body", (sd * W * 0.19, ey - e * 0.14, D / 2 + 0.55), (e * 0.45, e * 0.5, 0.5), "black_concrete")
+        bx(m, "body", (sd * W * 0.17, ey, D / 2 + 0.8), (0.7, 0.7, 0.4), "white_concrete")
+        bx(m, "body", (sd * W * 0.22, ey + e * 0.6, D / 2 + 0.5), (e * 1.2, 1.2, 0.9), brow, rot=(0, 0, -16 * sd), origin=(sd * W * 0.22, ey + e * 0.6, D / 2 + 0.5))
+    from v20_mob import sizzle_anims
+    m.anims = sizzle_anims()
+    m.attacks, m.melee = {"leap": "slam", "quake": "hop"}, "hop"
+    return m
+
+
+def feet(m, W, D, h, block):
+    for sx in (1, -1):
+        for sz in (1, -1):
+            bx(m, "body", (sx * (W / 2 - 1.6), h / 2, sz * (D / 2 - 1.6)), (2.2, h, 2.2), block)
+
+
+@preview("preview_chilly", "Chilly", "Somebody Left the Door Open", rec=SLIME)
+def preview_chilly():
+    """Chilly, a furious fridge: a tall white box on little feet, a freezer door on top with the face, icicle
+    teeth, cold blue light in the gap, magnets and a shopping list on its side, ice cubes piled on top."""
+    W, H, D = 14.0, 26.0, 11.0
+    m = gadget("preview_chilly", W, H, D, 2.0, 15.0, "light_blue_concrete", "cyan_concrete", ("light_blue_concrete", "cyan_concrete"), "sea_lantern", tooth="light_blue_stained_glass")
+    feet(m, W, D, 2.0, "gray_concrete")
+    for y, h in ((9.0, 6.0), (22.0, 5.0)):
+        bx(m, "ring", (W / 2 - 1.4, y, D / 2 + 0.5), (0.8, h, 0.8), "iron_block")                       # door handles
+    for (y, z), c in zip(((20, -2), (23.4, 1.6), (17.2, 2.2), (10.4, -1.0)), ("red_concrete", "yellow_concrete", "lime_concrete", "magenta_concrete")):
+        bx(m, "ring", (-W / 2 - 0.4, y, z), (0.4, 1.4, 1.4), c)                                       # magnets
+    bx(m, "ring", (-W / 2 - 0.3, 8.6, 1.8), (0.2, 4.0, 3.0), "white_wool")
+    for x, z, s in ((-3.0, -1.0, 3.0), (1.6, 1.2, 2.6), (-0.4, -2.4, 2.2)):
+        litbox(m, "rays", (x, 28.0 + s / 2, z), (s, s, s), "light_blue_stained_glass")
+    bx(m, "rays", (3.6, 28.6, -2.0), (2.4, 1.2, 2.4), "snow_block")
+    return m
+
+
+@preview("preview_toasty", "Toasty", "Burnt on Both Sides", rec=SLIME)
+def preview_toasty():
+    """Toasty, a chrome toaster with a temper: a wide shiny body on four stubby feet, two slices of toast
+    popping out of the top, glowing orange slots, a side lever and dial, and a crumb tray for a jaw."""
+    W, H, D = 20.0, 13.0, 10.0
+    m = gadget("preview_toasty", W, H, D, 2.0, 5.6, "yellow_concrete", "orange_terracotta", ("gray_concrete", "black_concrete"), "orange_concrete")
+    feet(m, W, D, 2.0, "black_concrete")
+    for x in (-4.6, 4.6):
+        bx(m, "body", (x, 15.2, 0), (7.4, 0.5, 3.0), "black_concrete")                                 # the slots
+        litbox(m, "inner", (x, 15.0, 0), (6.6, 0.6, 2.2), "orange_concrete")
+        part(m, "rays", (x, 18.4, 0), (6.4, 7.0, 1.8), "stripped_birch_log", dark="orange_terracotta", band=0.2)
+        bx(m, "rays", (x, 22.0, 0), (6.8, 0.8, 2.2), "brown_terracotta")                               # the burnt crust
+    bx(m, "ring", (W / 2 + 0.6, 9.0, 0), (1.0, 5.0, 1.2), "black_concrete")
+    bx(m, "ring", (W / 2 + 1.4, 10.6, 0), (1.6, 1.4, 3.0), "red_concrete")                             # the lever
+    bx(m, "ring", (-W / 2 - 0.5, 6.4, 0), (0.6, 2.4, 2.4), "black_concrete")                           # the dial
+    bx(m, "ring", (-W / 2 - 0.9, 7.0, 0), (0.4, 0.8, 0.6), "white_concrete")
+    return m
+
+
+@preview("preview_suds", "Suds", "Eater of Odd Socks", rec=SLIME)
+def preview_suds():
+    """Suds, a washing machine gone wrong: a white box with a control strip of coloured buttons, the porthole
+    for a mouth with swirling blue water behind the teeth, a sock hanging out, and foam bubbling off the top."""
+    W, H, D = 17.0, 20.0, 14.0
+    m = gadget("preview_suds", W, H, D, 1.6, 7.6, "light_gray_concrete", "gray_concrete", ("light_gray_concrete", "gray_concrete"), "light_blue_concrete", eye_y=14.4)
+    feet(m, W, D, 1.6, "gray_concrete")
+    bx(m, "body", (0, 20.2, D / 2 + 0.3), (W - 1.0, 2.2, 0.4), "light_gray_concrete")                   # the control strip
+    for x, c in ((-6.0, "red_concrete"), (-4.0, "lime_concrete"), (-2.0, "yellow_concrete")):
+        litbox(m, "body", (x, 20.2, D / 2 + 0.6), (1.2, 1.2, 0.4), c)
+    bx(m, "body", (5.0, 20.2, D / 2 + 0.7), (2.4, 1.6, 0.6), "gray_concrete")
+    part(m, "ring", (5.4, 6.0, D / 2 + 0.8), (2.4, 5.4, 0.9), "red_wool", dark="white_wool", band=0.25)          # a sock hanging out of its mouth
+    bx(m, "ring", (6.4, 3.4, D / 2 + 1.2), (3.2, 1.6, 1.4), "red_wool")
+    for x, y, z, s in ((-4.0, 23.0, -2.0, 3.4), (0.6, 23.4, 1.4, 4.0), (4.6, 22.8, -1.6, 3.0), (-1.4, 26.0, -0.6, 2.6), (2.6, 26.4, 0.8, 2.0)):
+        bx(m, "rays", (x, y, z), (s, s, s), "white_stained_glass")
+    return m
+
+
+@preview("preview_static", "Static", "Nothing Good Is On", rec=SLIME)
+def preview_static():
+    """Static, an old wooden television on four legs: a glowing screen with the face on it, a speaker grille
+    for a jaw, two channel knobs, a bent aerial on top and a remote control stuck to its side."""
+    W, H, D = 19.0, 16.0, 12.0
+    m = gadget("preview_static", W, H, D, 6.0, 9.4, "light_blue_concrete", "cyan_concrete", ("spruce_planks", "dark_oak_planks"), "sea_lantern", eye_y=16.6)
+    for sx in (1, -1):
+        for sz in (1, -1):
+            bx(m, "body", (sx * 7.0, 3.0, sz * 4.0), (1.4, 6.0, 1.4), "dark_oak_planks", rot=(0, 0, -8 * sx), origin=(sx * 7.0, 6.0, sz * 4.0))
+    for (x, y, z), (w, h, d) in (((0, 22.6, -0.2), (W + 1.6, 1.6, D + 1.2)), ((-W / 2 - 0.6, 16.6, -0.2), (1.6, 12.0, D + 1.2)), ((W / 2 + 0.6, 16.6, -0.2), (1.6, 12.0, D + 1.2))):
+        bx(m, "body", (x, y, z), (w, h, d), "spruce_planks")                                           # the wooden cabinet round the screen
+    for y in (19.6, 16.4):
+        bx(m, "ring", (W / 2 + 0.6, y, D / 2 + 0.6), (1.4, 1.4, 0.8), "gold_block")                     # the knobs
+    for sd in (1, -1):
+        bx(m, "rays", (sd * 2.6, 27.4, -1.0), (0.6, 9.0, 0.6), "iron_block", rot=(0, 0, -24 * sd), origin=(0, 23.4, -1.0))
+        bx(m, "rays", (sd * 4.4, 31.6, -1.0), (1.0, 1.0, 1.0), "red_concrete", rot=(0, 0, -24 * sd), origin=(0, 23.4, -1.0))
+    bx(m, "rays", (0, 23.8, -1.0), (3.0, 1.0, 2.4), "gray_concrete")
+    part(m, "ring", (-W / 2 - 1.8, 12.0, 1.0), (0.8, 6.0, 2.6), "black_concrete")                       # the remote
+    for y, c in ((13.8, "red_concrete"), (12.2, "white_concrete"), (10.8, "white_concrete")):
+        bx(m, "ring", (-W / 2 - 2.3, y, 1.0), (0.3, 0.8, 0.8), c)
+    return m
+
+
+@preview("preview_gobbler", "Gobbler", "Exact Change Only", rec=SLIME)
+def preview_gobbler():
+    """Gobbler, a vending machine that keeps the money: a tall red cabinet with a lit window of snacks, a
+    glowing sign on top, a coin slot and buttons down one side, and the delivery flap for a mouth."""
+    W, H, D = 15.0, 28.0, 11.0
+    m = gadget("preview_gobbler", W, H, D, 1.0, 6.4, "red_concrete", "red_terracotta", ("gray_concrete", "black_concrete"), "yellow_concrete", eye_y=23.4)
+    bx(m, "body", (-1.6, 14.6, D / 2 + 0.3), (9.4, 9.6, 0.4), "black_concrete")                         # the window
+    for r, y in enumerate((17.6, 14.6, 11.6)):
+        bx(m, "body", (-1.6, y - 1.5, D / 2 + 0.5), (9.0, 0.4, 0.4), "light_gray_concrete")
+        for k, c in enumerate(("yellow_concrete", "lime_concrete", "light_blue_concrete", "orange_concrete")):
+            litbox(m, "body", (-4.9 + k * 2.2, y, D / 2 + 0.5), (1.5, 2.2, 0.5), (c, "magenta_concrete", "white_concrete", c)[(k + r) % 4])
+    for y, c in ((17.6, "white_concrete"), (15.6, "white_concrete"), (13.6, "lime_concrete")):
+        bx(m, "ring", (5.4, y, D / 2 + 0.5), (1.6, 1.2, 0.5), c)                                        # buttons
+    bx(m, "ring", (5.4, 11.0, D / 2 + 0.5), (1.6, 0.5, 0.5), "black_concrete")                          # the coin slot
+    litbox(m, "ring", (5.4, 9.4, D / 2 + 0.8), (1.2, 1.2, 0.3), "gold_block")
+    litbox(m, "rays", (0, 30.2, 0), (W - 2.0, 2.4, D - 3.0), "yellow_concrete")
+    bx(m, "rays", (0, 30.2, D / 2 - 1.2), (W - 5.0, 1.0, 0.4), "red_concrete")
+    return m
+
+
+@preview("preview_stew", "Stew", "Yesterday's Dinner, Still Angry", rec=SLIME)
+def preview_stew():
+    """Stew, a big copper cooking pot that boiled over: a round-shouldered pot with two handles, a lid lifting
+    on glowing green stew, a ladle sticking out, a carrot and a bone floating up, and steam off the top."""
+    W, H, D = 18.0, 15.0, 15.0
+    m = gadget("preview_stew", W, H, D, 2.4, 9.4, "copper_block", "cut_copper", ("copper_block", "cut_copper"), "lime_concrete", eye_y=None)
+    part(m, "body", (0, 1.6, 0), (12.0, 1.8, 10.0), "cut_copper")
+    part(m, "body", (0, 18.2, 0), (12.0, 1.6, 9.6), "copper_block")
+    bx(m, "body", (0, 19.8, 0), (3.0, 1.8, 3.0), "black_concrete")                                     # the lid knob
+    for sd in (1, -1):
+        bx(m, "ring", (sd * (W / 2 + 1.4), 7.0, 0), (2.2, 1.4, 5.0), "black_concrete")                   # handles
+    bx(m, "ring", (6.6, 15.4, -3.0), (1.0, 12.0, 1.0), "iron_block", rot=(0, 0, -28), origin=(5.0, 10.4, -3.0))   # the ladle
+    litbox(m, "rays", (-3.4, 21.6, 1.0), (1.4, 4.0, 1.4), "orange_concrete")                            # a carrot
+    bx(m, "rays", (-3.4, 24.0, 1.0), (1.8, 1.0, 1.8), "green_concrete")
+    bx(m, "rays", (3.4, 22.4, -1.0), (1.2, 4.6, 1.2), "bone_block", rot=(0, 0, -20), origin=(3.4, 22.4, -1.0))
+    for x, y, z, s in ((-0.6, 23.6, -2.6, 2.8), (1.0, 26.6, -1.6, 2.2), (-1.6, 29.0, -2.2, 1.6)):
+        bx(m, "rays", (x, y, z), (s, s, s), "white_stained_glass")
     return m

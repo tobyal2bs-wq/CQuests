@@ -11,3 +11,6 @@
 
 ## Hit boxes
 - Each part of a rebuilt boss has its own hit box that follows it: head, body, hips, each upper arm and forearm, each thigh and shin, tail, wings, hat and the held weapon. Legs count 0.7, arms 0.8, the head 1.5, a weapon 0.3.
+
+## Sizzle
+- The coals no longer push out through his teeth and the two rows of teeth no longer collide: the jaw drops open on an even glow.

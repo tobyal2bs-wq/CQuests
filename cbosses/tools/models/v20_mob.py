@@ -1241,6 +1241,22 @@ def sproutbeak():
 
 # ------------------------------------------------------------------------------------------------ Sizzle (was Sunny)
 
+def sizzle_anims():
+    """Sunny's old clips, refitted: the coals stay put behind the teeth (they used to spin, which pushed their
+    corners out through the mouth) and only flare, and the jaw drops open instead of stretching into the top teeth."""
+    import copy, v14_studio
+    a = copy.deepcopy(v14_studio.sunscorch().anims)
+    for clip in a.values():
+        b = clip.get("bones", {})
+        if "inner" in b:
+            b["inner"].pop("rot", None)
+            if "scl" in b["inner"]: b["inner"]["scl"] = [[t, [1, 1 + (v[1] - 1) * 0.8, 1]] for t, v in b["inner"]["scl"]]
+            if not b["inner"]: del b["inner"]
+        if "scl" in b.get("mouth", {}):
+            b["mouth"]["pos"] = [[t, [0, round(-(v[1] - 1) * 5 - 0.3 * (v[1] > 1), 3), 0]] for t, v in b["mouth"].pop("scl")]
+    return a
+
+
 @mob("sunscorch")
 def sunscorch():
     """Sizzle, a kettle barbecue that got fed up with being cooked on: a black bowl on three legs with two
@@ -1263,9 +1279,9 @@ def sunscorch():
     part(m, "body", (0, 10.6, 0), (18.0, 4.8, 15.0), BLK, light=BLK_L)
     bx(m, "body", (0, 5.8, 0), (5.0, 1.4, 5.0), "light_gray_concrete")
     # the coals behind the teeth
-    litbox(m, "inner", (0, 13.6, 0.4), (15.0, 1.8, 12.0), "shroomlight")
-    for x, z in ((-4.6, 5.0), (-1.2, 5.6), (2.4, 5.2), (5.4, 5.6)):
-        litbox(m, "inner", (x, 14.0, z), (2.2, 1.6, 1.6), "orange_concrete")
+    litbox(m, "inner", (0, 13.6, 0.0), (13.0, 1.8, 10.0), "orange_concrete")
+    litbox(m, "inner", (0, 13.9, 5.6), (15.4, 2.2, 1.0), "orange_concrete")          # one even glow right across the mouth, well behind the teeth
+    litbox(m, "inner", (0, 14.3, 5.9), (11.0, 1.0, 0.8), "yellow_concrete")
     bx(m, "body", (0, 14.2, -0.6), (16.0, 2.6, 13.4), BLK)
     # the lid: red enamel, a darker rim, a lighter shine, a top step, a handle
     part(m, "body", (0, 19.2, 0), (18.4, 7.6, 15.4), RED, dark=RED_D, band=0.16)
@@ -1304,7 +1320,7 @@ def sunscorch():
     bx(m, "ring", (-10.2, 12.6, 1.0), (3.0, 1.4, 2.0), BLK_L)
     bx(m, "ring", (-12.4, 16.6, 1.0), (0.9, 9.0, 0.9), "light_gray_concrete", rot=(0, 0, 14), origin=(-11.4, 12.6, 1.0))
     part(m, "ring", (-13.6, 21.6, 1.0), (2.2, 5.0, 2.2), "brown_terracotta", light="orange_terracotta", rot=(0, 0, 14), origin=(-11.4, 12.6, 1.0))
-    m.anims = v14_studio.sunscorch().anims
+    m.anims = sizzle_anims()
     m.attacks = {"leap": "slam", "quake": "hop", "fire_ring": "burst", "volley": "spit"}
     m.melee = "hop"
     return m
