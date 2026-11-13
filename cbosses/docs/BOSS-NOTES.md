@@ -101,3 +101,12 @@ Say which to add, change or drop.
 - Viewer: https://claude.ai/artifact/Efp58Ms8xsaULaPykFvvRx
 - Repo branch: `claude/project-thread-4jho1k` in tobyal2bs-wq/CQuests
 - Pictures: this folder (`new-designs.png`, `signature-moves.png`)
+
+<a id="pipeline"></a>
+## After every model build (13 Nov)
+
+Run these on `models.json`, in this order. Each is done once per model and is safe to run again.
+
+1. `tools/unmottle.py models.json` takes off the random tone patches.
+2. `tools/mend.py models.json tools/mend-list.txt` joins loose torsos, limbs and held items, then separates flickering planes.
+3. `tools/touchup.py models.json` applies single-model fixes and turns grainy powder and tiny wool into smooth concrete.
