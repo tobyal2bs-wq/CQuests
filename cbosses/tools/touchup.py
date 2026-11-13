@@ -20,7 +20,44 @@ def abyssal_eye(m):
         if c["b"] in rod and c["k"] == "black_concrete": c["f"], c["t"] = rod[c["b"]]; c.pop("r", None)
 
 
+def box(m, b, k, x0, y0, z0, x1, y1, z1, g="detail"):
+    m["cubes"].append({"b": b, "k": k, "f": [x0, y0, z0], "t": [x1, y1, z1], "g": g})
+
+
+def frost_yeti(m):
+    """A real face: big eyes under a heavy brow, a nose that stands out, an open mouth with two fangs."""
+    z, x = 8.21, 0.71
+    m["cubes"] = [c for c in m["cubes"] if not (c["b"] == "head" and c["f"][2] > 8.1 and c["t"][2] - c["f"][2] < 0.3)]
+    for s in (-1, 1):
+        a, b = sorted((x + s * 1.3, x + s * 4.1))
+        box(m, "head", "white_concrete", a, 32.8, z, b, 35.2, z + 0.15)
+        a, b = sorted((x + s * 1.5, x + s * 2.9))
+        box(m, "head", "black_concrete", a, 33.0, z + 0.15, b, 34.6, z + 0.3)
+        a, b = sorted((x + s * 0.9, x + s * 4.5))
+        box(m, "head", "white_wool", a, 35.2, z, b, 36.4, z + 0.9)
+        a, b = sorted((x + s * 1.9, x + s * 3.0))
+        box(m, "head", "white_concrete", a, 29.6, z + 0.15, b, 31.0, z + 0.7)
+    box(m, "head", "gray_concrete", x - 1.1, 31.4, z, x + 1.1, 33.0, z + 1.0)
+    box(m, "head", "black_concrete", x - 3.6, 28.6, z, x + 3.6, 30.6, z + 0.15)
+
+
+def rotting_giant(m):
+    """Slit eyes became a dead face: sunken sockets, one live yellow eye and one blind white one, a brow ridge and
+    a crooked mouth with three teeth."""
+    z = 4.99
+    m["cubes"] = [c for c in m["cubes"] if not (c["b"] == "head" and c.get("g") == "trim" and c["k"] == "black_concrete")]
+    for s in (-1, 1):
+        a, b = sorted((s * 1.0, s * 4.0))
+        box(m, "head", "black_concrete", a, 41.4, z, b, 43.6, z + 0.15)
+    box(m, "head", "yellow_concrete", 1.8, 41.9, z + 0.15, 3.0, 43.1, z + 0.3)
+    box(m, "head", "white_concrete", -3.4, 41.7, z + 0.15, -1.6, 43.3, z + 0.3)
+    box(m, "head", "green_concrete", -4.6, 43.6, z, 4.6, 44.8, z + 0.7)
+    box(m, "head", "black_concrete", -3.2, 38.4, z, 3.4, 40.0, z + 0.15)
+    for x, y in ((-2.4, 39.2), (0.4, 39.2), (2.0, 38.4)): box(m, "head", "white_terracotta", x, y, z + 0.15, x + 0.9, y + 0.8, z + 0.5)
+
+
 FIXES = {"mallard": mallard}
+FACES = {"frost_yeti": frost_yeti, "rotting_giant": rotting_giant}
 FIXES2 = {"abyssal_eye": abyssal_eye}
 
 
@@ -85,5 +122,8 @@ if __name__ == "__main__":
         if not m.get("flat-revision"):
             total += flat(m) + (lonely(m) if id in ODD else 0); m["flat-revision"] = 1
             if id in FIXES2: FIXES2[id](m)
+    for id, fn in FACES.items():
+        m = d["models"].get(id)
+        if m and not m.get("face-revision"): fn(m); m["face-revision"] = 1; print("new face", id)
     print("pieces flattened or dropped:", total)
     json.dump(d, open(sys.argv[1], "w"), separators=(",", ":"))

@@ -8,3 +8,7 @@
 
 ## Abyssal Eye
 - The lure stalk was three sticks that did not touch. It is one bent rod now.
+
+## New faces
+- The Frost Yeti has big eyes under a heavy brow, a nose that stands out and an open mouth with two fangs.
+- The Rotting Giant has sunken sockets with one live yellow eye and one blind one, a brow ridge and a crooked mouth with three teeth.
