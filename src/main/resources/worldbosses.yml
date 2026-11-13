@@ -20,7 +20,7 @@ bosses:
     entity: IRON_GOLEM
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 10
     bar: RED
     glow: true
@@ -44,7 +44,7 @@ bosses:
     entity: PIGLIN_BRUTE
     health: 3000
     scale: 2.0
-    damage: 9
+    damage: 6
     armor: 10
     bar: YELLOW
     glow: true
@@ -74,7 +74,7 @@ bosses:
     entity: EVOKER
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 6
     bar: BLUE
     glow: true
@@ -99,7 +99,7 @@ bosses:
     entity: VINDICATOR
     health: 3000
     scale: 1.6
-    damage: 8
+    damage: 6
     armor: 8
     bar: RED
     glow: true
@@ -124,7 +124,7 @@ bosses:
     entity: RAVAGER
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -146,7 +146,7 @@ bosses:
     entity: RAVAGER
     health: 3000
     scale: 1.6
-    damage: 8
+    damage: 6
     armor: 8
     bar: WHITE
     glow: true
@@ -169,7 +169,7 @@ bosses:
     entity: BLAZE
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 10
     bar: BLUE
     glow: true
@@ -194,7 +194,7 @@ bosses:
     entity: IRON_GOLEM
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 10
     bar: GREEN
     glow: true
@@ -219,7 +219,7 @@ bosses:
     entity: IRON_GOLEM
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 14
     bar: PURPLE
     glow: true
@@ -242,7 +242,7 @@ bosses:
     entity: ZOMBIE
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -267,7 +267,7 @@ bosses:
     entity: SPIDER
     health: 3000
     scale: 3.0
-    damage: 6
+    damage: 4
     armor: 0
     bar: GREEN
     glow: true
@@ -292,7 +292,7 @@ bosses:
     entity: DROWNED
     health: 3000
     scale: 2.2
-    damage: 7
+    damage: 5
     armor: 8
     bar: BLUE
     glow: true
@@ -320,7 +320,7 @@ bosses:
     entity: EVOKER
     health: 3000
     scale: 2.0
-    damage: 6
+    damage: 4
     armor: 6
     bar: BLUE
     glow: true
@@ -342,7 +342,7 @@ bosses:
     entity: HUSK
     health: 3000
     scale: 2.2
-    damage: 7
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -370,7 +370,7 @@ bosses:
     entity: VINDICATOR
     health: 3000
     scale: 1.9
-    damage: 10
+    damage: 7
     armor: 10
     bar: WHITE
     glow: true
@@ -398,7 +398,7 @@ bosses:
     entity: BLAZE
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 8
     bar: RED
     glow: true
@@ -423,7 +423,7 @@ bosses:
     entity: WITHER_SKELETON
     health: 3000
     scale: 2.2
-    damage: 8
+    damage: 6
     armor: 10
     bar: PURPLE
     glow: true
@@ -450,7 +450,7 @@ bosses:
     entity: DROWNED
     health: 3000
     scale: 1.6
-    damage: 6
+    damage: 4
     armor: 8
     bar: BLUE
     glow: true
@@ -475,7 +475,7 @@ bosses:
     entity: IRON_GOLEM
     health: 3000
     scale: 1.6
-    damage: 5
+    damage: 4
     armor: 12
     bar: YELLOW
     glow: true
@@ -500,7 +500,7 @@ bosses:
     entity: HOGLIN
     health: 3000
     scale: 2.0
-    damage: 8
+    damage: 6
     armor: 8
     bar: RED
     glow: true
@@ -524,7 +524,7 @@ bosses:
     entity: SLIME
     health: 3000
     scale: 1
-    damage: 7
+    damage: 5
     armor: 6
     bar: GREEN
     glow: true
@@ -547,7 +547,7 @@ bosses:
     entity: IRON_GOLEM
     health: 3000
     scale: 1.6
-    damage: 9
+    damage: 6
     armor: 14
     bar: BLUE
     glow: true
@@ -568,7 +568,7 @@ bosses:
     entity: WITHER_SKELETON
     health: 3000
     scale: 1.6
-    damage: 8
+    damage: 6
     armor: 12
     bar: PURPLE
     glow: true
@@ -591,7 +591,7 @@ bosses:
     entity: ZOMBIE
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 6
     bar: RED
     glow: true
@@ -617,7 +617,7 @@ bosses:
     entity: STRAY
     health: 3000
     scale: 2.0
-    damage: 7
+    damage: 5
     armor: 8
     bar: WHITE
     glow: true
@@ -641,7 +641,7 @@ bosses:
     entity: STRAY
     health: 3000
     scale: 2.6
-    damage: 7
+    damage: 5
     armor: 8
     bar: BLUE
     glow: true
@@ -671,7 +671,7 @@ bosses:
     entity: MAGMA_CUBE
     health: 3000
     scale: 1
-    damage: 7
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -695,7 +695,7 @@ bosses:
     entity: SPIDER
     health: 3000
     scale: 2.0
-    damage: 7
+    damage: 5
     armor: 10
     bar: RED
     glow: true
@@ -719,7 +719,7 @@ bosses:
     entity: ZOMBIE
     health: 3000
     scale: 1.6
-    damage: 6
+    damage: 4
     armor: 4
     bar: PINK
     glow: true
@@ -743,7 +743,7 @@ bosses:
     entity: ZOMBIE
     health: 3000
     scale: 2.0
-    damage: 7
+    damage: 5
     armor: 6
     bar: WHITE
     glow: true
@@ -767,7 +767,7 @@ bosses:
     entity: RABBIT
     health: 3000
     scale: 3.5
-    damage: 7
+    damage: 5
     armor: 4
     bar: PINK
     glow: true
@@ -793,7 +793,7 @@ bosses:
     entity: IRON_GOLEM
     health: 3000
     scale: 1.6
-    damage: 7
+    damage: 5
     armor: 10
     bar: YELLOW
     glow: true
@@ -817,7 +817,7 @@ bosses:
     entity: ZOMBIE
     health: 3000
     scale: 2.0
-    damage: 7
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -843,7 +843,7 @@ bosses:
     entity: SKELETON
     health: 3000
     scale: 1.8
-    damage: 7
+    damage: 5
     armor: 8
     bar: RED
     glow: true
@@ -874,7 +874,7 @@ bosses:
     entity: WITCH
     health: 3000
     scale: 1.9
-    damage: 5
+    damage: 4
     armor: 4
     bar: PURPLE
     glow: true
@@ -904,7 +904,7 @@ bosses:
     color: "#91b5aa"
     entity: IRON_GOLEM
     health: 3000
-    damage: 7
+    damage: 5
     armor: 9
     bar: GREEN
     ability-seconds: 8
@@ -929,7 +929,7 @@ bosses:
     color: '#80b9b3'
     entity: PHANTOM
     health: 3000
-    damage: 7
+    damage: 5
     armor: 6
     bar: BLUE
     ability-seconds: 8
@@ -961,7 +961,7 @@ bosses:
     color: '#8fa36d'
     entity: RAVAGER
     health: 3000
-    damage: 8
+    damage: 6
     armor: 8
     bar: GREEN
     ability-seconds: 8

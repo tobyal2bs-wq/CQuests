@@ -166,12 +166,18 @@ ODD = ("abyssal_eye", "tide_tyrant", "mossback", "old_wizard", "horned_brute", "
        "frost_yeti", "bog_orc", "withered_tyrant", "brain_freeze", "moss_spirit")
 
 
+GRAIN = ("andesite", "polished_andesite", "stone", "cobblestone", "tuff", "moss_block", "sculk", "blackstone", "cobbled_deepslate")
+big = lambda c: sorted(b - a for a, b in zip(c["f"], c["t"]))[0] >= 1.0 and sorted(b - a for a, b in zip(c["f"], c["t"]))[1] >= 2.5
+
+
 def flat(m):
-    """Noisy stone, moss, sculk and brick skins read as random specks at boss size: each takes the flat block of
-    its own colour. Wool of any colour but white and black becomes concrete. Buildings on a model keep their stone."""
+    """Noisy skins read as random specks on small pieces, so those take the flat block of their colour. Stone,
+    moss and sculk keep their texture on the big pieces, where it shows as rock or moss and not as noise. Wool of
+    any colour but white and black becomes concrete."""
     n = 0
     for c in m["cubes"]:
         k = c["k"]
+        if k in GRAIN and big(c): continue
         if k in FLAT: c["k"] = FLAT[k]; n += 1
         elif k.endswith("_wool") and k not in ("white_wool", "black_wool"): c["k"] = k[:-5] + "_concrete"; n += 1
     return n
@@ -187,6 +193,35 @@ def lonely(m):
     gone = [c for c in m["cubes"] if thin(c) and abs(c["f"][0] + c["t"][0] - 2 * cx) >= 0.5 and not have[key(c, -1)]]
     m["cubes"] = [c for c in m["cubes"] if not any(c is g for g in gone)]
     return len(gone)
+
+
+SIZES = {"abyssal_eye": 3.0, "broodmother": 3.0, "dusk_scorpion": 3.0, "admiral_pinchworth": 3.0, "the_listener": 4.0,
+         "withered_tyrant": 4.0, "the_unmaker": 4.0}
+
+
+def resize(id, m):
+    """Big bosses stand 3 to 4 blocks high, minis 1 to 2. The few outside that are scaled into it."""
+    if id in SIZES: m["scale"] = round(SIZES[id] * 16 / m["height"], 4)
+
+
+def fall(m):
+    """A death that tips the boss over stopped half way, leaning in the air. It now goes all the way down: the
+    body hits the floor, bounces once and lies flat."""
+    for st in m.get("death", []):
+        a = m.get("anims", {}).get(st.get("name", "")) if st.get("op") == "anim" else None
+        root = a and a["bones"].get("root")
+        if not root or "rot" not in root or m["rig"] == "float": continue  # a floater turns about a point under the floor
+        x, _, z = root["rot"][-1][1]
+        ax = 0 if abs(x) >= abs(z) else 2
+        v = (x, 0, z)[ax]
+        if not 10 <= abs(v) < 80: continue
+        s, L = (1 if v > 0 else -1), a["length"]
+        aim = lambda d: [s * d if i == ax else 0 for i in range(3)]
+        root["rot"] += [[round(L + 0.35, 3), aim(90)], [round(L + 0.48, 3), aim(81)], [round(L + 0.6, 3), aim(88)]]
+        a["length"] = round(L + 0.6, 3)
+        for o in m["death"]:
+            if o is st: o["dur"] = o.get("dur", 0) + 12
+            elif o.get("at", 0) > 8: o["at"] += 12
 
 
 if __name__ == "__main__":
@@ -211,6 +246,15 @@ if __name__ == "__main__":
     for id, fn in MORE.items():
         m = d["models"].get(id)
         if m and not m.get("detail-revision"): fn(m); mend.unfight(m); m["detail-revision"] = 1; print("detail", id, len(m["cubes"]))
+    for id, m in d["models"].items():
+        if not m.get("fall-revision"): resize(id, m); fall(m); m["fall-revision"] = 1
+    for id, m in d["models"].items():
+        if m.get("glitch-revision"): continue
+        m["glitch-revision"] = 1
+        if id == "tide_tyrant":  # the eye stalks stopped in the air above the head
+            for c in m["cubes"]:
+                if c["b"] in ("eyeL", "eyeR") and c["k"] == "orange_terracotta": c["f"][1] = 16.0
+        mend.unfight(m)
     for id, fn in MORE2.items():
         m = d["models"].get(id)
         if m and not m.get("mouth-revision"): fn(m); mend.unfight(m); m["mouth-revision"] = 1; print("detail", id, len(m["cubes"]))

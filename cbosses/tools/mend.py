@@ -85,12 +85,14 @@ def mend(m, bones):
 def unfight(m):
     """Two faces in one plane, facing the same way, flicker. The smaller box steps 0.03 out of that plane."""
     cs = [c for c in m["cubes"] if "r" not in c]
+    face = lambda c: c["g"] if str(c.get("g", "")).startswith("face:") else None
     vol = lambda c: (c["t"][0] - c["f"][0]) * (c["t"][1] - c["f"][1]) * (c["t"][2] - c["f"][2])
     n = 0
     for _ in range(3):
         moved = False
         for i, a in enumerate(cs):
             for b in cs[i + 1:]:
+                if face(a) and face(b) and face(a) != face(b): continue  # two faces of one head are never shown together
                 for ax in range(3):
                     if not all(min(a["t"][k], b["t"][k]) - max(a["f"][k], b["f"][k]) > 0.01 for k in range(3) if k != ax): continue
                     s = a if vol(a) < vol(b) else b
