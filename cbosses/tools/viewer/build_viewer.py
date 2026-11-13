@@ -63,7 +63,7 @@ sub('function matches(only, i) {\n  if (!only || only === "all") return true;', 
 
 # fling: thrown like a burst, tumbling; shatter is handled in tickSteps
 sub('    case "spin": return new Mt().makeRotationY((s.deg || 90) * D2R);',
-    '    case "fling": return stepMatrix(Object.assign({}, s, { op: "burst", up: (s.up || 2) + 1 }), i);\n    case "spin": return new Mt().makeRotationY((s.deg || 90) * D2R);')
+    '    case "fling": { const out = stepMatrix(Object.assign({}, s, { op: "burst", up: 0 }), i), keep = cur.op[i]; cur.op[i] = out.clone().multiply(keep); const down = stepMatrix({ op: "drop" }, i); cur.op[i] = keep; return down.multiply(out); }\n    case "spin": return new Mt().makeRotationY((s.deg || 90) * D2R);')
 
 # flash, shake and shatter
 sub('    if (s.op === "light") {',

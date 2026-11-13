@@ -483,7 +483,7 @@ function runSteps(steps, after) {
   let end = 0;
   steps.forEach((s, si) => {
     end = Math.max(end, (s.at || 0) + (s.stagger || 0) + (s.dur || 0));
-    if (s.op === "fx" || s.op === "anim") { events.push({ tick: s.at || 0, s, cube: -1 }); return; }
+    if (s.op === "fx" || s.op === "anim" || s.op === "prop") { events.push({ tick: s.at || 0, s, cube: -1 }); return; }
     const rk = ranks(s.order || "none"), part = s.part;
     for (let i = 0; i < cur.pose.length; i++) {
       if (!matches(s.only, i)) continue;
@@ -499,6 +499,7 @@ function tickSteps(now) {
   while (tl.next < tl.events.length && tl.events[tl.next].tick <= k) {
     const e = tl.events[tl.next++], s = e.s;
     if (s.op === "fx") { effect(s); continue; }
+    if (s.op === "prop") { prop(s, now); continue; }
     if (s.op === "anim") { tl.anim = cur.rig[s.name]; tl.animStart = e.tick; tl.animEnd = e.tick + Math.max(2, s.dur || 0); continue; }
     if (s.op === "swap") { cur.block[e.cube] = s.block || cur.model.cubes[e.cube].k; cur.meshes[e.cube].material = material(cur.block[e.cube], cur.lit[e.cube], DATA.palette); continue; }
     if (s.op === "light") { cur.lit[e.cube] = !!s.on || !!cur.model.cubes[e.cube].l; cur.meshes[e.cube].material = material(cur.block[e.cube], cur.lit[e.cube], DATA.palette); continue; }
@@ -514,6 +515,7 @@ function tickSteps(now) {
   if (k >= tl.end) { timeline = null; const a = tl.after; if (a) a(); }
 }
 function resetShape() {
+  clearProps();
   for (let i = 0; i < cur.op.length; i++) { cur.op[i].identity(); cur.anim[i] = null; cur.block[i] = cur.model.cubes[i].k; cur.meshes[i].material = material(cur.model.cubes[i].k, cur.model.cubes[i].l, DATA.palette); cur.lit[i] = !!cur.model.cubes[i].l; }
   idleT = 0; setPose([{ anim: cur.rig.idle, t: 0, w: 1 }]);
 }
@@ -554,6 +556,41 @@ function effect(s) {
     const p = new THREE.PointLight(color, 5, 30); p.position.set(0, y, 0); p.userData = { born: performance.now(), life: 350, light: true }; scene.add(p); fx.push(p);
   }
 }
+// loose blocks of a "prop" step: meteors, spikes, a closing ring, rolling rubble, falling debris
+const props = [];
+function prop(s, now) {
+  const n = Math.max(1, Math.min(12, s.count || 5)), H = cur.H, size = s.size || 0.6, radius = (s.r == null ? 1 : s.r) * H, tall = s.tall || 1;
+  const dur = Math.max(4, s.dur || 0), linger = s.linger == null ? 12 : s.linger, mode = s.mode || "fall";
+  for (let p = 0; p < n; p++) {
+    const a = Math.PI * 2 * (p + rnd() * 0.6) / n, cx = Math.cos(a), cz = Math.sin(a), far = radius * (0.7 + rnd() * 0.5);
+    const delay = mode === "orbit" ? 0 : Math.round(p / n * (s.stagger || 0)), spin = (rnd() - 0.5) * 500 * D2R;
+    const axis = new V(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(), keys = [];
+    if (mode === "rise") keys.push([0, cx * far, -size * tall, cz * far, 0, 1], [dur, cx * far, 0, cz * far, 0, 1], [dur + linger, cx * far, 0, cz * far, 0, 1], [dur + linger + 6, cx * far, -size * tall, cz * far, 0, 1]);
+    else if (mode === "orbit") { const y = (s.y == null ? 0.5 : s.y) * H, turns = s.turns || 1;
+      for (let j = 0; j <= 8; j++) { const b = a + Math.PI * 2 * turns * j / 8, rr = radius * (1 - 0.9 * j / 8); keys.push([dur * j / 8, Math.cos(b) * rr, y, Math.sin(b) * rr, spin * j / 8, j === 8 ? 0.05 : 1]); } }
+    else if (mode === "wave") keys.push([0, 0, 0, 0, 0, 0.2], [dur / 2, cx * far / 2, size * 1.2, cz * far / 2, spin / 2, 1], [dur, cx * far, 0, cz * far, spin, 1], [dur + linger, cx * far, 0, cz * far, spin, 1], [dur + linger + 6, cx * far, 0, cz * far, spin, 0.05]);
+    else if (mode === "rain") { const d = far * rnd(); keys.push([0, cx * d, H * 2 + 2 + rnd() * 2, cz * d, 0, 1], [dur, cx * d, 0, cz * d, spin, 1], [dur + 4, cx * d, 0, cz * d, spin, 0.05]); }
+    else { const lean = (s.lean == null ? 1.5 : s.lean) * H;
+      keys.push([0, cx * far + lean, H * 2 + 4 + rnd() * 3, cz * far + lean * 0.4, 0, 1], [dur, cx * far, 0, cz * far, spin, 1], [dur + 2, cx * far, size * 0.3, cz * far, spin * 1.05, 1], [dur + 4, cx * far, 0, cz * far, spin * 1.1, 1], [dur + 4 + linger, cx * far, 0, cz * far, spin * 1.1, 1], [dur + 10 + linger, cx * far, 0, cz * far, spin * 1.1, 0.05]); }
+    const mesh = new THREE.Mesh(GEO, material(s.block || "stone", !!s.lit, DATA.palette));
+    mesh.matrixAutoUpdate = false; scene.add(mesh);
+    props.push({ mesh, keys, t0: now + delay * 50, a, axis, size, tall, upright: mode === "rise" });
+  }
+}
+function tickProps(now) {
+  for (let i = props.length - 1; i >= 0; i--) {
+    const p = props[i], t = (now - p.t0) / 50, K = p.keys;
+    if (t > K[K.length - 1][0] + 2) { scene.remove(p.mesh); props.splice(i, 1); continue; }
+    let j = 1; while (j < K.length - 1 && K[j][0] < t) j++;
+    const A = K[j - 1], B = K[j], f = Math.max(0, Math.min(1, (t - A[0]) / Math.max(1e-3, B[0] - A[0]))), q = A.map((v, x) => v + (B[x] - v) * f);
+    const m = new Mt().makeTranslation(q[1], q[2], q[3]);
+    if (p.upright) m.multiply(new Mt().makeRotationY(p.a));
+    else m.multiply(new Mt().makeTranslation(0, p.size / 2, 0)).multiply(new Mt().makeRotationAxis(p.axis, q[4])).multiply(new Mt().makeTranslation(0, -p.size / 2, 0));
+    m.multiply(new Mt().makeScale(p.size * q[5], p.size * q[5] * p.tall, p.size * q[5])).multiply(new Mt().makeTranslation(-0.5, 0, -0.5));
+    p.mesh.matrix.copy(m);
+  }
+}
+function clearProps() { for (const p of props) scene.remove(p.mesh); props.length = 0; }
 function tickFx(now, dt) {
   for (let i = fx.length - 1; i >= 0; i--) {
     const m = fx[i], u = m.userData, age = (now - u.born) / u.life;
@@ -599,6 +636,7 @@ function frame(now) {
     if (timeline) tickSteps(now);
     for (let i = 0; i < cur.meshes.length; i++) cur.meshes[i].matrix.copy(displayOp(i, now)).multiply(cur.pose[i]);
   }
+  tickProps(now);
   tickFx(now, dt);
   controls.update();
   renderer.render(scene, camera);

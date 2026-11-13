@@ -269,7 +269,41 @@ public final class BossModel {
         attack = a; attackT = 0; animationsPlayed++;
     }
 
-    public void hurt() { if (hurtT > 0.25f) hurtT = 0; }
+    public void hurt() { if (hurtT > 0.25f) { hurtT = 0; chip(); } }
+
+    /** A hit knocks two small chips of the boss's own blocks loose: they fly off, land and vanish. */
+    private void chip() {
+        if (!live || gone || parts.isEmpty() || shards.size() > 24 || !mob.isValid()) return;
+        java.util.concurrent.ThreadLocalRandom r = java.util.concurrent.ThreadLocalRandom.current();
+        Matrix4f w = world();
+        for (int n = 0; n < 2; n++) {
+            int i = r.nextInt(parts.size());
+            BlockDisplay body = parts.get(i);
+            if (!body.isValid() || (model.offFloor != null && model.offFloor[i])) continue;
+            Vector3f c = new Matrix4f(pose[i]).transformPosition(new Vector3f(0.5f, 0.5f, 0.5f));
+            double a = r.nextDouble() * Math.PI * 2;
+            float far = 0.8f + r.nextFloat() * 1.2f, size = 0.14f + r.nextFloat() * 0.1f;
+            Matrix4f from = new Matrix4f(w).translate(c).scale(size).translate(-0.5f, -0.5f, -0.5f);
+            Matrix4f to = new Matrix4f(w).translate(c.x + (float) Math.cos(a) * far, 0, c.z + (float) Math.sin(a) * far)
+                    .rotateXYZ(r.nextFloat() * 3, r.nextFloat() * 3, r.nextFloat() * 3).scale(size).translate(-0.5f, 0, -0.5f);
+            BlockData data = current[i];
+            BlockDisplay d;
+            try {
+                d = body.getWorld().spawn(body.getLocation(), BlockDisplay.class, x -> { Privacy.claim(x);
+                    x.setPersistent(false);
+                    x.setBlock(data);
+                    x.setShadowRadius(0);
+                    x.setViewRange(body.getViewRange());
+                    x.setTransformation(transformation(from));
+                });
+            } catch (RuntimeException ex) { return; }
+            shards.add(d);
+            try {
+                mob.getScheduler().runDelayed(plugin, t -> send(d, to, 7), null, 2);
+                mob.getScheduler().runDelayed(plugin, t -> { shards.remove(d); if (d.isValid()) d.remove(); }, null, 16);
+            } catch (RuntimeException ex) { shards.remove(d); d.remove(); }
+        }
+    }
 
     private static final class HealthAttribute {
         static final org.bukkit.attribute.Attribute MAX_HEALTH = maxHealth();
@@ -425,7 +459,7 @@ public final class BossModel {
         for (int s = 0; s < steps.size(); s++) {
             ModelRig.Step step = steps.get(s);
             end = Math.max(end, step.end());
-            if (step.op().equals("fx") || step.op().equals("anim")) { events.add(new Event(step.at(), step, s, -1)); continue; }
+            if (step.op().equals("fx") || step.op().equals("anim") || step.op().equals("prop")) { events.add(new Event(step.at(), step, s, -1)); continue; }
             float[] rank = ModelRig.ranks(model, now, step.order(), s * 31L + model.id.hashCode());
             float[] part = step.vec("part");
             for (int i = 0; i < pose.length; i++) {
@@ -488,6 +522,7 @@ public final class BossModel {
         ModelRig.Step s = e.step();
         switch (s.op()) {
             case "fx" -> fx(s);
+            case "prop" -> prop(s, k);
             case "anim" -> {
                 anim[0] = model.anim(s.str("name", ""));
                 animStart[0] = k; animEnd[0] = k + Math.max(2, s.dur());
@@ -739,6 +774,101 @@ public final class BossModel {
             Matrix4f small = new Matrix4f(w).translate(ux * dist * 1.16f, land, uz * dist * 1.16f).translate(pc).scale(0.01f).translate(-pc.x, -pc.y, -pc.z).mul(piece);
             at(k + gone, dd -> send(shard, small, 8));
             at(k + gone + 9, dd -> { if (shard.isValid()) shard.remove(); });
+        }
+    }
+
+    /**
+     * Loose blocks that are not part of the body: meteors that fall in (fall), spikes that push out of
+     * the floor (rise), a ring that circles and closes in (orbit), rubble that rolls out from the feet
+     * (wave) and debris that drops straight down (rain). They remove themselves when they are done.
+     */
+    private void prop(ModelRig.Step s, int k) {
+        if (parts.isEmpty() || !parts.get(0).isValid()) return;
+        BlockData data;
+        try { data = Bukkit.createBlockData("minecraft:" + s.str("block", "stone")); } catch (IllegalArgumentException ex) { return; }
+        int count = Math.max(1, Math.min(12, (int) s.num("count", 5)));
+        float h = model.blocks(), size = s.num("size", 0.6f), radius = s.num("r", 1) * h, tall = s.num("tall", 1);
+        int dur = Math.max(4, s.dur()), linger = (int) s.num("linger", 12);
+        String mode = s.str("mode", "fall");
+        boolean lit = s.flag("lit");
+        Location base = parts.get(0).getLocation();
+        Matrix4f w = world();
+        Random r = new Random(model.id.hashCode() * 31L + s.at() * 7L + count);
+        for (int p = 0; p < count; p++) {
+            double a = Math.PI * 2 * (p + r.nextFloat() * 0.6f) / count;
+            float cx = (float) Math.cos(a), cz = (float) Math.sin(a), far = radius * (0.7f + r.nextFloat() * 0.5f);
+            int delay = mode.equals("orbit") ? 0 : Math.round((float) p / count * s.stagger());
+            Vector3f axis = new Vector3f(r.nextFloat() - 0.5f, r.nextFloat() - 0.5f, r.nextFloat() - 0.5f);
+            if (axis.lengthSquared() < 1e-4f) axis.set(0, 1, 0);
+            axis.normalize();
+            float spin = ModelRig.rad((r.nextFloat() - 0.5f) * 500);
+            List<float[]> keys = new ArrayList<>(); // tick, x, y, z, turn, scale
+            switch (mode) {
+                case "rise" -> {
+                    keys.add(new float[] {0, cx * far, -size * tall, cz * far, 0, 1});
+                    keys.add(new float[] {dur, cx * far, 0, cz * far, 0, 1});
+                    keys.add(new float[] {dur + linger, cx * far, 0, cz * far, 0, 1});
+                    keys.add(new float[] {dur + linger + 6, cx * far, -size * tall, cz * far, 0, 1});
+                }
+                case "orbit" -> {
+                    float y = s.num("y", 0.5f) * h, turns = s.num("turns", 1);
+                    for (int j = 0; j <= 8; j++) {
+                        double b = a + Math.PI * 2 * turns * j / 8;
+                        float rr = radius * (1 - 0.9f * j / 8);
+                        keys.add(new float[] {dur * j / 8f, (float) Math.cos(b) * rr, y, (float) Math.sin(b) * rr, spin * j / 8, j == 8 ? 0.05f : 1});
+                    }
+                }
+                case "wave" -> {
+                    keys.add(new float[] {0, 0, 0, 0, 0, 0.2f});
+                    keys.add(new float[] {dur / 2f, cx * far / 2, size * 1.2f, cz * far / 2, spin / 2, 1});
+                    keys.add(new float[] {dur, cx * far, 0, cz * far, spin, 1});
+                    keys.add(new float[] {dur + linger, cx * far, 0, cz * far, spin, 1});
+                    keys.add(new float[] {dur + linger + 6, cx * far, 0, cz * far, spin, 0.05f});
+                }
+                case "rain" -> {
+                    float d = far * r.nextFloat();
+                    keys.add(new float[] {0, cx * d, h * 2 + 2 + r.nextFloat() * 2, cz * d, 0, 1});
+                    keys.add(new float[] {dur, cx * d, 0, cz * d, spin, 1});
+                    keys.add(new float[] {dur + 4, cx * d, 0, cz * d, spin, 0.05f});
+                }
+                default -> {
+                    float lean = s.num("lean", 1.5f) * h;
+                    keys.add(new float[] {0, cx * far + lean, h * 2 + 4 + r.nextFloat() * 3, cz * far + lean * 0.4f, 0, 1});
+                    keys.add(new float[] {dur, cx * far, 0, cz * far, spin, 1});
+                    keys.add(new float[] {dur + 2, cx * far, size * 0.3f, cz * far, spin * 1.05f, 1});
+                    keys.add(new float[] {dur + 4, cx * far, 0, cz * far, spin * 1.1f, 1});
+                    keys.add(new float[] {dur + 4 + linger, cx * far, 0, cz * far, spin * 1.1f, 1});
+                    keys.add(new float[] {dur + 10 + linger, cx * far, 0, cz * far, spin * 1.1f, 0.05f});
+                }
+            }
+            boolean upright = mode.equals("rise");
+            java.util.function.Function<float[], Matrix4f> shape = q -> {
+                Matrix4f m = new Matrix4f(w).translate(q[1], q[2], q[3]);
+                if (upright) m.rotateY((float) a); else m.translate(0, size / 2, 0).rotate(q[4], axis).translate(0, -size / 2, 0);
+                return m.scale(size * q[5], size * q[5] * tall, size * q[5]).translate(-0.5f, 0, -0.5f);
+            };
+            float[] first = keys.get(0);
+            BlockDisplay d;
+            try {
+                d = base.getWorld().spawn(base, BlockDisplay.class, x -> { Privacy.claim(x);
+                    x.setPersistent(false);
+                    x.setBlock(data);
+                    x.setShadowRadius(0);
+                    x.setViewRange(parts.get(0).getViewRange());
+                    x.setTransformation(transformation(shape.apply(first)));
+                    if (lit) x.setBrightness(new Display.Brightness(15, 15));
+                });
+            } catch (RuntimeException ex) { return; }
+            shards.add(d);
+            int last = 0;
+            for (int j = 1; j < keys.size(); j++) {
+                float[] q = keys.get(j);
+                int when = Math.round(keys.get(j - 1)[0]), gap = Math.max(1, Math.round(q[0]) - last);
+                last = Math.round(q[0]);
+                Matrix4f m = shape.apply(q);
+                at(k + delay + when + 1, dd -> send(d, m, gap));
+            }
+            at(k + delay + last + 3, dd -> { shards.remove(d); if (d.isValid()) d.remove(); });
         }
     }
 

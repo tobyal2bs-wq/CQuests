@@ -29,13 +29,14 @@ import java.util.Set;
  * shape), move, drop (fall to the floor), burst (fly outward), toward (pull to a point), shrink, scale,
  * spin, tilt, swap (change block, "" = the original), light, anim (play a rig animation), fx
  * (particles, sound, lightning), fling (thrown in an arc that lands and bounces), shatter (the block
- * breaks into flying shards), flash (every block turns white or red for a moment) and shake (the whole
+ * breaks into flying shards), prop (loose blocks that are not part of the body: mode fall, rise, orbit,
+ * wave or rain), flash (every block turns white or red for a moment) and shake (the whole
  * model trembles). "only" can start with ! to mean everything except.
  */
 public final class ModelRig {
 
     public static final Set<String> OPS = Set.of("pose", "move", "drop", "burst", "toward", "shrink", "scale", "spin", "tilt",
-            "swap", "light", "anim", "fx", "fling", "shatter", "flash", "shake");
+            "swap", "light", "anim", "fx", "fling", "shatter", "flash", "shake", "prop");
     public static final Set<String> ORDERS = Set.of("none", "up", "down", "out", "in", "random");
 
     /** Keyframes: times and xyz values, eased between keys like the preview does. */
