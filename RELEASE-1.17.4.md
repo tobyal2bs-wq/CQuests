@@ -8,6 +8,10 @@
 
 ## Abyssal Eye
 - The lure stalk was three sticks that did not touch. It is one bent rod now.
+- Two slanted glowing eyes under black brows, three gill slits and two glow spots a side, side teeth and tail flukes take the place of the random patches.
+
+## Moss Spirit
+- Moss hangs in tufts from every slab, the stone has seams and blue runes, the hands have fingers and the feet toes, and a flower and a mushroom grow on it.
 
 ## New faces
 - The Frost Yeti has big eyes under a heavy brow, a nose that stands out and an open mouth with two fangs.

@@ -54,7 +54,7 @@ and its minions only go after that player. If they lose or leave, it waits for `
 | 2 | Grimsby | 3000 | 124 |
 | 3 | Sir Oakheart | 3000 | 152 |
 | 4 | The Gnome Brothers | 3000 | 201 |
-| 5 | Old Moss | 3000 | 96 |
+| 5 | Old Moss | 3000 | 165 |
 | 7 | Grub | 3000 | 300 |
 | 9 | Mudd | 3000 | 250 |
 | 10 | Ugor | 3000 | 184 |
