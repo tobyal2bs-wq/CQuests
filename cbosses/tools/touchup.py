@@ -109,7 +109,36 @@ def moss_spirit(m):
     box(m, "armR", "white_concrete", -10.6, 31.8, -0.4, -9.8, 31.95, 0.4)
 
 
+def redeye_mouth(m):
+    """The mouth was red on red. Now a black open mouth with four top teeth, two bottom fangs and a tongue."""
+    m["cubes"] = [c for c in m["cubes"] if c["b"] != "jaw"]
+    z = 4.53
+    box(m, "jaw", "black_concrete", -4.6, 5.6, z - 0.3, 4.6, 8.6, z + 0.2)
+    box(m, "jaw", "red_terracotta", -5.0, 5.0, z, 5.0, 5.6, z + 0.5)
+    for x in (-3.6, -1.7, 0.4, 2.3): box(m, "jaw", "white_concrete", x, 7.6, z + 0.2, x + 1.3, 8.6, z + 0.45)
+    pair(m, "jaw", "white_concrete", 2.6, 5.6, z + 0.2, 3.5, 6.7, z + 0.45)
+    box(m, "jaw", "pink_concrete", -1.6, 5.6, z + 0.2, 1.6, 6.4, z + 0.4)
+
+
+def withered_faces(m):
+    """Three skulls with no faces: each gets white eyes under a grey brow and a toothed grey mouth."""
+    X = 0.1
+    m["cubes"] = [c for c in m["cubes"] if not (c["b"] in ("head", "armL", "armR") and "r" not in c and min(b - a for a, b in zip(c["f"], c["t"])) < 0.3)]
+    z = 4.07
+    box(m, "head", "gray_concrete", -3.9, 23.6, z, 4.1, 24.5, z + 0.5)
+    pair(m, "head", "white_concrete", 1.2, 22.2, z, 3.3, 23.6, z + 0.14, X)
+    box(m, "head", "gray_concrete", -2.9, 19.7, z, 3.1, 21.0, z + 0.14)
+    for x in (-1.6, 0.0, 1.6): box(m, "head", "black_concrete", x - 0.1, 19.7, z + 0.14, x + 0.3, 21.0, z + 0.26)
+    pair(m, "armL", "gray_concrete", 6.1, 20.9, z, 12.1, 21.6, z + 0.4, X)
+    pair(m, "armL", "white_concrete", 6.9, 19.8, z, 8.4, 20.9, z + 0.14, X)
+    pair(m, "armL", "white_concrete", 9.8, 19.8, z, 11.3, 20.9, z + 0.14, X)
+    pair(m, "armL", "gray_concrete", 7.1, 17.5, z, 11.1, 18.4, z + 0.14, X)
+    pair(m, "armL", "black_concrete", 8.3, 17.5, z + 0.14, 8.6, 18.4, z + 0.26, X)
+    pair(m, "armL", "black_concrete", 9.6, 17.5, z + 0.14, 9.9, 18.4, z + 0.26, X)
+
+
 FIXES = {"mallard": mallard}
+MORE2 = {"redeye": redeye_mouth, "withered_tyrant": withered_faces}
 MORE = {"abyssal_eye": abyssal_details, "moss_spirit": moss_spirit}
 FACES = {"frost_yeti": frost_yeti, "rotting_giant": rotting_giant}
 FIXES2 = {"abyssal_eye": abyssal_eye}
@@ -182,5 +211,8 @@ if __name__ == "__main__":
     for id, fn in MORE.items():
         m = d["models"].get(id)
         if m and not m.get("detail-revision"): fn(m); mend.unfight(m); m["detail-revision"] = 1; print("detail", id, len(m["cubes"]))
+    for id, fn in MORE2.items():
+        m = d["models"].get(id)
+        if m and not m.get("mouth-revision"): fn(m); mend.unfight(m); m["mouth-revision"] = 1; print("detail", id, len(m["cubes"]))
     print("pieces flattened or dropped:", total)
     json.dump(d, open(sys.argv[1], "w"), separators=(",", ":"))
