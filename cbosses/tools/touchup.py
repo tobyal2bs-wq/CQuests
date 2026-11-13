@@ -224,6 +224,27 @@ def fall(m):
             elif o.get("at", 0) > 8: o["at"] += 12
 
 
+SWAY = {"killer_bunny": {"earL": (6, 0, 7, 1.4), "earR": (6, 0, -7, 1.4), "basket": (0, 0, 5, 1.6)},
+        "the_listener": {"tendrilL": (5, 0, 10, 2.0), "tendrilR": (5, 0, -10, 2.0)}, "withered_tyrant": {"tail": (12, 0, 5, 1.8)},
+        "gnome_little": {"beard": (5, 0, 2, 1.5)}, "killer_claus": {"sack": (3, 0, 4, 1.7)}, "millstone_monk": {"jaw": (5, 0, 0, 2.2)},
+        "grand_augur": {"gem": (0, 360, 0, 3.0)}, "prism_sentinel": {"ring1": (0, 360, 0, 4.0)}, "clucksworth": {"shell": (0, 0, 3, 1.6)},
+        "thorncoil_basilisk": {f"coil{i}": (0, 5 if i % 2 else -5, 2, 2.4) for i in (0, 1, 2, 3, 4, 7)}}
+
+
+def sway(m, bones):
+    """Parts that never moved (ears, tendrils, a tail, a beard, a sack, a floating gem) get their own motion in
+    every clip but the spawn and the death: a swing of (x, y, z) degrees each period, or a full turn for 360."""
+    for name, a in m.get("anims", {}).items():
+        if name.startswith(("death", "die", "opening")): continue
+        L = a["length"]
+        for b, (x, y, z, per) in bones.items():
+            if b in a["bones"] or not any(c["b"] == b for c in m["cubes"]): continue
+            n = max(1, round(L / per)); q = L / n
+            if 360 in (x, y, z): keys = [[round(i * q / 2, 3), [x * i / 2, y * i / 2, z * i / 2]] for i in range(2 * n + 1)]
+            else: keys = [[round(i * q / 4, 3), [v * (0, 1, 0, -1)[i % 4] for v in (x, y, z)]] for i in range(4 * n + 1)]
+            a["bones"][b] = {"rot": keys}
+
+
 if __name__ == "__main__":
     d = json.load(open(sys.argv[1]))
     for id, fn in FIXES.items():
@@ -255,6 +276,9 @@ if __name__ == "__main__":
             for c in m["cubes"]:
                 if c["b"] in ("eyeL", "eyeR") and c["k"] == "orange_terracotta": c["f"][1] = 16.0
         mend.unfight(m)
+    for id, bones in SWAY.items():
+        m = d["models"].get(id)
+        if m and not m.get("sway-revision"): sway(m, bones); m["sway-revision"] = 1; print("sway", id)
     for id, fn in MORE2.items():
         m = d["models"].get(id)
         if m and not m.get("mouth-revision"): fn(m); mend.unfight(m); m["mouth-revision"] = 1; print("detail", id, len(m["cubes"]))
