@@ -113,7 +113,7 @@ def redeye_mouth(m):
     """The mouth was red on red. Now a black open mouth with four top teeth, two bottom fangs and a tongue."""
     m["cubes"] = [c for c in m["cubes"] if c["b"] != "jaw"]
     z = 4.53
-    box(m, "jaw", "black_concrete", -4.6, 5.6, z - 0.3, 4.6, 8.6, z + 0.2)
+    box(m, "jaw", "black_concrete", -4.6, 5.6, z - 1.0, 4.6, 8.6, z + 0.2)
     box(m, "jaw", "red_terracotta", -5.0, 5.0, z, 5.0, 5.6, z + 0.5)
     for x in (-3.6, -1.7, 0.4, 2.3): box(m, "jaw", "white_concrete", x, 7.6, z + 0.2, x + 1.3, 8.6, z + 0.45)
     pair(m, "jaw", "white_concrete", 2.6, 5.6, z + 0.2, 3.5, 6.7, z + 0.45)
