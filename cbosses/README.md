@@ -50,13 +50,13 @@ and its minions only go after that player. If they lose or leave, it waits for `
 
 | Chapter | Boss | Health | Blocks |
 |---|---|---|---|
-| 1 | Brakka the Torchbearer | 3000 | 133 |
+| 1 | Brakka the Torchbearer | 3000 | 135 |
 | 2 | Grimsby | 3000 | 124 |
 | 3 | Sir Oakheart | 3000 | 152 |
 | 4 | The Gnome Brothers | 3000 | 202 |
 | 5 | Old Moss | 3000 | 300 |
-| 7 | Grub | 3000 | 297 |
-| 9 | Mudd | 3000 | 248 |
+| 7 | Grub | 3000 | 300 |
+| 9 | Mudd | 3000 | 250 |
 | 10 | Ugor | 3000 | 184 |
 
 <table>

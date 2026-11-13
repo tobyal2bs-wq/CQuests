@@ -1,0 +1,78 @@
+slagheart body detached at rest
+crimson_ronin body detached at rest
+abyssal_eye lure2 detached at rest
+abyssal_eye lure3 detached at rest
+overgrowth body detached at rest
+prism_sentinel body detached at rest
+prism_sentinel ring1 detached at rest
+broodmother abdomen detached at rest
+tide_tyrant shinBL <- legBL: rear@0.45 rear@0.60 die_side@0.28
+tide_tyrant shinBR <- legBR: rear@0.45 rear@0.60 die_side@0.56 die_side@1.12 die_side@1.26 die_side@1.40
+tide_tyrant shinFL <- legFL: die_side@0.28
+tide_tyrant shinML <- legML: die_side@0.28 die_collapse@0.45 die_collapse@0.60 die_collapse@0.75
+tide_tyrant shinFR <- legFR: die_side@0.56 die_side@1.12 die_side@1.26 die_side@1.40 death_tide_tyrant@1.04 death_tide_tyrant@1.25
+tide_tyrant shinMR <- legMR: die_side@0.56 die_side@0.84 die_collapse@0.45 die_collapse@0.60 die_collapse@0.75 death_tide_tyrant@1.04
+tide_tyrant eyeL detached at rest
+tide_tyrant eyeR detached at rest
+captain_brine body detached at rest
+clockwork_colossus whistle <- head: idle@3.60
+clockwork_colossus head detached at rest
+clockwork_colossus key detached at rest
+mossback tail <- body: die_collapse@0.45 die_collapse@0.60 die_collapse@0.75 die_collapse@0.90 die_collapse@1.05 die_collapse@1.20
+old_wizard book detached at rest
+hollow_mage head detached at rest
+hollow_mage staff detached at rest
+grave_marshal shield detached at rest
+mayor_grumble gavel detached at rest
+the_unmaker halo detached at rest
+the_unmaker finL detached at rest
+the_unmaker finR detached at rest
+killer_claus body detached at rest
+old_man_winter cape <- body: sweep@0.39 sweep@0.52 sweep@0.65 sweep@0.78 sweep@0.91 sweep@1.04
+old_man_winter legL <- hips: stomp@0.25 stomp@0.38 stomp@0.50 stomp@0.63 die_kneel@0.48 die_kneel@0.64
+old_man_winter body detached at rest
+admiral_pinchworth fangL detached at rest
+admiral_pinchworth fangR detached at rest
+clucksworth tail detached at rest
+gourd_king foreR <- armR: lunge@0.22 lunge@0.33 lunge@0.44 cast@0.30 cast@0.45 cast@0.60
+gourd_king foreL <- armL: cast@0.30 cast@0.45 cast@0.60 roar@0.48 roar@0.64 roar@0.80
+brakka body detached at rest
+grubnose armR <- body: swipe@0.28 swipe@0.38 slam@0.30 slam@0.45 slam@0.60 slam@0.75
+grubnose head <- body: slam@0.30 slam@0.45 slam@0.60 cast@0.45 roar@0.64 roar@0.80
+grubnose armL <- body: slam@0.45 slam@0.60 sweep@0.65 sweep@0.78 sweep@0.91 sweep@1.04
+mudclub armR <- body: swipe@0.19 swipe@0.28 swipe@0.38 slam@0.30 slam@0.45 slam@0.60
+mudclub armL <- body: swipe@0.28 slam@0.30 slam@0.45 slam@0.60 slam@0.75 sweep@0.26
+rootmaw armR <- body: swipe@0.19 swipe@0.28 swipe@0.38 slam@0.48 slam@0.64 slam@0.80
+rootmaw armL <- body: slam@0.48 slam@0.64 slam@0.80 cast@0.90 cast@1.05 cast@1.20
+cinder_hollow head detached at rest
+cinder_hollow staff detached at rest
+rime_hollow head detached at rest
+rime_hollow staff detached at rest
+bramble_hollow head detached at rest
+bramble_hollow staff detached at rest
+bark_ape armL <- body: sweep@0.78
+king_oldbeard cape <- body: walk@0.55 sweep@0.39 sweep@0.52 sweep@0.65 sweep@0.78 sweep@0.91
+king_oldbeard staff detached at rest
+apple_crab abdomen <- body: spit@0.22 spit@0.33 spit@0.44 spit@0.55 spit@0.66 spit@0.77
+apple_crab fangL detached at rest
+apple_crab fangR detached at rest
+garden_gnome armL <- body: sweep@0.78
+pack_goblin armL detached at rest
+pack_goblin armR detached at rest
+goblin_king footL <- shinL: die_kneel@0.48 die_kneel@0.64 die_kneel@0.80 die_kneel@0.96 die_kneel@1.12 die_kneel@1.28
+cap_brothers armL <- body: idle@0.96 idle@2.24 swipe@0.19 swipe@0.28 swipe@0.38 slam@0.30
+cap_brothers armR <- body: idle@0.96 idle@2.24 idle@2.56 swipe@0.19 swipe@0.28 swipe@0.38
+ring_frog armL <- body: idle@0.24 idle@0.48 idle@0.72 idle@0.96 idle@1.20 idle@1.44
+ring_frog armR <- body: idle@0.24 idle@0.48 idle@0.72 idle@0.96 idle@1.44 idle@1.68
+ring_frog foreR <- armR: idle@0.96 walk@0.44 walk@0.55 walk@0.66 swipe@0.19 swipe@0.28
+ring_frog foreL <- armL: idle@1.44 idle@1.68 walk@0.00 walk@0.11 walk@0.99 walk@1.10
+baby_minotaur armL detached at rest
+baby_minotaur armR detached at rest
+mandrake armL detached at rest
+mandrake armR detached at rest
+cap_little armL <- body: swipe@0.19 swipe@0.28 swipe@0.38 slam@0.45 slam@0.60 slam@0.75
+cap_little armR <- body: swipe@0.19 swipe@0.28 swipe@0.38 slam@0.45 slam@0.60 slam@0.75
+gnome_little armL <- body: sweep@0.78
+redeye pupils detached at rest
+bogwart head <- body: slam@0.90 slam@1.05 cast@0.90 cast@1.05 stomp@0.75 stomp@0.88
+flagged 77

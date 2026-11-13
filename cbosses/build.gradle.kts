@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.cbosses"
-version = "1.3.11"
+version = "1.3.12"
 
 repositories {
     mavenCentral()
