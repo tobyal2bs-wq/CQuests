@@ -175,7 +175,13 @@ function pose(model,layers){
    const matrix=rest[c.b].clone().multiply(cubeLocal(c));for(let k=0;k<8;k++){const v=new THREE.Vector3(k&1,k>>1&1,k>>2&1).applyMatrix4(matrix);low=Math.min(low,v.y);}}
   model._groundLift=Number.isFinite(low)?-low:0;
  }
- const out=rawPose(model,layers);if(Math.abs(model._groundLift)>1e-5){const lift=new THREE.Matrix4().makeTranslation(0,model._groundLift,0);for(const key of Object.keys(out))out[key].premultiply(lift);}return out;
+ const out=rawPose(model,layers);if(Math.abs(model._groundLift)>1e-5){const lift=new THREE.Matrix4().makeTranslation(0,model._groundLift,0);for(const key of Object.keys(out))out[key].premultiply(lift);}
+ // there is a floor: a pose that would put a block under it lifts the whole body by that much
+ if(!model._parent)model._parent=Object.fromEntries(model.bones.map(b=>[b.name,b.parent]));let low=Infinity;const v=new THREE.Vector3();
+ for(const c of model.cubes){if(c._off===undefined){let bone=c.b,shell=false;while(bone){if(bone.startsWith('shell'))shell=true;bone=model._parent[bone];}c._off=shell||!!(c.g&&c.g.startsWith('face:')&&c.g!=='face:idle');}
+  if(c._off)continue;const matrix=out[c.b].clone().multiply(cubeLocal(c));for(let k=0;k<8;k++){v.set(k&1,k>>1&1,k>>2&1).applyMatrix4(matrix);if(v.y<low)low=v.y;}}
+ if(low<-0.05&&Number.isFinite(low)){const lift=new THREE.Matrix4().makeTranslation(0,-low,0);for(const key of Object.keys(out))out[key].premultiply(lift);}
+ return out;
 }
 
 function cubeLocal(c) {

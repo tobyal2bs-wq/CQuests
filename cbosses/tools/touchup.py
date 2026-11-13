@@ -245,6 +245,115 @@ def sway(m, bones):
             a["bones"][b] = {"rot": keys}
 
 
+def hollow_staff(m):
+    """The crook stood half a block behind the hand that was meant to hold it. The whole crook moves forward so the
+    shaft runs through the fist, and the light hangs from the tip of the crook in front."""
+    hand = next(b for b in m["bones"] if b["name"] == "staff")["pivot"][2]
+    rods = [c for c in m["cubes"] if c["b"] == "staff" and "r" in c]
+    shaft = max(rods, key=lambda c: c["t"][1] - c["f"][1])
+    dz = round(hand - (shaft["f"][2] + shaft["t"][2]) / 2, 2)
+    for c in m["cubes"]:
+        if c["b"] != "staff": continue
+        fist = "r" not in c and c["k"] == "black_concrete"
+        if not fist:
+            c["f"][2] = round(c["f"][2] + dz, 3); c["t"][2] = round(c["t"][2] + dz, 3)
+            if "o" in c: c["o"][2] = round(c["o"][2] + dz, 3)
+
+
+def scute(m, b, x0, y0, z0, x1, y1, z1, ax, out, dark, light):
+    """One shell plate: a raised dark plate with a lighter boss in its middle, standing out along ax by out."""
+    lo, hi = [x0, y0, z0], [x1, y1, z1]
+    a, c = list(lo), list(hi)
+    (c if out > 0 else a)[ax] += out
+    box(m, b, dark, *a, *c)
+    a, c = list(lo), list(hi)
+    for k in range(3):
+        if k != ax: w = (hi[k] - lo[k]) * 0.28; a[k] += w; c[k] -= w
+    (c if out > 0 else a)[ax] += out * 1.9
+    box(m, b, light, *a, *c)
+
+
+def mossy_turtle(m):
+    """The shell was flat plank panels. It is a domed shell of raised plates now: three a side, three front and
+    back, four on top, each with a paler boss, and the face has eyes with a shine and a mouth line."""
+    m["cubes"] = [c for c in m["cubes"] if c["k"] != "dark_oak_planks"]
+    D, L = "green_terracotta", "lime_terracotta"
+    for z in (-6.16, -1.76, 2.64): scute(m, "body", 6.0, 5.4, z, 6.0, 8.8, z + 3.6, 0, 0.35, D, L); scute(m, "body", -6.0, 5.4, z, -6.0, 8.8, z + 3.6, 0, -0.35, D, L)
+    for x in (-4.6, -1.2, 2.2): scute(m, "body", x, 5.4, 6.44, x + 2.4, 8.8, 6.44, 2, 0.35, D, L); scute(m, "body", x, 5.4, -7.76, x + 2.4, 8.8, -7.76, 2, -0.35, D, L)
+    for x in (-3.2, 0.4):
+        for z in (-4.6, -0.3): scute(m, "body", x, 12.8, z, x + 2.8, 12.8, z + 3.6, 1, 0.3, D, L)
+    for x in (-4.6, 0.6):
+        for z in (-6.2, -0.4): scute(m, "body", x, 11.8, z, x + 1.0, 11.8, z + 1.0, 1, 0.01, D, D)
+    m["cubes"] = [c for c in m["cubes"] if not (c["b"] == "body" and c["k"] == "lime_terracotta" and abs(c["t"][1] - 13.3) < 0.01 and c["t"][0] - c["f"][0] == 6.0)]
+    pair(m, "head", "white_concrete", 2.6, 5.6, 7.6, 2.75, 7.0, 9.2)
+    pair(m, "head", "black_concrete", 2.75, 5.8, 8.2, 2.87, 6.8, 9.2)
+    pair(m, "head", "white_concrete", 2.87, 6.4, 8.8, 2.97, 6.8, 9.2)
+    pair(m, "head", "black_concrete", 0.6, 5.2, 10.44, 1.0, 5.6, 10.56)
+
+
+def mossback(m):
+    """The island turtle's shell was three bare slabs. Each tier has raised plates with paler bosses all round, the
+    rim is scalloped, and the head has brows, nostrils and a beak line."""
+    D, L = "brown_concrete", "terracotta"
+    X = -0.1
+    for i in range(4):
+        z = -15.2 + i * 7.2
+        scute(m, "body", 12.9, 7.6, z, 12.9, 10.4, z + 6.0, 0, 0.4, D, L); scute(m, "body", -13.1, 7.6, z, -13.1, 10.4, z + 6.0, 0, -0.4, D, L)
+    for i in range(3):
+        z = -13.3 + i * 8.4
+        scute(m, "body", 10.9, 11.8, z, 10.9, 15.2, z + 7.4, 0, 0.4, D, L); scute(m, "body", -11.1, 11.8, z, -11.1, 15.2, z + 7.4, 0, -0.4, D, L)
+    for i in range(4):
+        x = -12.3 + i * 6.3
+        scute(m, "body", x, 7.6, -16.1, x + 5.5, 10.4, -16.1, 2, -0.4, D, L)
+    for i in range(3):
+        x = -10.3 + i * 7.0
+        scute(m, "body", x, 11.8, -14.1, x + 6.2, 15.2, -14.1, 2, -0.4, D, L)
+        if i != 1: scute(m, "body", x, 11.8, 11.9, x + 6.2, 15.2, 11.9, 2, 0.4, D, L)
+    pair(m, "head", "brown_concrete", 1.2 + X, 13.4, 23.9, 3.6 + X, 14.2, 24.5, X)
+    pair(m, "head", "black_concrete", 0.5 + X, 11.4, 23.9, 1.1 + X, 12.0, 24.05, X)
+    box(m, "head", "brown_concrete", -3.3 + X, 9.4, 23.9, 3.3 + X, 9.8, 24.05)
+
+
+def wizard(m):
+    """The old wizard was plain purple boxes. His robe has a gold hem, cuffs and a starred front, his hat a moon and
+    stars, and his face heavy brows and a moustache over the beard."""
+    G, W = "gold_block", "white_concrete"
+    box(m, "body", G, -5.6, 7.0, -4.6, 5.6, 7.9, 3.6)
+    box(m, "body", "brown_terracotta", -5.1, 12.6, -4.1, 5.1, 13.8, 3.1); box(m, "body", G, -1.0, 12.4, 3.1, 1.0, 14.0, 3.5)
+    for x, y in ((-3.6, 16.4), (2.6, 18.2), (-2.8, 9.2), (3.0, 10.4)): box(m, "body", "yellow_concrete", x, y, 3.0, x + 0.9, y + 0.9, 3.14)
+    pair(m, "foreL", G, 5.4, 10.5, -3.1, 9.6, 11.3, 2.1)
+    pair(m, "armL", G, 5.4, 19.7, -3.1, 9.6, 20.5, 2.1)
+    box(m, "hat", "yellow_concrete", -1.2, 32.4, 5.0, 1.2, 34.8, 5.14); box(m, "hat", "purple_concrete", -0.2, 32.9, 5.14, 1.4, 34.3, 5.2)
+    for x, y in ((-4.2, 31.6), (3.2, 34.6), (-3.4, 35.0)): box(m, "hat", "yellow_concrete", x, y, 5.0, x + 0.8, y + 0.8, 5.14)
+    pair(m, "head", W, 1.3, 27.8, 4.0, 4.4, 28.8, 4.9)
+    pair(m, "head", "light_gray_concrete", 0.3, 23.6, 6.2, 3.8, 24.6, 6.7)
+    for i, x in enumerate((-4.3, -1.5, 1.3)): box(m, "head", "light_gray_concrete", x, 14.2 + (i % 2) * 2.4, 6.2, x + 0.5, 20.8, 6.34)
+
+
+def egg_cracks(m):
+    """The egg shook and blew apart with no warning. Three black cracks now run up the shell one after another
+    before it breaks: each is in its own bone, hidden until its moment in the hatching."""
+    for i in (1, 2, 3): m["bones"].append({"name": f"shellcrk{i}", "parent": "shell", "pivot": [0.0, 20.0, 0.0]})
+    K = "black_concrete"
+    def zig(b, pts, face):  # pts: (across, y0, y1); face: ("z", depth) or ("x", depth)
+        for u, y0, y1, d in pts:
+            if face == "z": box(m, b, K, u, y0, d, u + 1.1, y1, d + 0.14)
+            else: box(m, b, K, d, y0, u, d + 0.14 if d > 0 else d - 0.14, y1, u + 1.1)
+    zig("shellcrk1", [(-1.6, 11.6, 14.6, 15.4), (-0.5, 14.2, 16.8, 15.4), (-1.4, 16.8, 19.6, 15.2), (-0.3, 19.2, 22.2, 15.2), (-2.7, 14.2, 15.0, 15.4)], "z")
+    zig("shellcrk2", [(2.0, 16.9, 19.4, 15.5), (3.1, 19.0, 22.2, 15.5), (1.4, 22.3, 25.0, 14.7), (2.5, 24.6, 27.7, 14.7), (0.9, 12.0, 14.4, 15.7), (2.0, 14.0, 16.7, 15.7)], "x")
+    zig("shellcrk3", [(4.0, 22.4, 25.2, 14.4), (5.1, 24.8, 27.7, 14.4), (4.2, 27.8, 30.6, 12.8), (5.3, 30.2, 33.2, 12.8), (3.2, 33.3, 36.0, 10.4), (-6.0, 6.0, 9.0, 14.9), (-4.9, 8.6, 11.2, 14.9)], "z")
+    sp = [dict(o) for o in m["spawn"]]
+    sp.insert(1, {"op": "shrink", "at": 0, "s": 0, "only": "shellcrk"})
+    sp += [{"op": "pose", "at": 16, "dur": 2, "only": "shellcrk1"}, {"op": "pose", "at": 26, "dur": 2, "only": "shellcrk2"},
+           {"op": "pose", "at": 34, "dur": 2, "only": "shellcrk3"},
+           {"op": "fx", "at": 26, "y": 0.5, "spread": 1.0, "particle": "EGG_CRACK", "count": 14, "sound": "ENTITY_TURTLE_EGG_CRACK", "pitch": 1.1}]
+    m["spawn"] = sorted(sp, key=lambda o: o["at"])
+
+
+LAUNCH = {"hollow_mage": hollow_staff, "cinder_hollow": hollow_staff, "rime_hollow": hollow_staff, "bramble_hollow": hollow_staff,
+          "mossy_turtle": mossy_turtle, "mossback": mossback, "old_wizard": wizard, "clucksworth": egg_cracks}
+
+
 if __name__ == "__main__":
     d = json.load(open(sys.argv[1]))
     for id, fn in FIXES.items():
@@ -276,6 +385,9 @@ if __name__ == "__main__":
             for c in m["cubes"]:
                 if c["b"] in ("eyeL", "eyeR") and c["k"] == "orange_terracotta": c["f"][1] = 16.0
         mend.unfight(m)
+    for id, fn in LAUNCH.items():
+        m = d["models"].get(id)
+        if m and not m.get("launch-revision"): fn(m); mend.unfight(m); m["launch-revision"] = 1; print("launch", id, len(m["cubes"]))
     for id, bones in SWAY.items():
         m = d["models"].get(id)
         if m and not m.get("sway-revision"): sway(m, bones); m["sway-revision"] = 1; print("sway", id)
