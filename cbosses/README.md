@@ -2,7 +2,7 @@
 
 <p align="center"><img src="docs/images/hero.jpg" alt="CBosses bosses" width="100%"></p>
 
-**CBosses** adds 93 animated block-model bosses to Paper and Folia servers. Every boss is built from 33 to
+**CBosses** adds 93 animated block-model bosses to Paper and Folia servers. Every boss is built from 27 to
 300 display blocks, has its own entrance, its own attacks and its own death, and runs on a schedule, on a
 season, right after a player finishes a CQuests chapter, or as the finale once both legends have fallen. It
 works on its own and alongside **CQuests**, and it has full **WorldGuard** support.
@@ -53,8 +53,8 @@ and its minions only go after that player. If they lose or leave, it waits for `
 | 1 | Brakka the Torchbearer | 3000 | 135 |
 | 2 | Grimsby | 3000 | 124 |
 | 3 | Sir Oakheart | 3000 | 152 |
-| 4 | The Gnome Brothers | 3000 | 202 |
-| 5 | Old Moss | 3000 | 300 |
+| 4 | The Gnome Brothers | 3000 | 201 |
+| 5 | Old Moss | 3000 | 221 |
 | 7 | Grub | 3000 | 300 |
 | 9 | Mudd | 3000 | 250 |
 | 10 | Ugor | 3000 | 184 |

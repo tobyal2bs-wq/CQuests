@@ -9,3 +9,6 @@ Every one of the 101 models was played through all of its animations and checked
 
 ## Flicker
 - About 25,000 surfaces that shared a plane with another one were moved 0.03 of a pixel apart on all models. That is what made blocks flicker and glitch on older bosses.
+
+## Colour patches
+- 1,632 random light and dark square patches were taken off the older models. They read as blocks of a colour that had nothing to do with the model. Eyes, mouths, stripes and buckles are kept.
