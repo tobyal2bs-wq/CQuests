@@ -21,7 +21,7 @@ def moonwake_manta():
  m.approved=data('moonwake_manta')
  return m
 
-INFO['thorncoil_basilisk']={'name': '<gradient:#8fa36d:#e2eadb><bold>Thorncoil Basilisk</bold></gradient>', 'title': 'Fang of the Tangled Grove', 'entity': 'RAVAGER', 'damage': 13, 'armor': 8, 'bar': 'GREEN', 'theme': 'toxic', 'movement': 'walk', 'speed': 0.21, 'minion': None, 'minions': 0, 'ability_seconds': 8, 'phases': [0.66, 0.33], 'hpp': 0.25, 'money': 45000, 'top_money': 135000, 'items': ['MOSS_BLOCK 32', 'DIAMOND 2'], 'top_items': ['NETHERITE_SCRAP 1'], 'extra': ['poison', 'roar', 'quake']}
+INFO['thorncoil_basilisk']={'name': '<gradient:#8fa36d:#e2eadb><bold>Thorncoil Basilisk</bold></gradient>', 'title': 'Fang of the Tangled Grove', 'entity': 'RAVAGER', 'damage': 13, 'armor': 8, 'bar': 'GREEN', 'theme': 'toxic', 'movement': 'walk', 'speed': 0.21, 'minion': 'SILVERFISH', 'minions': 4, 'ability_seconds': 8, 'phases': [0.66, 0.33], 'hpp': 0.25, 'money': 45000, 'top_money': 135000, 'items': ['MOSS_BLOCK 32', 'DIAMOND 2'], 'top_items': ['NETHERITE_SCRAP 1'], 'extra': ['poison', 'roar', 'quake', 'minions']}
 @model
 def thorncoil_basilisk():
  m=Model('thorncoil_basilisk',"studio",1)

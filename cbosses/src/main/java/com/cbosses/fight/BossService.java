@@ -1261,6 +1261,24 @@ public final class BossService implements Listener {
 
     }
 
+    /** Bosses whose minions are small copies of the boss itself, and how small. */
+    private static final Map<String, Float> SMALL_COPIES = Map.of("thorncoil_basilisk", 0.3f);
+
+    /** Dresses a minion as a small copy of its boss; the copy goes when the minion does. */
+    private void small(Fight f, Mob minion) {
+        Float size = SMALL_COPIES.get(f.def.id());
+        ModelRig.Model look = size == null ? null : model(f.def.id());
+        if (look == null) return;
+        try {
+            BossModel copy = new BossModel(plugin, look, minion);
+            copy.size = size; copy.noZones = true;
+            copy.build(kindKey, fightKey, f.key);
+            minion.setInvisible(true); minion.setSilent(true);
+            copy.appearQuiet();
+            minion.getScheduler().runAtFixedRate(plugin, t -> { if (!minion.isValid() || minion.isDead()) { copy.remove(); t.cancel(); } }, copy::remove, 20, 10);
+        } catch (RuntimeException ex) { plugin.getLogger().fine("small copy: " + ex); }
+    }
+
     void summonMinions(Fight f, int count) { summonMinionsAt(f, f.boss.getLocation(), count); }
 
     void summonMinionsAt(Fight f, Location at, int count) {
@@ -1284,7 +1302,7 @@ public final class BossService implements Listener {
                     if (m instanceof Slime s) s.setSize(2);
                     if (m instanceof Creeper c) c.setMaxFuseTicks(Integer.MAX_VALUE / 4);
                 });
-                if (e instanceof Mob mob) { f.minions.add(mob); byEntity.put(mob.getUniqueId(), f); alive++; }
+                if (e instanceof Mob mob) { f.minions.add(mob); byEntity.put(mob.getUniqueId(), f); alive++; small(f, mob); }
                 Fx.particle(spot.getWorld(), Particle.LARGE_SMOKE, spot.clone().add(0, 0.5, 0), 15, 0.3, 0.5, 0.3, 0.02, f.theme);
                 Fx.debris(spot, Fx.ground(spot, f.theme), 3, 1, 0.8, 0.3f);
             } catch (RuntimeException ignored) { }

@@ -35,7 +35,7 @@ class WorldBossDefTest {
         });
         Map<String, WorldBossDef> defs = WorldBossDef.load(YamlConfiguration.loadConfiguration(new File("src/main/resources/worldbosses.yml")), log);
         assertTrue(warnings.isEmpty(), warnings.toString());
-        assertEquals(26, defs.values().stream().filter(d -> !d.seasonal()).count(), "24 general bosses and 2 legends");
+        assertEquals(24, defs.values().stream().filter(d -> !d.seasonal()).count(), "22 general bosses and 2 legends");
         assertEquals(12, defs.values().stream().filter(d -> d.seasonal()).count(), "three for each season");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new File("src/main/resources/config.yml"));
         for (WorldBossDef d : defs.values()) {

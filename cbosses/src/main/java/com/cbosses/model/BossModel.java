@@ -79,6 +79,10 @@ public final class BossModel {
     public volatile boolean flying;
     /** Damage of a melee swing that lands beyond the mob's own short reach (its hitbox is smaller than the model). */
     public volatile double meleeDamage;
+    /** Draws the whole model this many times its size (a boss's small copies). Set before build. */
+    public float size = 1f;
+    /** No hit zones of its own: the mob under it takes the hits. Set before build. */
+    public boolean noZones;
     private ScheduledTask loop;
     public int animationsPlayed;
 
@@ -131,7 +135,7 @@ public final class BossModel {
             parts.add(d);
         }
         float s = model.scale / 16f;
-        for (int i = 0; i < model.zones.size(); i++) {
+        for (int i = 0; !noZones && i < model.zones.size(); i++) {
             ModelRig.Zone z = model.zones.get(i);
             Interaction box = at.getWorld().spawn(at, Interaction.class, e -> { Privacy.claim(e);
                 e.setPersistent(false);
@@ -191,6 +195,16 @@ public final class BossModel {
         }, null, 3);
     }
 
+    /** Shows the model at once, with no entrance. */
+    public void appearQuiet() {
+        mob.getScheduler().runDelayed(plugin, t -> {
+            if (!mob.isValid() || parts.isEmpty()) return;
+            measure();
+            restPose();
+            startLoop();
+        }, null, 3);
+    }
+
     private void measure() {
         Location m = mob.getLocation();
         yaw = m.getYaw();
@@ -213,7 +227,7 @@ public final class BossModel {
     private Matrix4f world() {
         float r = ModelRig.rad(yaw);
         Vector3f off = new Matrix4f().rotationY(-r).transformDirection(new Vector3f(attach));
-        return new Matrix4f().translation(-off.x, -off.y + drop, -off.z).rotateY(-r);
+        return new Matrix4f().translation(-off.x, -off.y + drop, -off.z).rotateY(-r).scale(size);
     }
 
     /** Per foot ground height (model pixels) and how far the whole body sinks (blocks) on uneven ground. */

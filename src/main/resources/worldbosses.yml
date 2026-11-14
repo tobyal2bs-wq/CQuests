@@ -161,31 +161,6 @@ bosses:
       top-items: ["NETHERITE_SCRAP 1"]
       commands: []
       top-commands: []
-  abyssal_eye:
-    name: "<gradient:#003b46:#66fcf1><bold>Mama Gulp</bold></gradient>"
-    previous-names: ["<gradient:#003b46:#66fcf1><bold>The Abyssal Eye</bold></gradient>"]
-    title: "The Deep Sea Angler"
-    previous-titles: ["Sentinel of the Drowned Temple"]
-    entity: BLAZE
-    health: 3000
-    scale: 1.6
-    damage: 5
-    armor: 10
-    bar: BLUE
-    glow: true
-    particle: BUBBLE_POP
-    color: "#66fcf1"
-    minion: DROWNED
-    minions: 2
-    ability-seconds: 7
-    abilities: [volley, pull, leap, roar, frost, shockwave]
-    rewards:
-      money: 45000
-      top-money: 140000
-      items: ["PRISMARINE_SHARD 24", "SPONGE 4", "DIAMOND 2"]
-      top-items: ["HEART_OF_THE_SEA 1"]
-      commands: []
-      top-commands: []
   overgrowth:
     name: "<gradient:#2d6a4f:#d8a657><bold>Rusty</bold></gradient>"
     previous-names: ["<gradient:#2d6a4f:#d8a657><bold>Overgrowth</bold></gradient>"]
@@ -916,38 +891,6 @@ bosses:
       top-items: ["NETHERITE_SCRAP 1"]
       commands: []
       top-commands: []
-
-  moonwake_manta:
-    name: "<gradient:#80b9b3:#e2eadb><bold>Luna</bold></gradient>"
-    previous-names: ["<gradient:#80b9b3:#e2eadb><bold>Moonwake Manta</bold></gradient>"]
-    title: "The Moon Manta"
-    previous-titles: ["Warden of the Moonlit Tide"]
-    model: moonwake_manta
-    scale: 1.5
-    glow: false
-    particle: END_ROD
-    color: '#80b9b3'
-    entity: PHANTOM
-    health: 3000
-    damage: 5
-    armor: 6
-    bar: BLUE
-    ability-seconds: 8
-    abilities:
-    - pull
-    - volley
-    - levitate
-    rewards:
-      money: 45000
-      top-money: 135000
-      items:
-      - PRISMARINE_SHARD 32
-      - DIAMOND 2
-      top-items:
-      - NETHERITE_SCRAP 1
-      commands: []
-      top-commands: []
-    speed: 0.23
 
   thorncoil_basilisk:
     name: "<gradient:#8fa36d:#e2eadb><bold>Viper</bold></gradient>"

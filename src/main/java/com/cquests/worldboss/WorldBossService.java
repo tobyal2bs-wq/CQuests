@@ -153,7 +153,7 @@ public final class WorldBossService implements Listener {
     // ------------------------------------------------------------------ setup
 
     /** World bosses an update replaced; their models no longer exist. */
-    static final Set<String> RETIRED = Set.of("fenrir", "ironhide_behemoth", "void_walker", "molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign");
+    static final Set<String> RETIRED = Set.of("fenrir", "ironhide_behemoth", "void_walker", "molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign", "abyssal_eye", "rotting_giant", "moonwake_manta");
 
     /** Copies the bundled name (or title) over the server's when the server still has one the boss used to ship with. */
     static boolean follow(YamlConfiguration yaml, String at, org.bukkit.configuration.ConfigurationSection sec, String key, String previous) {

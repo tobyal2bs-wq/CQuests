@@ -45,7 +45,7 @@ class BossDataTest {
     void everyBossHasAModelWithAnEntranceAndADeath() throws Exception {
         var models = models();
         var defs = bosses();
-        assertEquals(93, defs.size(), "41 weekly, 3 mythic, 12 seasonal, 8 chapter and 29 mini bosses");
+        assertEquals(90, defs.size(), "38 weekly, 3 mythic, 12 seasonal, 8 chapter and 29 mini bosses");
         for (BossDef d : defs.values()) {
             ModelRig.Model m = models.get(d.model());
             assertNotNull(m, d.id() + " has no model");
@@ -93,7 +93,7 @@ class BossDataTest {
         var defs = bosses();
         for (String season : new String[]{"winter", "summer", "spring", "halloween"})
             assertEquals(3, defs.values().stream().filter(d -> d.seasonal() && season.equals(d.season())).count(), season);
-        assertEquals(44, defs.values().stream().filter(d -> !d.seasonal() && !d.chapterBoss() && !d.mini() && !d.sidekick()).count(), "41 weekly bosses and 3 mythic");
+        assertEquals(41, defs.values().stream().filter(d -> !d.seasonal() && !d.chapterBoss() && !d.mini() && !d.sidekick()).count(), "38 weekly bosses and 3 mythic");
     }
 
     @Test
@@ -135,7 +135,7 @@ class BossDataTest {
     @Test
     void newBigBossesAreCleanAndAlive() throws Exception {
         var models = models();
-        for (String id : new String[]{"abyssal_eye", "tide_tyrant", "storm_herald", "ember_queen", "gravelord", "bloodtusk",
+        for (String id : new String[]{"tide_tyrant", "storm_herald", "ember_queen", "gravelord", "bloodtusk",
                 "old_ironroot", "gate_shade", "frost_yeti", "bog_orc"}) {
             ModelRig.Model m = models.get(id);
             assertNotNull(m, id);

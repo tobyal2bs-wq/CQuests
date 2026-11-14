@@ -2,7 +2,7 @@
 # Placeholders: <boss>, <minutes>, <where>, <title>, <player>, <seconds>.
 prefix: "<dark_gray>[<gold>CBosses</gold>]</dark_gray> "
 schedule-warning: "<gold><bold>⚔ BOSS</bold></gold> <boss> <gray>wakes in <white><minutes> minutes</white><where>"
-spawn-announcement: "<gold>⚔ <boss> <gray>has appeared<where>"
+spawn-broadcast: "<dark_gray><st>                                        </st>\n<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  <boss>\n<title>\n<gold>has risen<where>\n<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n<dark_gray><st>                                        </st>"
 boss-idle: "<gray><boss> <gray>found no challengers and left."
 boss-timeout: "<gray><boss> <gray>was not beaten in time and vanished."
 boss-stopped: "<gray><boss> <gray>was sent away."
@@ -33,9 +33,6 @@ text:
   # commands
   command:
     arena-setspawn-wand-show-region: "<yellow>/<label> arena setspawn|wand|show|region|radius|clear|delete|list <arena>"
-    blockbench-done: "<green>Wrote <count> Blockbench model(s) to plugins/CBosses/blockbench/. <gray>Edit one, save it into plugins/CBosses/models/ and run /cbosses reload."
-    blockbench-none: "<red>No built-in model called <id>."
-    blockbench-usage: "<yellow>/<label> blockbench <boss|all> <gray>writes Blockbench files to plugins/CBosses/blockbench/"
     cbosses-commands: "<gold>CBosses commands"
     chapter-boss-coming: "<green>Chapter <n> boss is coming for <player>."
     chapter-bosses-reset-for: "<gray>Chapter bosses reset for <input2>."
@@ -52,11 +49,10 @@ text:
     finale-waking: "<light_purple>The finale is waking."
     help:
       arena: " <yellow><cmd> arena setspawn|wand|region|radius|show|clear|delete <arena>"
-      blockbench: " <yellow><cmd> blockbench <boss|all> <gray>export models to edit in Blockbench"
       chapter: " <yellow><cmd> chapter <player> <n> | reset <player> | retry"
       decor: " <yellow><cmd> decor place <model>|remove|list <gray>pumpkins and other models that sit and pull faces"
       disable: " <yellow><cmd> enable|disable <boss> <gray>turn a boss on or off (no name: list the ones that are off)"
-      edit: " <yellow><cmd> edit <boss> [field value] <gray>change name, color #hex [#hex], health, damage, bar, tier..."
+      edit: " <yellow><cmd> edit <boss> [field value] <gray>change name, color #hex [#hex], health, damage, bar, tier, evolve..."
       finale: " <yellow><cmd> finale [wake|reset] <gray>the boss after the three legends"
       list: " <yellow><cmd> list <gray>boss ids"
       menu: " <yellow><cmd> menu <gray>every boss in a menu"
@@ -102,7 +98,7 @@ text:
     fields: "<red>Fields: <list>"
     header: "<gold>Boss <white><id></white> <gray>(change with /cbosses edit <id> <field> <value>)"
     no-boss: "<red>No boss <id> in bosses.yml."
-    number: "<red><field> needs a number of 0 or more (health at least 20)."
+    number: "<red><field> needs a number of 0 or more (health at least 20; evolve 0 to 1, true or false)."
     save-failed: "<red>Could not save bosses.yml: <error>"
     saved: "<green>Saved <white><id></white> <field> = <white><value></white>. <gray>New fights use it; running fights keep their old values."
   # fights, arenas and rewards
@@ -121,7 +117,6 @@ text:
     border-cleared-arena-now-uses: "<gray>Border cleared. Arena <white><arena></white> now uses <border>."
     border-rod-for-arena-left: "<gold>Border rod for arena <white><arena></white>. <gray>Left-click blocks around the arena to add corners in order. The boss can never walk past this outline."
     boss-border-rod: "<gold><bold>Boss Border Rod</bold></gold> <gray>(<arena>)"
-    boss-has-appeared: "<gold>⚔ <boss> <gray>has appeared<where>"
     boss-reward-in-damage: "<gold>Boss reward: <white>#<place></white> in damage<amount><items>."
     boss-spawn-for-arena-set: "<green>Boss spawn for arena <white><arena></white> set here. <gray>Border: <border>. Draw one with <yellow>/cbosses arena wand <arena></yellow> or link a WorldGuard region with <yellow>/cbosses arena region <arena> <region></yellow>."
     boss-wakes-in-minutes: "<gold><bold>⚔ BOSS</bold></gold> <boss> <gray>wakes in <white><minutes> minutes</white><where>"
@@ -136,6 +131,7 @@ text:
     defeat-broadcast: "<line>\n<gold><bold>⚔ BOSS DEFEATED ⚔</bold></gold>\n<boss> <gray>was slain<killer><gray>!\n<rows><line>"
     defeat-killer: " by <white><player></white>"
     defeat-row: "<medal> <white><player> <gray><damage> damage <dark_gray>(<percent>%)"
+    evolved: "<dark_red><bold>⬆</bold> <boss> <red>evolved! <gray>Stage <stage>: it hits <percent>% harder."
     fighting-bosses-is-off-here: "<red>Fighting bosses is off here."
     found-no-challengers-and-left: "<gray><boss> <gray>found no challengers and left."
     has-come-for-you-beat: "<gold>⚔ <boss> <gold>has come for you! <gray>Beat it to claim the chapter reward. Leave the circle or die and it leaves."
@@ -158,6 +154,7 @@ text:
     no-worldguard-region-called-in: "<red>No WorldGuard region called <region> in <world>."
     nobody: "<gray>nobody"
     nobody-hurt-it: "<gray>Nobody hurt it."
+    partner-rage: "<dark_red><bold>⬆</bold> <boss> <red>is enraged by the fall of its partner! <gray>It hits <percent>% harder."
     removed-the-last-corner: "<yellow>Removed the last corner. <gray><left> left."
     right-click-remove-the-last: "<yellow>Right-click</yellow><gray>: remove the last corner"
     sneak-right-click-show-the: "<yellow>Sneak + right-click</yellow><gray>: show the border"
@@ -175,6 +172,7 @@ text:
     was-sent-away: "<gray><boss> <gray>was sent away."
     weak-spot: "<light_purple><bold>Weak spot!"
     weekly-boss: "<gray>Weekly boss: <white><off>"
+    world-boss-has-risen-everyone: "<dark_gray><st>                                        </st>\n<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  <boss>\n<title>\n<gold>has risen<where>\n<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n<dark_gray><st>                                        </st>"
     worldguard-is-not-running-on: "<red>WorldGuard is not running on this server."
   # the finale
   finale:

@@ -7,7 +7,7 @@ from pathlib import Path
 source=Path(sys.argv[1])/'src/main/resources/models.json'
 target=Path('src/main/resources/worldboss-models.json')
 cb=json.loads(source.read_text());cq=json.loads(target.read_text())
-for id in ('ironhide_behemoth','void_walker','fenrir'):cq['models'].pop(id,None)
+for id in ('ironhide_behemoth','void_walker','fenrir','abyssal_eye','rotting_giant','moonwake_manta'):cq['models'].pop(id,None)
 for id,old in list(cq['models'].items()):
  if id not in cb['models']:continue
  m=copy.deepcopy(cb['models'][id]);available=set(cb['rigs'][m['rig']])|set(m.get('anims',{}))
@@ -27,8 +27,8 @@ for id,old in list(cq['models'].items()):
   if z['kind']!='weak' or any(x['kind']=='weak' for x in m.get('zones',[])):continue
   if z['b'] in {b['name'] for b in m['bones']}:m['zones'].append(copy.deepcopy(z))
  cq['models'][id]=m
-for id in ('millstone_monk','moonwake_manta','thorncoil_basilisk'):
+for id in ('millstone_monk','thorncoil_basilisk'):
  if id not in cb['models']:raise ValueError('Approved model missing: '+id)
  cq['models'][id]=copy.deepcopy(cb['models'][id])
 cq['rigs']=cb['rigs'];target.write_text(json.dumps(cq,separators=(',',':')))
-print('Synchronized',len(set(cb['models'])&set(cq['models'])),'visual models; only the three explicitly approved additions may be added.')
+print('Synchronized',len(set(cb['models'])&set(cq['models'])),'visual models; only the explicitly approved additions may be added.')

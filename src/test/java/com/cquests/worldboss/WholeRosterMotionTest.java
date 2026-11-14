@@ -50,7 +50,7 @@ class WholeRosterMotionTest {
  @Test void allApprovedAdditionsHaveDistinctCombatAnimationsAndThemedLifecycle() throws Exception {
   try(var in=getClass().getResourceAsStream("/worldboss-models.json")) {
    var models=ModelRig.load(new InputStreamReader(in,StandardCharsets.UTF_8));
-   for(String id:List.of("millstone_monk","moonwake_manta","thorncoil_basilisk")) {
+   for(String id:List.of("millstone_monk","thorncoil_basilisk")) {
     var m=models.get(id);assertNotNull(m,id);
     assertTrue(m.attackAnimations().size()>=2,id);
     for(String attack:m.attackAnimations()) assertNotNull(m.anim(attack),id+" "+attack);

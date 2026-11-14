@@ -209,37 +209,6 @@ bosses:
     spawn-commands: []
     defeat-commands: []
     description: "Gorehorn, champion of the fighting pit, sculpted: a huge minotaur with a dark bull head on a thick neck, a long pale muzzle with a gold nose ring, red eyes under a heavy brow and two long pale horns that sweep out and forward; a white mane over his shoulders like a cape, crossed leather straps meeting at an iron boss, a studded belt with a blue loincloth, shaggy bull legs on black hooves, and a double axe."
-  abyssal_eye:
-    revision: 3
-    name: "<gradient:#0b3d91:#ffe066><bold>Mama Gulp</bold></gradient>"
-    title: "The Deep Sea Angler"
-    previous-names: ["<gradient:#0b3d91:#ffe066><bold>The Lantern Angler</bold></gradient>"]
-    previous-titles: ["Light at the Bottom of the Sea"]
-    tier: big
-    entity: BLAZE
-    health: 3000
-    damage: 3.5
-    armor: 8
-    bar: BLUE
-    theme: water
-    movement: hover
-    fly-height: 3
-    phases: [0.5]
-    minion: DROWNED
-    minions: 3
-    ability-seconds: 7
-    abilities: [frost, pull, charge]
-    health-per-player: 0.25
-    rewards:
-      money: 60000
-      top-money: 180000
-      items: ["PRISMARINE_SHARD 24", "SEA_LANTERN 6", "DIAMOND 3"]
-      top-items: ["HEART_OF_THE_SEA 1"]
-      commands: []
-      top-commands: []
-    spawn-commands: []
-    defeat-commands: []
-    description: "A deep sea anglerfish swimming through the air: a huge dark round head with a jutting underbite full of needle teeth, small glowing yellow eyes, a glowing lure on a stalk that bends over its face, side fins that paddle and a tail that sweeps from side to side."
   overgrowth:
     name: "<gradient:#2d6a4f:#d8a657><bold>Rusty</bold></gradient>"
     title: "The Jungle Golem"
@@ -805,34 +774,6 @@ bosses:
     spawn-commands: []
     defeat-commands: []
     description: "A squat mountain brute: a huge boxy tan body with mottled hide, a heavy head with thick dark brows, a long striped snout, two stubby white tusks and great curled black horns. Long arms hang to the ground, a ragged hide loincloth hangs in strips and he drags an iron-headed spear."
-  rotting_giant:
-    name: "<gradient:#33691e:#26c6da><bold>Big Gus</bold></gradient>"
-    title: "Too Big to Stay Buried"
-    previous-names: ["<gradient:#33691e:#26c6da><bold>The Rotting Giant</bold></gradient>"]
-    tier: big
-    entity: GIANT
-    health: 3000
-    damage: 3.5
-    armor: 8
-    bar: GREEN
-    theme: toxic
-    movement: walk
-    phases: [0.5]
-    minion: ZOMBIE
-    minions: 4
-    ability-seconds: 7
-    abilities: [slam, charge, roar, quake, shockwave]
-    health-per-player: 0.25
-    rewards:
-      money: 60000
-      top-money: 180000
-      items: ["ROTTEN_FLESH 64", "IRON_INGOT 24", "DIAMOND 3"]
-      top-items: ["ENCHANTED_GOLDEN_APPLE 1"]
-      commands: []
-      top-commands: []
-    spawn-commands: []
-    defeat-commands: []
-    description: "A towering rotting giant: a small green head with sunken black eyes on a broad body, a torn cyan shirt stained with moss and rot, ragged purple trousers torn off at the knee, and long gangly green arms and legs. Flies and a rot cloud hang round him."
   dusk_scorpion:
     name: "<gradient:#311b92:#ff1744><bold>Stinger</bold></gradient>"
     title: "The Desert Scorpion"
@@ -1035,34 +976,6 @@ bosses:
     spawn-commands: []
     defeat-commands: []
     description: "An ancient stone millkeeper with a carved cyan-eyed face, moss-covered shoulders, folded robes, heavy braced hands and an axle-mounted turning millstone. The exposed glowing axle is its weak spot."
-  moonwake_manta:
-    name: "<gradient:#80b9b3:#e2eadb><bold>Luna</bold></gradient>"
-    title: "The Moon Manta"
-    previous-names: ["<gradient:#80b9b3:#e2eadb><bold>Moonwake Manta</bold></gradient>"]
-    previous-titles: ["Warden of the Moonlit Tide"]
-    tier: big
-    entity: PHANTOM
-    health: 3000
-    damage: 3.5
-    speed: 0.23
-    armor: 6
-    bar: BLUE
-    theme: water
-    movement: fly
-    phases: [0.66, 0.33]
-    ability-seconds: 8
-    abilities: [pull, volley, levitate]
-    health-per-player: 0.25
-    rewards:
-      money: 45000
-      top-money: 135000
-      items: ["PRISMARINE_SHARD 32", "DIAMOND 2"]
-      top-items: ["NETHERITE_SCRAP 1"]
-      commands: []
-      top-commands: []
-    spawn-commands: []
-    defeat-commands: []
-    description: "A broad-winged nocturnal manta with layered prismarine fins, a dark belly, curled feeding horns, a luminous dorsal seam and a long articulated rudder tail."
   thorncoil_basilisk:
     name: "<gradient:#8fa36d:#e2eadb><bold>Viper</bold></gradient>"
     title: "The Thorn Serpent"
@@ -1078,8 +991,10 @@ bosses:
     theme: toxic
     movement: walk
     phases: [0.66, 0.33]
+    minion: SILVERFISH
+    minions: 4
     ability-seconds: 8
-    abilities: [poison, roar, quake]
+    abilities: [poison, roar, quake, charge, minions]
     health-per-player: 0.25
     rewards:
       money: 45000
@@ -2726,4 +2641,4 @@ bosses:
   # ------------------------------------------------------------ second bodies of two-body bosses (they appear beside their partner, never alone)
 
 # bosses taken out of the plugin; a server that still has them drops them on start
-removed: ["fenrir", "ironhide_behemoth", "void_walker", "cluck_rider", "hollow_king", "ender_wyrm", "gale_sovereign", "ghost_jelly", "orc_bruiser", "cyclops_ogre", "cinder_imp", "boo_twins", "shulker_matriarch", "pink_burrower", "boo_twin_b"]
+removed: ["fenrir", "ironhide_behemoth", "void_walker", "cluck_rider", "hollow_king", "ender_wyrm", "gale_sovereign", "ghost_jelly", "orc_bruiser", "cyclops_ogre", "cinder_imp", "boo_twins", "shulker_matriarch", "pink_burrower", "abyssal_eye", "rotting_giant", "moonwake_manta", "boo_twin_b"]
