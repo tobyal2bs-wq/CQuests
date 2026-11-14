@@ -56,6 +56,8 @@ public final class Fight {
     String chunkWorld;
     /** The block model drawn over the invisible mob, or null for a plain mob boss. */
     public volatile BossModel model;
+    /** How a walking boss moves on its own (null: the mob's own AI, or it flies). */
+    public volatile Gait gait;
     /** The other body of a two-body boss (both fight on their own and are beaten together), or null. */
     public volatile Fight partner;
     /** Whose rewards and chapter this fight pays when it is the last body standing. */

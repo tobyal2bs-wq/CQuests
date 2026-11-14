@@ -112,6 +112,11 @@ fight:
   only-hurt-from-inside: true
   # Walking bosses dash or leap at players who run far away.
   gap-closer: true
+  # Walking bosses move on their own instead of like the mob under them (no zombie shuffle).
+  # Each gets a style from its name: stalk, charge, circle, hop, slither, lumber or skitter,
+  # with its own rhythm. Set one here to change it, e.g.  thorncoil_basilisk: slither
+  own-movement: true
+  movement-styles: {}
   # Most minions alive per boss.
   max-minions: 8
   # Most bosses alive at once (weekly, chapter and test fights together).

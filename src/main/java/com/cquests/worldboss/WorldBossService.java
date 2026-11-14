@@ -115,6 +115,7 @@ public final class WorldBossService implements Listener {
         int chunkX, chunkZ, chunkR; String chunkWorld;
         /** The block model drawn over the invisible mob, or null for a plain mob boss. */
         volatile BossModel model;
+        volatile Gait gait;
         /** How it moves this time: the pattern (orbit, figure eight, zigzag, wander, star), its turning
          *  direction, size, speed and starting angle are picked fresh for every fight. */
         int pattern, turn = 1; double patternSize = 0.6, patternSpeed = 1, phase; long wanderSeed;
@@ -876,6 +877,12 @@ public final class WorldBossService implements Listener {
                 for (ModelRig.Step s : look.spawn) entrance = Math.max(entrance, s.end());
                 fight.nextAbility = System.currentTimeMillis() + 6000 + entrance * 50L;
                 model.appear(() -> { if (mob.isValid() && !fight.over) { mob.setInvulnerable(false); mob.setAI(true); } });
+                if (!(mob instanceof org.bukkit.entity.Flying) && plugin.getConfig().getBoolean("world-bosses.own-movement", true)) {
+                    // its own walk, not the walk of the mob under it
+                    Gait.free(mob);
+                    fight.gait = new Gait(mob, Gait.pick(def.id(), plugin.getConfig().getString("world-bosses.movement-styles." + def.id()), def.entity()), def.id(), Math.max(2.6, look.blocks() * 0.55));
+                    model.ownMelee = true;
+                }
             } catch (RuntimeException | LinkageError e) {
                 model.remove();
                 fight.model = null;
@@ -1068,7 +1075,7 @@ public final class WorldBossService implements Listener {
             // Its own way of closing in this fight: some circle their target one way, some the other, some weave.
             {
                 Player t = boss.getTarget() instanceof Player cur ? cur : target;
-                if (f.pattern != 3 && f.ticks % 6 == 3 && t.getLocation().distanceSquared(loc) > 16) {
+                if (f.gait == null && f.pattern != 3 && f.ticks % 6 == 3 && t.getLocation().distanceSquared(loc) > 16) {
                     Vector to = t.getLocation().toVector().subtract(loc.toVector()).setY(0);
                     if (to.lengthSquared() > 0.01) {
                         Vector side = new Vector(-to.getZ(), 0, to.getX()).normalize().multiply(f.turn * (f.pattern == 2 ? ((f.ticks / 6) % 2 == 0 ? 3 : -3) : 2.5));
@@ -1088,8 +1095,9 @@ public final class WorldBossService implements Listener {
             if (boss.getTarget() != null) boss.setTarget(null);
             Location home = f.arena.spawn();
             // Nobody to fight: it patrols its spot in this fight's own pattern.
-            if (home != null && f.ticks % 3 == 0) boss.getPathfinder().moveTo(patternPoint(f, home, f.ticks), 0.8 + 0.2 * f.patternSpeed);
+            if (f.gait == null && home != null && f.ticks % 3 == 0) boss.getPathfinder().moveTo(patternPoint(f, home, f.ticks), 0.8 + 0.2 * f.patternSpeed);
         }
+        if (f.gait != null && boss.hasAI()) f.gait.step(boss.getTarget() instanceof Player t && inside.contains(t) ? t : null, f.arena.spawn(), false);
         // Rage at half health.
         if (!f.raged && health <= f.max / 2) {
             f.raged = true;

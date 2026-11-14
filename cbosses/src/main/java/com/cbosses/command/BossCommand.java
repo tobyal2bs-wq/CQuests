@@ -36,6 +36,15 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
     }
 
     private BossService s() { return plugin.service(); }
+
+    private void spawnIn(CommandSender sender, String boss, String arena) {
+        BossDef def = s().def(boss);
+        var a = s().arena(arena, false);
+        Player player = sender instanceof Player p ? p : null;
+        if (def == null) plugin.send(sender, T.t("command.no-boss", "<red>No boss <input>", "input", Text.escape(boss)));
+        else if (a == null) plugin.send(sender, T.t("command.no-arena", "<red>No arena <arena>", "arena", Text.escape(arena)));
+        else if (s().spawn(def, a, player, false, null)) plugin.send(sender, T.t("command.is-rising-at", "<green><boss> <green>is rising at <arena>.", "boss", def.name(), "arena", a.id));
+    }
     private com.cbosses.fight.BossEditor editor() { return editor == null ? (editor = new com.cbosses.fight.BossEditor(plugin)) : editor; }
     private com.cbosses.fight.BossEditor editor;
 
@@ -54,17 +63,13 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
             case "list" -> s().listBosses(sender);
             case "spawn" -> {
                 if (args.length < 2) { plugin.send(sender, T.t("command.spawn-arena", "<yellow>/<label> spawn <boss> [arena]", "label", label)); return true; }
-                if (args.length > 2 && args[2].equalsIgnoreCase("here")) {
-                    if (player == null) plugin.send(sender, T.t("command.players-only", "<red>Players only."));
-                    else s().spawnHere(player, args[1]);
+                if (args.length == 2 || args[2].equalsIgnoreCase("here")) { // no arena: right where you stand
+                    if (player != null) s().spawnHere(player, args[1]);
+                    else if (args.length == 2) spawnIn(sender, args[1], plugin.getConfig().getString("schedule.arena", "main"));
+                    else plugin.send(sender, T.t("command.players-only", "<red>Players only."));
                     return true;
                 }
-                String arena = args.length > 2 ? args[2] : plugin.getConfig().getString("schedule.arena", "main");
-                BossDef def = s().def(args[1]);
-                var a = s().arena(arena, false);
-                if (def == null) plugin.send(sender, T.t("command.no-boss", "<red>No boss <input>", "input", Text.escape(args[1])));
-                else if (a == null) plugin.send(sender, T.t("command.no-arena", "<red>No arena <arena>", "arena", Text.escape(arena)));
-                else if (s().spawn(def, a, player, false, null)) plugin.send(sender, T.t("command.is-rising-at", "<green><boss> <green>is rising at <arena>.", "boss", def.name(), "arena", a.id));
+                spawnIn(sender, args[1], args[2]);
             }
             case "test" -> {
                 if (player == null) { plugin.send(sender, T.t("command.players-only-console-can-run", "<red>Players only. Console can run /<label> selftest.", "label", label)); return true; }
@@ -228,7 +233,7 @@ public final class BossCommand implements CommandExecutor, TabCompleter {
                 {"menu", "<cmd> menu <gray>every boss in a menu"},
                 {"list", "<cmd> list <gray>boss ids"},
                 {"test", "<cmd> test <boss>|phase|stop <gray>try a boss in front of you, nothing is paid"},
-                {"spawn", "<cmd> spawn <boss> [arena|here] <gray>start a real fight (here: where you stand)"},
+                {"spawn", "<cmd> spawn <boss> [arena] <gray>start a real fight where you stand, or in an arena"},
                 {"minis", "<cmd> minis <gray>mini boss spots, timer, mode and markers"},
                 {"decor", "<cmd> decor place <model>|remove|list <gray>pumpkins and other models that sit and pull faces"},
                 {"stop", "<cmd> stop [arena|boss] <gray>send bosses away"},

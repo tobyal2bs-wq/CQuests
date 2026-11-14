@@ -34,6 +34,8 @@ public final class Settings {
     public final String dailyNpc;
     public final int dailyMinLevel;
     public final Map<Integer,Integer> chapterLevels;
+    /** Chapter 1 (the villagers at spawn) needs no level. */
+    public final boolean starterFree;
     /** Chapters switched off with /cq chapter: their villagers and story quests are not loaded at all. */
     public final Set<Integer> lockedChapters;
     public final Set<String> spawnNpcIds;
@@ -91,6 +93,7 @@ public final class Settings {
     public Settings(FileConfiguration c, ConfigurationSection m) {
         serverName = c.getString("server-name", "our server");
         dailyMinLevel=Math.max(1,c.getInt("progression.daily-min-level",10));
+        starterFree=c.getBoolean("progression.starter-chapter-free",true);
         var levels=new HashMap<Integer,Integer>();
         for(int chapter=1;chapter<=5;chapter++)levels.put(chapter,Math.max(0,c.getInt("progression.chapter-levels."+chapter,chapter==1?0:(chapter-1)*100)));
         // Chapters 6 to 10 sit between level 420 and the 500 cap unless config.yml says otherwise.

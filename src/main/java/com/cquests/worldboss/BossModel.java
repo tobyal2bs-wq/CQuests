@@ -82,6 +82,8 @@ public final class BossModel {
     public volatile boolean flying;
     /** Damage of a melee swing that lands beyond the mob's own short reach (its hitbox is smaller than the model). */
     public volatile double meleeDamage;
+    /** The mob has no vanilla attack of its own (its fight steers it), so every swing in reach lands. */
+    public volatile boolean ownMelee;
     private ScheduledTask loop;
     public int animationsPlayed;
 
@@ -351,7 +353,7 @@ public final class BossModel {
                 if (!live || !mob.isValid() || !target2.isValid() || !target2.getWorld().equals(mob.getWorld())) return;
                 double d = target2.getLocation().distanceSquared(mob.getLocation());
                 // close in, the mob's own attack already lands
-                if (d > 1.8 * 1.8 && d < reach * reach && Bukkit.isOwnedByCurrentRegion(target2)) target2.damage(meleeDamage, mob);
+                if ((ownMelee || d > 1.8 * 1.8) && d < reach * reach && Bukkit.isOwnedByCurrentRegion(target2)) target2.damage(meleeDamage, mob);
             }, null, Math.max(1, Math.round(swing.hit() * 20)));
         }
         // Follow the shortest arc through +/-180 rather than spinning a whole turn.

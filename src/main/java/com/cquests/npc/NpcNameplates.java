@@ -22,7 +22,7 @@ public final class NpcNameplates {
     public Component label(NpcDef npc){
         if(plugin.characters()!=null)npc=plugin.characters().apply(npc);
         int chapter=plugin.quests()==null?1:plugin.quests().firstChapter(npc.id());
-        int level=npc.daily()?plugin.settings().dailyMinLevel:Math.max(npc.level(),plugin.settings().chapterLevels.getOrDefault(chapter,0));
+        int level=npc.daily()?plugin.settings().dailyMinLevel:chapter==1&&plugin.settings().starterFree?0:Math.max(npc.level(),plugin.settings().chapterLevels.getOrDefault(chapter,0));
         String format=plugin.settings().npcNameFormat;
         if(format.equals(FORMAT)){
             String color=npc.daily()?"gold":switch(chapter){case 2->"green";case 3->"aqua";case 4->"light_purple";case 5->"red";default->"yellow";};
@@ -31,7 +31,7 @@ public final class NpcNameplates {
         if(plugin.characters()!=null)format=plugin.characters().text(npc.id(),"format",format);
         String prefix=plugin.characters()==null?"":plugin.characters().text(npc.id(),"prefix","");
         if(!format.contains("<prefix>"))format="<prefix>"+format;
-        Component result=Text.mm(format.replace("<prefix>",prefix).replace("<name>",npc.name()).replace("<level>",Integer.toString(level)).replace("<title>",Text.escape(npc.title())));
+        Component result=Text.mm(format.replace("<prefix>",prefix).replace("<name>",npc.name()).replace("LEVEL <aqua><level></aqua>",level==0?"<green>STARTER</green>":"LEVEL <aqua><level></aqua>").replace("<level>",level==0?"-":Integer.toString(level)).replace("<title>",Text.escape(npc.title())));
         return plugin.getConfig().getBoolean("npc.uppercase-names",true)?uppercase(result):result;
     }
     public static Component uppercase(Component value){

@@ -927,6 +927,11 @@ public final class BossService implements Listener {
                 plugin.getLogger().warning("Boss " + def.id() + " could not build its model, using the plain mob: " + e);
             }
         }
+        if (fight.model != null && !def.flies() && !def.movement().equals("still") && cfg.getBoolean("fight.own-movement", true)) {
+            Gait.free(mob);
+            fight.gait = new Gait(mob, Gait.pick(def.id(), cfg.getString("fight.movement-styles." + def.id()), def.entity()), def.id(), Math.max(2.6, look.blocks() * 0.55));
+            fight.model.ownMelee = true;
+        }
         if (fight.model == null) {
             at.getWorld().strikeLightningEffect(at);
             Fx.particle(at.getWorld(), Particle.EXPLOSION_EMITTER, at.clone().add(0, 1, 0), 2, 0, 0, 0, 0, fight.theme);
@@ -1135,8 +1140,9 @@ public final class BossService implements Listener {
         } else {
             if (boss.getTarget() != null) boss.setTarget(null);
             Location home = f.arena.spawn();
-            if (home != null && !f.def.flies() && f.ticks % 10 == 0 && home.distanceSquared(loc) > 16) boss.getPathfinder().moveTo(home);
+            if (f.gait == null && home != null && !f.def.flies() && f.ticks % 10 == 0 && home.distanceSquared(loc) > 16) boss.getPathfinder().moveTo(home);
         }
+        if (f.gait != null && boss.hasAI()) f.gait.step(target, f.arena.spawn(), f.busy());
         // phases at the health thresholds in bosses.yml
         while (f.phase < f.def.phases().size() && health <= f.max * f.def.phases().get(f.phase)) {
             f.phase++;

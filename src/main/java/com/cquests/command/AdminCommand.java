@@ -50,7 +50,7 @@ public final class AdminCommand implements TabExecutor {
     private static boolean bossCommand(String[] args) {
         if (args.length == 0) return false;
         String a = args[0].toLowerCase(Locale.ROOT);
-        return a.equals("worldboss") || a.equals("wb") || (a.equals("test") && args.length > 1 && args[1].toLowerCase(Locale.ROOT).startsWith("worldboss"));
+        return a.equals("worldboss") || a.equals("wb") || a.equals("boss") || (a.equals("test") && args.length > 1 && args[1].toLowerCase(Locale.ROOT).startsWith("worldboss"));
     }
 
     @Override
@@ -85,7 +85,7 @@ public final class AdminCommand implements TabExecutor {
             case "backup" -> backup(sender);
             case "backups" -> backups(sender);
             case "restore" -> restore(sender, args);
-            case "worldboss", "wb" -> worldBoss(sender, args);
+            case "worldboss", "wb", "boss" -> worldBoss(sender, args);
             case "season", "seasons" -> plugin.seasons().command(sender, args);
             default -> help(sender);
         }
@@ -134,9 +134,10 @@ public final class AdminCommand implements TabExecutor {
                         try { r = Integer.parseInt(args.length > 3 ? args[3] : ""); } catch (NumberFormatException e) { plugin.send(player, T.t("admin-command.cq-worldboss-radius", "<yellow>/cq worldboss radius <arena> <blocks>")); return; }
                         wb.setRadius(player, arena, r);
                     }
-                    default -> { // spawn <boss> [arena]
-                        if (args.length < 3) { plugin.send(player, T.t("admin-command.cq-worldboss-spawn-arena", "<yellow>/cq worldboss spawn <boss> [arena]")); return; }
-                        wb.spawnAt(player, args[2], args.length > 3 ? args[3] : "main");
+                    default -> { // spawn <boss> [arena]: no arena means right where you stand
+                        if (args.length < 3) { plugin.send(player, T.t("admin-command.cq-worldboss-spawn-arena", "<yellow>/cq boss spawn <boss> [arena]")); return; }
+                        if (args.length > 3 && !args[3].equalsIgnoreCase("here")) wb.spawnAt(player, args[2], args[3]);
+                        else if (wb.spawnHere(player, args[2])) plugin.send(player, T.t("boss-panel.summoning-it-here", "<green>Summoning it where you stand..."));
                     }
                 }
             }
@@ -592,7 +593,7 @@ public final class AdminCommand implements TabExecutor {
             if (args.length == 2 && args[0].equalsIgnoreCase("test")) return QuestsCommand.filter(List.of("worldboss"), args[1]);
         }
         if (args.length == 1) {
-            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "crate", "player", "quest", "finale", "test", "backup", "backups", "restore", "worldboss", "season"), args[0]);
+            return QuestsCommand.filter(List.of("reload", "character", "npc", "pos1", "pos2", "scatter", "scatterworld", "worldscatter", "chapter", "camp", "farm", "merchant", "crate", "player", "quest", "finale", "test", "backup", "backups", "restore", "boss", "worldboss", "season"), args[0]);
         }
         String first = args[0].toLowerCase(Locale.ROOT);
         if (first.equals("crate") || first.equals("crates")) {
@@ -606,7 +607,7 @@ public final class AdminCommand implements TabExecutor {
             if(args.length==2)return QuestsCommand.filter(List.of("test","list","spawn","point","shop","end","wand","undo","routeclear","walk","despawn","edit"),args[1]);
             if(args.length==3)return QuestsCommand.filter(plugin.merchants().all().stream().map(com.cquests.merchant.MerchantDefinition::id).toList(),args[2]);
         }
-        if (first.equals("worldboss") || first.equals("wb")) {
+        if (first.equals("worldboss") || first.equals("wb") || first.equals("boss")) {
             if (args.length == 2) return QuestsCommand.filter(List.of("menu", "setspawn", "wand", "border", "radius", "interval", "spots", "nopass", "list", "arenas", "next", "spawn", "stop", "schedule", "selftest"), args[1]);
             String action = args[1].toLowerCase(Locale.ROOT);
             if (args.length == 3) {
@@ -619,7 +620,7 @@ public final class AdminCommand implements TabExecutor {
             if (args.length == 4 && action.equals("interval")) return QuestsCommand.filter(List.of("2h", "6h", "24h", "400h", "off"), args[3]);
             if (args.length == 4 && action.equals("nopass")) return QuestsCommand.filter(List.of("here", "corner", "list", "remove", "clear", "show"), args[3]);
             if (args.length == 4 && action.equals("border")) return QuestsCommand.filter(List.of("show", "clear"), args[3]);
-            if (args.length == 4 && action.equals("spawn")) return QuestsCommand.filter(plugin.worldBosses().arenaIds(), args[3]);
+            if (args.length == 4 && action.equals("spawn")) { List<String> where = new ArrayList<>(plugin.worldBosses().arenaIds()); where.add(0, "here"); return QuestsCommand.filter(where, args[3]); }
             return List.of();
         }
         if (first.equals("season") || first.equals("seasons")) {

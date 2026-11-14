@@ -254,7 +254,11 @@ adventures:
   wither: true
 
 progression:
+  # Chapter 1 (the villagers at spawn) needs no level: anyone can start there. Their name tag says STARTER.
+  starter-chapter-free: true
+  # Daily quests open at this Wayfarer level.
   daily-min-level: 10
+  # Wayfarer level each later chapter needs.
   chapter-levels:
     1: 0
     2: 100
@@ -287,6 +291,10 @@ world-bosses:
   particle-multiplier: 1.0
   # With the CBosses plugin installed, CQuests leaves the world bosses to it (no double bosses).
   defer-to-cbosses: true
+  # Walking bosses move on their own (stalk, charge, circle, hop, slither, lumber or skitter, picked
+  # from the name) instead of like the mob under them. Set one per boss, e.g.  gorehorn: charge
+  own-movement: true
+  movement-styles: {}
   schedule:
     enabled: true
     # Days and time the weekly boss wakes (MONDAY ... SUNDAY). Add more days for more fights a week.

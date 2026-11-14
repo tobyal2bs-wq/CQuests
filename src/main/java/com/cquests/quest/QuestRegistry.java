@@ -177,7 +177,7 @@ public final class QuestRegistry {
         }
         int level = s.getInt("level", 0);
         int chapter=category==QuestCategory.STORY?Math.max(1,s.getInt("chapter",1)):0;
-        int requiredLevel=category==QuestCategory.STORY?Math.max(level,settings.chapterLevels.getOrDefault(chapter,0))
+        int requiredLevel=category==QuestCategory.STORY?(chapter==1&&settings.starterFree?0:Math.max(level,settings.chapterLevels.getOrDefault(chapter,0)))
                 :category==QuestCategory.DAILY?settings.dailyMinLevel:level;
         return new Quest(
                 id,
