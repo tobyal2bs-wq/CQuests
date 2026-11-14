@@ -58,6 +58,7 @@ public final class Tracker {
     public void update(Player player) {
         BossBar bar = bars.get(player.getUniqueId());
         PlayerData data = plugin.store().cached(player.getUniqueId());
+        if (data != null) expire(player, data);
         Quest quest = enabled(player) && data != null ? pick(player, data) : null;
         if (quest == null) {
             if (bar != null && shown.remove(player.getUniqueId()) != null) {
@@ -70,7 +71,8 @@ public final class Tracker {
         if (active == null) {
             return;
         }
-        StringBuilder state = new StringBuilder(quest.id());
+        int left = quest.timed() ? (int) Math.max(0, quest.timeLimit() - (System.currentTimeMillis() - active.acceptedAt()) / 1000) : -1;
+        StringBuilder state = new StringBuilder(quest.id()).append('@').append(left);
         for (int i = 0; i < quest.objectives().size(); i++) {
             state.append(':').append(active.get(i));
         }
@@ -94,6 +96,7 @@ public final class Tracker {
         boolean ready = qm.ready(quest, active);
         String step = ready ? "Return to " + plugin.npcs().name(quest.turnIn()) : next == null ? "" : next;
         String name = "<white><bold>" + Text.escape(shorten(quest.name(), 30)) + "</bold></white> <white>• " + Text.escape(shorten(step, 64)) + "</white>";
+        if (left >= 0) { String c = left < 60 ? "red" : "yellow"; name += " <" + c + ">⌛ " + left / 60 + ":" + String.format("%02d", left % 60) + "</" + c + ">"; }
         float progress = ready ? 1f : total == 0 ? 0f : Math.min(1f, (float) done / total);
         BossBar.Color color = ready ? BossBar.Color.GREEN : BossBar.Color.WHITE;
         if (bar == null) {
@@ -106,6 +109,17 @@ public final class Tracker {
         }
         player.showBossBar(bar);
         shown.put(player.getUniqueId(), key);
+    }
+
+    /** Drops every timed quest whose clock ran out. Runs with the twice-a-second refresh. */
+    private void expire(Player player, PlayerData data) {
+        long now = System.currentTimeMillis();
+        for (Quest quest : plugin.questManager().activeQuests(data)) {
+            if (!quest.timed()) continue;
+            ActiveQuest active = data.active(quest.id());
+            if (active != null && now - active.acceptedAt() > quest.timeLimit() * 1000L && !plugin.questManager().ready(quest, active))
+                plugin.questManager().timeUp(player, quest);
+        }
     }
 
     /** The chosen quest if it is still active, otherwise the story quest, otherwise any active quest. */

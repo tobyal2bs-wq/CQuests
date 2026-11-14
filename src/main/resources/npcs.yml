@@ -8,7 +8,8 @@
 # intro:      said the first time a player clicks the villager
 # idle:       one of these is said when the villager has nothing for you
 # baby:       true for a baby villager
-# player-skin: a Minecraft username (or default) to use a player shaped NPC with that skin on 1.21.9+
+# player-skin: a player shaped NPC on 1.21.9+ with this skin: a Minecraft username, "default", or
+#             "texture:<value>:<signature>" pasted from mineskin.org (that one never changes)
 
 npcs:
   luma:

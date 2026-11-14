@@ -77,7 +77,7 @@ public final class AdminCommand implements TabExecutor {
             case "farm" -> plugin.farmCommand().run(sender,args);
             case "merchant" -> new com.cquests.merchant.MerchantCommand(plugin).run(sender,args);
             case "crate", "crates" -> plugin.crates().command(sender, args);
-            case "camp" -> plugin.spawns().arrangeCamp(sender);
+            case "camp", "spawnvillagers" -> plugin.spawns().arrangeCamp(sender);
             case "player" -> player(sender, args);
             case "quest" -> quest(sender, args);
             case "finale" -> finale(sender, args);
@@ -176,7 +176,7 @@ public final class AdminCommand implements TabExecutor {
                 <yellow>/cq scatter <ids|act1|act2|all> [wg-region]</yellow> <gray>spread NPCs in a region or your box
                 <yellow>/cq scatterworld chapter6 10000 [depth] [world] [centerX centerZ]</yellow> <gray>spread over the world (or <yellow>border</yellow>); keeps progress
                 <yellow>/cq chapter [number] [on|off]</yellow> <gray>list chapters or switch one on or off
-                <yellow>/cq camp</yellow> <gray>arrange five residents plus the daily NPC
+                <yellow>/cq camp</yellow> <gray>place only the spawn villagers around you (wild ones stay)
                 <yellow>/cq farm wand|outside <id></yellow> <gray>select a farm outline
                 <yellow>/cq farm save <id> <wg-region></yellow> <gray>bind the outline to WorldGuard
                 <yellow>/cq farm anvil</yellow> <gray>OP: get the special hoe-upgrade anvil

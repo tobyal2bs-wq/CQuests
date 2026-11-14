@@ -264,8 +264,17 @@ public final class QuestGenerator {
             effects.add(effectPool.get(rnd.nextInt(effectPool.size())));
         }
         List<String> complete = List.of(pick(thanks, rnd, "Thank you."));
+        // Some quests run against the clock (chosen from the id, so the random rolls above stay the same).
+        // They pay the top of their tier, never above it.
+        int limit = 0;
+        if (category == QuestCategory.SIDE && (id.hashCode() & 0x7fffffff) % 1000 < cfg.getDouble("timed-chance", 0.12) * 1000) {
+            limit = Math.max(60, cfg.getInt("timed-minutes", 20) * 60);
+            if (fixedMoney < 0) money = Math.max(money, Math.min(tier.maxMoney(), Math.round(tier.maxMoney() * 0.9 / 50.0) * 50));
+            name = "⌛ " + name;
+            description = description + " Against the clock: " + limit / 60 + " minutes.";
+        }
         return new Quest(id, name, level, category, order, giver.id(), giver.id(), requires, List.copyOf(objectives),
-                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.copyOf(effects), List.of(), 0), false, 0, -1);
+                description, List.of(description), complete, new Reward(money, List.copyOf(items), List.copyOf(effects), List.of(), 0), false, 0, -1, limit);
     }
 
     private TypeTemplate pickType(Random rnd, int level) {

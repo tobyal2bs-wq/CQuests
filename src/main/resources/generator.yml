@@ -74,6 +74,12 @@ reward-tiers:
   - "89 | 700 | 1500 | DIAMOND 2, GOLDEN_APPLE 1, EXPERIENCE_BOTTLE 24, EMERALD_BLOCK 1, SHULKER_SHELL 1"
   - "99 | 900 | 2000 | DIAMOND 3, NETHERITE_SCRAP 1, GOLDEN_APPLE 2, EXPERIENCE_BOTTLE 32, DIAMOND_BLOCK 1"
 
+# Timed quests: this share of side quests runs against the clock (marked with ⌛ and a
+# countdown in the tracker). They pay the top of their tier. Out of time = the quest is dropped and
+# can be taken again. Hand-written quests get a clock with  time-limit: 15m  in quests.yml.
+timed-chance: 0.12
+timed-minutes: 20
+
 # Now and then a side quest also gives a potion effect: "EFFECT SECONDS [LEVEL]". Level 1 is the normal potion.
 effect-chance: 0.06
 effect-min-level: 10

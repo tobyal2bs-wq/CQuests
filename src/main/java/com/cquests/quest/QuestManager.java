@@ -312,6 +312,7 @@ public final class QuestManager {
         player.playSound(player.getLocation(), Sound.UI_TOAST_IN, 1f, 1f);
         plugin.visibility().refresh(player);
         plugin.tracker().track(player, quest.id());
+        guide(player, "start", quest.id());
         return true;
     }
 
@@ -376,6 +377,16 @@ public final class QuestManager {
         if (accept(player, welcome, false, !chat) && !tip.isBlank() && chat) {
             player.sendMessage(Text.mm(fill(tip, player)));
         }
+    }
+
+    /** A timed quest ran out: it is dropped (its progress too) and can be taken again from its villager. */
+    public void timeUp(Player player, Quest quest) {
+        PlayerData data = data(player);
+        if (data.remove(quest.id()) == null) return;
+        plugin.store().saveNow(data);
+        plugin.send(player, settings().msg("quest-time-up", "<red>⌛ Out of time: <white><quest></white>. <gray>Ask the villager again to retry.").replace("<quest>", Text.escape(quest.name())));
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.6f);
+        plugin.visibility().refresh(player);
     }
 
     public boolean abandon(Player player, Quest quest) {
@@ -735,6 +746,7 @@ public final class QuestManager {
         plugin.visibility().refresh(player);
         plugin.tracker().update(player);
         startTutorialAfter(player, quest);
+        guide(player, "after", quest.id());
         if (isFinalQuest(quest)) {
             plugin.finale().play(player);
         } else if (quests().endsChapter(quest)) {
@@ -742,6 +754,22 @@ public final class QuestManager {
         } else if (quest.big()) {
             plugin.finale().celebrate(player, quest);
         }
+    }
+
+    /**
+     * The beginner guide: a short tip at the first few steps (messages.yml, guide section, keys
+     * guide-start-<quest> and guide-after-<quest>). Blank or missing keys show nothing; guide.enabled
+     * in config.yml turns it off. Tips arrive a moment later so they do not drown in the reward lines.
+     */
+    void guide(Player player, String when, String questId) {
+        if (plugin.getConfig() != null && !plugin.getConfig().getBoolean("guide.enabled", true)) return;
+        String tip = settings().msg("guide-" + when + "-" + questId, "");
+        if (tip.isBlank()) return;
+        Sched.entityLater(player, 50L, () -> {
+            if (!player.isOnline()) return;
+            player.sendMessage(Text.mm(fill(tip, player)));
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 0.6f, 1.4f);
+        });
     }
 
     /** The tutorial quest (quests.tutorial-quest) starts as soon as the welcome quest is done; finishing it pays the player's inviter. */

@@ -52,6 +52,10 @@ public final class Settings {
     public final boolean lookAtPlayer;
 
     public final double spawnRange;
+    /** NPCs exist only while a nearby player needs them (on their quest, or their story reaches it). */
+    public final boolean onlyWhenNeeded;
+    /** Fewest blocks between two placed NPCs. */
+    public final double npcSpacing;
     public final long roamMinutes;
     public final boolean trackerEnabled;
     public final boolean trackerDefault;
@@ -150,6 +154,8 @@ public final class Settings {
         lookAtPlayer = c.getBoolean("spawning.look-at-player", true);
 
         spawnRange = Math.max(16, c.getDouble("spawning.player-range", 100));
+        onlyWhenNeeded = c.getBoolean("spawning.only-when-needed", true);
+        npcSpacing = Math.max(2, c.getDouble("spawning.npc-spacing", 6));
         roamMinutes = Math.max(0, c.getLong("spawning.roam-minutes", 0));
         trackerEnabled = c.getBoolean("tracker.enabled", true);
         trackerDefault = c.getBoolean("tracker.default-on", false);

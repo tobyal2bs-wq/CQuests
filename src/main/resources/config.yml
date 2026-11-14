@@ -121,7 +121,8 @@ daily:
 # ----------------------------------------------------------- VILLAGER SPAWNING
 spawning:
   # Five camp residents, plus the daily villager. Other unplaced NPCs use the surrounding world.
-  # Existing saved positions are preserved; /cq camp explicitly arranges this layout.
+  # Existing saved positions are preserved. /cq camp places only these spawn villagers again, around
+  # you (or the world spawn from the console); the wild villagers are not touched.
   camp-npcs: [stephan, jerry, rosie, copper_jack, luma, bob]
   # NPCs without a spot in spawns.yml are placed around the world spawn on startup.
   # Move them with /cq npc place <id> or /cq scatter.
@@ -133,6 +134,11 @@ spawning:
   act2-ring: [70, 300]
   # An NPC only exists while a player is within this many blocks. With nobody near it is removed.
   player-range: 100
+  # ...and only while one of those players needs it: it is at spawn, on their quest, or their story
+  # reaches it. Nobody needs it = it is not there, not on minimaps, and costs nothing.
+  only-when-needed: true
+  # Fewest blocks between two placed villagers (the shield radius can make it more).
+  npc-spacing: 6
   # How often NPCs are spawned, removed and moved.
   check-seconds: 3
   # NPCs placed with /cq scatter move to a new random spot in their area this often (0 = never).
@@ -182,6 +188,11 @@ welcome:
   # Chat on join (the how-to-play text from messages.yml, "New quest", unread mail). Off: players
   # join to a clean chat; the arrow above the hotbar and their compass already point to the first villager.
   chat-message: false
+
+# ----------------------------------------------------------- BEGINNER GUIDE
+guide:
+  # Short numbered tips at the first steps (talk, tutorial, rewards, the basics). Text in messages.yml.
+  enabled: true
 
 # ----------------------------------------------------------- CHAPTERS
 chapters:

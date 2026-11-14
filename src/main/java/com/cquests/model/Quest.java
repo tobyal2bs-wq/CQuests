@@ -28,8 +28,18 @@ public record Quest(
         Reward reward,
         boolean big,
         int chapter,
-        int sideRequired
+        int sideRequired,
+        /** Seconds to finish it after taking it; 0 means no clock. Running out drops the quest (it can be taken again). */
+        int timeLimit
 ) {
+
+    public Quest(String id, String name, int level, QuestCategory category, int order, String giver, String turnIn, List<String> requires,
+                 List<Objective> objectives, String description, List<String> offer, List<String> complete, Reward reward, boolean big,
+                 int chapter, int sideRequired) {
+        this(id, name, level, category, order, giver, turnIn, requires, objectives, description, offer, complete, reward, big, chapter, sideRequired, 0);
+    }
+
+    public boolean timed() { return timeLimit > 0; }
 
     public boolean autoComplete() {
         return turnIn.isEmpty();
