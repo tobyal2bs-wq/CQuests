@@ -5,3 +5,5 @@
 - No two bosses share an attack or a hit reaction any more. All 385 clips are now each boss's own: its own wind-up timing, reach, twist into the blow and follow-through.
 - Smashes bend the body: 61 slams, quakes and stomps that kept a straight back now lean back, fold over the blow and bend the knees.
 - Mossback's shell plates are moss green, not brick.
+- Redeye's pupils no longer vanish when its eyes bulge in the shriek.
+- Puffneck's seed head has puffs all round it; Stumpy has growth rings on its cut top and roots at its base.
