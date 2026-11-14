@@ -354,6 +354,53 @@ LAUNCH = {"hollow_mage": hollow_staff, "cinder_hollow": hollow_staff, "rime_holl
           "mossy_turtle": mossy_turtle, "mossback": mossback, "old_wizard": wizard, "clucksworth": egg_cracks}
 
 
+PLANKS = {"dark_oak_planks": "brown_terracotta", "spruce_planks": "brown_concrete", "oak_planks": "yellow_terracotta",
+          "birch_planks": "smooth_sandstone", "bamboo_planks": "yellow_terracotta", "crimson_planks": "purple_terracotta"}
+
+
+def no_planks(m):
+    """A plank reads as a building block, never as a hat, a handle or a shell: each one takes the flat block of its colour."""
+    n = 0
+    for c in m["cubes"]:
+        if c["k"] in PLANKS: c["k"] = PLANKS[c["k"]]; n += 1
+    return n
+
+
+def easter_egg(m):
+    """Painted, not striped: white diamonds on the lower band too, dots of the band colour round the back and
+    sides, a shine on the upper front."""
+    band = next(c["k"] for c in m["cubes"] if c["k"] not in ("black_concrete", "white_concrete") and c["k"] != m["cubes"][0]["k"])
+    for sx in (-1, 1):
+        for z0, z1 in ((4.9, 5.02), (-5.02, -4.9)):
+            m["cubes"].append({"b": "body", "k": "white_concrete", "f": [sx * 1.6 - 0.4, 3.8, z0], "t": [sx * 1.6 + 0.4, 4.6, z1], "r": [0, 0, 45], "o": [sx * 1.6, 4.2, (z0 + z1) / 2], "g": "detail"})
+            m["cubes"].append({"b": "body", "k": "white_concrete", "f": [z0, 3.8, sx * 1.4 - 0.4], "t": [z1, 4.6, sx * 1.4 + 0.4], "r": [45, 0, 0], "o": [(z0 + z1) / 2, 4.2, sx * 1.4], "g": "detail"})
+        for x, y in ((1.6, 6.3), (-1.3, 7.6), (0.1, 5.3)):
+            box(m, "body", band, sx * x - 0.4, y, -5.02 if y < 7.2 else -4.92, sx * x + 0.4, y + 0.8, -4.9 if y < 7.2 else -4.8)
+        for z, y in ((-1.4, 6.3), (1.5, 7.5)):
+            box(m, "body", band, sx * 4.92 if sx > 0 else -5.02, y, z - 0.4, sx * 4.92 + 0.1 if sx > 0 else -4.92, y + 0.8, z + 0.4)
+    box(m, "body", "white_concrete", -2.4, 10.95, 2.176, -1.3, 11.85, 2.28)
+    box(m, "body", "white_concrete", -2.9, 9.75, 2.56, -2.5, 10.25, 2.66)
+
+
+def gingerbread(m):
+    """Iced like a real biscuit: a scalloped collar, three gumdrops, rosy cheeks, icing curls on the head and an
+    icing heart on the back."""
+    z = 1.59
+    for x in (-2.4, -1.2, 0, 1.2, 2.4):
+        box(m, "body", "white_concrete", x - 0.45, 9.55, z, x + 0.45, 10.05, z + 0.1, "trim")
+    box(m, "body", "pink_concrete", -0.6, 3.0 + 1.5, z, 0.6, 3.0 + 1.5 + 0.4, z + 0.45)
+    for sx in (-1, 1):
+        box(m, "body", "pink_concrete", sx * 2.6 - 0.4, 12.5, z - 0.1, sx * 2.6 + 0.4, 13.2, z + 0.02, "trim")
+        box(m, "body", "white_concrete", sx * 1.5 - 0.5, 16.2, 0.2, sx * 1.5 + 0.5, 16.5, 1.2, "trim")
+        box(m, "body", "white_concrete", sx * 0.7 - 0.45, 6.4, -z - 0.1, sx * 0.7 + 0.45, 7.4, -z, "trim")
+    box(m, "body", "white_concrete", -0.5, 16.2, -0.4, 0.5, 16.6, 0.7, "trim")
+    box(m, "body", "white_concrete", -0.6, 5.6, -z - 0.1, 0.6, 6.7, -z, "trim")
+
+
+LAUNCH2 = {"decor_egg_pink": easter_egg, "decor_egg_blue": easter_egg, "decor_egg_mint": easter_egg,
+           "decor_gingerbread": gingerbread, "decor_gingerbread_girl": gingerbread}
+
+
 if __name__ == "__main__":
     d = json.load(open(sys.argv[1]))
     for id, fn in FIXES.items():
@@ -388,6 +435,13 @@ if __name__ == "__main__":
     for id, fn in LAUNCH.items():
         m = d["models"].get(id)
         if m and not m.get("launch-revision"): fn(m); mend.unfight(m); m["launch-revision"] = 1; print("launch", id, len(m["cubes"]))
+    planks = 0
+    for id, m in d["models"].items():
+        if not m.get("plank-revision"):
+            planks += no_planks(m); m["plank-revision"] = 1
+            if id in LAUNCH2: LAUNCH2[id](m)
+            mend.unfight(m)
+    print("planks replaced:", planks)
     for id, bones in SWAY.items():
         m = d["models"].get(id)
         if m and not m.get("sway-revision"): sway(m, bones); m["sway-revision"] = 1; print("sway", id)

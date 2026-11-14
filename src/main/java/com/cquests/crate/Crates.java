@@ -257,6 +257,7 @@ public final class Crates implements Listener {
         if (c == null) return id != null;
         List<Display> parts = c.parts;
         if (parts == null || c.opening || !c.here()) return true;
+        if (player.isSneaking()) { preview(player); return true; }
         c.opening = true;
         Location at = c.at(), mid = at.clone().add(0.5, 0.5, 0.5);
         World w = at.getWorld();
@@ -284,6 +285,49 @@ public final class Crates implements Listener {
         plugin.questManager().progress(player, ObjectiveType.FIND, "CRATE", 1);
         return true;
     }
+
+    private static final class Preview implements org.bukkit.inventory.InventoryHolder {
+        org.bukkit.inventory.Inventory inv;
+        @Override public org.bukkit.inventory.Inventory getInventory() { return inv; }
+    }
+
+    /** Sneak and click a crate: a look-only chest shows everything it can hold and the chance of each. */
+    public void preview(Player player) {
+        List<Object[]> rows = new ArrayList<>();
+        int total = 0;
+        for (String line : cfg().getStringList("loot")) {
+            String[] p = line.trim().split("\\s+");
+            Material m = p.length > 1 ? Material.matchMaterial(p[1]) : null;
+            if (m == null || !m.isItem()) continue;
+            try { int wgt = Math.max(0, Integer.parseInt(p[0])); total += wgt; rows.add(new Object[]{wgt, m, p.length > 2 ? Integer.parseInt(p[2]) : 1}); }
+            catch (NumberFormatException ignored) { }
+        }
+        if (rows.isEmpty()) { rows.add(new Object[]{1, Material.DIAMOND, 5}); total = 1; }
+        rows.sort((x, y) -> (int) y[0] - (int) x[0]);
+        Preview holder = new Preview();
+        holder.inv = Bukkit.createInventory(holder, Math.min(54, (rows.size() + 1 + 8) / 9 * 9 + 9), Text.mm(T.t("crates.preview-title", "<dark_gray>Loot crate: what is inside")));
+        int slot = 0;
+        for (Object[] row : rows) {
+            if (slot >= holder.inv.getSize() - 9) break;
+            ItemStack item = new ItemStack((Material) row[1], Math.max(1, Math.min(64, (int) row[2])));
+            double chance = 100.0 * (int) row[0] / total;
+            item.editMeta(m -> m.lore(List.of(Text.mm("<!italic><gray>Chance: <yellow>" + (chance >= 10 ? String.format(Locale.ROOT, "%.0f", chance) : String.format(Locale.ROOT, "%.1f", chance)) + "%"),
+                    Text.mm("<!italic><dark_gray>One of these drops per crate."))));
+            holder.inv.setItem(slot++, item);
+        }
+        ItemStack token = new ItemStack(Material.SUNFLOWER);   // a picture of the token, without the tag that makes one real
+        long lo = cfg().getLong("token.min-odds", 10000), hi = cfg().getLong("token.max-odds", 200000);
+        token.editMeta(m -> { m.displayName(Text.mm("<!italic><gold><bold>Chest Token")); m.setEnchantmentGlintOverride(true); m.lore(List.of(Text.mm("<!italic><gray>Very rare bonus on top of the loot."), Text.mm("<!italic><gray>Chance: <yellow>1 in " + lo + " to 1 in " + hi + "</yellow>, new every day."))); });
+        holder.inv.setItem(holder.inv.getSize() - 5, token);
+        player.openInventory(holder.inv);
+        player.playSound(player.getLocation(), Sound.BLOCK_BARREL_OPEN, 0.7f, 1.2f);
+    }
+
+    @EventHandler
+    public void previewClick(org.bukkit.event.inventory.InventoryClickEvent e) { if (e.getInventory().getHolder(false) instanceof Preview) e.setCancelled(true); }
+
+    @EventHandler
+    public void previewDrag(org.bukkit.event.inventory.InventoryDragEvent e) { if (e.getInventory().getHolder(false) instanceof Preview) e.setCancelled(true); }
 
     /** One pick from crates.loot ("weight ITEM amount" lines). */
     private List<ItemStack> loot() {

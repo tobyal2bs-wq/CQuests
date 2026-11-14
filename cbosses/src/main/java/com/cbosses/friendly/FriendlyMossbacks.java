@@ -127,31 +127,48 @@ public final class FriendlyMossbacks implements Listener, CommandExecutor, TabCo
         double a=Math.toRadians(pet.yaw), z=8*s;
         return pet.carrier.getLocation().add(-Math.sin(a)*z,17*s,Math.cos(a)*z);
     }
+    /**
+     * Walks on any solid ground and climbs or drops one block at a time. With a rider it turns to where
+     * the rider looks and keeps walking; alone it wanders and rests.
+     */
     private void tick(Pet pet) {
         pet.ticks+=5;
         Location at=pet.carrier.getLocation();
         pet.last=at.clone();
-        if(pet.ticks%80==0) pet.yaw+=ThreadLocalRandom.current().nextFloat()*100-50;
+        Player rider=null;
+        if(Bukkit.isOwnedByCurrentRegion(pet.seat)) for(Entity e:pet.seat.getPassengers()) if(e instanceof Player p) rider=p;
+        if(rider!=null) {
+            float turn=(float)Math.IEEEremainder(rider.getLocation().getYaw()-pet.yaw,360);
+            pet.yaw+=Math.max(-14,Math.min(14,turn));
+        } else if(pet.ticks%80==0) pet.yaw+=ThreadLocalRandom.current().nextFloat()*100-50;
         pet.carrier.setRotation(pet.yaw,0);
-        double a=Math.toRadians(pet.yaw), dx=-Math.sin(a)*0.055,dz=Math.cos(a)*0.055;
-        // Check the whole body footprint, including a look-ahead margin. Never
-        // load chunks or inspect blocks owned by a different Folia region.
-        double radius=Math.max(.5,pet.model.model.blocks()*.30);
-        boolean allowed=pet.ticks%140<105;
-        for(double x:new double[]{-radius,0,radius}) for(double z:new double[]{-radius,0,radius}) {
-            Location spot=at.clone().add(x+dx*12,-.05,z+dz*12);
-            if(!Bukkit.isOwnedByCurrentRegion(spot) || !spot.getWorld().isChunkLoaded(spot.getBlockX()>>4,spot.getBlockZ()>>4)) {allowed=false;continue;}
-            if(spot.getBlock().getType()!=Material.DIRT) allowed=false;
-            for(int y=1;y<=Math.ceil(pet.model.model.blocks());y++)
-                if(!spot.clone().add(0,y,0).getBlock().isPassable())allowed=false;
+        double a=Math.toRadians(pet.yaw), pace=rider!=null?0.5:0.275, dx=-Math.sin(a)*pace, dz=Math.cos(a)*pace;
+        boolean allowed=rider!=null || pet.ticks%140<105;
+        Location next=at.clone().add(dx,0,dz);
+        // Never load chunks or inspect blocks owned by a different Folia region.
+        if(!Bukkit.isOwnedByCurrentRegion(next) || !next.getWorld().isChunkLoaded(next.getBlockX()>>4,next.getBlockZ()>>4)) allowed=false;
+        else {
+            org.bukkit.block.Block feet=next.getBlock(), below=feet.getRelative(org.bukkit.block.BlockFace.DOWN);
+            if(!feet.isPassable()) {                       // a block in the way: step onto it
+                if(feet.getRelative(org.bukkit.block.BlockFace.UP).isPassable()) next.setY(feet.getY()+1); else allowed=false;
+            } else if(below.isPassable()) {                // a drop: step down one block, never off a cliff
+                if(!below.getRelative(org.bukkit.block.BlockFace.DOWN).isPassable() && !below.isLiquid()) next.setY(below.getY()); else allowed=false;
+            } else next.setY(feet.getY());
+            double radius=Math.max(.5,pet.model.model.blocks()*.30);
+            for(double x:new double[]{-radius,0,radius}) for(double z:new double[]{-radius,0,radius}) {
+                Location spot=next.clone().add(x,0,z);
+                if(!Bukkit.isOwnedByCurrentRegion(spot) || !spot.getWorld().isChunkLoaded(spot.getBlockX()>>4,spot.getBlockZ()>>4)) {allowed=false;continue;}
+                for(int y=1;y<=Math.ceil(pet.model.model.blocks());y++)
+                    if(!spot.clone().add(0,y,0).getBlock().isPassable())allowed=false;
+            }
         }
         if(allowed && !pet.movingCarrier) {
             pet.movingCarrier=true;
-            Location next=at.clone().add(dx*5,0,dz*5);next.setYaw(pet.yaw);next.setPitch(0);
+            next.setYaw(pet.yaw);next.setPitch(0);
             pet.carrier.teleportAsync(next,TeleportCause.PLUGIN,TeleportFlag.EntityState.RETAIN_PASSENGERS)
                     .whenComplete((ok,error)->pet.movingCarrier=false);
         }
-        if(!allowed && pet.ticks%20==0) pet.yaw+=65;
+        if(!allowed && rider==null && pet.ticks%20==0) pet.yaw+=65;
         Location seat=seatAt(pet);seat.setYaw(pet.yaw);seat.setPitch(0);
         if(!pet.movingSeat) {
             pet.movingSeat=true;
