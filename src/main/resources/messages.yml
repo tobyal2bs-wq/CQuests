@@ -30,6 +30,7 @@ quest:
   quest-accepted: "<green>New quest: <white><bold><quest></bold></white>. Type <yellow>/quests</yellow> to see it."
   quest-ready: "<green>✔ <white><bold><quest></bold></white> is done! Return to <npc>."
   quest-complete: "<gold>★ Quest complete: <white><bold><quest></bold></white>"
+  quest-time-up: "<red>⌛ Out of time: <white><quest></white>. <gray>Ask the villager again to retry."
   delivered: "<gray>You hand over <white><amount> <item></white>. <yellow>(<have>/<need>)"
   accept-prompt: "<yellow>Click the villager again to accept."
   more-work: "<yellow><npc> has more work for you. Click them again."
@@ -52,6 +53,37 @@ welcome:
      <gray>» Type <yellow>/quests</yellow> to see your quests.
      <gray>» <yellow>/quests settings</yellow> changes menus, tracker and directions.
      <white>Start by talking to {npc:stephan}.</white>
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+
+# The beginner guide: one short tip at each of the first steps. guide-start-<quest> shows when a
+# quest starts, guide-after-<quest> when it is done. Empty a line to skip it; guide.enabled in
+# config.yml turns the whole guide off.
+guide:
+  guide-start-welcome: |-
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+     <gold><bold>STEP 1 of 4</bold></gold> <white>Meet your first villager</white>
+     <gray>» The <yellow>arrow above your hotbar</yellow> and your <yellow>compass</yellow> point to {npc:stephan}.
+     <gray>» Walk up and <yellow>right-click</yellow> him to talk.
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+  guide-after-welcome: |-
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+     <gold><bold>STEP 2 of 4</bold></gold> <white>Your first jobs</white>
+     <gray>» Your tutorial quest <white>First Steps</white> just started: logs, a table, a pickaxe, stone.
+     <gray>» Progress shows on the right of your screen. <yellow>/quests</yellow> opens your journal.
+     <gray>» Talk to {npc:stephan} again any time for the story.
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+  guide-after-tutorial: |-
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+     <gold><bold>STEP 3 of 4</bold></gold> <white>Rewards</white>
+     <gray>» Quests pay money, items and <aqua>Wayfarer XP</aqua>. Levels open new chapters.
+     <gray>» Every villager at spawn has a story quest for you. Click them to see it.
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+  guide-after-story_stephan: |-
+    <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
+     <gold><bold>STEP 4 of 4</bold></gold> <white>You know the basics</white>
+     <gray>» The villagers at spawn need no level. Dailies open at <aqua>level 10</aqua>.
+     <gray>» Some quests are <yellow>timed</yellow>: the clock shows in your tracker.
+     <gray>» <yellow>/quests settings</yellow> changes menus, tracker and directions. Have fun!
     <dark_gray>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</dark_gray>
 
 # Said by the villager itself, in the npc-chat format.
@@ -107,7 +139,7 @@ text:
     cq-scatterworld-depth-world-centerx: "<red>/cq scatterworld <chapter6|all|id,id> <size|border> [depth] [world] [centerX centerZ]"
     cq-worldboss-interval: "<yellow>/cq worldboss interval <arena> <2h|400h|90m|off>"
     cq-worldboss-radius: "<yellow>/cq worldboss radius <arena> <blocks>"
-    cq-worldboss-spawn-arena: "<yellow>/cq worldboss spawn <boss> [arena]"
+    cq-worldboss-spawn-arena: "<yellow>/cq boss spawn <boss> [arena]"
     cquests-reloaded-npcs-story-quests: "<green>CQuests reloaded: <size> NPCs, <size2> story quests, <amount> side quests."
     done-if-the-quest-was: "<green>Done. If the quest was active it now waits for turn-in."
     example-cq-scatterworld-chapter6-10000: "<gray>Example: <yellow>/cq scatterworld chapter6 10000</yellow> spreads chapter 6 over 10,000 × 10,000 blocks of the world."

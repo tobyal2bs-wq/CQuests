@@ -14,7 +14,8 @@ public enum ObjectiveType {
     ENCHANT("Enchant"),
     CONSUME("Eat"),
     DELIVER("Bring"),
-    TALK("Talk to");
+    TALK("Talk to"),
+    FIND("Find");
 
     private final String verb;
 

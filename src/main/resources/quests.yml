@@ -10,6 +10,7 @@
 #   BREED / TAME / SHEAR <entity> <amount> [label]       ENCHANT ANY <amount> [label]
 #   DELIVER <item> <amount> [to:<npc>] [label]   (items are taken when you click the villager)
 #   TALK <npc>                            (counts once the other objectives are done)
+#   FIND ANY <amount> [label]             (open loot crates; the giver tells you roughly where two are)
 # Targets accept A|B, wildcards like *_LOG, groups like @IRON (config.yml) or ANY.
 # turn-in: who you return to. Defaults to the giver, or the TALK villager if the last objective is TALK.
 # {npc:id}, {player} and {server} are filled in inside text.
@@ -2166,6 +2167,33 @@ quests:
         - "DIAMOND 8"
   # Co-op dailies (1.9.0): "together: N" needs N players within 16 blocks doing the same kind of
   # thing within 5 seconds of each other. Only offered when enough friends stand near the villager.
+  crate_hunt:
+    name: "Crate Hunt"
+    category: DAILY
+    giver: marigold
+    objectives:
+      - "FIND ANY 2 loot crates"
+    description: "Find and open 2 loot crates. {npc:marigold} has heard where a couple are lying."
+    offer:
+      - "Folk keep finding wooden crates out in the wild, full of good things."
+      - "I heard where a couple are. Go and have a look!"
+    complete:
+      - "Two crates! You've got a nose for it."
+    rewards:
+      money: 15000
+  crate_hunt_far:
+    name: "Crate Seeker"
+    category: DAILY
+    giver: marigold
+    objectives:
+      - "FIND ANY 4 loot crates"
+    description: "Find and open 4 loot crates anywhere in the world."
+    offer:
+      - "Feeling adventurous? Four crates, wherever you can find them."
+    complete:
+      - "Four! Was there a token in any of them?"
+    rewards:
+      money: 35000
   coop_barn_raising:
     name: "Barn Raising"
     category: DAILY

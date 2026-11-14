@@ -46,3 +46,13 @@ merchants:
       2: {sunflowers: 3, reward: "EXPERIENCE_BOTTLE 16", money: 0}
       3: {sunflowers: 8, reward: "NAME_TAG 1", money: 0}
       4: {sunflowers: 12, reward: "BELL 1", money: 0}
+  tokenkeeper:
+    name: "<gold>Tobin the Token Keeper"
+    profession: CLERIC
+    enabled: false
+    # CHEST_TOKEN is the token from loot crates; renamed sunflowers never count. Change these in the editor.
+    offers:
+      1: {cost-a: "CHEST_TOKEN 1", reward: "NETHERITE_BLOCK 1", money: 0}
+      2: {cost-a: "CHEST_TOKEN 1", reward: "ENCHANTED_GOLDEN_APPLE 4", money: 0}
+      3: {cost-a: "CHEST_TOKEN 1", reward: "ELYTRA 1", money: 0}
+      4: {cost-a: "CHEST_TOKEN 2", reward: "BEACON 1", money: 0}

@@ -2,6 +2,8 @@
 
 Full notes for each release are in the RELEASE-x.y.z.md files and on the GitHub releases page.
 
+CBosses is now in this repository under `cbosses/`, with hand-rebuilt bosses, nine new bosses, configurable spawn and defeat commands and a 3D viewer. CQuests world bosses that share a model (Sunscorch, The Bone Collector, The Forge Mother, Old Tusker and the rest) get the new looks and attacks. See [cbosses/REDESIGN-1.4.0.md](cbosses/REDESIGN-1.4.0.md).
+
 CQuests **1.14.0**: 41 redesigned world bosses with 150+ blocks (shared with CBosses, including Warden, Wither, Ender Dragon and Breeze legends and three bosses per season), boss spots that wake a different boss on their own timer (`/cq worldboss interval <arena> 2h`), no-pass areas, falling meteors and ground shockwaves, the `bosses.use` permission, and quest bosses that only the questing player can touch. See [RELEASE-1.14.0.md](RELEASE-1.14.0.md).
 
 CQuests **1.13.0**: every seasonal boss rebuilt to be funny, four new seasonal bosses (Great Gourd, Frostbottom, Clucksworth, Admiral Pinchworth), an operator boss control panel and top 3 damage on kill. See [RELEASE-1.13.0.md](RELEASE-1.13.0.md).

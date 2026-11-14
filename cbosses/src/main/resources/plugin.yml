@@ -1,0 +1,26 @@
+name: CBosses
+version: '${version}'
+main: com.cbosses.CBossesPlugin
+api-version: '1.21'
+folia-supported: true
+author: clarx
+description: Animated block-model bosses with weekly, seasonal and chapter fights, WorldGuard support and a CQuests hook.
+softdepend: [WorldGuard, PlaceholderAPI, CQuests]
+commands:
+  mossback:
+    description: Spawn peaceful rideable Mossbacks
+    usage: /mossback spawn [x y z [world]] | remove | list
+    permission: bosses.use
+  cbosses:
+    description: CBosses commands
+    aliases: [cb, bosses]
+    usage: /cbosses help
+permissions:
+  bosses.use:
+    description: Control bosses (spawn, stop, test, arenas, settings). Operators have it; give it to anyone else who should.
+    default: op
+  cbosses.admin:
+    description: Old name for bosses.use, still works
+    default: op
+    children:
+      bosses.use: true

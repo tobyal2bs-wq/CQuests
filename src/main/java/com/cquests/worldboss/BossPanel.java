@@ -70,9 +70,10 @@ public final class BossPanel implements LockedMenu {
             lore.add("");
             if (alive) lore.add("<green>● Alive now");
             if (next != null && next.id().equals(d.id())) lore.add("<aqua>Next weekly boss");
-            lore.add("<yellow>Left-click <gray>spawn it now at its arena (announced, real rewards)");
-            lore.add("<yellow>Right-click <gray>try it in front of you (nothing paid)");
-            lore.add("<yellow>Shift-click <gray>send it away");
+            lore.add("<yellow>Left-click <gray>spawn it where you stand (real fight, real rewards)");
+            lore.add("<yellow>Right-click <gray>spawn it at the main arena (announced)");
+            lore.add("<yellow>Shift-left <gray>try it in front of you (nothing paid)");
+            lore.add("<yellow>Shift-right <gray>send it away");
             ItemStack icon = QuestMenu.item(icon(d), d.name(), lore);
             if (alive) icon.editMeta(m -> m.setEnchantmentGlintOverride(true));
             inventory.setItem(i, icon);
@@ -100,16 +101,20 @@ public final class BossPanel implements LockedMenu {
         WorldBossService wb = plugin.worldBosses();
         String id = bossAt.get(slot);
         if (id != null) {
-            if (type.isShiftClick()) {
+            if (type == ClickType.SHIFT_RIGHT) {
                 boolean sent = wb.stopBoss(id);
                 plugin.send(player, sent ? "<gray>Sent it away." : "<gray>That boss is not alive.");
-            } else if (type.isRightClick()) {
+            } else if (type == ClickType.SHIFT_LEFT) {
                 player.closeInventory();
                 wb.test(player, id);
                 return;
-            } else {
+            } else if (type.isRightClick()) {
                 player.closeInventory();
                 if (wb.spawnAt(player, id, "main")) plugin.send(player, T.t("boss-panel.summoning-it-at-the-main", "<green>Summoning it at the main arena..."));
+                return;
+            } else {
+                player.closeInventory();
+                if (wb.spawnHere(player, id)) plugin.send(player, T.t("boss-panel.summoning-it-here", "<green>Summoning it where you stand..."));
                 return;
             }
             Sched.entityLater(player, 2, this::fill);

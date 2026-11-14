@@ -115,6 +115,7 @@ public final class WorldBossService implements Listener {
         int chunkX, chunkZ, chunkR; String chunkWorld;
         /** The block model drawn over the invisible mob, or null for a plain mob boss. */
         volatile BossModel model;
+        volatile Gait gait;
         /** How it moves this time: the pattern (orbit, figure eight, zigzag, wander, star), its turning
          *  direction, size, speed and starting angle are picked fresh for every fight. */
         int pattern, turn = 1; double patternSize = 0.6, patternSpeed = 1, phase; long wanderSeed;
@@ -153,7 +154,16 @@ public final class WorldBossService implements Listener {
     // ------------------------------------------------------------------ setup
 
     /** World bosses an update replaced; their models no longer exist. */
-    static final Set<String> RETIRED = Set.of("fenrir", "ironhide_behemoth", "void_walker", "molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign");
+    static final Set<String> RETIRED = Set.of("fenrir", "ironhide_behemoth", "void_walker", "molten_colossus", "frost_jarl", "cinder_sovereign", "volatile_colossus", "ruinmaw", "tempest", "pale_watcher", "hollow_king", "ender_wyrm", "gale_sovereign", "abyssal_eye", "rotting_giant", "moonwake_manta");
+
+    /** Copies the bundled name (or title) over the server's when the server still has one the boss used to ship with. */
+    static boolean follow(YamlConfiguration yaml, String at, org.bukkit.configuration.ConfigurationSection sec, String key, String previous) {
+        String now = yaml.getString(at + "." + key), next = sec.getString(key);
+        if (now == null || next == null || now.equals(next) || !sec.getStringList(previous).contains(now)) return false;
+        yaml.set(at + "." + key, next);
+        yaml.set(at + "." + previous, sec.getStringList(previous));
+        return true;
+    }
 
     /** Bosses added in a new version are copied into an older worldbosses.yml; existing ones are left alone. */
     private void addNewBosses(File file, YamlConfiguration yaml) {
@@ -166,7 +176,12 @@ public final class WorldBossService implements Listener {
             // Bosses that were replaced by new ones (their models are gone) leave the file.
             for (String id : RETIRED) if (yaml.contains("bosses." + id)) { yaml.set("bosses." + id, null); added.add("-" + id); }
             for (String id : from.getKeys(false)) {
-                if (yaml.contains("bosses." + id)) continue;
+                if (yaml.contains("bosses." + id)) {
+                    // a renamed boss: a name or title nobody edited follows the new one; an admin's own name stays
+                    var sec = from.getConfigurationSection(id);
+                    if (sec != null && (follow(yaml, "bosses." + id, sec, "name", "previous-names") | follow(yaml, "bosses." + id, sec, "title", "previous-titles"))) added.add("~" + id);
+                    continue;
+                }
                 var sec = from.getConfigurationSection(id);
                 if (sec == null) continue;
                 for (String k : sec.getKeys(true)) if (!sec.isConfigurationSection(k)) yaml.set("bosses." + id + "." + k, sec.get(k));
@@ -174,7 +189,7 @@ public final class WorldBossService implements Listener {
             }
             if (added.isEmpty()) return;
             yaml.save(file);
-            plugin.getLogger().info("Updated the world bosses in worldbosses.yml (- means retired): " + String.join(", ", added));
+            plugin.getLogger().info("Updated the world bosses in worldbosses.yml (- means retired, ~ renamed): " + String.join(", ", added));
         } catch (Exception e) {
             plugin.getLogger().warning("Could not add new world bosses to worldbosses.yml: " + e.getMessage());
         }
@@ -182,7 +197,7 @@ public final class WorldBossService implements Listener {
 
     /** Apply the requested health tiers once; retain every reward and other custom field. */
     private void migratePolishHealth(java.io.File file, YamlConfiguration yaml) {
-        if (yaml.getInt("polish-health-version", 0) >= 1) return;
+        if (yaml.getInt("polish-health-version", 0) >= 2) return;   // v2: 3000 health and softer hits
         try (var in = plugin.getResource("worldbosses.yml")) {
             if (in == null) return;
             var bundled = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
@@ -190,9 +205,12 @@ public final class WorldBossService implements Listener {
             if (bosses == null) return;
             for (String id : bosses.getKeys(false)) {
                 String path = "bosses." + id + ".health";
-                if (yaml.contains("bosses." + id)) yaml.set(path, bundled.getDouble(path));
+                if (yaml.contains("bosses." + id)) {
+                    yaml.set(path, bundled.getDouble(path));
+                    yaml.set("bosses." + id + ".damage", bundled.getDouble("bosses." + id + ".damage"));
+                }
             }
-            yaml.set("polish-health-version", 1);
+            yaml.set("polish-health-version", 2);
             java.nio.file.Files.copy(file.toPath(), file.toPath().resolveSibling(file.getName() + ".bak"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             yaml.save(file);
         } catch (Exception e) { plugin.getLogger().warning("Could not migrate boss health: " + e.getMessage()); }
@@ -205,6 +223,9 @@ public final class WorldBossService implements Listener {
         migratePolishHealth(bossFile, bossYaml);
         defs = WorldBossDef.load(bossYaml, plugin.getLogger());
         var cfg = plugin.getConfig();
+        rings = cfg.getBoolean("world-bosses.rings", false);
+        auraOn = cfg.getBoolean("world-bosses.aura", false);
+        BossModel.rings = rings;
         ModelRig.detail = switch (cfg.getString("world-bosses.model-detail", "high").toLowerCase(java.util.Locale.ROOT)) {
             case "low" -> 0;
             case "medium" -> 1;
@@ -651,6 +672,21 @@ public final class WorldBossService implements Listener {
         return spawn(def, a, player, false);
     }
 
+    private final java.util.concurrent.atomic.AtomicInteger hereCount = new java.util.concurrent.atomic.AtomicInteger();
+
+    /**
+     * Ops: a real fight right where the player stands, with the same health, attacks and rewards as a scheduled
+     * one. Its border is a circle of world-bosses.here-radius blocks around that spot, and like every world boss
+     * it never breaks, burns or changes blocks.
+     */
+    public boolean spawnHere(Player player, String bossId) {
+        WorldBossDef def = defs.get(bossId.toLowerCase(Locale.ROOT));
+        if (def == null) { plugin.send(player, T.t("world-boss-service.no-world-boss-cq-worldboss", "<red>No world boss <bossid>. <gray>/cq worldboss list", "bossid", Text.escape(bossId))); return false; }
+        Arena a = new Arena("here-" + hereCount.incrementAndGet(), Math.max(10, plugin.getConfig().getInt("world-bosses.here-radius", 40)));
+        a.spawn(player.getLocation().clone());
+        return spawn(def, a, player, false);
+    }
+
     /** /cq test worldboss: the boss appears a few blocks in front of you inside a 25 block circle; nothing is paid. */
     public boolean test(Player player, String bossId) {
         WorldBossDef def = bossId == null || bossId.isBlank() ? null : defs.get(bossId.toLowerCase(Locale.ROOT));
@@ -803,7 +839,7 @@ public final class WorldBossService implements Listener {
             return null;
         }
         double max = maxHealth(mob);
-        BossBar bar = BossBar.bossBar(Text.mm(def.name()), 1f, barColor(def.bar()), BossBar.Overlay.NOTCHED_20);
+        BossBar bar = BossBar.bossBar(Text.mm("<dark_gray>« </dark_gray>" + Text.shine(def.name()) + "<dark_gray> »</dark_gray>"), 1f, barColor(def.bar()), BossBar.Overlay.NOTCHED_10);
         Fight fight = new Fight(key, def, arena, test, tester == null ? null : tester.getUniqueId(), mob, max, bar);
         fight.nextAbility = System.currentTimeMillis() + 6000;
         try { fight.particle = Particle.valueOf(def.particle()); } catch (IllegalArgumentException e) { fight.particle = Particle.FLAME; }
@@ -841,6 +877,12 @@ public final class WorldBossService implements Listener {
                 for (ModelRig.Step s : look.spawn) entrance = Math.max(entrance, s.end());
                 fight.nextAbility = System.currentTimeMillis() + 6000 + entrance * 50L;
                 model.appear(() -> { if (mob.isValid() && !fight.over) { mob.setInvulnerable(false); mob.setAI(true); } });
+                if (!(mob instanceof org.bukkit.entity.Flying) && plugin.getConfig().getBoolean("world-bosses.own-movement", true)) {
+                    // its own walk, not the walk of the mob under it
+                    Gait.free(mob);
+                    fight.gait = new Gait(mob, Gait.pick(def.id(), plugin.getConfig().getString("world-bosses.movement-styles." + def.id()), def.entity()), def.id(), Math.max(2.6, look.blocks() * 0.55));
+                    model.ownMelee = true;
+                }
             } catch (RuntimeException | LinkageError e) {
                 model.remove();
                 fight.model = null;
@@ -866,12 +908,7 @@ public final class WorldBossService implements Listener {
         if (test) {
             if (tester != null) plugin.send(tester, T.t("world-boss-service.test-world-boss-nothing-is", "<gray>Test world boss: <boss> <gray>(<id>). Nothing is paid. <yellow>/cq test worldbossphase</yellow> jumps to rage, <yellow>/cq test worldbossstop</yellow> ends it.", "boss", def.name(), "id", def.id()));
         } else {
-            broadcast("<dark_gray><st>                                        </st>\n"
-                    + "<gold><bold>⚔ WORLD BOSS ⚔</bold></gold>  " + def.name() + "\n"
-                    + (def.title().isBlank() ? "" : "<gray><italic>" + Text.escape(def.title()) + "</italic>\n")
-                    + "<gold>has risen" + where(arena) + "\n"
-                    + "<gray>Everyone who helps gets a reward; the top 3 by damage get more.\n"
-                    + "<dark_gray><st>                                        </st>");
+            broadcast("<gold>⚔ " + Text.shine(def.name()) + " <gray>has appeared" + where(arena));
             Sched.global(() -> { for (Player p : Bukkit.getOnlinePlayers()) Sched.entity(p, () -> p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 0.5f, 0.8f)); });
         }
         return fight;
@@ -898,7 +935,7 @@ public final class WorldBossService implements Listener {
         if (def.damage() > 0) attr(m, "attack_damage", def.damage());
         if (def.speed() > 0) attr(m, "movement_speed", def.speed());
         if (def.armor() > 0) attr(m, "armor", def.armor());
-        attr(m, "knockback_resistance", 0.8);
+        attr(m, "knockback_resistance", 1.0);   // hits never launch a boss; only its own leap or charge moves it
         attr(m, "follow_range", 48);
         EntityEquipment eq = look == null ? null : m.getEquipment();
         if (eq != null) eq.clear();
@@ -1003,7 +1040,7 @@ public final class WorldBossService implements Listener {
         // One nearby-player query per tick: the bar uses everyone within 56 blocks, the fight only those inside the border.
         List<Player> close = new ArrayList<>();
         List<Player> inside = new ArrayList<>();
-        for (Player p : loc.getNearbyPlayers(56)) {
+        for (Player p : loc.getNearbyPlayers(30)) {            // the bar shows within 30 blocks of the boss
             if (!p.isOnline() || !Bukkit.isOwnedByCurrentRegion(p)) continue;
             close.add(p);
             if (fighter(p) && p.getLocation().distanceSquared(loc) <= 1600 && f.arena.contains(p.getLocation())) inside.add(p);
@@ -1023,7 +1060,9 @@ public final class WorldBossService implements Listener {
             // Only rebuild the bar text when the number changes.
             f.shownHealth = shown;
             f.bar.progress((float) Math.max(0, Math.min(1, health / Math.max(1, f.max))));
-            f.bar.name(Text.mm(f.def.name() + " <gray>❤ <white>" + String.format(Locale.ROOT, "%,d", shown) + "<gray>/" + String.format(Locale.ROOT, "%,d", Math.round(f.max * f.ratio))));
+            long top = Math.round(f.max * f.ratio);
+            f.bar.name(Text.mm("<dark_gray>« </dark_gray>" + Text.shine(f.def.name()) + "<dark_gray> »</dark_gray>  <red>❤ <white>" + String.format(Locale.ROOT, "%,d", shown)
+                    + "<dark_gray>/</dark_gray><gray>" + String.format(Locale.ROOT, "%,d", top) + "  <yellow>" + Math.round(100.0 * shown / Math.max(1, top)) + "%"));
         }
         // Effects are only drawn when someone can see them.
         if (!close.isEmpty()) aura(f, loc);
@@ -1036,7 +1075,7 @@ public final class WorldBossService implements Listener {
             // Its own way of closing in this fight: some circle their target one way, some the other, some weave.
             {
                 Player t = boss.getTarget() instanceof Player cur ? cur : target;
-                if (f.pattern != 3 && f.ticks % 6 == 3 && t.getLocation().distanceSquared(loc) > 16) {
+                if (f.gait == null && f.pattern != 3 && f.ticks % 6 == 3 && t.getLocation().distanceSquared(loc) > 16) {
                     Vector to = t.getLocation().toVector().subtract(loc.toVector()).setY(0);
                     if (to.lengthSquared() > 0.01) {
                         Vector side = new Vector(-to.getZ(), 0, to.getX()).normalize().multiply(f.turn * (f.pattern == 2 ? ((f.ticks / 6) % 2 == 0 ? 3 : -3) : 2.5));
@@ -1056,8 +1095,9 @@ public final class WorldBossService implements Listener {
             if (boss.getTarget() != null) boss.setTarget(null);
             Location home = f.arena.spawn();
             // Nobody to fight: it patrols its spot in this fight's own pattern.
-            if (home != null && f.ticks % 3 == 0) boss.getPathfinder().moveTo(patternPoint(f, home, f.ticks), 0.8 + 0.2 * f.patternSpeed);
+            if (f.gait == null && home != null && f.ticks % 3 == 0) boss.getPathfinder().moveTo(patternPoint(f, home, f.ticks), 0.8 + 0.2 * f.patternSpeed);
         }
+        if (f.gait != null && boss.hasAI()) f.gait.step(boss.getTarget() instanceof Player t && inside.contains(t) ? t : null, f.arena.spawn(), false);
         // Rage at half health.
         if (!f.raged && health <= f.max / 2) {
             f.raged = true;
@@ -1091,6 +1131,7 @@ public final class WorldBossService implements Listener {
     }
 
     private void aura(Fight f, Location feet) {
+        if (!auraOn) return;
         Location at = feet.clone().add(0, f.boss.getHeight() / 2, 0);
         double w = Math.max(0.4, f.boss.getWidth() / 1.5), h = Math.max(0.5, f.boss.getHeight() / 2);
         if (f.auraDust != null) at.getWorld().spawnParticle(Particle.DUST, at, 10, w, h, w, 0, f.auraDust);
@@ -1098,7 +1139,11 @@ public final class WorldBossService implements Listener {
 
     }
 
+    /** world-bosses.rings / aura: the dust circles and drifting particles round a boss (off by default). */
+    private static volatile boolean rings = false, auraOn = false;
+
     private static void ring(Location center, double radius, Color color, int points) {
+        if (!rings) return;
         Particle.DustOptions dust = new Particle.DustOptions(color, 1.6f);
         for (int i = 0; i < points; i++) {
             double a = Math.PI * 2 * i / points;

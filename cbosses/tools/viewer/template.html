@@ -1,0 +1,654 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>CQuests World Bosses</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Chakra+Petch:wght@400;500;600&display=swap">
+<style>
+/* Layout: a night-arena stage on the left that stays put, a roster of 24 bosses on the right; stacks on phones. Single dark look by choice. */
+:root {
+  --bg: #0d0b12; --panel: #17141f; --line: #2a2536; --fg: #ece8f4; --muted: #9a93ab; --accent: #ffb347; --warn: #ff3b3b;
+  --display: "Silkscreen", "Courier New", monospace; --body: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; padding-block: 18px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); max-width: 1400px; margin: 0 auto; }
+header { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 3.2vw, 34px); margin: 0; letter-spacing: 0.02em; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 70ch; }
+.stage { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); align-self: start; display: grid; gap: 12px; min-width: 0; }
+.canvasbox { position: relative; aspect-ratio: 4 / 3; max-width: 100%; border: 1px solid var(--line); background: radial-gradient(ellipse at 50% 75%, #241c33 0%, #0d0b12 70%); overflow: hidden; }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.hud { position: absolute; left: 0; right: 0; top: 0; padding: 12px 14px; pointer-events: none; }
+.bar { height: 10px; background: #2a1c2a; border: 1px solid #000; position: relative; }
+.bar i { position: absolute; inset: 0; width: 100%; background: var(--barc, #e53935); transition: width .3s; }
+.barname { font-family: var(--display); font-size: 13px; text-align: center; margin-bottom: 4px; text-shadow: 0 1px 0 #000; }
+.hint { position: absolute; bottom: 8px; right: 10px; font-size: 12px; color: var(--muted); pointer-events: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: 600 14px var(--body); color: var(--fg); background: var(--panel); border: 1px solid var(--line); padding: 8px 14px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.info { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 8px; }
+.info h2 { font-family: var(--display); font-size: 20px; margin: 0; text-wrap: balance; }
+.info .sub { color: var(--muted); margin: 0; }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-variant-numeric: tabular-nums; }
+.stats b { color: var(--muted); font-weight: 500; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin-right: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12px; padding: 2px 8px; border: 1px solid var(--line); color: var(--fg); letter-spacing: .03em; }
+.note { color: var(--muted); font-size: 13px; margin: 0; }
+#attacks button { font-size: 13px; padding: 7px 11px; }
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; align-content: start; min-width: 0; }
+.group { grid-column: 1 / -1; font-family: var(--display); font-size: 12px; color: var(--muted); letter-spacing: .1em; margin-top: 6px; }
+.card { text-align: left; display: grid; gap: 2px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--c, var(--accent)); }
+.card[aria-pressed="true"] { border-color: var(--c); background: #201b2b; }
+.card .n { font-weight: 600; }
+.card .m { font-size: 12px; color: var(--muted); }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr); } .stage { position: static; } }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>CQuests World Bosses</h1>
+    <p>All 24 bosses as they are built in the game: block models with their own attacks, entrance and death. Drag to turn the camera, scroll or pinch to zoom. Weapons are gripped in the fist, elbows bend, and every boss has hit zones: a head hit, a weak spot and armour all change the damage. The browser draws rough stand-ins for the block textures; in game every piece uses the real Minecraft block.</p>
+  </header>
+  <section class="stage" aria-label="Boss preview">
+    <div class="canvasbox" id="box">
+      <canvas id="view" aria-label="3D preview of the selected boss"></canvas>
+      <div class="hud"><div class="barname" id="barname"></div><div class="bar"><i id="barfill"></i></div></div>
+      <div class="hint" id="hint">drag to orbit</div>
+    </div>
+    <div class="controls" id="attacks" aria-label="Attacks"></div>
+    <div class="controls">
+      <button id="spawn" type="button">Entrance</button>
+      <button id="death" type="button">Death</button>
+      <button id="walk" type="button" aria-pressed="false">Walk</button>
+      <button id="hit" type="button">Take a hit</button>
+      <button id="spin" type="button" aria-pressed="true">Auto-turn on</button>
+      <button id="zones" type="button" aria-pressed="false">Hit zones</button>
+    </div>
+    <div class="info" id="info"></div>
+  </section>
+  <section class="roster" id="roster" aria-label="Choose a boss"></section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/*DATA*/
+// Shared by the preview: same pose maths as the plugin (ModelRig.java).
+const D2R = Math.PI / 180;
+function sample(keys, t) {
+  if (!keys || !keys.length) return null;
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1] = keys[i];
+    if (t <= t1) {
+      const [t0, v0] = keys[i - 1];
+      let p = (t - t0) / Math.max(1e-6, t1 - t0);
+      p = p * p * (3 - 2 * p);
+      return [v0[0] + (v1[0] - v0[0]) * p, v0[1] + (v1[1] - v0[1]) * p, v0[2] + (v1[2] - v0[2]) * p];
+    }
+  }
+  return keys[keys.length - 1][1];
+}
+function animTime(anim, t) { return anim.loop ? ((t % anim.length) + anim.length) % anim.length : Math.min(t, anim.length); }
+function plantFeet(model, out, ground) {
+  const V = THREE.Vector3, M = THREE.Matrix4, by = {};
+  for (const b of model.bones) by[b.name] = b;
+  const root = out.root || new M(), rr = new M().extractRotation(root);
+  const at = (name, p) => new V(p[0], p[1], p[2]).applyMatrix4(out[name]);
+  const branch = (name, correction) => { for (const b of model.bones) {
+    let ancestor = b.name;
+    while (ancestor && ancestor !== name) ancestor = by[ancestor].parent;
+    if (ancestor === name) out[b.name] = correction.clone().multiply(out[b.name]);
+  }};
+  const level = (name, w) => { const p = by[name].pivot;
+    const target = new M().makeTranslation(w.x, w.y, w.z).multiply(rr).multiply(new M().makeTranslation(-p[0], -p[1], -p[2]));
+    branch(name, target.multiply(out[name].clone().invert())); };
+  const turn = (from, to, c) => { const q = new THREE.Quaternion().setFromUnitVectors(from.clone().normalize(), to.clone().normalize());
+    return new M().makeTranslation(c.x, c.y, c.z).multiply(new M().makeRotationFromQuaternion(q)).multiply(new M().makeTranslation(-c.x, -c.y, -c.z)); };
+  for (const b of model.bones) {
+    if (!b.level) continue;
+    const shin = by[b.parent], leg = shin && by[shin.parent];
+    let F = at(b.parent, b.pivot);
+    if (leg && shin) {
+      const floor = b.pivot[1] + (ground ? ground(b.name) : 0) + root.elements[13];
+      if (F.y < floor - 0.01) {
+        const H = at(leg.name, leg.pivot), Kn = at(shin.name, shin.pivot);
+        const L1 = H.distanceTo(Kn);
+        const L2 = Kn.distanceTo(F);
+        if (L1 < 0.0001 || L2 < 0.0001) continue;
+        const T = F.clone(); T.y = floor;
+        let D = T.distanceTo(H); D = Math.max(Math.abs(L1 - L2) + 0.01, Math.min(L1 + L2 - 0.01, D));
+        const u = T.clone().sub(H); if (u.lengthSq() < 1e-8) u.set(0,-1,0); u.normalize(); T.copy(H).add(u.clone().multiplyScalar(D));
+        const kh = Kn.clone().sub(H); let n = kh.clone().sub(u.clone().multiplyScalar(kh.dot(u)));
+        if (n.lengthSq() < 1e-4) {
+          n = new V(0,0,1).transformDirection(rr); n.sub(u.clone().multiplyScalar(n.dot(u)));
+          if (n.lengthSq()<1e-4) { n.set(1,0,0); n.sub(u.clone().multiplyScalar(n.dot(u))); }
+        } n.normalize();
+        const a = (L1 * L1 - L2 * L2 + D * D) / (2 * D), h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+        const K2 = H.clone().add(u.clone().multiplyScalar(a)).add(n.multiplyScalar(h));
+        const d1 = turn(Kn.clone().sub(H), K2.clone().sub(H), H);
+        branch(leg.name,d1);
+        const F1 = F.clone().applyMatrix4(d1);
+        const d2 = turn(F1.clone().sub(K2), T.clone().sub(K2), K2);
+        branch(shin.name,d2);
+        F = at(shin.name,b.pivot);
+      }
+    }
+    level(b.name, F);
+  }
+}
+// layers: [{anim, t, w}] later layers override earlier ones bone by bone
+function rawPose(model, layers) {
+  const M = THREE.Matrix4, out = {};
+  const tmp = new M(), r = new M();
+  for (const b of model.bones) {
+    let rot = [0, 0, 0], pos = [0, 0, 0], scl = [1, 1, 1];
+    for (const L of layers) {
+      const ch = L.anim && L.anim.bones[b.name]; if (!ch) continue;
+      const t = animTime(L.anim, L.t), w = L.w == null ? 1 : L.w;
+      const R = sample(ch.rot, t), P = sample(ch.pos, t), S = sample(ch.scl, t);
+      if (R) rot = rot.map((v, i) => v + (R[i] - v) * w);
+      if (P) pos = pos.map((v, i) => v + (P[i] - v) * w);
+      if (S) scl = scl.map((v, i) => v + (S[i] - v) * w);
+    }
+    if (b.rest) rot = rot.map((v, i) => v + b.rest[i]);
+    const p = b.pivot, m = new M();
+    m.makeTranslation(p[0] + pos[0], p[1] + pos[1], p[2] + pos[2]);
+    r.makeRotationZ(rot[2] * D2R); m.multiply(r);
+    r.makeRotationY(rot[1] * D2R); m.multiply(r);
+    r.makeRotationX(rot[0] * D2R); m.multiply(r);
+    r.makeScale(scl[0], scl[1], scl[2]); m.multiply(r);
+    r.makeTranslation(-p[0], -p[1], -p[2]); m.multiply(r);
+    out[b.name] = b.parent ? out[b.parent].clone().multiply(m) : m;
+  }
+  plantFeet(model, out, model.ground || null);
+  return out;
+}
+function pose(model,layers){
+ if(model._groundLift===undefined){
+  model._groundLift=0;const r=Object.assign({},DATA.rigs[model.rig],model.anims||{}),rest=rawPose(model,[{anim:r.idle,t:0,w:1}]);let low=Infinity;
+  const parent=Object.fromEntries(model.bones.map(b=>[b.name,b.parent]));
+  for(const c of model.cubes){let bone=c.b,shell=false;while(bone){if(bone.startsWith('shell'))shell=true;bone=parent[bone];}if(shell||c.g&&c.g.startsWith('face:')&&c.g!=='face:idle')continue;
+   const matrix=rest[c.b].clone().multiply(cubeLocal(c));for(let k=0;k<8;k++){const v=new THREE.Vector3(k&1,k>>1&1,k>>2&1).applyMatrix4(matrix);low=Math.min(low,v.y);}}
+  model._groundLift=Number.isFinite(low)?-low:0;
+ }
+ const out=rawPose(model,layers);if(Math.abs(model._groundLift)>1e-5){const lift=new THREE.Matrix4().makeTranslation(0,model._groundLift,0);for(const key of Object.keys(out))out[key].premultiply(lift);}
+ // there is a floor: a pose that would put a block under it lifts the whole body by that much
+ if(!model._parent)model._parent=Object.fromEntries(model.bones.map(b=>[b.name,b.parent]));let low=Infinity;const v=new THREE.Vector3();
+ for(const c of model.cubes){if(c._off===undefined){let bone=c.b,shell=false;while(bone){if(bone.startsWith('shell'))shell=true;bone=model._parent[bone];}c._off=shell||!!(c.g&&c.g.startsWith('face:')&&c.g!=='face:idle');}
+  if(c._off)continue;const matrix=out[c.b].clone().multiply(cubeLocal(c));for(let k=0;k<8;k++){v.set(k&1,k>>1&1,k>>2&1).applyMatrix4(matrix);if(v.y<low)low=v.y;}}
+ if(low<-0.05&&Number.isFinite(low)){const lift=new THREE.Matrix4().makeTranslation(0,-low,0);for(const key of Object.keys(out))out[key].premultiply(lift);}
+ return out;
+}
+
+function cubeLocal(c) {
+  const M = THREE.Matrix4, m = new M(), r = new M();
+  if (c.r) {
+    const o = c.o;
+    m.makeTranslation(o[0], o[1], o[2]);
+    r.makeRotationZ(c.r[2] * D2R); m.multiply(r);
+    r.makeRotationY(c.r[1] * D2R); m.multiply(r);
+    r.makeRotationX(c.r[0] * D2R); m.multiply(r);
+    r.makeTranslation(-o[0], -o[1], -o[2]); m.multiply(r);
+  }
+  r.makeTranslation(c.f[0], c.f[1], c.f[2]); m.multiply(r);
+  r.makeScale(c.t[0] - c.f[0], c.t[1] - c.f[1], c.t[2] - c.f[2]); m.multiply(r);
+  return m;
+}
+// 16x16 textures drawn from a pattern and two colours; nearest filtering like the game.
+const TEX = {};
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+function hash(str) { let h = 2166136261; for (const ch of str) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; }
+function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
+function texture(block, PAL) {
+  const id = block.split('[')[0];
+  if (TEX[id]) return TEX[id];
+  const [pat, c1, c2] = PAL[id] || ['noise', '#ff00ff', '#000000'];
+  const a = hex(c1), b = hex(c2), R = rng(hash(id)), cv = document.createElement('canvas');
+  cv.width = cv.height = 16; const g = cv.getContext('2d'), img = g.createImageData(16, 16);
+  const put = (x, y, c, k) => { const i = (y * 16 + x) * 4; img.data[i] = c[0] * k; img.data[i + 1] = c[1] * k; img.data[i + 2] = c[2] * k; img.data[i + 3] = 255; };
+  const mix = (t) => a.map((v, i) => v + (b[i] - v) * t);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const n = R(); let c = a, k = 1;
+    switch (pat) {
+      case 'flat': k = 0.96 + n * 0.06; break;
+      case 'noise': c = n < 0.35 ? b : a; k = 0.9 + R() * 0.18; break;
+      case 'bricks': { const row = y >> 2, off = (row % 2) * 4; c = (y % 4 === 3 || (x + off) % 8 === 7) ? b : a; k = 0.92 + n * 0.12; break; }
+      case 'planks': c = (y % 4 === 3) ? b : a; if ((x + (y >> 2) * 5) % 16 === 0 && y % 4 !== 3) c = b; k = 0.9 + n * 0.14; break;
+      case 'log': c = (x % 4 === 0 || (x * 7 + y * 3) % 11 === 0) ? b : a; k = 0.88 + n * 0.16; break;
+      case 'wool': c = n < 0.25 ? b : a; k = 0.94 + R() * 0.1; break;
+      case 'ore': c = n < 0.14 ? b : a; k = 0.9 + R() * 0.16; break;
+      case 'glow': c = mix(0.5 + 0.5 * Math.sin(x * 0.9 + y * 0.7 + n * 2)); k = 1; break;
+      case 'glass': c = (x === 0 || y === 0 || x === 15 || y === 15 || (x === y && x > 3 && x < 9)) ? b : a; k = 1; break;
+      case 'metal': c = (x === 0 || y === 0) ? b : a; k = (x === 15 || y === 15) ? 0.8 : 0.97 + n * 0.05; break;
+      case 'moss': c = (n < 0.4 || (x * y) % 7 === 0) ? b : a; k = 0.9 + R() * 0.15; break;
+      case 'ice': c = mix(((x * 3 + y * 5) % 16) / 24 + n * 0.2); k = 1; break;
+      case 'stripes': c = (y % 5 < 2) ? b : a; k = 0.92 + n * 0.12; break;
+      case 'face': { const eye = (y > 4 && y < 8 && (x > 2 && x < 6 || x > 9 && x < 13)), mouth = (y > 10 && y < 13 && x > 3 && x < 13); c = (eye || mouth) ? b : a; k = 0.94 + n * 0.08; break; }
+      case 'leaves': c = n < 0.45 ? b : a; k = n < 0.1 ? 0.6 : 0.9 + R() * 0.15; break;
+      case 'scales': c = ((x + (y % 4 < 2 ? 0 : 2)) % 4 === 0) ? b : a; k = 0.92 + n * 0.1; break;
+    }
+    put(x, y, c, Math.min(1.25, k));
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(cv); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter;
+  return TEX[id] = t;
+}
+const GEO = new THREE.BoxGeometry(1, 1, 1); GEO.translate(0.5, 0.5, 0.5);
+const MATS = {};
+function material(block, light, PAL) {
+  const key = block.split('[')[0] + (light ? '*' : '');
+  if (MATS[key]) return MATS[key];
+  const id = block.split('[')[0], pat = (PAL[id] || [])[0];
+  const opts = { map: texture(block, PAL) };
+  if (light || pat === 'glow') { opts.emissive = new THREE.Color(0xffffff); opts.emissiveMap = opts.map; opts.emissiveIntensity = light ? 0.9 : 0.6; }
+  if (pat === 'glass' || pat === 'ice') { opts.transparent = true; opts.opacity = pat === 'ice' ? 0.85 : 0.7; }
+  return MATS[key] = new THREE.MeshLambertMaterial(opts);
+}
+function buildModel(model, PAL) {
+  const group = new THREE.Group(), meshes = [];
+  const locals = model.cubes.map(cubeLocal);
+  model.cubes.forEach((c, i) => {
+    const mesh = new THREE.Mesh(GEO, material(c.k, c.l, PAL));
+    mesh.matrixAutoUpdate = false; mesh.castShadow = true; mesh.userData = { cube: c, local: locals[i] };
+    group.add(mesh); meshes.push(mesh);
+  });
+  const s = model.scale / 16; group.scale.set(s, s, s);
+  return { group, meshes };
+}
+function applyPose(built, model, layers) {
+  const bones = pose(model, layers), fc = "face:" + faceOf(model);
+  for (const mesh of built.meshes) { const c = mesh.userData.cube; mesh.matrix.copy(bones[c.b]).multiply(mesh.userData.local); if (c.g && c.g.startsWith("face:") && c.g !== fc) mesh.matrix.multiply(ZERO); }
+  return bones;
+}
+
+const MOB = { WITHER_SKELETON: "Wither skeleton", IRON_GOLEM: "Iron golem", SPIDER: "Spider", STRAY: "Stray", PIGLIN_BRUTE: "Piglin brute", DROWNED: "Drowned",
+  EVOKER: "Evoker", RAVAGER: "Ravager", HOGLIN: "Hoglin", BLAZE: "Blaze", CREEPER: "Creeper", SLIME: "Slime", VINDICATOR: "Vindicator", HUSK: "Husk",
+  ZOGLIN: "Zoglin", WITCH: "Witch", ENDERMAN: "Enderman", WOLF: "Wolf", BREEZE: "Breeze", CREAKING: "Creaking", SKELETON: "Skeleton", RABBIT: "Rabbit", MAGMA_CUBE: "Magma cube" };
+const BAR = { RED: "#e53935", PURPLE: "#9c27b0", BLUE: "#1e88e5", GREEN: "#43a047", YELLOW: "#fdd835", PINK: "#ec407a", WHITE: "#eeeeee" };
+const FXC = { SOUL: "#5fe8ff", SOUL_FIRE_FLAME: "#4fe0ff", LAVA: "#ff7a00", FLAME: "#ff9a1a", SNOWFLAKE: "#e8f6ff", ITEM_SNOWBALL: "#ffffff", WAX_ON: "#ffb300",
+  BUBBLE_POP: "#9fe8ff", BUBBLE_COLUMN_UP: "#9fe8ff", SPLASH: "#5fb8ff", ELECTRIC_SPARK: "#cfefff", FIREWORK: "#ffffff", SMOKE: "#8a8a8a", LARGE_SMOKE: "#6a6a6a",
+  CAMPFIRE_COSY_SMOKE: "#9e9e9e", FALLING_DUST: "#e0d090", WITCH: "#c45cff", EFFECT: "#c45cff", ITEM_SLIME: "#9cff57", REVERSE_PORTAL: "#b06cff", PORTAL: "#a040ff",
+  FLASH: "#ffffff", SPORE_BLOSSOM_AIR: "#e88ad6", CRIMSON_SPORE: "#ff3d3d", MYCELIUM: "#b0a0b0", SQUID_INK: "#202020", END_ROD: "#fffbe0", HEART: "#ff4060",
+  DAMAGE_INDICATOR: "#ff2b5e", CLOUD: "#ffffff", POOF: "#ffffff", EXPLOSION: "#ffd0a0", EXPLOSION_EMITTER: "#ffd0a0", GUST: "#e0fbff", GUST_EMITTER_SMALL: "#e0fbff",
+  GUST_EMITTER_LARGE: "#e0fbff", ASH: "#555555", BLOCK: "#8a7a6a" };
+const ABIL = { lightning: "Lightning", shockwave: "Shockwave", minions: "Summon", fire_ring: "Fire ring", pull: "Pull", leap: "Leap", poison: "Poison", blink: "Blink",
+  frost: "Frost", volley: "Volley", darkness: "Darkness", levitate: "Levitate", heal: "Heal", quake: "Quake", detonate: "Detonate", roar: "Roar" };
+const nice = s => s.replace(/_/g, " ").replace(/^./, c => c.toUpperCase());
+
+// ---------------------------------------------------------------- scene
+const canvas = document.getElementById("view");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x0d0b12, 26, 60);
+const camera = new THREE.PerspectiveCamera(38, 4 / 3, 0.5, 200);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.minDistance = 4; controls.maxDistance = 40; controls.maxPolarAngle = Math.PI * 0.49;
+controls.autoRotate = true; controls.autoRotateSpeed = 0.9;
+scene.add(new THREE.HemisphereLight(0xcfc4ff, 0x20142a, 0.7));
+const sun = new THREE.DirectionalLight(0xffffff, 0.85); sun.position.set(8, 14, 6); sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10 }); scene.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+// arena floor of stone bricks
+{
+  const floor = new THREE.Group();
+  const a = material("stone_bricks", false, DATA.palette), b = material("cobblestone", false, DATA.palette);
+  for (let x = -9; x <= 9; x++) for (let z = -9; z <= 9; z++) {
+    if (x * x + z * z > 85) continue;
+    const m = new THREE.Mesh(GEO, (x + z) % 3 === 0 ? b : a); m.position.set(x - 0.5, -1, z - 0.5); m.receiveShadow = true; floor.add(m);
+  }
+  scene.add(floor);
+}
+const ringGeo = new THREE.RingGeometry(0.96, 1, 64); ringGeo.rotateX(-Math.PI / 2);
+const glowRing = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+glowRing.position.y = 0.02; scene.add(glowRing);
+
+// ---------------------------------------------------------------- state
+let cur = null;            // { boss, model, built, op[], from[], to[] ... }
+let mode = "live";         // live | steps
+let walking = false, spin = true;
+let attack = null, attackT = 0, hurtT = 9, idleT = 0, walkT = 0, walkW = 0;
+let timeline = null;
+const fx = [];
+const Mt = THREE.Matrix4, V = THREE.Vector3, Q = THREE.Quaternion;
+let showZones = false;
+const ZC = { head: "#ffb300", helmet: "#ffe082", weak: "#e040fb", body: "#4fc3f7", armor: "#90a4ae", arm: "#81c784", tail: "#81c784", weapon: "#ef5350" };
+const ZN = { head: "Head", helmet: "Helmet", weak: "Weak spot", body: "Body", armor: "Armour", arm: "Arm", tail: "Tail", weapon: "Weapon" };
+
+function choose(id) {
+  const boss = DATA.bosses.find(b => b.id === id), model = DATA.models[id];
+  if (cur) scene.remove(cur.group);
+  const group = new THREE.Group(), meshes = [];
+  const locals = model.cubes.map(cubeLocal);
+  model.cubes.forEach((c, i) => {
+    const mesh = new THREE.Mesh(GEO, material(c.k, c.l, DATA.palette));
+    mesh.matrixAutoUpdate = false; mesh.castShadow = true; group.add(mesh); meshes.push(mesh);
+  });
+  // hit zones: one box per zone, the same sizes as the Interaction boxes in game, plus the mob's own hitbox
+  const zoneBoxes = (model.zones || []).map(z => {
+    const s = model.scale / 16, geo = new THREE.BoxGeometry(z.w * s, z.h * s, z.w * s);
+    const line = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: ZC[z.kind] || "#ffffff" }));
+    line.visible = showZones; group.add(line); return line;
+  });
+  const H0 = model.height * model.scale / 16, mh = H0 * (model.hitbox || 1);
+  const mobBox = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(mh * 0.45, mh, mh * 0.45)), new THREE.LineBasicMaterial({ color: "#9e9e9e" }));
+  mobBox.position.y = mh / 2; mobBox.visible = showZones; group.add(mobBox);
+  scene.add(group);
+  const n = model.cubes.length;
+  cur = { boss, model, group, meshes, locals, rig: Object.assign({}, DATA.rigs[model.rig], model.anims || {}), H: model.height * model.scale / 16,
+    pose: Array.from({ length: n }, () => new Mt()), op: Array.from({ length: n }, () => new Mt()),
+    anim: Array.from({ length: n }, () => null), block: model.cubes.map(c => c.k), lit: model.cubes.map(c => !!c.l), zoneBoxes, mobBox };
+  attack = null; timeline = null; mode = "live"; hurtT = 9;
+  const H = cur.H;
+  controls.target.set(0, H * 0.45, 0);
+  camera.position.set(H * 1.2 + 3, H * 0.8 + 1, H * 1.6 + 4);
+  glowRing.material.color.set(boss.color); glowRing.scale.setScalar(Math.max(2, H * 0.6));
+  document.querySelectorAll(".card").forEach(c => c.setAttribute("aria-pressed", c.dataset.id === id ? "true" : "false"));
+  renderInfo(); setBar(1);
+  try { history.replaceState(null, "", "#" + id); } catch (e) {}
+}
+
+function renderInfo() {
+  const { boss, model } = cur;
+  document.getElementById("barname").textContent = boss.name;
+  document.getElementById("box").style.setProperty("--barc", BAR[boss.bar] || "#e53935");
+  const atk = document.getElementById("attacks"); atk.innerHTML = "";
+  const seen = new Set();
+  for (const ab of boss.abilities) {
+    const an = model.attacks[ab] || model.melee; const key = ab;
+    if (seen.has(key)) continue; seen.add(key);
+    const btn = document.createElement("button"); btn.type = "button"; btn.className = "primary";
+    btn.textContent = (ABIL[ab] || ab) + " · " + nice(an); btn.onclick = () => playAttack(an); atk.appendChild(btn);
+  }
+  const mb = document.createElement("button"); mb.type = "button"; mb.textContent = "Melee · " + nice(model.melee); mb.onclick = () => playAttack(model.melee); atk.appendChild(mb);
+  const anims = new Set(Object.values(model.attacks).concat([model.melee]));
+  document.getElementById("info").innerHTML = `
+    <h2 style="background:linear-gradient(90deg,${boss.c1},${boss.c2});-webkit-background-clip:text;background-clip:text;color:transparent">${boss.name}</h2>
+    <p class="sub">${boss.title}${boss.season ? " · " + nice(boss.season) + " season" : ""}</p>
+    <div class="stats"><span><b>Health</b>${boss.health.toLocaleString()}</span><span><b>Height</b>${cur.H.toFixed(1)} blocks</span>
+      <span><b>Blocks</b>${model.cubes.length}</span><span><b>Attack animations</b>${anims.size}</span><span><b>Mob under it</b>${MOB[boss.entity] || boss.entity}</span></div>
+    <p class="note"><b style="color:var(--fg)">Hit zones.</b> ${[...new Map((model.zones || []).map(z => [z.kind, z])).values()].map(z => `<span style="color:${ZC[z.kind]}">${ZN[z.kind] || z.kind} x${z.mult}</span>`).join(" · ")}. Legs and lower body: the mob itself, x1.</p>
+    <p class="note"><b style="color:var(--fg)">Entrance.</b> ${boss.spawnText}</p>
+    <p class="note"><b style="color:var(--fg)">Death.</b> ${boss.deathText}</p>`;
+}
+
+function setBar(p) { document.getElementById("barfill").style.width = (Math.max(0, p) * 100) + "%"; }
+
+function playAttack(name) {
+  if (mode !== "live") return;
+  const a = cur.rig[name]; if (!a) return;
+  attack = a; attackT = 0;
+  if (a.hit) setTimeout(() => { if (cur) { burst(cur.H * 0.4, cur.boss.color, 40, 4, 700, 1); ring(Math.max(2, cur.H * 0.7), cur.boss.color, 600); } }, a.hit * 1000);
+}
+
+// ---------------------------------------------------------------- live posing (same layering as the plugin)
+function livePose(dt) {
+  idleT += dt; hurtT += dt;
+  walkW += Math.max(-dt * 3, Math.min(dt * 3, (walking ? 1 : 0) - walkW));
+  walkT += dt;
+  if (attack && (attackT += dt) > attack.length) attack = null;
+  const r = cur.rig, layers = [{ anim: r.idle, t: idleT, w: 1 }];
+  if (walkW > 0.01) layers.push({ anim: r.walk, t: walkT, w: walkW });
+  if (attack) layers.push({ anim: attack, t: attackT, w: Math.max(0, Math.min(1, attackT / 0.12, (attack.length - attackT) / 0.18)) });
+  if (hurtT < 0.35 && r.hurt) layers.push({ anim: r.hurt, t: hurtT, w: 1 });
+  setPose(layers);
+}
+// face-changing models (pumpkins): pieces tagged face:<state>; only the current face shows
+function faceOf(model) {
+  if (!model._faces) { model._faces = new Set(); for (const c of model.cubes) if (c.g && c.g.startsWith("face:")) model._faces.add(c.g.slice(5)); }
+  let f = window.FACE || (typeof hurtT !== "undefined" && hurtT < 0.5 ? "hurt" : (typeof attack !== "undefined" && attack ? "angry" : "idle"));
+  return model._faces.has(f) ? f : "idle";
+}
+const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
+function setPose(layers) {
+  const bones = pose(cur.model, layers), s = cur.model.scale / 16, S = new Mt().makeScale(s, s, s), fc = "face:" + faceOf(cur.model);
+  cur.model.cubes.forEach((c, i) => { cur.pose[i].copy(S).multiply(bones[c.b]).multiply(cur.locals[i]); if (c.g && c.g.startsWith("face:") && c.g !== fc) cur.pose[i].multiply(ZERO); });
+  (cur.model.zones || []).forEach((z, i) => {
+    const p = new V(z.c[0], z.c[1], z.c[2]).applyMatrix4(bones[z.b]).multiplyScalar(s);
+    cur.zoneBoxes[i].position.copy(p);
+  });
+}
+
+// ---------------------------------------------------------------- spawn and death steps (the plugin's ops)
+function center(m) { return new V(0.5, 0.5, 0.5).applyMatrix4(m); }
+function rnd() { return Math.random(); }
+function tumble(move, c, tilt) {
+  if (!tilt) return move;
+  const axis = new V(rnd() - 0.5, (rnd() - 0.5) * 0.4, rnd() - 0.5).normalize();
+  const a = (rnd() - 0.5) * 2 * Math.min(170, tilt) * D2R;
+  return move.multiply(new Mt().makeTranslation(c.x, c.y, c.z)).multiply(new Mt().makeRotationAxis(axis, a)).multiply(new Mt().makeTranslation(-c.x, -c.y, -c.z));
+}
+function stepMatrix(s, i) {
+  const curM = cur.op[i].clone().multiply(cur.pose[i]), c = center(curM), H = cur.H;
+  switch (s.op) {
+    case "pose": return null;
+    case "move": { const v = s.v || [0, 0, 0], vh = s.vh || [0, 0, 0], r = s.rand || 0;
+      return new Mt().makeTranslation(v[0] + vh[0] * H + (rnd() - 0.5) * 2 * r, v[1] + vh[1] * H + (rnd() - 0.5) * r, v[2] + vh[2] * H + (rnd() - 0.5) * 2 * r); }
+    case "drop": { let lo = 1e9; for (let k = 0; k < 8; k++) lo = Math.min(lo, new V(k & 1, k >> 1 & 1, k >> 2 & 1).applyMatrix4(curM).y);
+      const r = s.rand || 0; return tumble(new Mt().makeTranslation((rnd() - 0.5) * 2 * r, -lo + rnd() * 0.05, (rnd() - 0.5) * 2 * r), c, s.tilt || 0); }
+    case "burst": { let dx = c.x, dz = c.z, len = Math.hypot(dx, dz);
+      if (len < 0.05) { const a = rnd() * Math.PI * 2; dx = Math.cos(a); dz = Math.sin(a); len = 1; }
+      const p = (s.power || 4) * (0.6 + rnd() * 0.8), up = (s.up || 0) * (0.5 + rnd()), r = s.rand || 0;
+      return tumble(new Mt().makeTranslation(dx / len * p + (rnd() - 0.5) * r, up + (rnd() - 0.5) * r, dz / len * p + (rnd() - 0.5) * r), c, s.tilt || 0); }
+    case "toward": { const k = s.k == null ? 1 : s.k, y = (s.y == null ? 0.5 : s.y) * H; return new Mt().makeTranslation(-c.x * k, (y - c.y) * k, -c.z * k); }
+    case "shrink": { const f = Math.max(0, s.s || 0) || 1e-4;
+      return new Mt().makeTranslation(c.x, c.y, c.z).multiply(new Mt().makeScale(f, f, f)).multiply(new Mt().makeTranslation(-c.x, -c.y, -c.z)); }
+    case "scale": { const v = s.s || [1, 1, 1]; return new Mt().makeScale(v[0] || 1e-4, v[1] || 1e-4, v[2] || 1e-4); }
+    case "spin": return new Mt().makeRotationY((s.deg || 90) * D2R);
+    case "tilt": { const p = s.pivot || [0, 0, 0], a = (s.deg || 90) * D2R;
+      return new Mt().makeTranslation(p[0], p[1], p[2]).multiply(s.axis === "z" ? new Mt().makeRotationZ(a) : new Mt().makeRotationX(a)).multiply(new Mt().makeTranslation(-p[0], -p[1], -p[2])); }
+  }
+  return new Mt();
+}
+function matches(only, i) {
+  if (!only || only === "all") return true;
+  const c = cur.model.cubes[i];
+  if (only === "lit") return !!c.l; if (only === "unlit") return !c.l;
+  if (c.k.split("[")[0] === only) return true;
+  if (c.g && c.g === only) return true;
+  if (only === "plain") return !c.g;
+  return cur.model.bones.find(b => b.name === c.b).name.startsWith(only) || c.b.startsWith(only);
+}
+function ranks(order) {
+  const n = cur.pose.length, key = new Array(n), H = cur.H;
+  for (let i = 0; i < n; i++) {
+    const c = center(cur.op[i].clone().multiply(cur.pose[i]));
+    key[i] = order === "up" ? c.y : order === "down" ? -c.y : order === "out" ? c.x * c.x + c.z * c.z + (c.y - H / 2) ** 2 * 0.3 : order === "in" ? -(c.x * c.x + c.z * c.z) : order === "random" ? rnd() : 0;
+  }
+  const out = new Array(n).fill(0); if (!order || order === "none") return out;
+  const idx = [...key.keys()].sort((a, b) => key[a] - key[b]); idx.forEach((ci, r) => out[ci] = n <= 1 ? 0 : r / (n - 1));
+  return out;
+}
+// each cube blends its op from the last value to the new one over the step's time, like the client does
+function decompose(m) { const p = new V(), q = new Q(), s = new V(); m.decompose(p, q, s); return { p, q, s }; }
+function setOp(i, m, ticks, now) {
+  const from = decompose(displayOp(i, now));
+  cur.op[i].copy(m);
+  cur.anim[i] = ticks > 0 ? { from, to: decompose(m), t0: now, d: ticks * 50 } : null;
+}
+function displayOp(i, now) {
+  const a = cur.anim[i]; if (!a) return cur.op[i];
+  const t = Math.min(1, (now - a.t0) / a.d); if (t >= 1) { cur.anim[i] = null; return cur.op[i]; }
+  const p = a.from.p.clone().lerp(a.to.p, t), q = a.from.q.clone().slerp(a.to.q, t), s = a.from.s.clone().lerp(a.to.s, t);
+  return new Mt().compose(p, q, s);
+}
+function runSteps(steps, after) {
+  mode = "steps"; attack = null;
+  const events = [];
+  let end = 0;
+  steps.forEach((s, si) => {
+    end = Math.max(end, (s.at || 0) + (s.stagger || 0) + (s.dur || 0));
+    if (s.op === "fx" || s.op === "anim" || s.op === "prop") { events.push({ tick: s.at || 0, s, cube: -1 }); return; }
+    const rk = ranks(s.order || "none"), part = s.part;
+    for (let i = 0; i < cur.pose.length; i++) {
+      if (!matches(s.only, i)) continue;
+      if (part && (rk[i] < part[0] || rk[i] > part[1] || (rk[i] === part[1] && part[1] < 1))) continue;
+      events.push({ tick: (s.at || 0) + Math.round(rk[i] * (s.stagger || 0)), s, cube: i });
+    }
+  });
+  events.sort((a, b) => a.tick - b.tick);
+  timeline = { events, next: 0, t0: performance.now(), end: end + 2, after, anim: null, animStart: 0, animEnd: 0 };
+}
+function tickSteps(now) {
+  const tl = timeline, k = Math.floor((now - tl.t0) / 50);
+  while (tl.next < tl.events.length && tl.events[tl.next].tick <= k) {
+    const e = tl.events[tl.next++], s = e.s;
+    if (s.op === "fx") { effect(s); continue; }
+    if (s.op === "prop") { prop(s, now); continue; }
+    if (s.op === "anim") { tl.anim = cur.rig[s.name]; tl.animStart = e.tick; tl.animEnd = e.tick + Math.max(2, s.dur || 0); continue; }
+    if (s.op === "swap") { cur.block[e.cube] = s.block || cur.model.cubes[e.cube].k; cur.meshes[e.cube].material = material(cur.block[e.cube], cur.lit[e.cube], DATA.palette); continue; }
+    if (s.op === "light") { cur.lit[e.cube] = !!s.on || !!cur.model.cubes[e.cube].l; cur.meshes[e.cube].material = material(cur.block[e.cube], cur.lit[e.cube], DATA.palette); continue; }
+    const x = stepMatrix(s, e.cube);
+    const next = x ? x.multiply(cur.op[e.cube]) : new Mt();
+    setOp(e.cube, next, s.dur || 0, now);
+  }
+  if (tl.anim) {
+    const t = (k - tl.animStart) / 20;
+    setPose([{ anim: cur.rig.idle, t: idleT, w: 1 }, { anim: tl.anim, t: Math.min(t, tl.anim.length), w: 1 }]);
+    if (k >= tl.animEnd) tl.anim = null;
+  }
+  if (k >= tl.end) { timeline = null; const a = tl.after; if (a) a(); }
+}
+function resetShape() {
+  clearProps();
+  for (let i = 0; i < cur.op.length; i++) { cur.op[i].identity(); cur.anim[i] = null; cur.block[i] = cur.model.cubes[i].k; cur.meshes[i].material = material(cur.model.cubes[i].k, cur.model.cubes[i].l, DATA.palette); cur.lit[i] = !!cur.model.cubes[i].l; }
+  idleT = 0; setPose([{ anim: cur.rig.idle, t: 0, w: 1 }]);
+}
+function doSpawn() { resetShape(); setBar(1); runSteps(cur.model.spawn, () => { mode = "live"; }); }
+function doDeath() {
+  if (mode !== "live") return;
+  setBar(0);
+  runSteps(cur.model.death, () => { setTimeout(() => { if (cur && mode === "steps") doSpawn(); }, 900); });
+}
+
+// ---------------------------------------------------------------- particles and flashes
+const ptGeo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+function burst(y, color, count, speed, life, up) {
+  for (let i = 0; i < Math.min(count, 80); i++) {
+    const m = new THREE.Mesh(ptGeo, new THREE.MeshBasicMaterial({ color, transparent: true }));
+    m.position.set((rnd() - 0.5) * 0.6, y, (rnd() - 0.5) * 0.6);
+    m.userData = { v: new V((rnd() - 0.5) * speed, (rnd() * 0.8 + 0.2 * (up || 0)) * speed, (rnd() - 0.5) * speed), born: performance.now(), life };
+    scene.add(m); fx.push(m);
+  }
+}
+function ring(radius, color, life) {
+  const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+  m.position.y = 0.05; m.scale.setScalar(0.2); m.userData = { ring: radius, born: performance.now(), life }; scene.add(m); fx.push(m);
+}
+function bolt() {
+  const pts = []; let x = 0, z = 0;
+  for (let y = 30; y >= 0; y -= 2) { pts.push(new V(x, y, z)); x += (rnd() - 0.5) * 1.4; z += (rnd() - 0.5) * 1.4; }
+  const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xe8f4ff, transparent: true }));
+  l.userData = { born: performance.now(), life: 260, line: true }; scene.add(l); fx.push(l);
+  const p = new THREE.PointLight(0xcfe8ff, 6, 40); p.position.set(0, 6, 0); p.userData = { born: performance.now(), life: 260, light: true }; scene.add(p); fx.push(p);
+}
+function effect(s) {
+  const y = (s.y == null ? 0.5 : s.y) * cur.H, color = s.color || FXC[s.particle] || cur.boss.color;
+  if (s.particle) burst(y, color, s.count || 30, 2 + (s.spread || 1) * 2, 900, 1);
+  if (s.ring) ring(s.ring, color, 800);
+  if (s.lightning) bolt();
+  if (s.particle === "FLASH" || (s.particle || "").startsWith("EXPLOSION")) {
+    const p = new THREE.PointLight(color, 5, 30); p.position.set(0, y, 0); p.userData = { born: performance.now(), life: 350, light: true }; scene.add(p); fx.push(p);
+  }
+}
+// loose blocks of a "prop" step: meteors, spikes, a closing ring, rolling rubble, falling debris
+const props = [];
+function prop(s, now) {
+  const n = Math.max(1, Math.min(12, s.count || 5)), H = cur.H, size = s.size || 0.6, radius = (s.r == null ? 1 : s.r) * H, tall = s.tall || 1;
+  const dur = Math.max(4, s.dur || 0), linger = s.linger == null ? 12 : s.linger, mode = s.mode || "fall";
+  for (let p = 0; p < n; p++) {
+    const a = Math.PI * 2 * (p + rnd() * 0.6) / n, cx = Math.cos(a), cz = Math.sin(a), far = radius * (0.7 + rnd() * 0.5);
+    const delay = mode === "orbit" ? 0 : Math.round(p / n * (s.stagger || 0)), spin = (rnd() - 0.5) * 500 * D2R;
+    const axis = new V(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize(), keys = [];
+    if (mode === "rise") keys.push([0, cx * far, -size * tall, cz * far, 0, 1], [dur, cx * far, 0, cz * far, 0, 1], [dur + linger, cx * far, 0, cz * far, 0, 1], [dur + linger + 6, cx * far, -size * tall, cz * far, 0, 1]);
+    else if (mode === "orbit") { const y = (s.y == null ? 0.5 : s.y) * H, turns = s.turns || 1;
+      for (let j = 0; j <= 8; j++) { const b = a + Math.PI * 2 * turns * j / 8, rr = radius * (1 - 0.9 * j / 8); keys.push([dur * j / 8, Math.cos(b) * rr, y, Math.sin(b) * rr, spin * j / 8, j === 8 ? 0.05 : 1]); } }
+    else if (mode === "wave") keys.push([0, 0, 0, 0, 0, 0.2], [dur / 2, cx * far / 2, size * 1.2, cz * far / 2, spin / 2, 1], [dur, cx * far, 0, cz * far, spin, 1], [dur + linger, cx * far, 0, cz * far, spin, 1], [dur + linger + 6, cx * far, 0, cz * far, spin, 0.05]);
+    else if (mode === "rain") { const d = far * rnd(); keys.push([0, cx * d, H * 2 + 2 + rnd() * 2, cz * d, 0, 1], [dur, cx * d, 0, cz * d, spin, 1], [dur + 4, cx * d, 0, cz * d, spin, 0.05]); }
+    else { const lean = (s.lean == null ? 1.5 : s.lean) * H;
+      keys.push([0, cx * far + lean, H * 2 + 4 + rnd() * 3, cz * far + lean * 0.4, 0, 1], [dur, cx * far, 0, cz * far, spin, 1], [dur + 2, cx * far, size * 0.3, cz * far, spin * 1.05, 1], [dur + 4, cx * far, 0, cz * far, spin * 1.1, 1], [dur + 4 + linger, cx * far, 0, cz * far, spin * 1.1, 1], [dur + 10 + linger, cx * far, 0, cz * far, spin * 1.1, 0.05]); }
+    const mesh = new THREE.Mesh(GEO, material(s.block || "stone", !!s.lit, DATA.palette));
+    mesh.matrixAutoUpdate = false; scene.add(mesh);
+    props.push({ mesh, keys, t0: now + delay * 50, a, axis, size, tall, upright: mode === "rise" });
+  }
+}
+function tickProps(now) {
+  for (let i = props.length - 1; i >= 0; i--) {
+    const p = props[i], t = (now - p.t0) / 50, K = p.keys;
+    if (t > K[K.length - 1][0] + 2) { scene.remove(p.mesh); props.splice(i, 1); continue; }
+    let j = 1; while (j < K.length - 1 && K[j][0] < t) j++;
+    const A = K[j - 1], B = K[j], f = Math.max(0, Math.min(1, (t - A[0]) / Math.max(1e-3, B[0] - A[0]))), q = A.map((v, x) => v + (B[x] - v) * f);
+    const m = new Mt().makeTranslation(q[1], q[2], q[3]);
+    if (p.upright) m.multiply(new Mt().makeRotationY(p.a));
+    else m.multiply(new Mt().makeTranslation(0, p.size / 2, 0)).multiply(new Mt().makeRotationAxis(p.axis, q[4])).multiply(new Mt().makeTranslation(0, -p.size / 2, 0));
+    m.multiply(new Mt().makeScale(p.size * q[5], p.size * q[5] * p.tall, p.size * q[5])).multiply(new Mt().makeTranslation(-0.5, 0, -0.5));
+    p.mesh.matrix.copy(m);
+  }
+}
+function clearProps() { for (const p of props) scene.remove(p.mesh); props.length = 0; }
+function tickFx(now, dt) {
+  for (let i = fx.length - 1; i >= 0; i--) {
+    const m = fx[i], u = m.userData, age = (now - u.born) / u.life;
+    if (age >= 1) { scene.remove(m); fx.splice(i, 1); continue; }
+    if (u.v) { m.position.addScaledVector(u.v, dt); u.v.y -= dt * 2.5; m.material.opacity = 1 - age; }
+    else if (u.ring) { m.scale.setScalar(0.2 + u.ring * age); m.material.opacity = 0.9 * (1 - age); }
+    else if (u.line) m.material.opacity = 1 - age;
+    else if (u.light) m.intensity = 6 * (1 - age);
+  }
+}
+
+// ---------------------------------------------------------------- roster and controls
+function roster() {
+  const el = document.getElementById("roster");
+  const groups = [["Weekly bosses", DATA.bosses.filter(b => !b.season)], ["Seasonal bosses", DATA.bosses.filter(b => b.season)]];
+  for (const [title, list] of groups) {
+    const h = document.createElement("div"); h.className = "group"; h.textContent = title.toUpperCase(); el.appendChild(h);
+    for (const b of list) {
+      const c = document.createElement("button"); c.type = "button"; c.className = "card"; c.dataset.id = b.id; c.style.setProperty("--c", b.color);
+      c.innerHTML = `<span class="n">${b.name}</span><span class="m">${b.title}</span><span class="m">${DATA.models[b.id].cubes.length} blocks${b.season ? " · " + nice(b.season) : ""}</span>`;
+      c.onclick = () => { choose(b.id); doSpawn(); if (matchMedia("(max-width: 860px)").matches) document.getElementById("box").scrollIntoView({ behavior: "smooth", block: "start" }); };
+      el.appendChild(c);
+    }
+  }
+}
+document.getElementById("spawn").onclick = () => doSpawn();
+document.getElementById("death").onclick = () => doDeath();
+document.getElementById("hit").onclick = () => { if (mode === "live") { hurtT = 0; burst(cur.H * 0.5, "#ff3030", 20, 3, 500, 1); } };
+document.getElementById("walk").onclick = e => { walking = !walking; e.target.setAttribute("aria-pressed", walking); e.target.textContent = walking ? "Stop walking" : "Walk"; };
+document.getElementById("zones").onclick = e => { showZones = !showZones; e.target.setAttribute("aria-pressed", showZones);
+  if (cur) { cur.zoneBoxes.forEach(b => b.visible = showZones); cur.mobBox.visible = showZones; } };
+document.getElementById("spin").onclick = e => { spin = !spin; controls.autoRotate = spin; e.target.setAttribute("aria-pressed", spin); e.target.textContent = spin ? "Auto-turn on" : "Auto-turn off"; };
+
+function resize() {
+  const box = document.getElementById("box"), w = box.clientWidth, h = box.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (cur) {
+    if (mode === "live") livePose(dt);
+    if (timeline) tickSteps(now);
+    for (let i = 0; i < cur.meshes.length; i++) cur.meshes[i].matrix.copy(displayOp(i, now)).multiply(cur.pose[i]);
+  }
+  tickProps(now);
+  tickFx(now, dt);
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+window.addEventListener("resize", resize);
+roster();
+const start = (location.hash || "").slice(1);
+choose(DATA.models[start] ? start : "gravelord");
+resize();
+doSpawn();
+requestAnimationFrame(frame);
+</script>
+
+</body></html>

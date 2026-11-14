@@ -242,6 +242,7 @@ public final class QuestMenu implements LockedMenu {
             case CONSUME -> Material.COOKED_BEEF;
             case DELIVER -> Material.CHEST;
             case TALK -> Material.EMERALD;
+            case FIND -> Material.BARREL;
         };
     }
 

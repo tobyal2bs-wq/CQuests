@@ -121,7 +121,8 @@ daily:
 # ----------------------------------------------------------- VILLAGER SPAWNING
 spawning:
   # Five camp residents, plus the daily villager. Other unplaced NPCs use the surrounding world.
-  # Existing saved positions are preserved; /cq camp explicitly arranges this layout.
+  # Existing saved positions are preserved. /cq camp places only these spawn villagers again, around
+  # you (or the world spawn from the console); the wild villagers are not touched.
   camp-npcs: [stephan, jerry, rosie, copper_jack, luma, bob]
   # NPCs without a spot in spawns.yml are placed around the world spawn on startup.
   # Move them with /cq npc place <id> or /cq scatter.
@@ -133,6 +134,11 @@ spawning:
   act2-ring: [70, 300]
   # An NPC only exists while a player is within this many blocks. With nobody near it is removed.
   player-range: 100
+  # ...and only while one of those players needs it: it is at spawn, on their quest, or their story
+  # reaches it. Nobody needs it = it is not there, not on minimaps, and costs nothing.
+  only-when-needed: true
+  # Fewest blocks between two placed villagers (the shield radius can make it more).
+  npc-spacing: 6
   # How often NPCs are spawned, removed and moved.
   check-seconds: 3
   # NPCs placed with /cq scatter move to a new random spot in their area this often (0 = never).
@@ -182,6 +188,11 @@ welcome:
   # Chat on join (the how-to-play text from messages.yml, "New quest", unread mail). Off: players
   # join to a clean chat; the arrow above the hotbar and their compass already point to the first villager.
   chat-message: false
+
+# ----------------------------------------------------------- BEGINNER GUIDE
+guide:
+  # Short numbered tips at the first steps (talk, tutorial, rewards, the basics). Text in messages.yml.
+  enabled: true
 
 # ----------------------------------------------------------- CHAPTERS
 chapters:
@@ -254,7 +265,11 @@ adventures:
   wither: true
 
 progression:
+  # Chapter 1 (the villagers at spawn) needs no level: anyone can start there. Their name tag says STARTER.
+  starter-chapter-free: true
+  # Daily quests open at this Wayfarer level.
   daily-min-level: 10
+  # Wayfarer level each later chapter needs.
   chapter-levels:
     1: 0
     2: 100
@@ -287,6 +302,10 @@ world-bosses:
   particle-multiplier: 1.0
   # With the CBosses plugin installed, CQuests leaves the world bosses to it (no double bosses).
   defer-to-cbosses: true
+  # Walking bosses move on their own (stalk, charge, circle, hop, slither, lumber or skitter, picked
+  # from the name) instead of like the mob under them. Set one per boss, e.g.  gorehorn: charge
+  own-movement: true
+  movement-styles: {}
   schedule:
     enabled: true
     # Days and time the weekly boss wakes (MONDAY ... SUNDAY). Add more days for more fights a week.
@@ -310,6 +329,11 @@ world-bosses:
   # Damage needed (percent of its health) to earn a reward.
   min-damage-percent: 2
   max-active: 4
+  # Radius of the border round a boss an op spawns where they stand (panel left-click).
+  here-radius: 40
+  # Dust circles round a boss (rage, shockwave warnings, entrances) and drifting particles round its body.
+  rings: false
+  aura: false
   # Block effects (shockwave rings of ground blocks, falling meteors and their broken pieces) are block
   # displays, never real blocks. This caps how many are alive at once on the whole server (0 = particles only).
   max-block-effects: 48
@@ -369,3 +393,28 @@ invites:
     5: []
     10: []
 
+
+# Loot crates: wooden crates that break open for loot when a player uses them (/cq crate place|remove|token|wild|hint).
+crates:
+  enabled: true
+  # A crate spot you placed comes back this long after someone opens it.
+  respawn-minutes: 30
+  # A few crates also hide on the surface around a world's spawn and move somewhere else after a while.
+  wild:
+    count: 3
+    world: ""            # empty: the main world
+    radius: 1500
+    lifetime-minutes: 360
+    respawn-minutes: 20
+  # One pick per crate: "weight ITEM amount". Higher weight is more common.
+  loot:
+    - "30 DIAMOND 5"
+    - "8 NETHERITE_INGOT 1"
+    - "22 EMERALD 12"
+    - "15 GOLDEN_APPLE 2"
+    - "15 IRON_INGOT 16"
+    - "10 EXPERIENCE_BOTTLE 16"
+  # A Chest Token drops on top of the loot at 1 in N crates; N is rolled fresh every day between these two.
+  token:
+    min-odds: 10000
+    max-odds: 200000

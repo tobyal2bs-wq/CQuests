@@ -70,12 +70,12 @@ public final class SpawnManager {
         World world=feedback instanceof org.bukkit.entity.Player player?player.getWorld():plugin.settings().autoPlaceWorld.isEmpty()?Bukkit.getWorlds().get(0):Bukkit.getWorld(plugin.settings().autoPlaceWorld);
         if(world==null){tell(feedback,"<red>Spawn world is unavailable.");return;}
         Location center=world.getSpawnLocation();
-        List<NpcDef> selected=plugin.npcs().all().stream().filter(n->{
-            Point p=points.get(n.id());return atCamp(n)||(p!=null&&p.world().equals(world.getName())&&Math.hypot(p.x()-center.getX(),p.z()-center.getZ())<96);
-        }).toList();
+        if(feedback instanceof org.bukkit.entity.Player player)center=player.getLocation();
+        // Only the spawn villagers (chapter 1 and the daily board). The wild ones stay where they are.
+        List<NpcDef> selected=plugin.npcs().all().stream().filter(this::atCamp).toList();
         Map<String,Long> tokens=new java.util.HashMap<>();for(NpcDef n:selected)tokens.put(n.id(),edit(n.id()));
         autoNext(world,center,selected,0,tokens,epoch,new int[2]);
-        tell(feedback,"<gold>Arranging the spawn residents, including "+Text.escape(plugin.npcs().name("bob"))+" and daily work, in "+world.getName()+". Other nearby residents move to the surrounding world. Progress is preserved.");
+        tell(feedback,"<gold>Placing the "+selected.size()+" spawn villagers, including "+Text.escape(plugin.npcs().name("bob"))+" and the daily board, around "+(feedback instanceof org.bukkit.entity.Player?"you":"the world spawn")+" in "+world.getName()+". The wild villagers stay where they are. Quest progress is kept.");
     }
 
     private final CQuestsPlugin plugin;
@@ -263,7 +263,8 @@ public final class SpawnManager {
         }
         double range = plugin.settings().spawnRange;
         // A little extra range before despawning stops NPCs flickering at the edge.
-        boolean playerNear = !loc.getNearbyPlayers(alive ? range + 16 : range).isEmpty();
+        boolean playerNear = false;
+        for (org.bukkit.entity.Player p : loc.getNearbyPlayers(alive ? range + 16 : range)) if (needs(p, npc)) { playerNear = true; break; }
         if (alive && !playerNear) {
             live.remove(npc.id(), current);
             plugin.nameplates().remove(npc.id());
@@ -323,6 +324,17 @@ public final class SpawnManager {
         live.put(npc.id(), entity);
         plugin.nameplates().spawn(npc,entity,loc);
         plugin.visibility().onSpawn(npc, entity);
+    }
+
+    /**
+     * Whether this nearby player has a reason to see the NPC: it is at spawn, or on one of their quests, or
+     * their story reaches it. With spawning.only-when-needed off, anyone nearby counts. Nobody needing it
+     * means the NPC does not exist at all, so it is not on anyone's minimap and costs nothing.
+     */
+    private boolean needs(org.bukkit.entity.Player p, NpcDef npc) {
+        if (!plugin.settings().onlyWhenNeeded) return true;
+        var data = plugin.store().cached(p.getUniqueId());
+        return data != null && plugin.questManager().shouldSee(data, npc);
     }
 
     private LivingEntity spawn(NpcDef npc, Location loc) {
@@ -390,7 +402,13 @@ public final class SpawnManager {
             Class<?> profileClass = Class.forName("io.papermc.paper.datacomponent.item.ResolvableProfile");
             Class<?> builderClass = Class.forName("io.papermc.paper.datacomponent.item.ResolvableProfile$Builder");
             Object builder = profileClass.getMethod("resolvableProfile").invoke(null);
-            builderClass.getMethod("name", String.class).invoke(builder, npc.playerSkin());
+            String skin = npc.playerSkin();
+            if (skin.startsWith("texture:")) {
+                // texture:<value>[:<signature>] as given by mineskin.org: no account needed, never changes
+                String[] t = skin.substring(8).split(":", 2);
+                Object property = new com.destroystokyo.paper.profile.ProfileProperty("textures", t[0], t.length > 1 && !t[1].isBlank() ? t[1] : null);
+                builderClass.getMethod("addProperty", com.destroystokyo.paper.profile.ProfileProperty.class).invoke(builder, property);
+            } else builderClass.getMethod("name", String.class).invoke(builder, skin);
             Object profile = builderClass.getMethod("build").invoke(builder);
             for (Method method : e.getClass().getMethods()) {
                 if (method.getName().equals("setProfile") && method.getParameterCount() == 1
@@ -539,7 +557,7 @@ public final class SpawnManager {
         SafePlacement.find(world, x, z, Math.min(area[1], area[4]), Math.max(area[1], area[4]), yaw)
                 .whenComplete((loc, error) -> {
                     if (!current(npc.id(), token, expectedEpoch)) { done.accept(null); return; }
-                    double spacing = Math.max(4, plugin.settings().shieldRadius * 2 + 2);
+                    double spacing = Math.max(plugin.settings().npcSpacing, plugin.settings().shieldRadius * 2 + 2);
                     boolean free = loc != null && points.entrySet().stream().noneMatch(e -> !e.getKey().equals(npc.id())
                             && e.getValue().world().equals(world.getName()) && Math.hypot(e.getValue().x() - x, e.getValue().z() - z) < spacing);
                     if (error == null && free) done.accept(loc);

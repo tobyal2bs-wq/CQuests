@@ -29,13 +29,14 @@ import java.util.Set;
  * shape), move, drop (fall to the floor), burst (fly outward), toward (pull to a point), shrink, scale,
  * spin, tilt, swap (change block, "" = the original), light, anim (play a rig animation), fx
  * (particles, sound, lightning), fling (thrown in an arc that lands and bounces), shatter (the block
- * breaks into flying shards), flash (every block turns white or red for a moment) and shake (the whole
+ * breaks into flying shards), prop (loose blocks that are not part of the body: mode fall, rise, orbit,
+ * wave or rain), flash (every block turns white or red for a moment) and shake (the whole
  * model trembles). "only" can start with ! to mean everything except.
  */
 public final class ModelRig {
 
     public static final Set<String> OPS = Set.of("pose", "move", "drop", "burst", "toward", "shrink", "scale", "spin", "tilt",
-            "swap", "light", "anim", "fx", "fling", "shatter", "flash", "shake");
+            "swap", "light", "anim", "fx", "fling", "shatter", "flash", "shake", "prop");
     public static final Set<String> ORDERS = Set.of("none", "up", "down", "out", "in", "random");
 
     /** Keyframes: times and xyz values, eased between keys like the preview does. */
@@ -151,6 +152,8 @@ public final class ModelRig {
         public float blocks() { return height * scale / 16f; }
         /** Constant rest-pose floor correction in model pixels; shared by skin and hit zones. */
         float groundLift;
+        /** Cubes that never count for the floor: shell parts and the faces that are not showing. */
+        boolean[] offFloor;
 
         public Anim anim(String name) { return name == null ? null : anims.get(name); }
 
@@ -288,6 +291,8 @@ public final class ModelRig {
                     bottom = Math.min(bottom, corner.y);
                 }
             }
+            model.offFloor = new boolean[cubes.size()];
+            for (int ci = 0; ci < cubes.size(); ci++) model.offFloor[ci] = only[ci] || cubes.get(ci).tag().startsWith("face:") && !cubes.get(ci).tag().equals("face:idle");
             if (Float.isFinite(bottom)) model.groundLift = -bottom;
             out.put(e.getKey(), model);
         }
@@ -359,7 +364,29 @@ public final class ModelRig {
             Matrix4f lift = new Matrix4f().translation(0, model.groundLift, 0);
             for (int i = 0; i < out.length; i++) out[i] = new Matrix4f(lift).mul(out[i]);
         }
+        keepAboveFloor(model, out, ground);
         return out;
+    }
+
+    /**
+     * There is a floor. When a fall, a lunge or a slam would put any block under it, the whole body is
+     * lifted by that much, so a boss lies on the ground instead of sinking into it. Same as the preview.
+     */
+    static void keepAboveFloor(Model model, Matrix4f[] out, float[] ground) {
+        if (model.offFloor == null) return;
+        float floor = 0, low = Float.POSITIVE_INFINITY;
+        if (ground != null) for (float g : ground) floor = Math.min(floor, g);
+        Vector3f corner = new Vector3f();
+        Matrix4f matrix = new Matrix4f();
+        for (int ci = 0; ci < model.cubes.size(); ci++) {
+            if (model.offFloor[ci]) continue;
+            Cube c = model.cubes.get(ci);
+            matrix.set(out[c.bone()]).mul(c.local());
+            for (int k = 0; k < 8; k++) low = Math.min(low, matrix.transformPosition(k & 1, k >> 1 & 1, k >> 2 & 1, corner).y);
+        }
+        if (low >= floor - 0.05f || !Float.isFinite(low)) return;
+        Matrix4f lift = new Matrix4f().translation(0, floor - low, 0);
+        for (int i = 0; i < out.length; i++) out[i] = new Matrix4f(lift).mul(out[i]);
     }
 
     private static Matrix4f[] rawPose(Model model, List<Layer> layers, float[] ground) {

@@ -13,12 +13,14 @@
 # Try any of them with /cq test worldboss <id>, or all of them with /cq worldboss selftest.
 bosses:
   slagheart:
-    name: "<gradient:#3d3d3d:#ff6a00><bold>Slagheart</bold></gradient>"
-    title: "The Molten Colossus"
+    name: "<gradient:#3d3d3d:#ff6a00><bold>Magmus</bold></gradient>"
+    previous-names: ["<gradient:#3d3d3d:#ff6a00><bold>Slagheart</bold></gradient>"]
+    title: "The Lava Golem"
+    previous-titles: ["The Molten Colossus"]
     entity: IRON_GOLEM
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 12
+    damage: 5
     armor: 10
     bar: RED
     glow: true
@@ -37,11 +39,12 @@ bosses:
       top-commands: []
   warlord_gruk:
     name: "<gradient:#ffb300:#fff176><bold>Warlord Gruk</bold></gradient>"
-    title: "Gold-Hungry Tyrant of the Bastion"
+    title: "Piglin Boss of the Bastion"
+    previous-titles: ["Gold-Hungry Tyrant of the Bastion"]
     entity: PIGLIN_BRUTE
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 15
+    damage: 6
     armor: 10
     bar: YELLOW
     glow: true
@@ -64,12 +67,14 @@ bosses:
       commands: []
       top-commands: []
   grand_augur:
-    name: "<gradient:#4a5a8a:#ffd54f><bold>The Grand Augur</bold></gradient>"
-    title: "King of the Illagers"
+    name: "<gradient:#4a5a8a:#ffd54f><bold>King Malrick</bold></gradient>"
+    previous-names: ["<gradient:#4a5a8a:#ffd54f><bold>The Grand Augur</bold></gradient>"]
+    title: "Ruler of the Illagers"
+    previous-titles: ["King of the Illagers"]
     entity: EVOKER
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 11
+    damage: 5
     armor: 6
     bar: BLUE
     glow: true
@@ -87,12 +92,14 @@ bosses:
       commands: []
       top-commands: []
   crimson_ronin:
-    name: "<gradient:#8b0000:#ff6b6b><bold>The Crimson Oni</bold></gradient>"
-    title: "Warlord of the Red Mountain"
+    name: "<gradient:#8b0000:#ff6b6b><bold>Akuma</bold></gradient>"
+    previous-names: ["<gradient:#8b0000:#ff6b6b><bold>The Crimson Oni</bold></gradient>"]
+    title: "The Red Oni"
+    previous-titles: ["Warlord of the Red Mountain"]
     entity: VINDICATOR
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 13
+    damage: 6
     armor: 8
     bar: RED
     glow: true
@@ -110,12 +117,14 @@ bosses:
       commands: []
       top-commands: []
   thunderback:
-    name: "<gradient:#5d3a1a:#ffe14d><bold>Thunderback</bold></gradient>"
-    title: "The Storm Ape"
+    name: "<gradient:#5d3a1a:#ffe14d><bold>Big Bongo</bold></gradient>"
+    previous-names: ["<gradient:#5d3a1a:#ffe14d><bold>Thunderback</bold></gradient>"]
+    title: "The Storm Gorilla"
+    previous-titles: ["The Storm Ape"]
     entity: RAVAGER
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 12
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -132,11 +141,12 @@ bosses:
       top-commands: []
   gorehorn:
     name: "<gradient:#3e2723:#ffcc80><bold>Gorehorn</bold></gradient>"
-    title: "Champion of the Pit"
+    title: "Minotaur of the Pit"
+    previous-titles: ["Champion of the Pit"]
     entity: RAVAGER
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 13
+    damage: 6
     armor: 8
     bar: WHITE
     glow: true
@@ -151,36 +161,15 @@ bosses:
       top-items: ["NETHERITE_SCRAP 1"]
       commands: []
       top-commands: []
-  abyssal_eye:
-    name: "<gradient:#003b46:#66fcf1><bold>The Abyssal Eye</bold></gradient>"
-    title: "Sentinel of the Drowned Temple"
-    entity: BLAZE
-    health: 5000
-    scale: 1.6
-    damage: 11
-    armor: 10
-    bar: BLUE
-    glow: true
-    particle: BUBBLE_POP
-    color: "#66fcf1"
-    minion: DROWNED
-    minions: 2
-    ability-seconds: 7
-    abilities: [volley, pull, leap, roar, frost, shockwave]
-    rewards:
-      money: 45000
-      top-money: 140000
-      items: ["PRISMARINE_SHARD 24", "SPONGE 4", "DIAMOND 2"]
-      top-items: ["HEART_OF_THE_SEA 1"]
-      commands: []
-      top-commands: []
   overgrowth:
-    name: "<gradient:#2d6a4f:#d8a657><bold>Overgrowth</bold></gradient>"
-    title: "The Guardian the Jungle Took"
+    name: "<gradient:#2d6a4f:#d8a657><bold>Rusty</bold></gradient>"
+    previous-names: ["<gradient:#2d6a4f:#d8a657><bold>Overgrowth</bold></gradient>"]
+    title: "The Jungle Golem"
+    previous-titles: ["The Guardian the Jungle Took"]
     entity: IRON_GOLEM
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 11
+    damage: 5
     armor: 10
     bar: GREEN
     glow: true
@@ -198,12 +187,14 @@ bosses:
       commands: []
       top-commands: []
   prism_sentinel:
-    name: "<gradient:#7b2ff7:#4ef0ff><bold>The Prism Sentinel</bold></gradient>"
-    title: "Cut From the Heart of the Mountain"
+    name: "<gradient:#7b2ff7:#4ef0ff><bold>Gemma</bold></gradient>"
+    previous-names: ["<gradient:#7b2ff7:#4ef0ff><bold>The Prism Sentinel</bold></gradient>"]
+    title: "The Crystal Golem"
+    previous-titles: ["Cut From the Heart of the Mountain"]
     entity: IRON_GOLEM
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 11
+    damage: 5
     armor: 14
     bar: PURPLE
     glow: true
@@ -219,12 +210,14 @@ bosses:
       commands: []
       top-commands: []
   tiki_warden:
-    name: "<gradient:#bf360c:#ffb300><bold>The Tiki Warden</bold></gradient>"
-    title: "Idol of the Burning Isle"
+    name: "<gradient:#bf360c:#ffb300><bold>Big Tiki</bold></gradient>"
+    previous-names: ["<gradient:#bf360c:#ffb300><bold>The Tiki Warden</bold></gradient>"]
+    title: "Idol of the Island"
+    previous-titles: ["Idol of the Burning Isle"]
     entity: ZOMBIE
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 12
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -242,12 +235,14 @@ bosses:
       commands: []
       top-commands: []
   broodmother:
-    name: "<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"
-    title: "Queen of the Deep Webs"
+    name: "<gradient:#33691e:#aed581><bold>Widow Mae</bold></gradient>"
+    previous-names: ["<gradient:#33691e:#aed581><bold>The Broodmother</bold></gradient>"]
+    title: "Queen of the Spiders"
+    previous-titles: ["Queen of the Deep Webs"]
     entity: SPIDER
-    health: 5000
+    health: 3000
     scale: 3.0
-    damage: 10
+    damage: 4
     armor: 0
     bar: GREEN
     glow: true
@@ -265,12 +260,14 @@ bosses:
       commands: []
       top-commands: []
   tide_tyrant:
-    name: "<gradient:#00838f:#80deea><bold>The Tide Tyrant</bold></gradient>"
-    title: "Drowned King of the Sunken Fleet"
+    name: "<gradient:#00838f:#80deea><bold>King Crabby</bold></gradient>"
+    previous-names: ["<gradient:#00838f:#80deea><bold>The Tide Tyrant</bold></gradient>"]
+    title: "Ruler of the Reef"
+    previous-titles: ["Drowned King of the Sunken Fleet"]
     entity: DROWNED
-    health: 5000
+    health: 3000
     scale: 2.2
-    damage: 12
+    damage: 5
     armor: 8
     bar: BLUE
     glow: true
@@ -291,12 +288,14 @@ bosses:
       commands: []
       top-commands: []
   storm_herald:
-    name: "<gradient:#3949ab:#b3e5fc><bold>The Storm Herald</bold></gradient>"
-    title: "Voice of the Thunderhead"
+    name: "<gradient:#3949ab:#b3e5fc><bold>Bjorn</bold></gradient>"
+    previous-names: ["<gradient:#3949ab:#b3e5fc><bold>The Storm Herald</bold></gradient>"]
+    title: "The Storm Ram"
+    previous-titles: ["Voice of the Thunderhead"]
     entity: EVOKER
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 10
+    damage: 4
     armor: 6
     bar: BLUE
     glow: true
@@ -313,11 +312,12 @@ bosses:
       top-commands: []
   pharaoh:
     name: "<gradient:#f9a825:#fff59d><bold>Pharaoh Ankhamun</bold></gradient>"
-    title: "Risen from the Buried Temple"
+    title: "Back From the Tomb"
+    previous-titles: ["Risen from the Buried Temple"]
     entity: HUSK
-    health: 5000
+    health: 3000
     scale: 2.2
-    damage: 12
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -340,11 +340,12 @@ bosses:
       top-commands: []
   executioner:
     name: "<gradient:#263238:#90a4ae><bold>The Executioner</bold></gradient>"
-    title: "Axe of the Woodland Mansion"
+    title: "Axe of the Mansion"
+    previous-titles: ["Axe of the Woodland Mansion"]
     entity: VINDICATOR
-    health: 5000
+    health: 3000
     scale: 1.9
-    damage: 17
+    damage: 7
     armor: 10
     bar: WHITE
     glow: true
@@ -365,12 +366,14 @@ bosses:
       commands: []
       top-commands: []
   ember_queen:
-    name: "<gradient:#9d0208:#ffba08><bold>The Ember Queen</bold></gradient>"
-    title: "Queen of the Ember Court"
+    name: "<gradient:#9d0208:#ffba08><bold>Big Bertha</bold></gradient>"
+    previous-names: ["<gradient:#9d0208:#ffba08><bold>The Ember Queen</bold></gradient>"]
+    title: "The Living Furnace"
+    previous-titles: ["Queen of the Ember Court"]
     entity: BLAZE
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 11
+    damage: 5
     armor: 8
     bar: RED
     glow: true
@@ -388,12 +391,14 @@ bosses:
       commands: []
       top-commands: []
   gravelord:
-    name: "<gradient:#6a1b9a:#e040fb><bold>The Gravelord</bold></gradient>"
-    title: "Lord of the Restless Dead"
+    name: "<gradient:#6a1b9a:#e040fb><bold>Mister Bones</bold></gradient>"
+    previous-names: ["<gradient:#6a1b9a:#e040fb><bold>The Gravelord</bold></gradient>"]
+    title: "The Gravedigger"
+    previous-titles: ["Lord of the Restless Dead", "He Brings an Empty Sack"]
     entity: WITHER_SKELETON
-    health: 5000
+    health: 3000
     scale: 2.2
-    damage: 13
+    damage: 6
     armor: 10
     bar: PURPLE
     glow: true
@@ -418,9 +423,9 @@ bosses:
     name: "<gradient:#005f73:#94d2bd><bold>Captain Brine</bold></gradient>"
     title: "Captain of the Drowned"
     entity: DROWNED
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 10
+    damage: 4
     armor: 8
     bar: BLUE
     glow: true
@@ -438,12 +443,14 @@ bosses:
       commands: []
       top-commands: []
   keywarden:
-    name: "<gradient:#b8860b:#fff3b0><bold>The Keywarden</bold></gradient>"
-    title: "Guardian of the Five Keys"
+    name: "<gradient:#b8860b:#fff3b0><bold>Old Jangles</bold></gradient>"
+    previous-names: ["<gradient:#b8860b:#fff3b0><bold>The Keywarden</bold></gradient>"]
+    title: "Keeper of the Five Keys"
+    previous-titles: ["Guardian of the Five Keys"]
     entity: IRON_GOLEM
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 9
+    damage: 4
     armor: 12
     bar: YELLOW
     glow: true
@@ -461,12 +468,14 @@ bosses:
       commands: []
       top-commands: []
   bloodtusk:
-    name: "<gradient:#b71c1c:#ff8a80><bold>Bloodtusk</bold></gradient>"
-    title: "The Crimson Charger"
+    name: "<gradient:#b71c1c:#ff8a80><bold>Hamhock</bold></gradient>"
+    previous-names: ["<gradient:#b71c1c:#ff8a80><bold>Bloodtusk</bold></gradient>"]
+    title: "The War Boar"
+    previous-titles: ["The Crimson Charger"]
     entity: HOGLIN
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 14
+    damage: 6
     armor: 8
     bar: RED
     glow: true
@@ -485,11 +494,12 @@ bosses:
       top-commands: []
   king_gloop:
     name: "<gradient:#7cb342:#dce775><bold>King Gloop</bold></gradient>"
-    title: "Monarch of the Swamp"
+    title: "King of the Swamp"
+    previous-titles: ["Monarch of the Swamp"]
     entity: SLIME
-    health: 5000
+    health: 3000
     scale: 1
-    damage: 12
+    damage: 5
     armor: 6
     bar: GREEN
     glow: true
@@ -510,9 +520,9 @@ bosses:
     name: "<gradient:#052e33:#4ae3e3><bold>THE LISTENER BELOW</bold></gradient>"
     title: "It Hears Your Heartbeat"
     entity: IRON_GOLEM
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 15
+    damage: 6
     armor: 14
     bar: BLUE
     glow: true
@@ -531,9 +541,9 @@ bosses:
     name: "<gradient:#2b2b2b:#8b0000><bold>The Withered Tyrant</bold></gradient>"
     title: "Three Skulls, One Hunger"
     entity: WITHER_SKELETON
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 14
+    damage: 6
     armor: 12
     bar: PURPLE
     glow: true
@@ -554,9 +564,9 @@ bosses:
     name: "<gradient:#b30000:#ffffff><bold>Killer Claus</bold></gradient>"
     title: "He Knows If You've Been Bad"
     entity: ZOMBIE
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 12
+    damage: 5
     armor: 6
     bar: RED
     glow: true
@@ -575,12 +585,14 @@ bosses:
       commands: []
       top-commands: []
   frostbottom:
-    name: "<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"
-    title: "The Snowman With a Grudge"
+    name: "<gradient:#e1f5fe:#ff7043><bold>Frosty</bold></gradient>"
+    previous-names: ["<gradient:#e1f5fe:#ff7043><bold>Frostbottom</bold></gradient>"]
+    title: "The Angry Snowman"
+    previous-titles: ["The Snowman With a Grudge"]
     entity: STRAY
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 5
     armor: 8
     bar: WHITE
     glow: true
@@ -602,9 +614,9 @@ bosses:
     name: "<gradient:#b3e5fc:#ffffff><bold>Old Man Winter</bold></gradient>"
     title: "The Blizzard Returns"
     entity: STRAY
-    health: 5000
+    health: 3000
     scale: 2.6
-    damage: 12
+    damage: 5
     armor: 8
     bar: BLUE
     glow: true
@@ -627,12 +639,14 @@ bosses:
       commands: []
       top-commands: []
   sunscorch:
-    name: "<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>"
-    title: "Melting On Holiday"
+    name: "<gradient:#ff6d00:#ffea00><bold>Sizzle</bold></gradient>"
+    previous-names: ["<gradient:#ff6d00:#ffea00><bold>Sunscorch</bold></gradient>", "<gradient:#ff6d00:#ffea00><bold>Sunny</bold></gradient>"]
+    title: "Done Being Cooked On"
+    previous-titles: ["Melting On Holiday", "Melting on Holiday"]
     entity: MAGMA_CUBE
-    health: 5000
+    health: 3000
     scale: 1
-    damage: 12
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -654,9 +668,9 @@ bosses:
     name: "<gradient:#ff5252:#ffd180><bold>Admiral Pinchworth</bold></gradient>"
     title: "Lord of the Sandcastle"
     entity: SPIDER
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 5
     armor: 10
     bar: RED
     glow: true
@@ -678,9 +692,9 @@ bosses:
     name: "<gradient:#ff8fc8:#9fffd0><bold>Brain Freeze</bold></gradient>"
     title: "The Sundae Supreme"
     entity: ZOMBIE
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 10
+    damage: 4
     armor: 4
     bar: PINK
     glow: true
@@ -702,9 +716,9 @@ bosses:
     name: "<gradient:#ffffff:#ff5252><bold>Clucksworth</bold></gradient>"
     title: "The Chicken That Came First"
     entity: ZOMBIE
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 5
     armor: 6
     bar: WHITE
     glow: true
@@ -726,9 +740,9 @@ bosses:
     name: "<gradient:#ffffff:#ff1744><bold>The Killer Bunny</bold></gradient>"
     title: "Small, Fluffy, Merciless"
     entity: RABBIT
-    health: 5000
+    health: 3000
     scale: 3.5
-    damage: 12
+    damage: 5
     armor: 4
     bar: PINK
     glow: true
@@ -747,12 +761,14 @@ bosses:
       commands: []
       top-commands: []
   cocoa_colossus:
-    name: "<gradient:#4e2a1e:#ffcf6b><bold>The Cocoa Colossus</bold></gradient>"
-    title: "The Egg That Fought Back"
+    name: "<gradient:#4e2a1e:#ffcf6b><bold>Eggbert</bold></gradient>"
+    previous-names: ["<gradient:#4e2a1e:#ffcf6b><bold>The Cocoa Colossus</bold></gradient>"]
+    title: "The Chocolate Egg"
+    previous-titles: ["The Egg That Fought Back"]
     entity: IRON_GOLEM
-    health: 5000
+    health: 3000
     scale: 1.6
-    damage: 11
+    damage: 5
     armor: 10
     bar: YELLOW
     glow: true
@@ -774,9 +790,9 @@ bosses:
     name: "<gradient:#ff9100:#7c4dff><bold>The Great Gourd</bold></gradient>"
     title: "Trick or Treat, Mostly Trick"
     entity: ZOMBIE
-    health: 5000
+    health: 3000
     scale: 2.0
-    damage: 12
+    damage: 5
     armor: 8
     bar: YELLOW
     glow: true
@@ -795,12 +811,14 @@ bosses:
       commands: []
       top-commands: []
   headless_horseman:
-    name: "<gradient:#e65100:#ffab40><bold>The Headless Horseman</bold></gradient>"
-    title: "Rider of All Hallows' Eve"
+    name: "<gradient:#e65100:#ffab40><bold>Stitches</bold></gradient>"
+    previous-names: ["<gradient:#e65100:#ffab40><bold>The Headless Horseman</bold></gradient>"]
+    title: "Good Boy, Badly Sewn"
+    previous-titles: ["Rider of All Hallows' Eve"]
     entity: SKELETON
-    health: 5000
+    health: 3000
     scale: 1.8
-    damage: 12
+    damage: 5
     armor: 8
     bar: RED
     glow: true
@@ -824,12 +842,14 @@ bosses:
       commands: []
       top-commands: []
   hexmother:
-    name: "<gradient:#6a1b9a:#ce93d8><bold>Hexmother Morwen</bold></gradient>"
-    title: "Brewer of a Thousand Curses"
+    name: "<gradient:#6a1b9a:#ce93d8><bold>Granny Morwen</bold></gradient>"
+    previous-names: ["<gradient:#6a1b9a:#ce93d8><bold>Hexmother Morwen</bold></gradient>"]
+    title: "The Swamp Witch"
+    previous-titles: ["Brewer of a Thousand Curses"]
     entity: WITCH
-    health: 5000
+    health: 3000
     scale: 1.9
-    damage: 8
+    damage: 4
     armor: 4
     bar: PURPLE
     glow: true
@@ -849,7 +869,8 @@ bosses:
       top-commands: []
 
   millstone_monk:
-    name: "<gradient:#91b5aa:#e0d9bd><bold>Millstone Monk</bold></gradient>"
+    name: "<gradient:#91b5aa:#e0d9bd><bold>Brother Miller</bold></gradient>"
+    previous-names: ["<gradient:#91b5aa:#e0d9bd><bold>Millstone Monk</bold></gradient>"]
     title: "Keeper of the Old Mill"
     model: millstone_monk
     scale: 1.5
@@ -857,8 +878,8 @@ bosses:
     particle: ASH
     color: "#91b5aa"
     entity: IRON_GOLEM
-    health: 5000
-    damage: 12
+    health: 3000
+    damage: 5
     armor: 9
     bar: GREEN
     ability-seconds: 8
@@ -871,47 +892,19 @@ bosses:
       commands: []
       top-commands: []
 
-  moonwake_manta:
-    name: <gradient:#80b9b3:#e2eadb><bold>Moonwake Manta</bold></gradient>
-    title: Warden of the Moonlit Tide
-    model: moonwake_manta
-    scale: 1.5
-    glow: false
-    particle: END_ROD
-    color: '#80b9b3'
-    entity: PHANTOM
-    health: 5000
-    damage: 11
-    armor: 6
-    bar: BLUE
-    ability-seconds: 8
-    abilities:
-    - pull
-    - volley
-    - levitate
-    rewards:
-      money: 45000
-      top-money: 135000
-      items:
-      - PRISMARINE_SHARD 32
-      - DIAMOND 2
-      top-items:
-      - NETHERITE_SCRAP 1
-      commands: []
-      top-commands: []
-    speed: 0.23
-
   thorncoil_basilisk:
-    name: <gradient:#8fa36d:#e2eadb><bold>Thorncoil Basilisk</bold></gradient>
-    title: Fang of the Tangled Grove
+    name: "<gradient:#8fa36d:#e2eadb><bold>Viper</bold></gradient>"
+    previous-names: ["<gradient:#8fa36d:#e2eadb><bold>Thorncoil Basilisk</bold></gradient>"]
+    title: "The Thorn Serpent"
+    previous-titles: ["Fang of the Tangled Grove"]
     model: thorncoil_basilisk
     scale: 1.5
     glow: false
     particle: CHERRY_LEAVES
     color: '#8fa36d'
     entity: RAVAGER
-    health: 5000
-    damage: 13
+    health: 3000
+    damage: 6
     armor: 8
     bar: GREEN
     ability-seconds: 8

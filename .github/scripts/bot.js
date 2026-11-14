@@ -199,7 +199,7 @@ bot.once('spawn', async () => {
     await command('/cq test bossstop')
     console.log('OK companion and bossnext test commands')
     start = await command('/cq test worldboss gravelord')
-    await message(/Test world boss: .*Gravelord|could not appear|Peaceful/, start)
+    await message(/Test world boss: .*\(gravelord\)|could not appear|Peaceful/, start)
     await sleep(1500)
     start = await command('/cq test worldbossstop')
     await message(/Test world boss ended|No test world boss/, start)

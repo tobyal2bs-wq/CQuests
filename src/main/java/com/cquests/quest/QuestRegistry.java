@@ -177,7 +177,7 @@ public final class QuestRegistry {
         }
         int level = s.getInt("level", 0);
         int chapter=category==QuestCategory.STORY?Math.max(1,s.getInt("chapter",1)):0;
-        int requiredLevel=category==QuestCategory.STORY?Math.max(level,settings.chapterLevels.getOrDefault(chapter,0))
+        int requiredLevel=category==QuestCategory.STORY?(chapter==1&&settings.starterFree?0:Math.max(level,settings.chapterLevels.getOrDefault(chapter,0)))
                 :category==QuestCategory.DAILY?settings.dailyMinLevel:level;
         return new Quest(
                 id,
@@ -195,8 +195,18 @@ public final class QuestRegistry {
                 parseReward(id, s.getConfigurationSection("rewards"), level, settings, log),
                 s.getBoolean("big", false),
                 chapter,
-                s.getInt("side-required", -1));
+                s.getInt("side-required", -1),
+                category == QuestCategory.STORY ? 0 : seconds(s.getString("time-limit", "")));
     }
+    /** "90", "90s", "15m" or "1h" as seconds; blank or bad means 0 (no clock). */
+    static int seconds(String text) {
+        if (text == null || text.isBlank()) return 0;
+        String t = text.trim().toLowerCase(java.util.Locale.ROOT);
+        int unit = t.endsWith("h") ? 3600 : t.endsWith("m") ? 60 : 1;
+        try { return Math.max(0, Integer.parseInt(unit == 1 ? t.replace("s", "") : t.substring(0, t.length() - 1)) * unit); }
+        catch (NumberFormatException e) { return 0; }
+    }
+
     private List<String> twistLines(String id,String key,List<String> original,boolean prepend){
         if(twists==null||!twists.getBoolean("enabled",true))return original;
         List<String> extra=twists.getStringList("quests."+id+"."+key);List<String> result=new ArrayList<>();
