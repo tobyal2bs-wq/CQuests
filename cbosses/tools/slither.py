@@ -68,13 +68,13 @@ if __name__ == "__main__":
     m = d["models"]["thorncoil_basilisk"]
     if not m.get("slither-revision"):
         m["anims"]["walk"] = clip(m, 1.2, 24)
-        rush = clip(m, 0.5, 34, lift=18); rush.pop("loop"); rush["length"] = 1.5; rush["hit"] = 0.9
-        for ch in rush["bones"].values():      # three fast waves, then back to the coil
-            for kind in ch:
-                one = ch[kind]
-                ch[kind] = [[round(k[0] + 0.5 * j, 3), k[1]] for j in range(2) for k in one[(1 if j else 0):]] + [[1.5, [0, 0, 0]]]
-                ch[kind].insert(0, [0, [0, 0, 0]]) if ch[kind][0][0] > 0 else None
-                ch[kind][0] = [0, [0, 0, 0]]; ch[kind][1][0] = max(ch[kind][1][0], 0.18)
+        wave = clip(m, 0.5, 34, lift=18)
+        rush = {"length": 1.5, "hit": 0.9, "bones": {}}
+        for b, ch in wave["bones"].items():          # uncoil, two fast waves, coil up again
+            rush["bones"][b] = {}
+            for kind, one in ch.items():
+                ks = [[0, [0, 0, 0]]] + [[round(0.2 + k[0] + 0.5 * j, 3), k[1]] for j in range(2) for k in (one if j == 0 else one[1:])]
+                rush["bones"][b][kind] = ks + [[1.5, [0, 0, 0]]]
         rush["bones"]["jaw"] = {"rot": [[0, [0, 0, 0]], [0.8, [28, 0, 0]], [1.0, [0, 0, 0]]]}
         m["anims"]["slither_rush"] = rush
         m["attacks"]["charge"] = "slither_rush"
